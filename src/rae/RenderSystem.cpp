@@ -49,8 +49,11 @@ m_fpsTimer(0.0),
 m_fpsString("fps:"),
 //m_pickedString("Nothing picked"),
 vg(nullptr),
-camera(/*fieldOfView*/Math::toRadians(70.0f), /*aspect*/16.0f / 9.0f, /*aperture*/0.1f, /*focusDistance*/10.0f)
+camera(/*fieldOfView*/Math::toRadians(20.0f), /*aspect*/16.0f / 9.0f, /*aperture*/0.1f, /*focusDistance*/10.0f),
+imageRenderer(&camera)
 {
+	debugTransform = new Transform(1,0,0,0);
+
 	initNanoVG();
 
 	init();
@@ -92,14 +95,12 @@ void RenderSystem::initNanoVG()
 		exit(0);
 		assert(0);
 	}
+
+	imageRenderer.setNanovgContext(vg);
 }
 
 void RenderSystem::init()
 {
-	camera.setPosition(vec3(-1.97f, 1.0f, 1.84));
-	camera.setYaw(0.5837f);
-	camera.setPitch(-0.3241f);
-
 	// Background color
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
 
@@ -140,9 +141,9 @@ Mesh& RenderSystem::createBox()
 	return mesh;
 }
 
-Material& RenderSystem::createAnimatingMaterial(int type)
+Material& RenderSystem::createAnimatingMaterial(int type, const glm::vec4& color)
 {
-	Material& material = m_objectFactory->createMaterial(type);
+	Material& material = m_objectFactory->createMaterial(type, color);
 
 	material.generateFBO(vg);
 	return material;
@@ -186,7 +187,8 @@ void RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 
 	if( m_fpsTimer >= 5.0 )
 	{
-		m_fpsString = std::string("fps: ") + std::to_string(m_nroFrames / 5.0);
+		m_fpsString = std::string("fps: ") + std::to_string(m_nroFrames / 5.0)
+			+ " / " + std::to_string(5000.0f / m_nroFrames) + " ms";
 		m_nroFrames = 0;
 		m_fpsTimer = 0.0;
 	}
@@ -197,6 +199,8 @@ void RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 	}
 
 	updateCamera(time, delta_time);
+
+	imageRenderer.update(time, delta_time);
 
 	render(time, delta_time, entities);
 
@@ -212,7 +216,16 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	render2dBackground(time, delta_time);
+
+	if (m_glRendererOn == false)
+		return;
+
 	glUseProgram(shaderID);
+
+	//debug
+	Mesh* debugMesh = nullptr;
+	Material* debugMaterial = nullptr;
 
 	for(auto& entity : entities)
 	{
@@ -234,12 +247,18 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 				break;
 				case ComponentType::MATERIAL:
 					if(material == nullptr)
+					{
 						material = m_objectFactory->getMaterial(componentIndex.id);
+						debugMaterial = material;
+					}
 					else cout << "ERROR: Found another material component. id: " << componentIndex.id << "\n";
 				break;
 				case ComponentType::MESH:
 					if(mesh == nullptr)
+					{
 						mesh = m_objectFactory->getMesh(componentIndex.id);
+						debugMesh = mesh;
+					}
 					else cout << "ERROR: Found another mesh component. id: " << componentIndex.id << "\n";
 				break;
 			}
@@ -257,6 +276,12 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 			renderMesh(transform, material, mesh);
 		}
 		//else cout << "No mesh and no transform.\n";
+	}
+
+	if (debugTransform && debugMesh && debugMaterial)
+	{
+		debugTransform->update(time, delta_time);
+		renderMesh(debugTransform, nullptr, debugMesh);
 	}
 }
 
@@ -360,36 +385,61 @@ void RenderSystem::renderMeshPicking(Transform* transform, Mesh* mesh, int entit
 	mesh->render(pickingShaderID);
 }
 
-void RenderSystem::render2d(double time, double delta_time)
+void RenderSystem::render2dBackground(double time, double delta_time)
 {
 	//nanovg
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
-		nvgFontFace(vg, "sans");
-
-		nvgFontSize(vg, 18.0f);
-		nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-		nvgFillColor(vg, nvgRGBA(235, 235, 235, 192));
-		nvgText(vg, 10.0f, 10.0f, m_fpsString.c_str(), nullptr);
-
-		nvgText(vg, 10.0f, 30.0f, "Keys: Second mouse + WASDQE + Shift, Arrows, IO, Esc", nullptr);
-
-		std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory->entityCount());
-		nvgText(vg, 10.0f, 50.0f, entity_count_str.c_str(), nullptr);
-
-		std::string transform_count_str = "Transforms: " + std::to_string(m_objectFactory->transformCount());
-		nvgText(vg, 10.0f, 70.0f, transform_count_str.c_str(), nullptr);
-
-		std::string mesh_count_str = "Meshes: " + std::to_string(m_objectFactory->meshCount());
-		nvgText(vg, 10.0f, 90.0f, mesh_count_str.c_str(), nullptr);
-
-		std::string material_count_str = "Materials: " + std::to_string(m_objectFactory->materialCount());
-		nvgText(vg, 10.0f, 110.0f, material_count_str.c_str(), nullptr);
-
-		//nvgText(vg, 10.0f, 80.0f, m_pickedString.c_str(), nullptr);
+		imageRenderer.renderNanoVG(vg, 0, 0, m_windowWidth, m_windowHeight);
 	nvgEndFrame(vg);
+}
+
+void RenderSystem::render2d(double time, double delta_time)
+{
+	//nanovg
+
+	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	if (imageRenderer.isInfoText())
+	{
+		nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
+			nvgFontFace(vg, "sans");
+
+			float vertPos = 10.0f;
+
+			nvgFontSize(vg, 18.0f);
+			nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+			nvgFillColor(vg, nvgRGBA(128, 128, 128, 192));
+			nvgText(vg, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
+
+			nvgText(vg, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, VB focus distance,"
+				" NM aperture, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
+			nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
+			nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
+
+			std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory->entityCount());
+			nvgText(vg, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
+
+			std::string transform_count_str = "Transforms: " + std::to_string(m_objectFactory->transformCount());
+			nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
+
+			std::string mesh_count_str = "Meshes: " + std::to_string(m_objectFactory->meshCount());
+			nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
+
+			std::string material_count_str = "Materials: " + std::to_string(m_objectFactory->materialCount());
+			nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
+
+			//nvgText(vg, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
+
+		nvgEndFrame(vg);
+	}
+}
+
+void RenderSystem::clearImageRenderer()
+{
+	imageRenderer.clear();
 }
 
 void RenderSystem::osEventResizeWindow(int width, int height)
@@ -448,7 +498,13 @@ void RenderSystem::onKeyEvent(const Input& input)
 	{
 		switch (input.key.value)
 		{
-			//case KeySym::T: toggleInfoText(); break;
+			case KeySym::R: clearImageRenderer(); break;
+			case KeySym::G: toggleGlRenderer(); break; // more like debug view currently
+			case KeySym::T: imageRenderer.toggleInfoText(); break;
+			case KeySym::Y: imageRenderer.toggleBufferQuality(); break;
+			case KeySym::U: imageRenderer.toggleFastMode(); break;
+			case KeySym::_1: imageRenderer.showScene(1); break;
+			case KeySym::_2: imageRenderer.showScene(2); break;
 			default:
 			break;
 		}
@@ -486,7 +542,22 @@ void RenderSystem::updateCamera(double time, double delta_time)
 	if (m_input.getKeyState(KeySym::E)) { camera.moveUp(float(delta_time)); }
 	if (m_input.getKeyState(KeySym::Q)) { camera.moveDown(float(delta_time)); }
 
-	camera.update();
+	if (m_input.getKeyState(KeySym::N)) { camera.minusAperture(); }
+	if (m_input.getKeyState(KeySym::M)) { camera.plusAperture(); }
+
+	if (glfwGetKey( m_window, GLFW_KEY_V ) == GLFW_PRESS) { camera.minusFocusDistance(); }
+	if (glfwGetKey( m_window, GLFW_KEY_B ) == GLFW_PRESS) { camera.plusFocusDistance(); }
+
+	if (glfwGetKey( m_window, GLFW_KEY_F ) == GLFW_PRESS)
+	{
+		imageRenderer.autoFocus();
+		debugTransform->setTarget(imageRenderer.debugHitRecord.point, 0.5f);
+	}
+
+	if (camera.update())
+	{
+		imageRenderer.clear();
+	}
 
 	//cout<<"camerapos: x: "<<m_cameraPosition.x << " y: " << m_cameraPosition.y << " z: " << m_cameraPosition.z
 	//	<< " yaw: " << m_yawAngle << " pitch: " << m_pitchAngle << "\n";

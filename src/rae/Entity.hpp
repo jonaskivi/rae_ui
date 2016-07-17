@@ -3,13 +3,18 @@
 
 #include <vector>
 
+#include "Types.hpp"
+
 namespace Rae
 {
+
+using Id = int;
+using CompId = int;
 
 struct ComponentIndex
 {
 public:
-	ComponentIndex(int set_type, int set_id)
+	ComponentIndex(int set_type, CompId set_id)
 	: type(set_type),
 	id(set_id)
 	{
@@ -24,22 +29,22 @@ public:
 
 	//Components are identified with 1. component type index, 2. component id index
 	int type;
-	int id;
+	CompId id;
 };
 
 class Entity
 {
 public:
-	int id() { return m_id; }
+	Id id() { return m_id; }
 protected:
-	void id(int set) { m_id = set; }
+	void id(Id set) { m_id = set; }
 	int m_id;
 
 public:
-	Entity(int set_id);
+	Entity(Id set_id);
 	~Entity();
 
-	void addComponent(int set_type, int set_id)
+	void addComponent(int set_type, CompId set_id)
 	{
 		m_components.emplace_back(set_type, set_id);
 	}

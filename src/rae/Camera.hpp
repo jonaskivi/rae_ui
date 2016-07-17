@@ -7,9 +7,12 @@
 using namespace glm;
 
 #include "core/Utils.hpp"
+#include "Ray.hpp"
 
 namespace Rae
 {
+
+vec3 randomInUnitDisk();
 
 class Camera
 {
@@ -26,6 +29,25 @@ public:
 	m_rotateSpeed(1.0f)
 	{
 		calculateFrustum();
+	}
+
+	Ray getRay(float s, float t)
+	{
+		//return Ray(origin, lowerLeftCorner + (s * horizontal) + (t * vertical) - origin);
+		// Normal:
+		//return Ray(m_position, m_topLeftCorner + (s * horizontal) - (t * vertical) - m_position);
+		vec3 rd = m_lensRadius * randomInUnitDisk();
+		vec3 offset = right * rd.x + up * rd.y;
+		//return Ray(m_position + offset, m_lowerLeftCorner + (s * horizontal) + (t * vertical) - m_position - offset);
+		return Ray(m_position + offset, m_topLeftCorner + (s * horizontal) - (t * vertical) - m_position - offset);
+	}
+
+	Ray getExactRay(float s, float t)
+	{
+		//return Ray(origin, lowerLeftCorner + (s * horizontal) + (t * vertical) - origin);
+		// Normal:
+		//return Ray(m_position, m_lowerLeftCorner + (s * horizontal) + (t * vertical) - m_position);
+		return Ray(m_position, m_topLeftCorner + (s * horizontal) - (t * vertical) - m_position);
 	}
 
 	void calculateFrustum()

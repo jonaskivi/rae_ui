@@ -8,7 +8,8 @@ enum class ComponentType
 {
 	TRANSFORM,
 	MESH,
-	MATERIAL
+	MATERIAL,
+	HIERARCHY
 };
 
 }

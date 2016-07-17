@@ -9,6 +9,7 @@
 
 #include "System.hpp"
 #include "Camera.hpp"
+#include "ImageRenderer.hpp"
 
 struct NVGcontext;
 
@@ -34,12 +35,13 @@ public:
 	void checkErrors(const char *file, int line);
 
 	Mesh& createBox();
-	Material& createAnimatingMaterial(int type);
+	Material& createAnimatingMaterial(int type, const glm::vec4& color);
 
 	void update(double time, double delta_time, std::vector<Entity>& entities) override;
 
 	void render(double time, double delta_time, std::vector<Entity>& entities);
 	void renderPicking(std::vector<Entity>& entities);
+	void render2dBackground(double time, double delta_time);
 	void render2d(double time, double delta_time);
 	void updateCamera(double time, double delta_time);
 
@@ -57,6 +59,13 @@ public:
 	int   windowHeight()      { return m_windowHeight;      }
 	int   windowWidth()       { return m_windowWidth;       }
 	float screenPixelRatio()  { return m_screenPixelRatio;  }
+
+	// Temp before we get keyboard Input class
+	void clearImageRenderer();
+	void toggleGlRenderer()
+	{
+		m_glRendererOn = !m_glRendererOn;
+	}
 	
 protected:
 
@@ -83,20 +92,28 @@ protected:
 	// nanovg context
 	NVGcontext* vg;
 	
+	// dependencies
+	ObjectFactory* m_objectFactory;
+	Input& m_input;
+
 	int m_windowWidth;
 	int m_windowHeight;
 	int m_windowPixelWidth;
 	int m_windowPixelHeight;
 	float m_screenPixelRatio;
 
-	ObjectFactory* m_objectFactory;
-	Input& m_input;
+	Transform* debugTransform = nullptr;
 
 	int m_nroFrames;
 	double m_fpsTimer;
 	std::string m_fpsString;
 	
 	Camera camera;
+
+	bool m_glRendererOn = false;
+
+	// Raytracing system:
+	ImageRenderer imageRenderer;
 };
 
 }

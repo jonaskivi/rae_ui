@@ -1,21 +1,13 @@
-# rae_render_cpp
-Small component based OpenGL renderer with NanoVG textures and Assimp model importing, and 3D picking shader
-
-![ScreenShot](https://cloud.githubusercontent.com/assets/6566641/10071941/596eb9b4-62c6-11e5-8408-ef6ae295d3df.png)
+# rae_raytracer
+A small beginning of a ray tracer inspired by/copied from Peter Shirley's minibooks
 
 # Features:
 
-- Click on the object in the middle, and other objects will appear with an animation.
-Clicking on the other objects will destroy them.
-- Per pixel shading
-- 3D picking via shader and glReadPixels.
-- This time I tried making a component based system, instead of the more traditional object oriented.
-There's just a base for a component system.
-- Animatable textures with NanoVG, using frameBufferObjects.
-
-- Move the camera with WASD and arrow keys.
-- I-key will add objects, and O-key will destroy them.
-- Esc to quit.
+- Ray tracing spheres
+- Depth of field
+- Cumulative rendering. Image gets less noisier over time.
+- Interactive moveable camera (Second mouse button + WASDQE)
+- Three material types (Lambertian, Metal, Dielectric)
 
 Source code is found under "src/rae". 
 
@@ -30,7 +22,7 @@ Source code is found under "src/rae".
     # And finally:
     make
     # cd into the bin directory and run:
-    ./rae_render
+    ./rae_ray
 
 	# on OSX:
 	premake4 xcode4
@@ -40,8 +32,4 @@ Source code is found under "src/rae".
 	premake4 vs2012
     # Open the project file and build it.
     # You may need to retarget it to vs2013 or vs2015 after opening it
-
-Some known/TODO issues with the code:
-- The component system is not very finished
-- GLFW code should be separated into something like a Window class.
 

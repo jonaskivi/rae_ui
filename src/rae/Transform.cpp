@@ -6,11 +6,21 @@ namespace Rae
 
 Transform::Transform(int set_id, float set_x, float set_y, float set_z)
 : m_id(set_id),
-//m_position(set_x, set_y, set_z),
-m_position(0.0f, 0.0f, 5.0f),
+m_position(set_x, set_y, set_z),
+//m_position(0.0f, 0.0f, 5.0f),
 m_modelMatrix(1.0f)
 {
 	setTarget(glm::vec3(set_x, set_y, set_z), 5.0f);
+	updateMatrix();
+}
+
+Transform::Transform(int set_id, const glm::vec3& position)
+: m_id(set_id),
+m_position(position),
+//m_position(0.0f, 0.0f, 5.0f),
+m_modelMatrix(1.0f)
+{
+	setTarget(position, 5.0f);
 	updateMatrix();
 }
 

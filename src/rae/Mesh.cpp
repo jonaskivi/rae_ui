@@ -26,7 +26,7 @@ void Mesh::generateBox()
 {
 	std::cout<<"Generating Mesh.\n";
 
-	float boxSize = 0.5f; // Actually half of the box size
+	float boxSize = 0.05f; // Actually half of the box size
 
     vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 0
 	vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 1

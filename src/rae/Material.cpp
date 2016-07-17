@@ -9,17 +9,119 @@ using namespace std;
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-
+using namespace glm;
 
 namespace Rae
 {
 
-Material::Material(int set_id, int set_type) // TODO that type should be an enum... :)
+// ray_tracing_utils.hpp
+vec3 random_in_unit_sphere()
+{
+	vec3 p;
+	do
+	{
+		p = 2.0f * vec3(drand48(), drand48(), drand48()) - vec3(1,1,1);
+	} while (dot(p,p) >= 1.0f);
+	return p;
+}
+
+bool Material::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
+{
+	return false;
+}
+
+bool Lambertian::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
+{
+	vec3 target = record.point + record.normal + random_in_unit_sphere();
+	scattered = Ray(record.point, target - record.point);
+	attenuation = albedo;
+	return true;
+}
+
+vec3 reflect(const vec3& v, const vec3& normal)
+{
+	return v - 2.0f * dot(v, normal) * normal;
+}
+
+bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
+{
+	vec3 reflected = reflect( normalize(r_in.direction()), record.normal );
+	scattered = Ray(record.point, reflected + roughness * random_in_unit_sphere());
+	attenuation = albedo;
+	return (dot(scattered.direction(), record.normal) > 0);
+}
+
+bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
+{
+	vec3 uv = normalize(v);
+	float dt = dot(uv, n);
+	float discriminant = 1.0f - ni_over_nt * ni_over_nt * (1.0f - dt * dt);
+	if (discriminant > 0)
+	{
+		refracted = ni_over_nt * (uv - n * dt) - n * sqrt(discriminant);
+		return true;
+	}
+	return false;
+}
+
+float schlick(float cosine, float refractive_index)
+{
+	float r0 = (1.0f - refractive_index) / (1.0f + refractive_index);
+	r0 = r0 * r0;
+	return r0 + (1.0f - r0) * pow((1.0f - cosine), 5.0f);
+}
+
+bool Dielectric::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
+{
+	vec3 outward_normal;
+	vec3 reflected = reflect(r_in.direction(), record.normal);
+	float ni_over_nt;
+	attenuation = vec3(1,1,1);
+	vec3 refracted;
+	float reflect_probability;
+	float cosine;
+	if (dot(r_in.direction(), record.normal) > 0)
+	{
+		outward_normal = -record.normal;
+		ni_over_nt = refractive_index;
+		cosine = refractive_index * dot(r_in.direction(), record.normal) / r_in.direction().length();
+	}
+	else
+	{
+		outward_normal = record.normal;
+		ni_over_nt = 1.0f / refractive_index;
+		cosine = -dot(r_in.direction(), record.normal) / r_in.direction().length();
+	}
+
+	if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))
+	{
+		reflect_probability = schlick(cosine, refractive_index);
+	}
+	else
+	{
+		reflect_probability = 1.0f;
+	}
+
+	if (drand48() < reflect_probability)
+	{
+		scattered = Ray(record.point, reflected); // REFLECT vs
+	}
+	else
+	{
+		scattered = Ray(record.point, refracted); // REFRACT !!
+	}
+	return true;
+}
+
+// --------------------- Legacy:
+
+Material::Material(int set_id, int set_type, const glm::vec4& set_color) // TODO that type should be an enum... :)
 : m_id(set_id),
 m_framebufferObject(nullptr),
 m_width(512),
 m_height(512),
-m_type(set_type)
+m_type(set_type),
+m_color(set_color)
 {
 	
 }
@@ -44,11 +146,8 @@ void Material::update(NVGcontext* vg, double time)
 	nvgluBindFramebuffer(m_framebufferObject);
 	glViewport(0, 0, m_width, m_height);
 
-	if(m_type == 2)
-		glClearColor(0.0f, 0.0f, 0.1f, 0.0f);
-	else if  (m_type == 1)
-		glClearColor(0.7f, 0.3f, 0.1f, 0.0f);
-	else glClearColor(0.2f, 0.6f, 0.7f, 0.0f);
+	// Any alpha other than zero will fail for some FBO reason
+	glClearColor(m_color.r, m_color.g, m_color.b, 0.0f);
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	nvgBeginFrame(vg, m_width, m_height, /*pixelRatio*/1.0f);
@@ -84,6 +183,11 @@ GLuint Material::textureID()
 	if( m_framebufferObject == nullptr )
 		return 0;
 	return m_framebufferObject->texture;
+}
+
+void Material::setColor(glm::vec4 set)
+{
+	m_color = set;
 }
 
 }

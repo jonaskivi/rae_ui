@@ -27,7 +27,11 @@ public:
 	Entity& createAddObjectButton();
 	Entity& createRandomBunnyEntity();
 	Entity& createRandomCubeEntity();
+	Entity& createCube(glm::vec3 position, glm::vec4 color);
 	Entity& createEmptyEntity();
+
+	void createTestWorld();
+	void createTestWorld2();
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);

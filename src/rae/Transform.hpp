@@ -17,6 +17,7 @@ protected:
 
 public:
 	Transform(int set_id, float set_x = 0.0f, float set_y = 0.0f, float set_z = 0.0f);
+	Transform(int set_id, const glm::vec3& position);
 
 	void setPosition(glm::vec3 set);
 	void setTarget(glm::vec3 set_target, float duration);

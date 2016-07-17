@@ -2,11 +2,12 @@
 using namespace std;
 
 #include "ObjectFactory.hpp"
+#include "ComponentType.hpp"
 #include "Entity.hpp"
 #include "Transform.hpp"
 #include "Mesh.hpp"
 #include "Material.hpp"
-#include "ComponentType.hpp"
+#include "Hierarchy.hpp"
 
 namespace Rae
 {
@@ -16,6 +17,15 @@ ObjectFactory::ObjectFactory()
 	m_entities.  reserve( INITIAL_ENTITY_RESERVE    );
 	m_transforms.reserve( INITIAL_TRANSFORM_RESERVE );
 	m_meshes.    reserve( INITIAL_MESH_RESERVE      );
+	m_hierarchies.reserve( INITIAL_ENTITY_RESERVE   );
+}
+
+ObjectFactory::~ObjectFactory()
+{
+	m_entities.clear();
+	m_transforms.clear();
+	m_meshes.clear();
+	m_hierarchies.clear();
 }
 
 // Entities
@@ -46,6 +56,16 @@ void ObjectFactory::destroyEntity(int index)
 					removedComponent(componentIndex);
 				}
 				else cout << "ERROR: Trying to remove transform " << componentIndex.id << " but there are only " << m_transforms.size() << " transforms.\n";
+			}
+			break;
+			case ComponentType::HIERARCHY:
+			{
+				if( componentIndex.id < m_hierarchies.size() )
+				{
+					m_hierarchies.erase(m_hierarchies.begin() + componentIndex.id);
+					removedComponent(componentIndex);
+				}
+				else cout << "ERROR: Trying to remove hierarchy " << componentIndex.id << " but there are only " << m_hierarchies.size() << " hierarchies.\n";
 			}
 			break;
 			case ComponentType::MATERIAL:
@@ -80,8 +100,13 @@ void ObjectFactory::removedComponent(ComponentIndex componentIndex)
 
 Transform& ObjectFactory::createTransform(float set_x, float set_y, float set_z)
 {
+	return createTransform(glm::vec3(set_x, set_y, set_z));
+}
+
+Transform& ObjectFactory::createTransform(const glm::vec3& position)
+{
 	size_t index = m_transforms.size();
-	m_transforms.emplace_back( index, set_x, set_y, set_z );
+	m_transforms.emplace_back( index, position );
 	//m_transformsIndexMap[index] = index;
 	return m_transforms.back();
 }
@@ -94,10 +119,16 @@ Mesh& ObjectFactory::createMesh()
 	return m_meshes.back();
 }
 
-Material& ObjectFactory::createMaterial(int type)
+Material& ObjectFactory::createMaterial(int type, const glm::vec4& color)
 {
-	m_materials.emplace_back( m_materials.size(), type );
+	m_materials.emplace_back( m_materials.size(), type, color );
 	return m_materials.back();
+}
+
+Hierarchy& ObjectFactory::createHierarchy()
+{
+	m_hierarchies.emplace_back( (int)m_hierarchies.size() );
+	return m_hierarchies.back();
 }
 
 }

@@ -120,7 +120,7 @@ int main()
 	GLFWmonitor* screen     = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(screen);
 
-	window = glfwCreateWindow( mode->width - 200, mode->height - 200, "Rae Render", nullptr, nullptr);
+	window = glfwCreateWindow( mode->width - 200, mode->height - 200, "Rae Raytracer", nullptr, nullptr);
 	
 	if( window == nullptr )
 	{
@@ -159,6 +159,8 @@ int main()
 	glfwSetScrollCallback         (window, glfwScrollCallback);
 	
 	engine.run();
+
+	g_engine = nullptr;
 
 	glfwTerminate();
 

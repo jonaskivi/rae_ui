@@ -36,13 +36,14 @@ m_input(m_screenSystem)
 	m_modelID = mesh.id();
 
 	m_meshID     = m_renderSystem->createBox().id();
-	m_materialID = m_renderSystem->createAnimatingMaterial(0).id();
-	m_bunnyMaterialID = m_renderSystem->createAnimatingMaterial(1).id();
-	m_buttonMaterialID = m_renderSystem->createAnimatingMaterial(2).id();
+	m_materialID = m_renderSystem->createAnimatingMaterial(0, glm::vec4(0.2f, 0.5f, 0.7f, 0.0f)).id();
+	m_bunnyMaterialID = m_renderSystem->createAnimatingMaterial(1, glm::vec4(0.7f, 0.3f, 0.1f, 0.0f)).id();
+	m_buttonMaterialID = m_renderSystem->createAnimatingMaterial(2, glm::vec4(0.0f, 0.0f, 0.1f, 0.0f)).id();
 	
 	createEmptyEntity(); // hack at index 0
 
-	createAddObjectButton(); // at index 1
+	createTestWorld2();
+
 	/*
 	for(unsigned i = 0; i < 50; ++i)
 	{
@@ -127,7 +128,7 @@ Entity& Engine::createRandomBunnyEntity()
 	
 	return entity;
 }
-	
+
 Entity& Engine::createRandomCubeEntity()
 {
 	Entity& entity = createEmptyEntity();
@@ -137,9 +138,51 @@ Entity& Engine::createRandomCubeEntity()
 	return entity;
 }
 
+Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
+{
+	Entity& entity = createEmptyEntity();
+	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
+
+	//material.generateFBO(vg);
+
+	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem->createAnimatingMaterial(0, color).id() );
+	entity.addComponent( (int)ComponentType::MESH, m_meshID );
+	return entity;
+}
+
 Entity& Engine::createEmptyEntity()
 {
 	return m_objectFactory.createEmptyEntity();			
+}
+
+void Engine::createTestWorld()
+{
+	createAddObjectButton(); // at index 1
+}
+
+void Engine::createTestWorld2()
+{
+	//createAddObjectButton(); // at index 1
+
+	auto cube0 = createCube(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
+	
+	auto cube1 = createCube(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
+	auto cube2 = createCube(glm::vec3(-0.5f, 0.65f, -1.0f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
+	auto cube3 = createCube(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
+	auto cube4 = createCube(glm::vec3(-3.15f, 0.1f, -5.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+
+	Hierarchy& hierarchy1 = m_objectFactory.createHierarchy();
+	cube1.addComponent( (int)ComponentType::HIERARCHY, hierarchy1.id() );
+	hierarchy1.addChild(cube2.id());
+
+	Hierarchy& hierarchy2 = m_objectFactory.createHierarchy();
+	cube2.addComponent( (int)ComponentType::HIERARCHY, hierarchy2.id() );
+	hierarchy2.setParent(cube1.id());
+	hierarchy2.addChild(cube3.id());
+
+	Hierarchy& hierarchy3 = m_objectFactory.createHierarchy();
+	cube3.addComponent( (int)ComponentType::HIERARCHY, hierarchy3.id() );
+	hierarchy3.setParent(cube2.id());
 }
 
 void Engine::osEventResizeWindow(int width, int height)

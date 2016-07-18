@@ -1,12 +1,12 @@
 #!lua
 
 -- A solution contains projects, and defines the available configurations
-solution "rae_raytracer"
+solution "rae_ray"
    configurations { "Debug", "Release" }
    platforms {"native", "x64", "x32"}
 
    -- A project defines one build target
-   project "rae_raytracer"
+   project "rae_ray"
       kind "ConsoleApp"
       language "C++"
       targetdir "../bin/"

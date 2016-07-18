@@ -1,7 +1,9 @@
-# rae_raytracer
+# Rae Ray
 A small beginning of a ray tracer inspired by/copied from Peter Shirley's minibooks
 
-# Features:
+![ScreenShot](https://cloud.githubusercontent.com/assets/6566641/16933706/ae8202a8-4d58-11e6-9008-33fd87df6dd8.jpeg)
+
+# Features
 
 - Ray tracing spheres
 - Depth of field

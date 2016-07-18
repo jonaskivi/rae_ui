@@ -120,7 +120,7 @@ int main()
 	GLFWmonitor* screen     = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(screen);
 
-	window = glfwCreateWindow( mode->width - 200, mode->height - 200, "Rae Raytracer", nullptr, nullptr);
+	window = glfwCreateWindow( mode->width - 200, mode->height - 200, "Rae Ray", nullptr, nullptr);
 	
 	if( window == nullptr )
 	{

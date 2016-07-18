@@ -32,7 +32,7 @@ ObjectFactory::~ObjectFactory()
 
 Entity& ObjectFactory::createEmptyEntity()
 {
-	m_entities.emplace_back( m_entities.size() );
+	m_entities.emplace_back( static_cast<Rae::Id>(m_entities.size()) );
 	return m_entities.back();
 }
 
@@ -106,7 +106,7 @@ Transform& ObjectFactory::createTransform(float set_x, float set_y, float set_z)
 Transform& ObjectFactory::createTransform(const glm::vec3& position)
 {
 	size_t index = m_transforms.size();
-	m_transforms.emplace_back( index, position );
+	m_transforms.emplace_back( (int)index, position );
 	//m_transformsIndexMap[index] = index;
 	return m_transforms.back();
 }
@@ -115,13 +115,13 @@ Transform& ObjectFactory::createTransform(const glm::vec3& position)
 
 Mesh& ObjectFactory::createMesh()
 {
-	m_meshes.emplace_back( m_meshes.size() );
+	m_meshes.emplace_back( (int)m_meshes.size() );
 	return m_meshes.back();
 }
 
 Material& ObjectFactory::createMaterial(int type, const glm::vec4& color)
 {
-	m_materials.emplace_back( m_materials.size(), type, color );
+	m_materials.emplace_back( (int)m_materials.size(), type, color );
 	return m_materials.back();
 }
 

@@ -8,6 +8,22 @@ namespace Rae
 
 RandomGeneratorEngine g_randomEngine;
 
+#ifdef _WIN32
+double drand48()
+{
+	return getRandom(0.0, 1.0);
+}
+#endif
+
+float getRandom()
+{
+#ifdef _WIN32
+	return getRandom( 0.0f, 1.0f );
+#else
+	return drand48();
+#endif
+}
+
 float getRandom( float from, float to )
 {
 	static std::uniform_real_distribution<float> uniform_dist;

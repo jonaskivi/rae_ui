@@ -5,7 +5,10 @@
 #include <string>
 
 #include <glm/glm.hpp>
-using namespace glm;
+using glm::vec3;
+using glm::dot;
+
+#include "Random.hpp"
 
 #include "Camera.hpp"
 #include "Material.hpp"
@@ -44,7 +47,7 @@ bool HitableList::hit(const Ray& ray, float t_min, float t_max, HitRecord& recor
 	HitRecord tempRecord;
 	bool hitAnything = false;
 	float closestSoFar = t_max;
-	for (int i = 0; i < list.size(); ++i)
+	for (size_t i = 0; i < list.size(); ++i)
 	{
 		if (list[i]->hit(ray, t_min, closestSoFar, tempRecord))
 		{
@@ -164,25 +167,25 @@ void ImageRenderer::createSceneFromBook(HitableList& list, Camera& camera)
 	{
 		for (int b = -11; b < 11; b++)
 		{
-			float choose_mat = drand48();
-			vec3 center(a + 0.9 * drand48(), 0.2, b + 0.9 * drand48()); 
-			if ((center-vec3(4,0.2,0)).length() > 0.9)
+			float choose_mat = getRandom();
+			vec3 center(a + 0.9f * getRandom(), 0.2f, b + 0.9f * getRandom());
+			if ((center-vec3(4,0.2,0)).length() > 0.9f)
 			{ 
-				if (choose_mat < 0.8)
+				if (choose_mat < 0.8f)
 				{
 					// diffuse
-					list.add( new Sphere(center, 0.2, new Lambertian(vec3(drand48()*drand48(), drand48()*drand48(), drand48()*drand48()))) );
+					list.add( new Sphere(center, 0.2f, new Lambertian(vec3( getRandom()*getRandom(), getRandom()*getRandom(), getRandom()*getRandom()))));
 				}
-				else if (choose_mat < 0.95)
+				else if (choose_mat < 0.95f)
 				{
 					// metal
-					list.add( new Sphere(center, 0.2,
-							new Metal(vec3(0.5*(1 + drand48()), 0.5*(1 + drand48()), 0.5*(1 + drand48())),  0.5*drand48())) );
+					list.add( new Sphere(center, 0.2f,
+							new Metal(vec3(0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom())), /*roughness*/ 0.5f*getRandom())));
 				}
 				else
 				{
 					// glass
-					list.add( new Sphere(center, 0.2, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
+					list.add( new Sphere(center, 0.2f, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
 				}
 			}
 		}
@@ -290,7 +293,7 @@ vec3 ImageRenderer::rayTrace(const Ray& ray, Hitable& world, int depth)
 
 vec3 ImageRenderer::sky(const Ray& ray)
 {
-	vec3 unitDirection = normalize( ray.direction() );
+	vec3 unitDirection = glm::normalize( ray.direction() );
 	float t = 0.5f * (unitDirection.y + 1.0f);
 	return (1.0f - t) * vec3(0.3f, 0.4f, 1.0f) + t * vec3(0.7f, 0.8f, 1.0f);
 }

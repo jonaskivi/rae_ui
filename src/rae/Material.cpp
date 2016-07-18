@@ -3,13 +3,16 @@ using namespace std;
 #include <math.h>
 #include <assert.h>
 
+#include "Random.hpp"
+
 #include "Material.hpp" // includes glew.h which is needed by nanovg headers.
 
 #include "nanovg.h"
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-using namespace glm;
+using glm::vec3;
+using glm::dot;
 
 namespace Rae
 {
@@ -20,7 +23,7 @@ vec3 random_in_unit_sphere()
 	vec3 p;
 	do
 	{
-		p = 2.0f * vec3(drand48(), drand48(), drand48()) - vec3(1,1,1);
+		p = 2.0f * vec3(getRandom(), getRandom(), getRandom()) - vec3(1,1,1);
 	} while (dot(p,p) >= 1.0f);
 	return p;
 }
@@ -45,7 +48,7 @@ vec3 reflect(const vec3& v, const vec3& normal)
 
 bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
 {
-	vec3 reflected = reflect( normalize(r_in.direction()), record.normal );
+	vec3 reflected = reflect( glm::normalize(r_in.direction()), record.normal );
 	scattered = Ray(record.point, reflected + roughness * random_in_unit_sphere());
 	attenuation = albedo;
 	return (dot(scattered.direction(), record.normal) > 0);
@@ -53,7 +56,7 @@ bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation,
 
 bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
 {
-	vec3 uv = normalize(v);
+	vec3 uv = glm::normalize(v);
 	float dt = dot(uv, n);
 	float discriminant = 1.0f - ni_over_nt * ni_over_nt * (1.0f - dt * dt);
 	if (discriminant > 0)

@@ -6,7 +6,7 @@
 #include "nanovg.h"
 
 #include <glm/glm.hpp>
-using namespace glm;
+using glm::vec3;
 
 #include "Ray.hpp"
 #include "HitRecord.hpp"
@@ -58,7 +58,7 @@ public:
 
 	void clear()
 	{
-		for(int i = 0; i < list.size(); ++i)
+		for(size_t i = 0; i < list.size(); ++i)
 		{
 			delete list[i];
 		}

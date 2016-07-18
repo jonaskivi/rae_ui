@@ -392,7 +392,7 @@ void RenderSystem::render2dBackground(double time, double delta_time)
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
-		imageRenderer.renderNanoVG(vg, 0, 0, m_windowWidth, m_windowHeight);
+		imageRenderer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
 	nvgEndFrame(vg);
 }
 

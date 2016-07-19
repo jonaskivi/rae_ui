@@ -38,14 +38,8 @@ float getRandomDistribution(float mean, float deviation)
 
 int getRandomInt( int from, int to )
 {
-    static std::uniform_int_distribution<int> uniform_dist;
-    return uniform_dist( g_randomEngine, std::uniform_int_distribution<int>::param_type(from, to) );
-}
-
-// TODO move to Utils.hpp
-bool isEqual(float a, float b, float epsilon)
-{
-	return (fabs(a - b) <= epsilon); 
+	static std::uniform_int_distribution<int> uniform_dist;
+	return uniform_dist( g_randomEngine, std::uniform_int_distribution<int>::param_type(from, to) );
 }
 
 } // end namespace Rae

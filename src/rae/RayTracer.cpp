@@ -1,4 +1,4 @@
-#include "ImageRenderer.hpp"
+#include "RayTracer.hpp"
 
 #include <iostream>	
 #include <vector>
@@ -8,6 +8,7 @@
 using glm::vec3;
 using glm::dot;
 
+#include "core/Utils.hpp"
 #include "Random.hpp"
 
 #include "Camera.hpp"
@@ -116,7 +117,7 @@ void ImageBuffer::clear()
 	//std::fill(data.begin(), data.end(), 0);
 }
 
-void ImageRenderer::createSceneOne(HitableList& world, Camera& camera)
+void RayTracer::createSceneOne(HitableList& world, Camera& camera)
 {
 	camera.setPosition(vec3(0.698890f, 1.275992f, 6.693169f));
 	camera.setYaw(Math::toRadians(188.0f));
@@ -153,7 +154,7 @@ void ImageRenderer::createSceneOne(HitableList& world, Camera& camera)
 		);
 }
 
-void ImageRenderer::createSceneFromBook(HitableList& list, Camera& camera)
+void RayTracer::createSceneFromBook(HitableList& list, Camera& camera)
 {
 	camera.setPosition(vec3(16.857f, 2.0f, 6.474f));
 	camera.setYaw(Math::toRadians(247.8f));
@@ -196,29 +197,29 @@ void ImageRenderer::createSceneFromBook(HitableList& list, Camera& camera)
 	list.add( new Sphere(vec3(4, 1, 0), 1.0, new Metal(vec3(0.7, 0.6, 0.5), 0.0)) );
 }
 
-void ImageRenderer::showScene(int number)
+void RayTracer::showScene(int number)
 {
 	if (number == 1)
 	{
 		clearScene();
-		createSceneOne(world, *camera);
+		createSceneOne(m_world, m_camera);
 	}
 
 	if (number == 2)
 	{
 		clearScene();
-		createSceneFromBook(world, *camera);
+		createSceneFromBook(m_world, m_camera);
 	}
 }
 
-void ImageRenderer::clearScene()
+void RayTracer::clearScene()
 {
-	world.clear();
-	camera->needsUpdate();
+	m_world.clear();
+	m_camera.setNeedsUpdate();
 	clear();
 }
 
-void ImageRenderer::clear()
+void RayTracer::clear()
 {
 	buffer->clear();
 	currentSample = 0;
@@ -226,16 +227,16 @@ void ImageRenderer::clear()
 	startTime = -1.0f;
 }
 
-ImageRenderer::ImageRenderer(Camera* set_camera)
-: world(4),
-camera(set_camera),
+RayTracer::RayTracer(Camera& setCamera)
+: m_world(4),
+m_camera(setCamera),
 buffer(&smallBuffer)
 {	
-	createSceneOne(world, *camera);
-	//createSceneFromBook(world);
+	createSceneOne(m_world, m_camera);
+	//createSceneFromBook(m_world);
 }
 
-void ImageRenderer::setNanovgContext(NVGcontext* set_vg)
+void RayTracer::setNanovgContext(NVGcontext* set_vg)
 {
 	vg = set_vg;
 
@@ -251,24 +252,34 @@ std::string toString(const HitRecord& record)
 		+ std::to_string(record.point.z) + ")";
 }
 
-void ImageRenderer::autoFocus()
+void RayTracer::autoFocus()
 {
 	// Get a ray to middle of the screen and focus there
-	Ray ray = camera->getExactRay(0.5f, 0.5f);
+	Ray ray = m_camera.getExactRay(0.5f, 0.5f);
 	HitRecord record;
-	if (world.hit(ray, 0.001f, FLT_MAX, record))
+	if (m_world.hit(ray, 0.001f, FLT_MAX, record))
 	{
-		std::cout << "autoFocus hit: " << toString(record) << std::endl;
 		debugHitRecord = record;
-		camera->setFocusPosition(record.point);
+		m_camera.animateFocusPosition(record.point, m_camera.focusSpeed());
 	}
 }
 
-vec3 ImageRenderer::rayTrace(const Ray& ray, Hitable& world, int depth)
+vec3 RayTracer::rayTrace(const Ray& ray, Hitable& world, int depth)
 {
 	HitRecord record;
 	if (world.hit(ray, 0.001f, rayMaxLength(), record))
 	{
+		// Visualize focus distance with a line
+		if (m_isVisualizeFocusDistance)
+		{
+			float hitDistance = glm::length(record.point - m_camera.position());
+			if (Utils::isEqual(m_camera.focusDistance(), hitDistance, 0.01f) == true)
+			{
+				return vec3(0,1,1); // cyan line
+			}
+		}
+
+		// Normal raytracing
 		if (isFastMode() == false)
 		{
 			Ray scattered;
@@ -291,7 +302,7 @@ vec3 ImageRenderer::rayTrace(const Ray& ray, Hitable& world, int depth)
 	return sky(ray);
 }
 
-vec3 ImageRenderer::sky(const Ray& ray)
+vec3 RayTracer::sky(const Ray& ray)
 {
 	vec3 unitDirection = glm::normalize( ray.direction() );
 	float t = 0.5f * (unitDirection.y + 1.0f);
@@ -300,7 +311,7 @@ vec3 ImageRenderer::sky(const Ray& ray)
 
 //#define RENDER_ALL_AT_ONCE
 
-void ImageRenderer::update(double time, double delta_time)
+void RayTracer::update(double time, double delta_time)
 {
 	/*
 	Old time based switch buffers system:
@@ -338,7 +349,7 @@ void ImageRenderer::update(double time, double delta_time)
 	
 }
 
-void ImageRenderer::toggleBufferQuality()
+void RayTracer::toggleBufferQuality()
 {
 	if (buffer == &smallBuffer)
 	{
@@ -348,14 +359,14 @@ void ImageRenderer::toggleBufferQuality()
 	clear();
 }
 
-float ImageRenderer::rayMaxLength()
+float RayTracer::rayMaxLength()
 {
 	if (isFastMode() == false)
 		return FLT_MAX;
 	else return 5.0f;
 }
 
-void ImageRenderer::renderAllAtOnce(double time)
+void RayTracer::renderAllAtOnce(double time)
 {
 	// timings for 100 samples at 500x250:
 	// 14.791584 s
@@ -377,8 +388,8 @@ void ImageRenderer::renderAllAtOnce(double time)
 					float u = float(i + drand48()) / float(buffer->width);
 					float v = float(j + drand48()) / float(buffer->height);
 					
-					Ray ray = camera->getRay(u, v);
-					color += rayTrace(ray, world, 0);
+					Ray ray = m_camera.getRay(u, v);
+					color += rayTrace(ray, m_world, 0);
 				}
 
 				color /= float(samplesLimit);
@@ -400,7 +411,7 @@ void ImageRenderer::renderAllAtOnce(double time)
 	}
 }
 
-void ImageRenderer::renderSamples(double time, double delta_time)
+void RayTracer::renderSamples(double time, double delta_time)
 {
 	// timings for 100 samples at 500x250:
 	// 15.426324 s
@@ -418,8 +429,8 @@ void ImageRenderer::renderSamples(double time, double delta_time)
 				float u = float(i + drand48()) / float(buffer->width);
 				float v = float(j + drand48()) / float(buffer->height);
 
-				Ray ray = camera->getRay(u, v);
-				vec3 color = rayTrace(ray, world, 0);
+				Ray ray = m_camera.getRay(u, v);
+				vec3 color = rayTrace(ray, m_world, 0);
 
 				//http://stackoverflow.com/questions/22999487/update-the-average-of-a-continuous-sequence-of-numbers-in-constant-time
 				// add to average
@@ -432,12 +443,12 @@ void ImageRenderer::renderSamples(double time, double delta_time)
 	}
 }
 
-void ImageRenderer::updateImageBuffer()
+void RayTracer::updateImageBuffer()
 {
 	buffer->update8BitImageBuffer(vg);
 }
 
-void ImageRenderer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h)
+void RayTracer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h)
 {	
 	nvgSave(vg);
 
@@ -477,28 +488,44 @@ void ImageRenderer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, flo
 		nvgText(vg, 10.0f, vertPos, total_time_str.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string positionStr = "Position: "
-			+ std::to_string(camera->position().x) + ", "
-			+ std::to_string(camera->position().y) + ", "
-			+ std::to_string(camera->position().z);
+			+ std::to_string(m_camera.position().x) + ", "
+			+ std::to_string(m_camera.position().y) + ", "
+			+ std::to_string(m_camera.position().z);
 		nvgText(vg, 10.0f, vertPos, positionStr.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string yawStr = "Yaw: "
-			+ std::to_string(Math::toDegrees(camera->yaw())) + "°"
+			+ std::to_string(Math::toDegrees(m_camera.yaw())) + "°"
 			+ " Pitch: "
-			+ std::to_string(Math::toDegrees(camera->pitch())) + "°";
+			+ std::to_string(Math::toDegrees(m_camera.pitch())) + "°";
 		nvgText(vg, 10.0f, vertPos, yawStr.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string fovStr = "Field of View: "
-			+ std::to_string(Math::toDegrees(camera->fieldOfView())) + "°";
+			+ std::to_string(Math::toDegrees(m_camera.fieldOfView())) + "°";
 		nvgText(vg, 10.0f, vertPos, fovStr.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string focusDistanceStr = "Focus distance: "
-			+ std::to_string(camera->focusDistance());
+			+ std::to_string(m_camera.focusDistance());
 		nvgText(vg, 10.0f, vertPos, focusDistanceStr.c_str(), nullptr); vertPos += 20.0f;
 
+		nvgText(vg, 10.0f, vertPos, m_camera.isContinuousAutoFocus() ? "Autofocus ON" : "Autofocus OFF", nullptr);
+		vertPos += 20.0f;
+
 		std::string apertureStr = "Aperture: "
-			+ std::to_string(camera->aperture());
+			+ std::to_string(m_camera.aperture());
 		nvgText(vg, 10.0f, vertPos, apertureStr.c_str(), nullptr); vertPos += 20.0f;
+
+		std::string debugStr = "Debug hit pos: "
+			+ std::to_string(debugHitRecord.point.x) + ", "
+			+ std::to_string(debugHitRecord.point.y) + ", "
+			+ std::to_string(debugHitRecord.point.z);
+		nvgText(vg, 10.0f, vertPos, debugStr.c_str(), nullptr); vertPos += 20.0f;
+
+		vec3 focusPos = m_camera.getFocusPosition();
+		std::string debugStr2 = "Debug focus pos: "
+			+ std::to_string(focusPos.x) + ", "
+			+ std::to_string(focusPos.y) + ", "
+			+ std::to_string(focusPos.z);
+		nvgText(vg, 10.0f, vertPos, debugStr2.c_str(), nullptr); vertPos += 20.0f;
 	}
 
 	nvgRestore(vg);	

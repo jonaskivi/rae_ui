@@ -39,13 +39,16 @@ float randFloat(float a_min, float a_max)
 	return retValue;
 }
 
-bool almostEqual(float set_a, float set_b, float epsilon)
+bool isEqual(float set_a, float set_b, float epsilon)
 {
-	if((set_a - set_b) < epsilon)
-		return true;
-	else if((set_b - set_a) < epsilon)
-		return true;
-	return false;
+	return fabs(set_a - set_b) < epsilon;
+}
+
+bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon)
+{
+	return isEqual(set_a.x, set_b.x, epsilon)
+		&& isEqual(set_a.y, set_b.y, epsilon)
+		&& isEqual(set_a.z, set_b.z, epsilon);
 }
 
 float getManhattanDistance( float rx, float ry )

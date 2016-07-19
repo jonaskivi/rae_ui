@@ -94,10 +94,10 @@ struct ImageBuffer
 	int imageId;
 };
 
-class ImageRenderer
+class RayTracer
 {
 public:
-	ImageRenderer(Camera* set_camera);
+	RayTracer(Camera& setCamera);
 
 	void showScene(int number);
 	void clearScene();
@@ -128,10 +128,13 @@ public:
 	void toggleInfoText() { m_isInfoText = !m_isInfoText; }
 	bool isInfoText() { return m_isInfoText; }
 
+	void toggleVisualizeFocusDistance() { m_isVisualizeFocusDistance = !m_isVisualizeFocusDistance; }
+
 protected:
 
 	bool m_isInfoText = true;
 	bool m_isFastMode = false;
+	bool m_isVisualizeFocusDistance = true;
 
 	double switchTime = 5.0f; // time to switch to big buffer rendering in seconds
 	ImageBuffer smallBuffer = ImageBuffer(300, 150);
@@ -147,8 +150,8 @@ protected:
 	// for renderAllAtOnce:
 	double startTime = -1.0;
 
-	Camera* camera;
-	HitableList world;
+	Camera& m_camera;
+	HitableList m_world;
 
 	NVGcontext* vg = nullptr;
 	NVGpaint imgPaint;

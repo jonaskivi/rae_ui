@@ -75,6 +75,8 @@ void Engine::run()
 
 		// Swap buffers
 		glfwSwapBuffers(m_window);
+
+		m_input.update();
 		glfwPollEvents();
 
 		m_previousTime = m_currentTime;

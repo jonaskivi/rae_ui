@@ -5,6 +5,8 @@
 #include <math.h>
 #include <string>
 
+#include <glm/glm.hpp>
+
 namespace Rae
 {
 
@@ -36,7 +38,8 @@ float backwardsWeightedAverage( float val1, float val2, float the_val );
 std::string boolToString(bool set);
 
 float randFloat(float a_min, float a_max);
-bool almostEqual(float set_a, float set_b, float epsilon = 0.0001f);
+bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);
+bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon = 0.0001f);
 
 }
 

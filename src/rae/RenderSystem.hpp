@@ -9,7 +9,7 @@
 
 #include "System.hpp"
 #include "Camera.hpp"
-#include "ImageRenderer.hpp"
+#include "RayTracer.hpp"
 
 struct NVGcontext;
 
@@ -103,17 +103,17 @@ protected:
 	float m_screenPixelRatio;
 
 	Transform* debugTransform = nullptr;
+	Transform* debugTransform2 = nullptr;
 
 	int m_nroFrames;
 	double m_fpsTimer;
 	std::string m_fpsString;
 	
-	Camera camera;
+	Camera m_camera;
 
 	bool m_glRendererOn = false;
 
-	// Raytracing system:
-	ImageRenderer imageRenderer;
+	RayTracer m_rayTracer;
 };
 
 }

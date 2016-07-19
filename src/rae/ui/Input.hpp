@@ -320,23 +320,43 @@ public:
 
 	Touch touch;
 
+	// Must be called every frame to clear key up and down states
+	void update()
+	{
+		key.clearFrame();
+	}
+
 	struct Keyboard
 	{
 		Keyboard()
 		{
-			for(uint i = 0; i < keyStatesSize; i++ )
+			for (uint i = 0; i < keyStatesSize; i++ )
 			{
 				keyStates[i] = false;
+				pressedThisFrame[i] = false;
+				releasedThisFrame[i] = false;
 			}
 		}
 
-		static const uint keyStatesSize = 65536;
+		void clearFrame()
+		{
+			for (uint i = 0; i < keyStatesSize; i++ )
+			{
+				pressedThisFrame[i] = false;
+				releasedThisFrame[i] = false;
+			}
+		}
+
+		static const uint keyStatesSize = 256 * 2;
 
 		uint value = 0;
 		//string unicode;// = 0;
 		char* unicode;
 		
 		bool keyStates[keyStatesSize];
+		// Cleared every frame
+		bool pressedThisFrame[keyStatesSize];
+		bool releasedThisFrame[keyStatesSize];
 	};
 	Keyboard key;
 
@@ -344,6 +364,21 @@ public:
 	{
 		if (keyValue < key.keyStatesSize)
 			return key.keyStates[keyValue];
+		return false;
+	}
+
+	bool getKeyPressed(int keyValue)
+	{
+		if (keyValue < key.keyStatesSize)
+			return key.pressedThisFrame[keyValue];
+		return false;
+	}
+
+	// return true if the key was released during this frame
+	bool getKeyReleased(int keyValue)
+	{
+		if (keyValue < key.keyStatesSize)
+			return key.releasedThisFrame[keyValue];
 		return false;
 	}
 
@@ -442,7 +477,10 @@ public:
 		{
 			//cout << "KEY_PRESS: " << hex << set_key << dec << " unicode: " << set_unicode <<"\n";
 			if( key.value < key.keyStatesSize )
+			{
 				key.keyStates[key.value] = true;
+				key.pressedThisFrame[key.value] = true;
+			}
 			else cout << "ERROR: key.value: " << key.value << " is bigger than keyStatesSize: " << key.keyStatesSize << "\n";
 			//Trace.formatln("PRESS. {}", key.keyStates[set_key]);
 		}
@@ -450,7 +488,10 @@ public:
 		{
 			//cout << "KEY_RELEASE: " << hex << set_key << dec << " unicode: " << set_unicode <<"\n";
 			if( key.value < key.keyStatesSize )
+			{
 				key.keyStates[key.value] = false;
+				key.releasedThisFrame[key.value] = true;
+			}
 			else cout << "ERROR: key.value: " << key.value << " is bigger than keyStatesSize: " << key.keyStatesSize << "\n";
 			//Trace.formatln("RELEASE. {}", key.keyStates[set_key]);
 		}

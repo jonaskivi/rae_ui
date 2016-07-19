@@ -49,10 +49,11 @@ m_fpsTimer(0.0),
 m_fpsString("fps:"),
 //m_pickedString("Nothing picked"),
 vg(nullptr),
-camera(/*fieldOfView*/Math::toRadians(20.0f), /*aspect*/16.0f / 9.0f, /*aperture*/0.1f, /*focusDistance*/10.0f),
-imageRenderer(&camera)
+m_camera(/*fieldOfView*/Math::toRadians(20.0f), /*aspect*/16.0f / 9.0f, /*aperture*/0.1f, /*focusDistance*/10.0f),
+m_rayTracer(m_camera)
 {
 	debugTransform = new Transform(1,0,0,0);
+	debugTransform2 = new Transform(1,0,0,0);
 
 	initNanoVG();
 
@@ -96,7 +97,7 @@ void RenderSystem::initNanoVG()
 		assert(0);
 	}
 
-	imageRenderer.setNanovgContext(vg);
+	m_rayTracer.setNanovgContext(vg);
 }
 
 void RenderSystem::init()
@@ -200,7 +201,7 @@ void RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 
 	updateCamera(time, delta_time);
 
-	imageRenderer.update(time, delta_time);
+	m_rayTracer.update(time, delta_time);
 
 	render(time, delta_time, entities);
 
@@ -281,7 +282,9 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 	if (debugTransform && debugMesh && debugMaterial)
 	{
 		debugTransform->update(time, delta_time);
+		debugTransform2->update(time, delta_time);
 		renderMesh(debugTransform, nullptr, debugMesh);
+		renderMesh(debugTransform2, nullptr, debugMesh);
 	}
 }
 
@@ -345,11 +348,11 @@ void RenderSystem::renderMesh(Transform* transform, Material* material, Mesh* me
 
 	glm::mat4& modelMatrix = transform->modelMatrix();
 	// The model-view-projection matrix
-	glm::mat4 combinedMatrix = camera.m_projectionMatrix * camera.m_viewMatrix * modelMatrix;
+	glm::mat4 combinedMatrix = m_camera.getProjectionAndViewMatrix() * modelMatrix;
 
 	glUniformMatrix4fv(modelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
 	glUniformMatrix4fv(modelMatrixUni, 1, GL_FALSE, &modelMatrix[0][0]);
-	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &camera.m_viewMatrix[0][0]);
+	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &m_camera.viewMatrix()[0][0]);
 
 	glm::vec3 lightPos = glm::vec3(2.0f, 0.0f, 0.0f);
 	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
@@ -375,7 +378,7 @@ void RenderSystem::renderMeshPicking(Transform* transform, Mesh* mesh, int entit
 
 	glm::mat4& modelMatrix = transform->modelMatrix();
 	// The model-view-projection matrix
-	glm::mat4 combinedMatrix = camera.m_projectionMatrix * camera.m_viewMatrix * modelMatrix;
+	glm::mat4 combinedMatrix = m_camera.getProjectionAndViewMatrix() * modelMatrix;
 
 	glUniformMatrix4fv(pickingModelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
 	glUniform1i(entityUni, entity_id);
@@ -392,7 +395,7 @@ void RenderSystem::render2dBackground(double time, double delta_time)
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
-		imageRenderer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+		m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
 	nvgEndFrame(vg);
 }
 
@@ -402,7 +405,7 @@ void RenderSystem::render2d(double time, double delta_time)
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	if (imageRenderer.isInfoText())
+	if (m_rayTracer.isInfoText())
 	{
 		nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
 			nvgFontFace(vg, "sans");
@@ -414,7 +417,7 @@ void RenderSystem::render2d(double time, double delta_time)
 			nvgFillColor(vg, nvgRGBA(128, 128, 128, 192));
 			nvgText(vg, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
 
-			nvgText(vg, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, VB focus distance,"
+			nvgText(vg, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
 				" NM aperture, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
 			nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
 			nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
@@ -439,7 +442,7 @@ void RenderSystem::render2d(double time, double delta_time)
 
 void RenderSystem::clearImageRenderer()
 {
-	imageRenderer.clear();
+	m_rayTracer.clear();
 }
 
 void RenderSystem::osEventResizeWindow(int width, int height)
@@ -467,8 +470,8 @@ void RenderSystem::onMouseEvent(const Input& input)
 
 			const float rotateSpeedMul = 5.0f;
 
-			camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
-			camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
+			m_camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
+			m_camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
 		}
 	}
 	else if (input.eventType == EventType::MOUSE_BUTTON_PRESS)
@@ -488,7 +491,7 @@ void RenderSystem::onMouseEvent(const Input& input)
 	if (input.eventType == EventType::SCROLL)
 	{
 		const float scrollSpeedMul = -0.1f;
-		camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
+		m_camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
 	}
 }
 
@@ -500,11 +503,12 @@ void RenderSystem::onKeyEvent(const Input& input)
 		{
 			case KeySym::R: clearImageRenderer(); break;
 			case KeySym::G: toggleGlRenderer(); break; // more like debug view currently
-			case KeySym::T: imageRenderer.toggleInfoText(); break;
-			case KeySym::Y: imageRenderer.toggleBufferQuality(); break;
-			case KeySym::U: imageRenderer.toggleFastMode(); break;
-			case KeySym::_1: imageRenderer.showScene(1); break;
-			case KeySym::_2: imageRenderer.showScene(2); break;
+			case KeySym::T: m_rayTracer.toggleInfoText(); break;
+			case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
+			case KeySym::U: m_rayTracer.toggleFastMode(); break;
+			case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;
+			case KeySym::_1: m_rayTracer.showScene(1); break;
+			case KeySym::_2: m_rayTracer.showScene(2); break;
 			default:
 			break;
 		}
@@ -513,54 +517,57 @@ void RenderSystem::onKeyEvent(const Input& input)
 
 void RenderSystem::updateCamera(double time, double delta_time)
 {
-	camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
+	m_camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
 
 	if (m_input.getKeyState(KeySym::Control_L))
-		camera.setCameraSpeedDown(true);
-	else camera.setCameraSpeedDown(false);
+		m_camera.setCameraSpeedDown(true);
+	else m_camera.setCameraSpeedDown(false);
 
 	if (m_input.getKeyState(KeySym::Shift_L))
-		camera.setCameraSpeedUp(true);
-	else camera.setCameraSpeedUp(false);
+		m_camera.setCameraSpeedUp(true);
+	else m_camera.setCameraSpeedUp(false);
 
 	// Rotation with arrow keys
 	if (m_input.getKeyState(KeySym::Left))
-		camera.rotateYaw(float(delta_time), +1);
+		m_camera.rotateYaw(float(delta_time), +1);
 	else if (m_input.getKeyState(KeySym::Right))
-		camera.rotateYaw(float(delta_time), -1);
+		m_camera.rotateYaw(float(delta_time), -1);
 
 	if (m_input.getKeyState(KeySym::Up))
-		camera.rotatePitch(float(delta_time), +1);
+		m_camera.rotatePitch(float(delta_time), +1);
 	else if (m_input.getKeyState(KeySym::Down))
-		camera.rotatePitch(float(delta_time), -1);
+		m_camera.rotatePitch(float(delta_time), -1);
 
 	// Camera movement
-	if (m_input.getKeyState(KeySym::W)) { camera.moveForward(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::S)) { camera.moveBackward(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::D)) { camera.moveRight(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::A)) { camera.moveLeft(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::E)) { camera.moveUp(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::Q)) { camera.moveDown(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::W)) { m_camera.moveForward(float(delta_time));  }
+	if (m_input.getKeyState(KeySym::S)) { m_camera.moveBackward(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::D)) { m_camera.moveRight(float(delta_time));    }
+	if (m_input.getKeyState(KeySym::A)) { m_camera.moveLeft(float(delta_time));     }
+	if (m_input.getKeyState(KeySym::E)) { m_camera.moveUp(float(delta_time));       }
+	if (m_input.getKeyState(KeySym::Q)) { m_camera.moveDown(float(delta_time));     }
 
-	if (m_input.getKeyState(KeySym::N)) { camera.minusAperture(); }
-	if (m_input.getKeyState(KeySym::M)) { camera.plusAperture(); }
+	if (m_input.getKeyState(KeySym::N)) { m_camera.minusAperture(); }
+	if (m_input.getKeyState(KeySym::M)) { m_camera.plusAperture();  }
 
-	if (glfwGetKey( m_window, GLFW_KEY_V ) == GLFW_PRESS) { camera.minusFocusDistance(); }
-	if (glfwGetKey( m_window, GLFW_KEY_B ) == GLFW_PRESS) { camera.plusFocusDistance(); }
+	if (m_input.getKeyState(KeySym::V)) { m_camera.minusFocusDistance(); }
+	if (m_input.getKeyState(KeySym::B)) { m_camera.plusFocusDistance();  }
 
-	if (glfwGetKey( m_window, GLFW_KEY_F ) == GLFW_PRESS)
+	if (m_input.getKeyPressed(KeySym::F))
 	{
-		imageRenderer.autoFocus();
-		debugTransform->setTarget(imageRenderer.debugHitRecord.point, 0.5f);
+		m_camera.toggleContinuousAutoFocus();
 	}
 
-	if (camera.update())
+	if (m_camera.shouldWeAutoFocus() || m_input.getKeyPressed(KeySym::F))
 	{
-		imageRenderer.clear();
+		m_rayTracer.autoFocus();
+		debugTransform2->setTarget(m_rayTracer.debugHitRecord.point, m_camera.focusSpeed());
+		debugTransform->setTarget(m_camera.getFocusPosition(), m_camera.focusSpeed() * 0.5f);
 	}
 
-	//cout<<"camerapos: x: "<<m_cameraPosition.x << " y: " << m_cameraPosition.y << " z: " << m_cameraPosition.z
-	//	<< " yaw: " << m_yawAngle << " pitch: " << m_pitchAngle << "\n";
+	if (m_camera.update(time, delta_time))
+	{
+		m_rayTracer.clear();
+	}
 }
 
 } //end namespace Rae

@@ -3,6 +3,19 @@
 
 using namespace Rae;
 
+void  Aabb::init(const Aabb& left, const Aabb& right)
+{
+	clear();
+	grow(left);
+	grow(right);
+}
+
+void Aabb::grow(const Aabb& set)
+{
+	grow(set.min());
+	grow(set.max());
+}
+
 void Aabb::grow(vec3 set)
 {
 	if(m_min.x > set.x)

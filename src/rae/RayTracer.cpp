@@ -18,23 +18,6 @@ using glm::dot;
 
 using namespace Rae;
 
-bool HitableList::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
-{
-	HitRecord tempRecord;
-	bool hitAnything = false;
-	float closestSoFar = t_max;
-	for (size_t i = 0; i < list.size(); ++i)
-	{
-		if (list[i]->hit(ray, t_min, closestSoFar, tempRecord))
-		{
-			hitAnything = true;
-			closestSoFar = tempRecord.t;
-			record = tempRecord;
-		}
-	}
-	return hitAnything;
-}
-
 ImageBuffer::ImageBuffer()
 : width(0),
 height(0),
@@ -177,6 +160,8 @@ void RayTracer::createSceneOne(HitableList& world, Camera& camera)
 	else bunny->generateBox();
 
 	world.add(bunny);
+
+	m_tree.init(world.list(), 0, 0);
 }
 
 void RayTracer::createSceneFromBook(HitableList& list, Camera& camera)
@@ -220,6 +205,8 @@ void RayTracer::createSceneFromBook(HitableList& list, Camera& camera)
 	list.add( new Sphere(vec3(0, 1, 0), 1.0, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
 	list.add( new Sphere(vec3(-4, 1, 0), 1.0, new Lambertian(vec3(0.0, 0.2, 0.9))) );
 	list.add( new Sphere(vec3(4, 1, 0), 1.0, new Metal(vec3(0.7, 0.6, 0.5), 0.0)) );
+
+	m_tree.init(list.list(), 0, 0);
 }
 
 void RayTracer::showScene(int number)
@@ -262,7 +249,7 @@ m_camera(setCamera)
 	m_buffer = &m_smallBuffer;
 
 	createSceneOne(m_world, m_camera);
-	//createSceneFromBook(m_world);
+	//createSceneFromBook(m_world, m_camera);
 }
 
 RayTracer::~RayTracer()
@@ -290,7 +277,7 @@ void RayTracer::autoFocus()
 	// Get a ray to middle of the screen and focus there
 	Ray ray = m_camera.getExactRay(0.5f, 0.5f);
 	HitRecord record;
-	if (m_world.hit(ray, 0.001f, FLT_MAX, record))
+	if (m_tree.hit(ray, 0.001f, FLT_MAX, record))
 	{
 		debugHitRecord = record;
 		m_camera.animateFocusPosition(record.point, m_camera.focusSpeed());
@@ -300,7 +287,7 @@ void RayTracer::autoFocus()
 vec3 RayTracer::rayTrace(const Ray& ray, Hitable& world, int depth)
 {
 	HitRecord record;
-	if (world.hit(ray, 0.001f, rayMaxLength(), record))
+	if (m_tree.hit(ray, 0.001f, rayMaxLength(), record))
 	{
 		// Visualize focus distance with a line
 		if (m_isVisualizeFocusDistance)

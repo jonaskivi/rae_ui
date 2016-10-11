@@ -15,7 +15,7 @@ public:
 	HitableList(){}
 	HitableList(int size)
 	{
-		list.reserve(size);
+		m_list.reserve(size);
 	}
 	~HitableList()
 	{
@@ -24,21 +24,25 @@ public:
 
 	void clear()
 	{
-		for(size_t i = 0; i < list.size(); ++i)
+		for(size_t i = 0; i < m_list.size(); ++i)
 		{
-			delete list[i];
+			delete m_list[i];
 		}
-		list.clear();
+		m_list.clear();
 	}
 
 	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
+	virtual Aabb getAabb(float t0, float t1) const;
 
 	void add(Hitable* hitable)
 	{
-		list.push_back(hitable);
+		m_list.push_back(hitable);
 	}
 
-	std::vector<Hitable*> list;
+	std::vector<Hitable*>& list() { return m_list; }
+
+protected:
+	std::vector<Hitable*> m_list;
 };
 
 }

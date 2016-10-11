@@ -16,6 +16,7 @@ using glm::vec3;
 #include "HitRecord.hpp"
 #include "Hitable.hpp"
 #include "HitableList.hpp"
+#include "BvhNode.hpp"
 
 namespace Rae
 {
@@ -106,6 +107,7 @@ protected:
 
 	Camera& m_camera;
 	HitableList m_world;
+	BvhNode m_tree;
 
 	NVGcontext* vg = nullptr;
 	NVGpaint imgPaint;

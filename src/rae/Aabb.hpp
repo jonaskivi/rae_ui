@@ -38,6 +38,8 @@ public:
 		return false;
 	}
 
+	void init(const Aabb& left, const Aabb& right);
+	void grow(const Aabb& set);
 	void grow(vec3 set);
 
 	vec3 dimensions()

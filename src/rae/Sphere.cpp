@@ -1,8 +1,14 @@
 #include "Sphere.hpp"
 #include "Ray.hpp"
 #include "HitRecord.hpp"
+#include "Aabb.hpp"
 
 using namespace Rae;
+
+Sphere::~Sphere()
+{
+	delete material; // Hmm. Currently no shared materials... TODO memory management.
+}
 
 bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
 {
@@ -26,8 +32,8 @@ bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) co
 	return false;
 }
 
-Sphere::~Sphere()
+Aabb Sphere::getAabb(float t0, float t1) const
 {
-	delete material; // Hmm. Currently no shared materials... TODO memory management.
+	vec3 cornerVec = vec3(radius, radius, radius);
+	return Aabb(center - cornerVec, center + cornerVec);
 }
-

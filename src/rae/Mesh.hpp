@@ -1,11 +1,11 @@
-#ifndef RAE_3D_MESH_HPP
-#define RAE_3D_MESH_HPP
+#pragma once
 
 #include <vector>
 #include <string>
 using namespace std;
 
 #include <glm/glm.hpp>
+using glm::vec3;
 
 //ASSIMP
 #include "assimp/Importer.hpp"	//OO version Header!
@@ -15,10 +15,15 @@ using namespace std;
 #include "assimp/LogStream.hpp"
 //end // ASSIMP
 
+#include "Hitable.hpp"
+#include "Aabb.hpp"
+
 namespace Rae
 {
 
-class Mesh
+class Material;
+
+class Mesh : public Hitable
 {
 public:
 	int id() { return m_id; }
@@ -30,6 +35,8 @@ public:
 	Mesh(int set_id);
 	~Mesh();
 	
+	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
+
 	void generateBox();
 
 	//ASSIMP
@@ -38,10 +45,18 @@ public:
 	//end // ASSIMP
 
 	void createVBOs();
-
 	void render(unsigned set_shader_program_id);
+	int triangleCount() const { return indices.size() / 3; }
+	void computeAabb();
 
 protected:
+
+	bool rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirection,
+		const vec3& v1, const vec3& v2, const vec3& v3,
+		float& u, float& v, float& t, bool& frontfacing) const;
+	void getTriangle(int idx, vec3& out0, vec3& out1, vec3& out2) const;
+	vec3 getFaceNormal(int idx) const;
+
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
@@ -51,8 +66,9 @@ protected:
 	unsigned uvBufferID;
 	unsigned normalBufferID;
 	unsigned indexBufferID;
+
+	Aabb m_aabb;
+	Material* material; // TODO make better, don't use pointer. Use component ID.
 };
 
-}//end namespace Rae
-
-#endif
+} // end namespace Rae

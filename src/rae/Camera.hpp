@@ -62,6 +62,8 @@ public:
 
 	float fieldOfView() { return m_fieldOfView; } // in radians
 	// also handles negative input unlike other similar funcs
+	void setFieldOfView(float radians) { m_fieldOfView = radians; }
+	void setFieldOfViewDeg(float degrees) { m_fieldOfView = Math::toRadians(degrees); }
 	void plusFieldOfView(float delta = 0.1f);
 	void minusFieldOfView(float delta = 0.1f);
 
@@ -102,8 +104,8 @@ protected:
 
 	float m_fieldOfView; // in radians
 	float m_aspectRatio;
-	float m_aperture = 2.0f;
-	float m_focusDistance = 2.0f;
+	float m_aperture;
+	float m_focusDistance;
 	Animator<float> m_focusDistanceAnimator;
 	float m_lensRadius;
 

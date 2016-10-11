@@ -13,35 +13,10 @@ using glm::dot;
 
 #include "Camera.hpp"
 #include "Material.hpp"
+#include "Sphere.hpp"
+#include "Mesh.hpp"
 
 using namespace Rae;
-
-bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
-{
-	vec3 oc = ray.origin() - center;
-	float a = dot(ray.direction(), ray.direction());
-	float b = dot(oc, ray.direction());
-	float c = dot(oc, oc) - radius * radius;
-	float discriminant = b * b - a * c;
-	if (discriminant > 0)
-	{
-		float temp = (-b - sqrt(discriminant)) / a;
-		if (temp < t_max && temp > t_min)
-		{
-			record.t = temp;
-			record.point = ray.point_at_parameter(record.t);
-			record.normal = (record.point - center) / radius;
-			record.material = material;
-			return true;
-		}
-	}
-	return false;
-}
-
-Sphere::~Sphere()
-{
-	delete material; // Hmm. Currently no shared materials... TODO memory management.
-}
 
 bool HitableList::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
 {
@@ -60,11 +35,42 @@ bool HitableList::hit(const Ray& ray, float t_min, float t_max, HitRecord& recor
 	return hitAnything;
 }
 
+ImageBuffer::ImageBuffer()
+: width(0),
+height(0),
+imageId(-1) // init to invalid value.
+{
+}
+
 ImageBuffer::ImageBuffer(int setWidth, int setHeight)
 : width(setWidth),
 height(setHeight),
 imageId(-1) // init to invalid value.
 {
+	init();
+}
+
+void ImageBuffer::init(int setWidth, int setHeight)
+{
+	width = setWidth;
+	height = setHeight;
+
+	init();
+}
+
+void ImageBuffer::init()
+{
+	if (width == 0 || height == 0)
+	{
+		assert(0);
+		return;
+	}
+
+	if (color_data.size() > 0)
+		color_data.clear();
+	if (data.size() > 0)
+		data.clear();
+
 	color_data.reserve(width * height);
 	for (int i = 0; i < width * height; ++i)
 	{
@@ -119,11 +125,19 @@ void ImageBuffer::clear()
 
 void RayTracer::createSceneOne(HitableList& world, Camera& camera)
 {
-	camera.setPosition(vec3(0.698890f, 1.275992f, 6.693169f));
-	camera.setYaw(Math::toRadians(188.0f));
-	camera.setPitch(Math::toRadians(-7.744f));
-	camera.setAperture(0.3f);
-	camera.setFocusDistance(7.6f);
+	camera.setFieldOfViewDeg(44.6f);
+
+	//camera.setPosition(vec3(0.698890f, 1.275992f, 6.693169f));
+	//camera.setYaw(Math::toRadians(188.0f));
+	//camera.setPitch(Math::toRadians(-7.744f));
+	//camera.setAperture(0.3f);
+	//camera.setFocusDistance(7.6f);
+
+	camera.setPosition(vec3(-0.16f, 2.9664f, 14.8691f));
+	camera.setYaw(Math::toRadians(178.560333f));
+	camera.setPitch(Math::toRadians(-10.8084f));
+	camera.setAperture(0.07f);
+	camera.setFocusDistance(14.763986f);
 
 	world.add(
 		new Sphere(vec3(0, 0, -1), 0.5f,
@@ -149,9 +163,20 @@ void RayTracer::createSceneOne(HitableList& world, Camera& camera)
 		new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f))
 		);
 	world.add(
-		new Sphere(vec3(-3.15, 0.1f, -5), 0.6f,
+		new Sphere(vec3(-3.15f, 0.1f, -5), 0.6f,
 		new Lambertian(vec3(0.05f, 0.2f, 0.8f)))
 		);
+
+	///////////////////
+
+	bool loadBunny = false;
+
+	auto bunny = new Mesh(0);
+	if (loadBunny)
+		bunny->loadModel("./data/models/bunny.obj");
+	else bunny->generateBox();
+
+	world.add(bunny);
 }
 
 void RayTracer::createSceneFromBook(HitableList& list, Camera& camera)
@@ -221,7 +246,7 @@ void RayTracer::clearScene()
 
 void RayTracer::clear()
 {
-	buffer->clear();
+	m_buffer->clear();
 	currentSample = 0;
 	totalRayTracingTime = -1.0;
 	startTime = -1.0f;
@@ -229,19 +254,27 @@ void RayTracer::clear()
 
 RayTracer::RayTracer(Camera& setCamera)
 : m_world(4),
-m_camera(setCamera),
-buffer(&smallBuffer)
-{	
+m_camera(setCamera)
+{
+	m_smallBuffer.init(300, 150);
+	m_bigBuffer.init(1920, 1080);
+
+	m_buffer = &m_smallBuffer;
+
 	createSceneOne(m_world, m_camera);
 	//createSceneFromBook(m_world);
+}
+
+RayTracer::~RayTracer()
+{
 }
 
 void RayTracer::setNanovgContext(NVGcontext* set_vg)
 {
 	vg = set_vg;
 
-	smallBuffer.createImage(vg);
-	bigBuffer.createImage(vg);
+	m_smallBuffer.createImage(vg);
+	m_bigBuffer.createImage(vg);
 }
 
 std::string toString(const HitRecord& record)
@@ -318,14 +351,14 @@ void RayTracer::update(double time, double delta_time)
 
 	if (switchTime > 0.0f)
 	{
-		if (buffer != &bigBuffer
+		if (m_buffer != &m_bigBuffer
 			&&
 			(total_ray_tracing_time >= switchTime
 			||
 			current_sample >= samples_limit))
 		{
-			buffer = &bigBuffer;
-			buffer->clear();
+			m_buffer = &m_bigBuffer;
+			m_buffer->clear();
 			current_sample = 0;
 		}
 	}
@@ -346,16 +379,15 @@ void RayTracer::update(double time, double delta_time)
 			updateImageBuffer();
 		}
 	#endif
-	
 }
 
 void RayTracer::toggleBufferQuality()
 {
-	if (buffer == &smallBuffer)
+	if (m_buffer == &m_smallBuffer)
 	{
-		buffer = &bigBuffer;
+		m_buffer = &m_bigBuffer;
 	}
-	else buffer = &smallBuffer;
+	else m_buffer = &m_smallBuffer;
 	clear();
 }
 
@@ -377,16 +409,16 @@ void RayTracer::renderAllAtOnce(double time)
 	{
 		startTime = time;
 
-		for (int j = 0; j < buffer->height; ++j)
+		for (int j = 0; j < m_buffer->height; ++j)
 		{
-			for (int i = 0; i < buffer->width; ++i)
+			for (int i = 0; i < m_buffer->width; ++i)
 			{
 				vec3 color;
 
 				for (int sample = 0; sample < samplesLimit; sample++)
 				{
-					float u = float(i + drand48()) / float(buffer->width);
-					float v = float(j + drand48()) / float(buffer->height);
+					float u = float(i + drand48()) / float(m_buffer->width);
+					float v = float(j + drand48()) / float(m_buffer->height);
 					
 					Ray ray = m_camera.getRay(u, v);
 					color += rayTrace(ray, m_world, 0);
@@ -394,7 +426,7 @@ void RayTracer::renderAllAtOnce(double time)
 
 				color /= float(samplesLimit);
 
-				buffer->color_data[(j*buffer->width)+i] = color;
+				m_buffer->color_data[(j * m_buffer->width) + i] = color;
 			}
 		}
 		
@@ -422,20 +454,20 @@ void RayTracer::renderSamples(double time, double delta_time)
 	{
 		totalRayTracingTime = time - startTime;
 
-		for (int j = 0; j < buffer->height; ++j)
+		for (int j = 0; j < m_buffer->height; ++j)
 		{
-			for (int i = 0; i < buffer->width; ++i)
+			for (int i = 0; i < m_buffer->width; ++i)
 			{
-				float u = float(i + drand48()) / float(buffer->width);
-				float v = float(j + drand48()) / float(buffer->height);
+				float u = float(i + drand48()) / float(m_buffer->width);
+				float v = float(j + drand48()) / float(m_buffer->height);
 
 				Ray ray = m_camera.getRay(u, v);
 				vec3 color = rayTrace(ray, m_world, 0);
 
 				//http://stackoverflow.com/questions/22999487/update-the-average-of-a-continuous-sequence-of-numbers-in-constant-time
 				// add to average
-				buffer->color_data[(j*buffer->width)+i]
-					= (float(currentSample) * buffer->color_data[(j*buffer->width)+i] + color) / float(currentSample + 1);
+				m_buffer->color_data[(j * m_buffer->width) + i]
+					= (float(currentSample) * m_buffer->color_data[(j * m_buffer->width) + i] + color) / float(currentSample + 1);
 			}
 		}
 		
@@ -445,11 +477,13 @@ void RayTracer::renderSamples(double time, double delta_time)
 
 void RayTracer::updateImageBuffer()
 {
-	buffer->update8BitImageBuffer(vg);
+	m_buffer->update8BitImageBuffer(vg);
 }
 
 void RayTracer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h)
-{	
+{
+	ImageBuffer& readBuffer = imageBuffer();
+
 	nvgSave(vg);
 
 	//override the given parameters and reuse w and h...
@@ -460,8 +494,7 @@ void RayTracer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h
 	h = g_rae->screenHeightP();
 	*/
 
-	//imgPaint = nvgImagePattern(vg, 0, 0, winWidth, winHeight, 0.0f, backgroundImage, (sinf(t*0.25f)+1.0f)*0.5f);
-	imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, buffer->imageId, 1.0f);
+	imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId, 1.0f);
 	nvgBeginPath(vg);
 	nvgRect(vg, x, y, w, h);
 	nvgFillPaint(vg, imgPaint);
@@ -528,5 +561,5 @@ void RayTracer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h
 		nvgText(vg, 10.0f, vertPos, debugStr2.c_str(), nullptr); vertPos += 20.0f;
 	}
 
-	nvgRestore(vg);	
+	nvgRestore(vg);
 }

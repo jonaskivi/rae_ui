@@ -28,6 +28,7 @@ public:
 	Entity& createRandomBunnyEntity();
 	Entity& createRandomCubeEntity();
 	Entity& createCube(glm::vec3 position, glm::vec4 color);
+	Entity& createBunny(glm::vec3 position, glm::vec4 color);
 	Entity& createEmptyEntity();
 
 	void createTestWorld();

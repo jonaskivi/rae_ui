@@ -126,13 +126,12 @@ m_height(512),
 m_type(set_type),
 m_color(set_color)
 {
-	
 }
 
 void Material::generateFBO(NVGcontext* vg)
 {
 	m_framebufferObject = nvgluCreateFramebuffer(vg, m_width, m_height, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
-	if( m_framebufferObject == nullptr )
+	if (m_framebufferObject == nullptr)
 	{
 		cout << "Could not create FBO.\n";
 		assert(0);
@@ -141,7 +140,10 @@ void Material::generateFBO(NVGcontext* vg)
 
 void Material::update(NVGcontext* vg, double time)
 {
-	if( m_framebufferObject == nullptr )
+	if (m_framebufferObject == nullptr)
+		return;
+
+	if (m_initialized == true && m_animate == false)
 		return;
 
 	float circle_size = float((cos(time) + 1.0) * 128.0);
@@ -156,14 +158,15 @@ void Material::update(NVGcontext* vg, double time)
 	nvgBeginFrame(vg, m_width, m_height, /*pixelRatio*/1.0f);
 
 		nvgBeginPath(vg);
-		nvgCircle(vg, float(m_width) * 0.5f, float(m_height) * 0.5f, circle_size);
+
+		if (m_animate)
+			nvgCircle(vg, float(m_width) * 0.5f, float(m_height) * 0.5f, circle_size);
 		
 		if(m_type == 2)
 			nvgFillColor(vg, nvgRGBA(220, 45, 0, 200));
 		else if(m_type == 1)
 			nvgFillColor(vg, nvgRGBA(0, 220, 45, 200));
 		else nvgFillColor(vg, nvgRGBA(10, 145, 200, 200)); 
-
 
 		nvgFill(vg);
 
@@ -179,6 +182,8 @@ void Material::update(NVGcontext* vg, double time)
 
 	nvgEndFrame(vg);
 	nvgluBindFramebuffer(NULL);
+
+	m_initialized = true;
 }
 
 GLuint Material::textureID()

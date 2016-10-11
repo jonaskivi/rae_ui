@@ -36,8 +36,8 @@ m_input(m_screenSystem)
 	m_modelID = mesh.id();
 
 	m_meshID     = m_renderSystem->createBox().id();
-	m_materialID = m_renderSystem->createAnimatingMaterial(0, glm::vec4(0.2f, 0.5f, 0.7f, 0.0f)).id();
-	m_bunnyMaterialID = m_renderSystem->createAnimatingMaterial(1, glm::vec4(0.7f, 0.3f, 0.1f, 0.0f)).id();
+	m_materialID = m_renderSystem->createMaterial(0, glm::vec4(0.2f, 0.5f, 0.7f, 0.0f)).id();
+	m_bunnyMaterialID = m_renderSystem->createMaterial(1, glm::vec4(0.7f, 0.3f, 0.1f, 0.0f)).id();
 	m_buttonMaterialID = m_renderSystem->createAnimatingMaterial(2, glm::vec4(0.0f, 0.0f, 0.1f, 0.0f)).id();
 	
 	createEmptyEntity(); // hack at index 0
@@ -145,10 +145,18 @@ Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
 	Entity& entity = createEmptyEntity();
 	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
 
-	//material.generateFBO(vg);
-
-	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem->createAnimatingMaterial(0, color).id() );
+	//entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem->createAnimatingMaterial(0, color).id() );
+	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem->createMaterial(0, color).id() );
 	entity.addComponent( (int)ComponentType::MESH, m_meshID );
+	return entity;
+}
+
+Entity& Engine::createBunny(glm::vec3 position, glm::vec4 color)
+{
+	Entity& entity = createEmptyEntity();
+	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
+	entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
+	entity.addComponent( (int)ComponentType::MESH, m_modelID );
 	return entity;
 }
 
@@ -172,6 +180,8 @@ void Engine::createTestWorld2()
 	auto cube2 = createCube(glm::vec3(-0.5f, 0.65f, -1.0f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
 	auto cube3 = createCube(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
 	auto cube4 = createCube(glm::vec3(-3.15f, 0.1f, -5.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+
+	auto bunny1 = createBunny(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
 
 	Hierarchy& hierarchy1 = m_objectFactory.createHierarchy();
 	cube1.addComponent( (int)ComponentType::HIERARCHY, hierarchy1.id() );

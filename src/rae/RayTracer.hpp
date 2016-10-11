@@ -1,7 +1,11 @@
 #pragma once
 
+#include <iostream>
+
 #include <stdint.h> // uint8_t etc.
 #include <vector>
+#include <mutex>
+#include <thread>
 
 #include "nanovg.h"
 
@@ -10,6 +14,8 @@ using glm::vec3;
 
 #include "Ray.hpp"
 #include "HitRecord.hpp"
+#include "Hitable.hpp"
+#include "HitableList.hpp"
 
 namespace Rae
 {
@@ -17,67 +23,13 @@ namespace Rae
 class Camera;
 class Material;
 
-class Hitable
-{
-public:
-	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const = 0;
-};
-
-class Sphere : public Hitable
-{
-public:
-	Sphere(){}
-	Sphere(vec3 setCenter, float setRadius, Material* setMaterial)
-		: center(setCenter),
-		radius(setRadius),
-		material(setMaterial)
-	{}
-
-	~Sphere();
-
-	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
-
-	vec3 center;
-	float radius;
-	Material* material;
-};
-
-// HitableList.hpp
-class HitableList : public Hitable
-{
-public:
-	HitableList(){}
-	HitableList(int size)
-	{
-		list.reserve(size);
-	}
-	~HitableList()
-	{
-		clear();
-	}
-
-	void clear()
-	{
-		for(size_t i = 0; i < list.size(); ++i)
-		{
-			delete list[i];
-		}
-		list.clear();
-	}
-
-	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
-
-	void add(Hitable* hitable)
-	{
-		list.push_back(hitable);
-	}
-
-	std::vector<Hitable*> list;
-};
-
 struct ImageBuffer
 {
+	ImageBuffer();
 	ImageBuffer(int setWidth, int setHeight);
+
+	void init(int setWidth, int setHeight);
+	void init();
 
 	void createImage(NVGcontext* vg);
 	void update8BitImageBuffer(NVGcontext* vg);
@@ -98,6 +50,7 @@ class RayTracer
 {
 public:
 	RayTracer(Camera& setCamera);
+	~RayTracer();
 
 	void showScene(int number);
 	void clearScene();
@@ -130,6 +83,8 @@ public:
 
 	void toggleVisualizeFocusDistance() { m_isVisualizeFocusDistance = !m_isVisualizeFocusDistance; }
 
+	ImageBuffer& imageBuffer() { return *m_buffer; }
+
 protected:
 
 	bool m_isInfoText = true;
@@ -137,10 +92,9 @@ protected:
 	bool m_isVisualizeFocusDistance = true;
 
 	double switchTime = 5.0f; // time to switch to big buffer rendering in seconds
-	ImageBuffer smallBuffer = ImageBuffer(300, 150);
-	//ImageBuffer bigBuffer = ImageBuffer(1000, 500);
-	ImageBuffer bigBuffer = ImageBuffer(1920, 1080);
-	ImageBuffer* buffer;
+	ImageBuffer m_smallBuffer;
+	ImageBuffer m_bigBuffer;
+	ImageBuffer* m_buffer;
 
 	int samplesLimit = 2000;
 	

@@ -35,6 +35,7 @@ public:
 	void checkErrors(const char *file, int line);
 
 	Mesh& createBox();
+	Material& createMaterial(int type, const glm::vec4& color);
 	Material& createAnimatingMaterial(int type, const glm::vec4& color);
 
 	void update(double time, double delta_time, std::vector<Entity>& entities) override;

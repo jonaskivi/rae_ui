@@ -5,12 +5,16 @@
 #include <iostream>
 #include <fstream>
 
+#include "Material.hpp"
+
 namespace Rae
 {
 
 Mesh::Mesh(int set_id)
 : m_id(set_id)
 {
+	//material = new Lambertian(vec3(0.1f, 0.2f, 0.7f));
+	material = new Metal(vec3(0.1f, 0.2f, 0.7f), 0.3f);
 }
 
 Mesh::~Mesh()
@@ -21,14 +25,138 @@ Mesh::~Mesh()
 	glDeleteBuffers(1, &indexBufferID);	
 }
 
+// Möller-Trumbore ray triangle intersection
+bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirection,
+	const vec3& v1, const vec3& v2, const vec3& v3,
+	float& u, float& v, float& t, bool& frontfacing) const
+{
+	vec3 e2 = v3 - v1;            // second edge
+	vec3 e1 = v2 - v1;            // first edge
+	vec3 r = glm::cross(rayDirection, e2); // (rayDirection X e2)
+	vec3 s = rayStart - v1;       // translated ray origin
+	float a = glm::dot(e1, r);    // a = (d X e2) * e1
+	float f = 1.0f / a;
+	vec3 q = glm::cross(s, e1);
+	u = glm::dot(s, r);
+	frontfacing = true;
+
+	const float epsilon = 0.000001f;
+
+	if (a > epsilon)
+	{
+		// Front facing triangle...
+		if (u < 0.0f || u > a)
+		{
+			return false;
+		}
+		
+		float v = glm::dot(rayDirection, q);
+		
+		if (v < 0.0f || u + v > a)
+		{
+			return false;
+		}
+	}/* We are not interested in backfacing triangles currently
+	else if (a < -epsilon)
+	{
+		// Back facing triangle...
+		frontfacing = false;
+		if (u > 0.0f || u < a)
+		{
+			return false;
+		}
+
+		float v = glm::dot(rayDirection, q);
+
+		if (v > 0.0f || u + v < a)
+		{
+			return false;
+		}
+	}
+	*/
+	else
+	{
+		// Ray is parallel to plane of the triangle (or backfacing as we've disabled that branch)
+		frontfacing = false;
+		return false;
+	}
+
+	t = f * glm::dot(e2, q);
+	u = u * f;
+	v = v * f;
+
+	return true;
+}
+
+bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
+{
+	if (m_aabb.hit(ray, t_min, t_max) == false)
+		return false;
+
+	vec3 v0, v1, v2;
+	float u, v;
+	float tempDistance;
+	bool frontfacing;
+
+	bool isHit = false;
+
+	for (int i = 0; i < triangleCount(); ++i)
+	{
+		getTriangle(i, v0, v1, v2);
+
+		if (rayTriangleIntersection( ray.origin(), ray.direction(), v0, v1, v2, u, v, tempDistance, frontfacing)
+			&& tempDistance < t_max
+			&& tempDistance > t_min
+			&& tempDistance < record.t)
+		{
+			isHit = true;
+			record.t = tempDistance;
+			record.point = ray.point_at_parameter(record.t);
+			record.normal = getFaceNormal(i); // currently just face normals
+			record.material = material;
+		}
+	}
+
+	return isHit;
+}
+
+void Mesh::getTriangle(int idx, vec3& out0, vec3& out1, vec3& out2) const
+{
+	if (idx >= triangleCount())
+	{
+		assert(0);
+		return;
+	}
+
+	idx = idx * 3;
+	out0 = vertices[indices[idx]];
+	out1 = vertices[indices[idx+1]];
+	out2 = vertices[indices[idx+2]];
+}
+
+vec3 Mesh::getFaceNormal(int idx) const
+{
+	if (idx >= triangleCount())
+	{
+		assert(0);
+		return vec3(0.0f, 1.0f, 0.0f);
+	}
+
+	idx = idx * 3;
+	vec3 normal = normals[indices[idx]];
+	normal += normals[indices[idx+1]];
+	normal += normals[indices[idx+2]];
+	return glm::normalize(normal);
+}
+
 //version without initializer lists (vs2012):
 void Mesh::generateBox()
 {
 	std::cout<<"Generating Mesh.\n";
 
-	float boxSize = 0.05f; // Actually half of the box size
+	float boxSize = 0.5f; // Actually half of the box size
 
-    vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 0
+	vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 0
 	vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 1
 	vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 2
 	vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 3
@@ -198,7 +326,18 @@ void Mesh::generateBox()
 	indices.push_back(22);
 	indices.push_back(23);
 
-	std::cout<<"size of: vertices: "<<vertices.size()<<" size of indices: "<<indices.size()<<"\n";	
+	computeAabb();
+
+	std::cout << "size of: vertices: " << vertices.size() << " size of indices: " << indices.size() << "\n";
+}
+
+void Mesh::computeAabb()
+{
+	m_aabb.clear();
+	for(int i = 0; i < vertices.size(); ++i)
+	{
+		m_aabb.grow(vertices[i]);
+	}
 }
 
 /*
@@ -415,49 +554,13 @@ bool Mesh::loadModel(const string& filepath)
 
 	loadNode(scene, scene->mRootNode);
 
+	// Aabb already computed inside loadNode because we need it for UV computation
+	//computeAabb();
 	createVBOs();
 
 	cout << "Succesfully imported scene " << filepath << "\n";
 	return true;
 }
-
-class AABB
-{
-public:
-	AABB()
-	: min(FLT_MAX, FLT_MAX, FLT_MAX),
-	max(FLT_MIN, FLT_MIN, FLT_MIN)
-	{
-	}
-
-	void grow(glm::vec3 set);
-
-	glm::vec3 dimensions()
-	{
-		return max - min;
-	}
-
-	glm::vec3 min;
-	glm::vec3 max;
-};
-
-void AABB::grow(glm::vec3 set)
-{
-	if(min.x > set.x)
-		min.x = set.x;
-	if(min.y > set.y)
-		min.y = set.y;
-	if(min.z > set.z)
-		min.z = set.z;
-
-	if(max.x < set.x)
-		max.x = set.x;
-	if(max.y < set.y)
-		max.y = set.y;
-	if(max.z < set.z)
-		max.z = set.z;
-}
-
 
 void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 {
@@ -499,7 +602,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			cout << "no texture coordinates in mesh.\n";
 		}
 
-		AABB aabb;
+		m_aabb.clear();
 
 		// Fill vertices positions
 		vertices.reserve(mesh->mNumVertices);
@@ -507,7 +610,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 		{
 			aiVector3D pos = mesh->mVertices[i];
 			vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
-			aabb.grow(vertices[i]);
+			m_aabb.grow(vertices[i]);
 		}
 
 		// Fill vertices texture coordinates
@@ -525,7 +628,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 				// really TEMP uvs
 				//uvs.push_back(glm::vec2(float(i) / float(mesh->mNumVertices), float(i) / float(mesh->mNumVertices)));
 
-				uvs.push_back(glm::vec2((vertices[i].x - aabb.min.x) / aabb.dimensions().x, (vertices[i].y - aabb.min.y) / aabb.dimensions().y));
+				uvs.push_back(glm::vec2((vertices[i].x - m_aabb.min().x) / m_aabb.dimensions().x, (vertices[i].y - m_aabb.min().y) / m_aabb.dimensions().y));
 			}
 		}
 
@@ -545,7 +648,6 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			}
 		}
 
-
 		// Fill face indices
 		indices.reserve(3*mesh->mNumFaces);
 		for (unsigned i = 0; i<mesh->mNumFaces; i++)
@@ -555,7 +657,6 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			indices.push_back(mesh->mFaces[i].mIndices[1]);
 			indices.push_back(mesh->mFaces[i].mIndices[2]);
 		}
-		
 	}
 }
 //end // ASSIMP

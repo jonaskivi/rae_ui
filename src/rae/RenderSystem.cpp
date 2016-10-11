@@ -142,10 +142,17 @@ Mesh& RenderSystem::createBox()
 	return mesh;
 }
 
+Material& RenderSystem::createMaterial(int type, const glm::vec4& color)
+{
+	Material& material = m_objectFactory->createMaterial(type, color);
+	material.generateFBO(vg);
+	return material;
+}
+
 Material& RenderSystem::createAnimatingMaterial(int type, const glm::vec4& color)
 {
 	Material& material = m_objectFactory->createMaterial(type, color);
-
+	material.animate(true);
 	material.generateFBO(vg);
 	return material;
 }
@@ -201,7 +208,8 @@ void RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 
 	updateCamera(time, delta_time);
 
-	m_rayTracer.update(time, delta_time);
+	if (m_glRendererOn == false)
+		m_rayTracer.update(time, delta_time);
 
 	render(time, delta_time, entities);
 
@@ -279,6 +287,7 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 		//else cout << "No mesh and no transform.\n";
 	}
 
+	/*
 	if (debugTransform && debugMesh && debugMaterial)
 	{
 		debugTransform->update(time, delta_time);
@@ -286,6 +295,7 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 		renderMesh(debugTransform, nullptr, debugMesh);
 		renderMesh(debugTransform2, nullptr, debugMesh);
 	}
+	*/
 }
 
 void RenderSystem::renderPicking(std::vector<Entity>& entities)

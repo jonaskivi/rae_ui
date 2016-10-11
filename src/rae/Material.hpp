@@ -46,6 +46,8 @@ public:
 	void setColor(glm::vec4 set);
 	const glm::vec4& color() { return m_color; }
 
+	void animate(bool set) { m_animate = set; }
+
 protected:
 	NVGLUframebuffer* m_framebufferObject;
 	int m_width;
@@ -53,6 +55,8 @@ protected:
 
 	glm::vec4 m_color;
 
+	bool m_initialized = false;
+	bool m_animate = false;
 	int m_type; // TODO enum. Currently 0 and 1 supported!
 };
 

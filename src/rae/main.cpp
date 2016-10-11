@@ -144,7 +144,7 @@ int main()
 	glfwSwapInterval(0);
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-	
+
 	// Load it into a VBO
 
 	Engine engine(window);

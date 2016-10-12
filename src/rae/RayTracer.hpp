@@ -56,7 +56,7 @@ public:
 	void showScene(int number);
 	void clearScene();
 
-	void createSceneOne(HitableList& world, Camera& camera);
+	void createSceneOne(HitableList& world, Camera& camera, bool loadBunny = false);
 	void createSceneFromBook(HitableList& list, Camera& camera);
 
 	void update(double time, double deltaTime);
@@ -85,6 +85,9 @@ public:
 	void toggleVisualizeFocusDistance() { m_isVisualizeFocusDistance = !m_isVisualizeFocusDistance; }
 
 	ImageBuffer& imageBuffer() { return *m_buffer; }
+
+	void plusBounces(int delta = 1);
+	void minusBounces(int delta = 1);
 
 protected:
 

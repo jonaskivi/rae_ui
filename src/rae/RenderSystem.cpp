@@ -428,7 +428,7 @@ void RenderSystem::render2d(double time, double delta_time)
 			nvgText(vg, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
 
 			nvgText(vg, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
-				" NM aperture, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
+				" NM aperture, KL bounces, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
 			nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
 			nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 
@@ -519,6 +519,7 @@ void RenderSystem::onKeyEvent(const Input& input)
 			case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;
 			case KeySym::_1: m_rayTracer.showScene(1); break;
 			case KeySym::_2: m_rayTracer.showScene(2); break;
+			case KeySym::_3: m_rayTracer.showScene(3); break;
 			default:
 			break;
 		}
@@ -573,6 +574,10 @@ void RenderSystem::updateCamera(double time, double delta_time)
 		debugTransform2->setTarget(m_rayTracer.debugHitRecord.point, m_camera.focusSpeed());
 		debugTransform->setTarget(m_camera.getFocusPosition(), m_camera.focusSpeed() * 0.5f);
 	}
+
+	// TODO use KeySym::Page_Up
+	if (m_input.getKeyState(KeySym::K)) { m_rayTracer.minusBounces(); }
+	if (m_input.getKeyState(KeySym::L)) { m_rayTracer.plusBounces(); }
 
 	if (m_camera.update(time, delta_time))
 	{

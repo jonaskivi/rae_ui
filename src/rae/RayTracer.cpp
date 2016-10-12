@@ -106,7 +106,7 @@ void ImageBuffer::clear()
 	//std::fill(data.begin(), data.end(), 0);
 }
 
-void RayTracer::createSceneOne(HitableList& world, Camera& camera)
+void RayTracer::createSceneOne(HitableList& world, Camera& camera, bool loadBunny)
 {
 	camera.setFieldOfViewDeg(44.6f);
 
@@ -151,8 +151,6 @@ void RayTracer::createSceneOne(HitableList& world, Camera& camera)
 		);
 
 	///////////////////
-
-	bool loadBunny = false;
 
 	auto bunny = new Mesh(0);
 	if (loadBunny)
@@ -214,10 +212,16 @@ void RayTracer::showScene(int number)
 	if (number == 1)
 	{
 		clearScene();
-		createSceneOne(m_world, m_camera);
+		createSceneOne(m_world, m_camera, false);
 	}
 
 	if (number == 2)
+	{
+		clearScene();
+		createSceneOne(m_world, m_camera, true);
+	}
+
+	if (number == 3)
 	{
 		clearScene();
 		createSceneFromBook(m_world, m_camera);
@@ -385,6 +389,20 @@ float RayTracer::rayMaxLength()
 	else return 5.0f;
 }
 
+void RayTracer::plusBounces(int delta)
+{
+	m_bouncesLimit += delta;
+	m_bouncesLimit = std::max(0, m_bouncesLimit);
+	m_bouncesLimit = std::min(5000, m_bouncesLimit);
+}
+
+void RayTracer::minusBounces(int delta)
+{
+	m_bouncesLimit -= delta;
+	m_bouncesLimit = std::max(0, m_bouncesLimit);
+	m_bouncesLimit = std::min(5000, m_bouncesLimit);
+}
+
 void RayTracer::renderAllAtOnce(double time)
 {
 	// timings for 100 samples at 500x250:
@@ -533,6 +551,10 @@ void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 		std::string apertureStr = "Aperture: "
 			+ std::to_string(m_camera.aperture());
 		nvgText(vg, 10.0f, vertPos, apertureStr.c_str(), nullptr); vertPos += 20.0f;
+
+		std::string bouncesStr = "Bounces: "
+			+ std::to_string(m_bouncesLimit);
+		nvgText(vg, 10.0f, vertPos, bouncesStr.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string debugStr = "Debug hit pos: "
 			+ std::to_string(debugHitRecord.point.x) + ", "

@@ -54,7 +54,7 @@ protected:
 
 	bool rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirection,
 		const vec3& v1, const vec3& v2, const vec3& v3,
-		float& u, float& v, float& t, bool& frontfacing) const;
+		float& t, float& u, float& v/*, bool& frontFacing*/) const;
 	void getTriangle(int idx, vec3& out0, vec3& out1, vec3& out2) const;
 	vec3 getFaceNormal(int idx) const;
 

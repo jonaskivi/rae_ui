@@ -26,9 +26,11 @@ Mesh::~Mesh()
 }
 
 // Möller-Trumbore ray triangle intersection
+// t is outDistance on the ray
+// u and v are coordinates on the triangle plane?
 bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirection,
 	const vec3& v1, const vec3& v2, const vec3& v3,
-	float& u, float& v, float& t, bool& frontfacing) const
+	float& t, float& u, float& v/*, bool& frontFacing*/) const
 {
 	vec3 e2 = v3 - v1;            // second edge
 	vec3 e1 = v2 - v1;            // first edge
@@ -38,7 +40,7 @@ bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirectio
 	float f = 1.0f / a;
 	vec3 q = glm::cross(s, e1);
 	u = glm::dot(s, r);
-	frontfacing = true;
+	//frontFacing = true;
 
 	const float epsilon = 0.000001f;
 
@@ -60,7 +62,7 @@ bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirectio
 	else if (a < -epsilon)
 	{
 		// Back facing triangle...
-		frontfacing = false;
+		frontFacing = false;
 		if (u > 0.0f || u < a)
 		{
 			return false;
@@ -77,7 +79,7 @@ bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirectio
 	else
 	{
 		// Ray is parallel to plane of the triangle (or backfacing as we've disabled that branch)
-		frontfacing = false;
+		//frontFacing = false;
 		return false;
 	}
 
@@ -95,8 +97,7 @@ bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) cons
 
 	vec3 v0, v1, v2;
 	float u, v;
-	float tempDistance;
-	bool frontfacing;
+	float hitDistance;
 
 	bool isHit = false;
 
@@ -104,13 +105,12 @@ bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) cons
 	{
 		getTriangle(i, v0, v1, v2);
 
-		if (rayTriangleIntersection( ray.origin(), ray.direction(), v0, v1, v2, u, v, tempDistance, frontfacing)
-			&& tempDistance < t_max
-			&& tempDistance > t_min
-			&& tempDistance < record.t)
+		if (rayTriangleIntersection(ray.origin(), ray.direction(), v0, v1, v2, hitDistance, u, v)
+			&& hitDistance < t_max
+			&& hitDistance > t_min)
 		{
 			isHit = true;
-			record.t = tempDistance;
+			record.t = hitDistance;
 			record.point = ray.point_at_parameter(record.t);
 			record.normal = getFaceNormal(i); // currently just face normals
 			record.material = material;

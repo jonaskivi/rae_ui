@@ -1,6 +1,8 @@
 #include "Aabb.hpp"
 #include "Ray.hpp"
 
+#include <algorithm>
+
 using namespace Rae;
 
 void  Aabb::init(const Aabb& left, const Aabb& right)

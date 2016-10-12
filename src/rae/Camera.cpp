@@ -36,21 +36,21 @@ Camera::Camera(float fieldOfViewRadians, float setAspectRatio, float aperture, f
 
 Ray Camera::getRay(float s, float t)
 {
-	//return Ray(origin, lowerLeftCorner + (s * horizontal) + (t * vertical) - origin);
+	//return Ray(origin, lowerLeftCorner + (s * m_horizontal) + (t * m_vertical) - origin);
 	// Normal:
-	//return Ray(m_position, m_topLeftCorner + (s * horizontal) - (t * vertical) - m_position);
+	//return Ray(m_position, m_topLeftCorner + (s * m_horizontal) - (t * m_vertical) - m_position);
 	vec3 rd = m_lensRadius * randomInUnitDisk();
-	vec3 offset = right * rd.x + up * rd.y;
-	//return Ray(m_position + offset, m_lowerLeftCorner + (s * horizontal) + (t * vertical) - m_position - offset);
-	return Ray(m_position + offset, m_topLeftCorner + (s * horizontal) - (t * vertical) - m_position - offset);
+	vec3 offset = m_right * rd.x + m_up * rd.y;
+	//return Ray(m_position + offset, m_lowerLeftCorner + (s * m_horizontal) + (t * m_vertical) - m_position - offset);
+	return Ray(m_position + offset, m_topLeftCorner + (s * m_horizontal) - (t * m_vertical) - m_position - offset);
 }
 
 Ray Camera::getExactRay(float s, float t)
 {
-	//return Ray(origin, lowerLeftCorner + (s * horizontal) + (t * vertical) - origin);
+	//return Ray(origin, lowerLeftCorner + (s * m_horizontal) + (t * m_vertical) - origin);
 	// Normal:
-	//return Ray(m_position, m_lowerLeftCorner + (s * horizontal) + (t * vertical) - m_position);
-	return Ray(m_position, m_topLeftCorner + (s * horizontal) - (t * vertical) - m_position);
+	//return Ray(m_position, m_lowerLeftCorner + (s * m_horizontal) + (t * m_vertical) - m_position);
+	return Ray(m_position, m_topLeftCorner + (s * m_horizontal) - (t * m_vertical) - m_position);
 }
 
 void Camera::calculateFrustum()
@@ -58,24 +58,24 @@ void Camera::calculateFrustum()
 	m_lensRadius = m_aperture / 2.0f;
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
-	direction = vec3(
+	m_direction = vec3(
 		cos(m_pitchAngle) * sin(m_yawAngle), 
 		sin(m_pitchAngle),
 		cos(m_pitchAngle) * cos(m_yawAngle)
 	);
 	
 	// Right vector
-	right = glm::vec3(
+	m_right = glm::vec3(
 		sin(m_yawAngle - 3.14f/2.0f),
 		0,
 		cos(m_yawAngle - 3.14f/2.0f)
 	);
 
 	// Up vector
-	up = glm::cross( right, direction );
+	m_up = glm::cross( m_right, m_direction );
 
 	m_projectionMatrix = glm::perspective(Math::toDegrees(m_fieldOfView), m_aspectRatio, 0.1f, 500.0f);
-	m_viewMatrix = glm::lookAt( m_position, m_position + direction, up );
+	m_viewMatrix = glm::lookAt( m_position, m_position + m_direction, m_up );
 
 	//
 
@@ -83,24 +83,24 @@ void Camera::calculateFrustum()
 	float halfHeight = tan(m_fieldOfView / 2.0f);
 
 	float halfWidth = m_aspectRatio * halfHeight;
-	w = glm::normalize(m_position - (m_position + direction));
+	w = glm::normalize(m_position - (m_position + m_direction));
 	
-	// Normal way: m_topLeftCorner = m_position - (halfWidth * right) + (halfHeight * up) - w;
+	// Normal way: m_topLeftCorner = m_position - (halfWidth * m_right) + (halfHeight * m_up) - w;
 	m_topLeftCorner =
 		m_position
-		- (halfWidth * m_focusDistance * right)
-		+ (halfHeight * m_focusDistance * up)
+		- (halfWidth * m_focusDistance * m_right)
+		+ (halfHeight * m_focusDistance * m_up)
 		- (m_focusDistance * w);
 	/*
 	m_lowerLeftCorner =
 		m_position
-		- (halfWidth * m_focusDistance * right)
-		- (halfHeight * m_focusDistance * up)
+		- (halfWidth * m_focusDistance * m_right)
+		- (halfHeight * m_focusDistance * m_up)
 		- (m_focusDistance * w);
 	*/
 	
-	horizontal = 2.0f * halfWidth * m_focusDistance * right;
-	vertical = 2.0f * halfHeight * m_focusDistance * up;
+	m_horizontal = 2.0f * halfWidth * m_focusDistance * m_right;
+	m_vertical = 2.0f * halfHeight * m_focusDistance * m_up;
 
 	m_needsUpdate = false;
 }
@@ -135,7 +135,7 @@ void Camera::moveForward(float delta)
 	if (delta > 0.0f)
 	{
 		m_needsUpdate = true;
-		m_position += delta * direction * cameraSpeed();
+		m_position += delta * m_direction * cameraSpeed();
 	}	
 }
 
@@ -144,7 +144,7 @@ void Camera::moveBackward(float delta)
 	if (delta > 0.0f)
 	{
 		m_needsUpdate = true;
-		m_position -= delta * direction * cameraSpeed();
+		m_position -= delta * m_direction * cameraSpeed();
 	}	
 }
 
@@ -153,7 +153,7 @@ void Camera::moveRight(float delta)
 	if (delta > 0.0f)
 	{
 		m_needsUpdate = true;
-		m_position += delta * right * cameraSpeed();
+		m_position += delta * m_right * cameraSpeed();
 	}	
 }
 
@@ -162,7 +162,7 @@ void Camera::moveLeft(float delta)
 	if (delta > 0.0f)
 	{
 		m_needsUpdate = true;
-		m_position -= delta * right * cameraSpeed();
+		m_position -= delta * m_right * cameraSpeed();
 	}	
 }
 
@@ -171,7 +171,7 @@ void Camera::moveUp(float delta)
 	if (delta > 0.0f)
 	{
 		m_needsUpdate = true;
-		m_position += delta * up * cameraSpeed();
+		m_position += delta * m_up * cameraSpeed();
 	}	
 }
 
@@ -180,7 +180,7 @@ void Camera::moveDown(float delta)
 	if (delta > 0.0f)
 	{
 		m_needsUpdate = true;
-		m_position -= delta * up * cameraSpeed();
+		m_position -= delta * m_up * cameraSpeed();
 	}	
 }
 
@@ -282,7 +282,7 @@ void Camera::setFocusDistance(float distance)
 
 vec3 Camera::getFocusPosition()
 {
-	return m_position + (direction * m_focusDistance);
+	return m_position + (m_direction * m_focusDistance);
 }
 
 void Camera::setFocusPosition(const vec3& pos)

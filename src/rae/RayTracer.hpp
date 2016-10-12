@@ -41,7 +41,7 @@ struct ImageBuffer
 	int width;
 	int height;
 
-	std::vector<vec3> color_data;
+	std::vector<vec3> colorData;
 	std::vector<uint8_t> data;
 
 	int imageId;
@@ -59,12 +59,12 @@ public:
 	void createSceneOne(HitableList& world, Camera& camera);
 	void createSceneFromBook(HitableList& list, Camera& camera);
 
-	void update(double time, double delta_time);
+	void update(double time, double deltaTime);
 	void renderAllAtOnce(double time);
-	void renderSamples(double time, double delta_time);
+	void renderSamples(double time, double deltaTime);
 	void updateImageBuffer();
 	void renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h);
-	void setNanovgContext(NVGcontext* set_vg);
+	void setNanovgContext(NVGcontext* setVg);
 
 	void autoFocus();
 
@@ -92,25 +92,26 @@ protected:
 	bool m_isFastMode = false;
 	bool m_isVisualizeFocusDistance = true;
 
-	double switchTime = 5.0f; // time to switch to big buffer rendering in seconds
+	double m_switchTime = 5.0f; // time to switch to big buffer rendering in seconds
 	ImageBuffer m_smallBuffer;
 	ImageBuffer m_bigBuffer;
 	ImageBuffer* m_buffer;
 
-	int samplesLimit = 2000;
+	int m_samplesLimit = 2000;
+	int m_bouncesLimit = 50;
 	
-	int currentSample = 0;
-	double totalRayTracingTime = -1.0;
+	int m_currentSample = 0;
+	double m_totalRayTracingTime = -1.0;
 
 	// for renderAllAtOnce:
-	double startTime = -1.0;
+	double m_startTime = -1.0;
 
 	Camera& m_camera;
 	HitableList m_world;
 	BvhNode m_tree;
 
-	NVGcontext* vg = nullptr;
-	NVGpaint imgPaint;
+	NVGcontext* m_vg = nullptr;
+	NVGpaint m_imgPaint;
 };
 
 } // end namespace Rae

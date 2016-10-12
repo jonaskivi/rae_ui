@@ -49,15 +49,15 @@ void ImageBuffer::init()
 		return;
 	}
 
-	if (color_data.size() > 0)
-		color_data.clear();
+	if (colorData.size() > 0)
+		colorData.clear();
 	if (data.size() > 0)
 		data.clear();
 
-	color_data.reserve(width * height);
+	colorData.reserve(width * height);
 	for (int i = 0; i < width * height; ++i)
 	{
-		color_data.push_back(vec3(0.5f, 0.5f, 0.5f));
+		colorData.push_back(vec3(0.5f, 0.5f, 0.5f));
 	}	
 	data.reserve(width * height * channels);
 	for (int i = 0; i < width * height; ++i)
@@ -87,7 +87,7 @@ void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 			for (int i = 0; i < width; ++i)
 			{
 				
-				vec3 color = color_data[(j*width)+i];
+				vec3 color = colorData[(j*width)+i];
 
 				// Gamma correction done with sqrt only
 				data[(j*width*channels) + (i*channels) + 0] = int8_t(255.99 * sqrt(color.r));
@@ -102,7 +102,7 @@ void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 
 void ImageBuffer::clear()
 {
-	std::fill(color_data.begin(), color_data.end(), vec3(0,0,0));
+	std::fill(colorData.begin(), colorData.end(), vec3(0,0,0));
 	//std::fill(data.begin(), data.end(), 0);
 }
 
@@ -234,9 +234,9 @@ void RayTracer::clearScene()
 void RayTracer::clear()
 {
 	m_buffer->clear();
-	currentSample = 0;
-	totalRayTracingTime = -1.0;
-	startTime = -1.0f;
+	m_currentSample = 0;
+	m_totalRayTracingTime = -1.0;
+	m_startTime = -1.0f;
 }
 
 RayTracer::RayTracer(Camera& setCamera)
@@ -256,12 +256,12 @@ RayTracer::~RayTracer()
 {
 }
 
-void RayTracer::setNanovgContext(NVGcontext* set_vg)
+void RayTracer::setNanovgContext(NVGcontext* setVg)
 {
-	vg = set_vg;
+	m_vg = setVg;
 
-	m_smallBuffer.createImage(vg);
-	m_bigBuffer.createImage(vg);
+	m_smallBuffer.createImage(m_vg);
+	m_bigBuffer.createImage(m_vg);
 }
 
 std::string toString(const HitRecord& record)
@@ -305,7 +305,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, Hitable& world, int depth)
 			Ray scattered;
 			vec3 attenuation;
 
-			if (depth < 50 && record.material->scatter(ray, record, attenuation, scattered))
+			if (depth < m_bouncesLimit && record.material->scatter(ray, record, attenuation, scattered))
 			{
 				return attenuation * rayTrace(scattered, world, depth + 1);
 			}
@@ -331,7 +331,7 @@ vec3 RayTracer::sky(const Ray& ray)
 
 //#define RENDER_ALL_AT_ONCE
 
-void RayTracer::update(double time, double delta_time)
+void RayTracer::update(double time, double deltaTime)
 {
 	/*
 	Old time based switch buffers system:
@@ -351,17 +351,17 @@ void RayTracer::update(double time, double delta_time)
 	}
 	*/
 
-	if (startTime == -1.0f)
-		startTime = time;
+	if (m_startTime == -1.0f)
+		m_startTime = time;
 
-	if (totalRayTracingTime == -1.0f)
-		totalRayTracingTime = time;
+	if (m_totalRayTracingTime == -1.0f)
+		m_totalRayTracingTime = time;
 
 	#ifdef RENDER_ALL_AT_ONCE
 		renderAllAtOnce(time);
 	#else
-		renderSamples(time, delta_time);
-		if (currentSample <= samplesLimit) // do once more than render
+		renderSamples(time, deltaTime);
+		if (m_currentSample <= m_samplesLimit) // do once more than render
 		{
 			updateImageBuffer();
 		}
@@ -392,9 +392,9 @@ void RayTracer::renderAllAtOnce(double time)
 	// 14.715808 s
 	// 14.710577 s
 
-	if (currentSample < samplesLimit)
+	if (m_currentSample < m_samplesLimit)
 	{
-		startTime = time;
+		m_startTime = time;
 
 		for (int j = 0; j < m_buffer->height; ++j)
 		{
@@ -402,7 +402,7 @@ void RayTracer::renderAllAtOnce(double time)
 			{
 				vec3 color;
 
-				for (int sample = 0; sample < samplesLimit; sample++)
+				for (int sample = 0; sample < m_samplesLimit; sample++)
 				{
 					float u = float(i + drand48()) / float(m_buffer->width);
 					float v = float(j + drand48()) / float(m_buffer->height);
@@ -411,35 +411,35 @@ void RayTracer::renderAllAtOnce(double time)
 					color += rayTrace(ray, m_world, 0);
 				}
 
-				color /= float(samplesLimit);
+				color /= float(m_samplesLimit);
 
-				m_buffer->color_data[(j * m_buffer->width) + i] = color;
+				m_buffer->colorData[(j * m_buffer->width) + i] = color;
 			}
 		}
 		
-		currentSample = samplesLimit;
+		m_currentSample = m_samplesLimit;
 	}
-	else if (currentSample == samplesLimit)
+	else if (m_currentSample == m_samplesLimit)
 	{
 		updateImageBuffer();
 
 		// do only once:
-		totalRayTracingTime = time - startTime;
+		m_totalRayTracingTime = time - m_startTime;
 
-		currentSample++;
+		m_currentSample++;
 	}
 }
 
-void RayTracer::renderSamples(double time, double delta_time)
+void RayTracer::renderSamples(double time, double deltaTime)
 {
 	// timings for 100 samples at 500x250:
 	// 15.426324 s
 	// 15.402015 s
 	// 15.347182 s
 
-	if (currentSample < samplesLimit)
+	if (m_currentSample < m_samplesLimit)
 	{
-		totalRayTracingTime = time - startTime;
+		m_totalRayTracingTime = time - m_startTime;
 
 		for (int j = 0; j < m_buffer->height; ++j)
 		{
@@ -453,21 +453,21 @@ void RayTracer::renderSamples(double time, double delta_time)
 
 				//http://stackoverflow.com/questions/22999487/update-the-average-of-a-continuous-sequence-of-numbers-in-constant-time
 				// add to average
-				m_buffer->color_data[(j * m_buffer->width) + i]
-					= (float(currentSample) * m_buffer->color_data[(j * m_buffer->width) + i] + color) / float(currentSample + 1);
+				m_buffer->colorData[(j * m_buffer->width) + i]
+					= (float(m_currentSample) * m_buffer->colorData[(j * m_buffer->width) + i] + color) / float(m_currentSample + 1);
 			}
 		}
 		
-		currentSample++;
+		m_currentSample++;
 	}
 }
 
 void RayTracer::updateImageBuffer()
 {
-	m_buffer->update8BitImageBuffer(vg);
+	m_buffer->update8BitImageBuffer(m_vg);
 }
 
-void RayTracer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h)
+void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 {
 	ImageBuffer& readBuffer = imageBuffer();
 
@@ -481,10 +481,10 @@ void RayTracer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h
 	h = g_rae->screenHeightP();
 	*/
 
-	imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId, 1.0f);
+	m_imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId, 1.0f);
 	nvgBeginPath(vg);
 	nvgRect(vg, x, y, w, h);
-	nvgFillPaint(vg, imgPaint);
+	nvgFillPaint(vg, m_imgPaint);
 	nvgFill(vg);
 
 	// Text
@@ -498,14 +498,14 @@ void RayTracer::renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h
 	
 		float vertPos = 200.0f;
 
-		std::string samples_str = "Samples: " + std::to_string(currentSample);
-		nvgText(vg, 10.0f, vertPos, samples_str.c_str(), nullptr); vertPos += 20.0f;
+		std::string samplesStr = "Samples: " + std::to_string(m_currentSample);
+		nvgText(vg, 10.0f, vertPos, samplesStr.c_str(), nullptr); vertPos += 20.0f;
 
-		std::string samples_limit_str = "/" + std::to_string(samplesLimit);
-		nvgText(vg, 10.0f, vertPos, samples_limit_str.c_str(), nullptr); vertPos += 20.0f;
+		std::string samplesLimitStr = "/" + std::to_string(m_samplesLimit);
+		nvgText(vg, 10.0f, vertPos, samplesLimitStr.c_str(), nullptr); vertPos += 20.0f;
 
-		std::string total_time_str = "Time: " + std::to_string(totalRayTracingTime) + " s";
-		nvgText(vg, 10.0f, vertPos, total_time_str.c_str(), nullptr); vertPos += 20.0f;
+		std::string totalTimeStr = "Time: " + std::to_string(m_totalRayTracingTime) + " s";
+		nvgText(vg, 10.0f, vertPos, totalTimeStr.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string positionStr = "Position: "
 			+ std::to_string(m_camera.position().x) + ", "

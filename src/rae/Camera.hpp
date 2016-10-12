@@ -90,17 +90,16 @@ public:
 protected:
 
 	vec3 m_position = vec3(13.0f, 2.0f, 3.0f);
-	vec3 direction = vec3(0.0f, 0.0f, -1.0f);
-	vec3 right = vec3(1,0,0); // u
-	vec3 up = vec3(0,1,0); // v
+	vec3 m_direction = vec3(0.0f, 0.0f, -1.0f);
+	vec3 m_right = vec3(1,0,0); // u
+	vec3 m_up = vec3(0,1,0); // v
 
-	// This is a bit more constant. The world up, not the camera up.
-	vec3 upAxis = vec3(0.0f, 1.0f, 0.0f);
+	vec3 m_worldUpAxis = vec3(0.0f, 1.0f, 0.0f);
 
 	//vec3 m_lowerLeftCorner = vec3(-2.0f, -1.0f, -1.0f);
 	vec3 m_topLeftCorner = vec3(-2.0f, 1.0f, -1.0f);
-	vec3 horizontal = vec3(4.0f, 0.0f, 0.0f);
-	vec3 vertical = vec3(0.0f, 2.0f, 0.0f);
+	vec3 m_horizontal = vec3(4.0f, 0.0f, 0.0f);
+	vec3 m_vertical = vec3(0.0f, 2.0f, 0.0f);
 
 	float m_fieldOfView; // in radians
 	float m_aspectRatio;

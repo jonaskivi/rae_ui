@@ -435,7 +435,7 @@ public:
 		cout << "Rae::Input ERROR: Touch ID not found. id: " << set_id << "\n";
 	}
 
-	void scrollEvent( float set_delta_x, float set_delta_y )
+	void osScrollEvent( float set_delta_x, float set_delta_y )
 	{
 		isHandled = false;
 		eventType = EventType::SCROLL;
@@ -443,13 +443,10 @@ public:
 		mouse.scrollX = set_delta_x;
 		mouse.scrollY = set_delta_y;
 
-		for (auto&& slot : scrollSlots)
-		{
-			slot(*this);
-		}
+		emitScrollEvent();
 	}
 	
-	void keyEvent( EventType::e set_event_type, int set_key, int32_t set_unicode )
+	void osKeyEvent( EventType::e set_event_type, int set_key, int32_t set_unicode )
 	{
 		//Trace.formatln("Input.keyEvent() set_key: {}", set_key );
 
@@ -495,16 +492,13 @@ public:
 			else cout << "ERROR: key.value: " << key.value << " is bigger than keyStatesSize: " << key.keyStatesSize << "\n";
 			//Trace.formatln("RELEASE. {}", key.keyStates[set_key]);
 		}
-			
-		for (auto&& slot : keyEventSlots)
-		{
-			slot(*this);
-		}
+
+		emitKeyEvent();
 	}
 
 	float set_x_height;
 	float set_y_height;
-	void mouseEvent( /*IRectangle* set_window,*/ EventType::e set_event_type, int set_button, float set_x_pixels, float set_y_pixels, float set_amount = 0.0f )
+	void osMouseEvent( /*IRectangle* set_window,*/ EventType::e set_event_type, int set_button, float set_x_pixels, float set_y_pixels, float set_amount = 0.0f )
 	{
 		set_x_height = m_screenSystem.pixelsToHeight(set_x_pixels);
 		set_y_height = m_screenSystem.pixelsToHeight(set_y_pixels);
@@ -589,60 +583,56 @@ public:
 
 		if( eventType == EventType::MOUSE_MOTION )
 		{
-			for (auto&& slot : mouseMotionSlots)
-			{
-				slot(*this);
-			}
+			emitMouseMotionEvent();
 		}
 		else if( eventType == EventType::MOUSE_BUTTON_PRESS )
 		{
-			for (auto&& slot : mouseButtonPressSlots)
-			{
-				slot(*this);
-			}
+			emitMouseButtonPressEvent();
 		}
 		else if( eventType == EventType::MOUSE_BUTTON_RELEASE )
 		{
-			for (auto&& slot : mouseButtonReleaseSlots)
-			{
-				slot(*this);
-			}
+			emitMouseButtonReleaseEvent();
 		}
 	}
 
-	void registerMouseButtonPressCallback(std::function<void(const Input&)> set)
+	void connectMouseButtonPressEventHandler(std::function<void(const Input&)> set)
 	{
-		mouseButtonPressSlots.push_back(set);
+		mouseButtonPressEvent.push_back(set);
 	}
 
-	void registerMouseButtonReleaseCallback(std::function<void(const Input&)> set)
+	void connectMouseButtonReleaseEventHandler(std::function<void(const Input&)> set)
 	{
-		mouseButtonReleaseSlots.push_back(set);
+		mouseButtonReleaseEvent.push_back(set);
 	}
 
-	void registerMouseMotionCallback(std::function<void(const Input&)> set)
+	void connectMouseMotionEventHandler(std::function<void(const Input&)> set)
 	{
-		mouseMotionSlots.push_back(set);
+		mouseMotionEvent.push_back(set);
 	}
 
-	void registerScrollCallback(std::function<void(const Input&)> set)
+	void connectScrollEventHandler(std::function<void(const Input&)> set)
 	{
-		scrollSlots.push_back(set);
+		scrollEvent.push_back(set);
 	}
 
-	void registerKeyEventCallback(std::function<void(const Input&)> set)
+	void connectKeyEventHandler(std::function<void(const Input&)> set)
 	{
-		keyEventSlots.push_back(set);
+		keyEvent.push_back(set);
 	}
 
 protected:
 	ScreenSystem& m_screenSystem;
 
-	std::vector<std::function<void(const Input&)>> mouseButtonPressSlots;
-	std::vector<std::function<void(const Input&)>> mouseButtonReleaseSlots;
-	std::vector<std::function<void(const Input&)>> mouseMotionSlots;
-	std::vector<std::function<void(const Input&)>> scrollSlots;
-	std::vector<std::function<void(const Input&)>> keyEventSlots;
+	void emitMouseButtonPressEvent() { for (auto&& event : mouseButtonPressEvent) event(*this); }
+	std::vector<std::function<void(const Input&)>> mouseButtonPressEvent;
+	void emitMouseButtonReleaseEvent() { for (auto&& event : mouseButtonReleaseEvent) event(*this); }
+	std::vector<std::function<void(const Input&)>> mouseButtonReleaseEvent;
+	void emitMouseMotionEvent() { for (auto&& event : mouseMotionEvent) event(*this); }
+	std::vector<std::function<void(const Input&)>> mouseMotionEvent;
+	void emitScrollEvent() { for (auto&& event : scrollEvent) event(*this); }
+	std::vector<std::function<void(const Input&)>> scrollEvent;
+	void emitKeyEvent() { for (auto&& event : keyEvent) event(*this); }
+	std::vector<std::function<void(const Input&)>> keyEvent;
 
 };//end Input
 

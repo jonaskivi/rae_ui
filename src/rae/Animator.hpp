@@ -21,14 +21,14 @@ enum class AnimatorType
 
 template<typename T> inline bool isCloseEnough(const T& target, const T& value)
 {
-    if( target - value == static_cast<T>(0.0) ) // Maybe this doesn't work with doubles.
+    if (target - value == static_cast<T>(0.0)) // Maybe this doesn't work with doubles.
         return true;
     return false;
 }
 
 template<> inline bool isCloseEnough<float>(const float& target, const float& value)
 {
-    if( std::abs(target - value) < 0.00001f )
+    if (std::abs(target - value) < 0.00001f)
         return true;
     return false;
 }
@@ -38,7 +38,7 @@ template<> inline bool isCloseEnough<glm::vec3>(const glm::vec3& target, const g
     glm::vec3 temp = target - value;
     float lengthSqr = glm::dot(temp, temp);
     //if( (target - value).lengthSqr() < 0.00001f )
-    if( lengthSqr < 0.00001f )
+    if (lengthSqr < 0.00001f)
         return true;
     return false;
 }
@@ -172,11 +172,20 @@ public:
         m_valueChange = set;
         m_duration = 0.0f;
     }
- 
+
+    bool isFinished() // Could also be called isTargetReached
+    {
+        if (m_duration == 0.0f || isCloseEnough<T>(targetValue(), m_value) )
+        {
+            return true;
+        }
+        return false;
+    }
+
     bool isFinished(float currentTime)
     {
         // First check if target is reached, then check if time has ended.
-        if( isCloseEnough<T>(targetValue(), m_value) )
+        if (isCloseEnough<T>(targetValue(), m_value) )
             return true;
         return hasTimeEnded(currentTime);
     }

@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 
 #include "System.hpp"
-#include "RenderSystem.hpp"
 #include "Entity.hpp"
 #include "Mesh.hpp"
 #include "Transform.hpp"
@@ -16,35 +15,33 @@ namespace Rae
 
 Engine::Engine(GLFWwindow* set_window)
 : m_window(set_window),
-m_input(m_screenSystem)
+m_input(m_screenSystem),
+m_cameraSystem(m_input),
+m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem)
 {
 	m_currentTime = glfwGetTime();
 	m_previousTime = m_currentTime;
 
-	m_screenSystem.updateScreenInfo();
-
 	// TODO: now we only have 1 system... :)
 	//m_inputSystem = new InputSystem(window, &m_objectFactory);
 	//m_systems.push_back(g_input);
-	
-	m_renderSystem = new RenderSystem(&m_objectFactory, m_window, m_input);
-	m_systems.push_back(m_renderSystem);
-	
-	#ifdef TEMP_EMPTY_DATA
+
+	addSystem(m_cameraSystem);
+	addSystem(m_renderSystem);
+
 	// Load model
 	Mesh& mesh = m_objectFactory.createMesh();
 	mesh.loadModel("./data/models/bunny.obj");
 	m_modelID = mesh.id();
 
-	m_meshID     = m_renderSystem->createBox().id();
-	m_materialID = m_renderSystem->createMaterial(0, glm::vec4(0.2f, 0.5f, 0.7f, 0.0f)).id();
-	m_bunnyMaterialID = m_renderSystem->createMaterial(1, glm::vec4(0.7f, 0.3f, 0.1f, 0.0f)).id();
-	m_buttonMaterialID = m_renderSystem->createAnimatingMaterial(2, glm::vec4(0.0f, 0.0f, 0.1f, 0.0f)).id();
+	m_meshID     = m_renderSystem.createBox().id();
+	m_materialID = m_renderSystem.createMaterial(0, glm::vec4(0.2f, 0.5f, 0.7f, 0.0f)).id();
+	m_bunnyMaterialID = m_renderSystem.createMaterial(1, glm::vec4(0.7f, 0.3f, 0.1f, 0.0f)).id();
+	m_buttonMaterialID = m_renderSystem.createAnimatingMaterial(2, glm::vec4(0.0f, 0.0f, 0.1f, 0.0f)).id();
 	
 	createEmptyEntity(); // hack at index 0
 
 	createTestWorld2();
-	#endif
 
 	/*
 	for(unsigned i = 0; i < 50; ++i)
@@ -59,11 +56,12 @@ m_input(m_screenSystem)
 	*/
 
 	using std::placeholders::_1;
-	m_input.registerMouseButtonPressCallback(std::bind(&Engine::onMouseEvent, this, _1));
-	//m_input.registerMouseButtonReleaseCallback(std::bind(&Engine::onMouseEvent, this, _1));
-	//m_input.registerMouseMotionCallback(std::bind(&Engine::onMouseEvent, this, _1));
-	//m_input.registerScrollCallback(std::bind(&Engine::onMouseEvent, this, _1));
-	//m_input.registerKeyEventCallback(std::bind(&Engine::onKeyEvent, this, _1));
+	m_input.connectMouseButtonPressEventHandler(std::bind(&Engine::onMouseEvent, this, _1));
+}
+
+void Engine::addSystem(System& ownSystem)
+{
+	m_systems.push_back(&ownSystem);
 }
 
 void Engine::run()
@@ -146,14 +144,13 @@ Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
 {
 	Entity& entity = createEmptyEntity();
 	// The desired API:
-	/*m_transformSystem.setTransform(entity, position);
-	m_geometrySystem.setMesh(entity, m_meshID);
-	m_materialSystem.setMaterial(entity, color);
-	*/
+	//m_transformSystem.setTransform(entity, position);
+	//m_geometrySystem.setMesh(entity, m_meshID);
+	//m_materialSystem.setMaterial(entity, color);
 
 	// The old API:
 	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
-	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem->createMaterial(0, color).id() );
+	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem.createMaterial(0, color).id() );
 	entity.addComponent( (int)ComponentType::MESH, m_meshID );
 	return entity;
 }
@@ -206,59 +203,59 @@ void Engine::createTestWorld2()
 
 void Engine::osEventResizeWindow(int width, int height)
 {
-	m_renderSystem->osEventResizeWindow(width, height);
+	m_renderSystem.osEventResizeWindow(width, height);
 }
 
 void Engine::osEventResizeWindowPixels(int width, int height)
 {
-	m_renderSystem->osEventResizeWindowPixels(width, height);
+	m_renderSystem.osEventResizeWindowPixels(width, height);
 }
 
 void Engine::osMouseButtonPress(int set_button, float set_xP, float set_yP)
 {
 	// Have to scale input on retina screens:
-	set_xP = set_xP * m_renderSystem->screenPixelRatio();
-	set_yP = set_yP * m_renderSystem->screenPixelRatio();
+	set_xP = set_xP * m_renderSystem.screenPixelRatio();
+	set_yP = set_yP * m_renderSystem.screenPixelRatio();
 
-	m_input.mouseEvent(
+	m_input.osMouseEvent(
 		EventType::MOUSE_BUTTON_PRESS,
 		set_button,
-		set_xP - (m_renderSystem->windowPixelWidth()*0.5f),
-		set_yP - (m_renderSystem->windowPixelHeight()*0.5f),
+		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
+		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
 		/*set_amount*/0.0f );
 }
 
 void Engine::osMouseButtonRelease(int set_button, float set_xP, float set_yP)
 {
 	// Have to scale input on retina screens:
-	set_xP = set_xP * m_renderSystem->screenPixelRatio();
-	set_yP = set_yP * m_renderSystem->screenPixelRatio();
+	set_xP = set_xP * m_renderSystem.screenPixelRatio();
+	set_yP = set_yP * m_renderSystem.screenPixelRatio();
 
-	m_input.mouseEvent(
+	m_input.osMouseEvent(
 		EventType::MOUSE_BUTTON_RELEASE,
 		set_button,
-		set_xP - (m_renderSystem->windowPixelWidth()*0.5f),
-		set_yP - (m_renderSystem->windowPixelHeight()*0.5f),
+		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
+		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
 		/*set_amount*/0.0f );
 }
 
 void Engine::osMouseMotion(float set_xP, float set_yP)
 {
 	// Have to scale input on retina screens:
-	set_xP = set_xP * m_renderSystem->screenPixelRatio();
-	set_yP = set_yP * m_renderSystem->screenPixelRatio();
+	set_xP = set_xP * m_renderSystem.screenPixelRatio();
+	set_yP = set_yP * m_renderSystem.screenPixelRatio();
 
-	m_input.mouseEvent(
+	m_input.osMouseEvent(
 		EventType::MOUSE_MOTION,
 		MouseButton::UNDEFINED,
-		set_xP - (m_renderSystem->windowPixelWidth()*0.5f),
-		set_yP - (m_renderSystem->windowPixelHeight()*0.5f),
+		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
+		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
 		/*set_amount*/0.0f );
 }
 
 void Engine::osScrollEvent(float scrollX, float scrollY)
 {
-	m_input.scrollEvent(scrollX, scrollY);
+	m_input.osScrollEvent(scrollX, scrollY);
 }
 
 void Engine::osKeyEvent(int key, int scancode, int action, int mods)
@@ -270,7 +267,7 @@ void Engine::osKeyEvent(int key, int scancode, int action, int mods)
 	else if (action == GLFW_RELEASE)
 		eventType = EventType::KEY_RELEASE;
 
-	m_input.keyEvent(eventType, key, (int32_t)scancode);
+	m_input.osKeyEvent(eventType, key, (int32_t)scancode);
 	
 }
 
@@ -281,23 +278,23 @@ void Engine::onMouseEvent(const Input& input)
 		if (input.mouse.eventButton == MouseButton::FIRST)
 		{
 			//cout << "mouse press: x: "<< input.mouse.x << " y: " << input.mouse.y << endl;
-			//cout << "mouse press: xP: "<< (int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem->windowPixelWidth() / 2)
-			//	<< " yP: " << m_renderSystem->windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem->windowPixelHeight() / 2) << endl;
+			//cout << "mouse press: xP: "<< (int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2)
+			//	<< " yP: " << m_renderSystem.windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem.windowPixelHeight() / 2) << endl;
 	
 			unsigned char res[4];
 
-			m_renderSystem->renderPicking( m_objectFactory.entities() );
+			m_renderSystem.renderPicking( m_objectFactory.entities() );
 
 			//glGetIntegerv(GL_VIEWPORT, viewport);
 			glReadPixels(
-				(int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem->windowPixelWidth() / 2),
-				m_renderSystem->windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem->windowPixelHeight() / 2),
+				(int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2),
+				m_renderSystem.windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem.windowPixelHeight() / 2),
 				1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &res);
 
 			// Decode entity ID from red and green channels!
 			int pickedID = res[0] + (res[1] * 256);
 
-			//m_renderSystem->m_pickedString = std::to_string(pickedID) + " is " + std::to_string(res[0]) + " and " + std::to_string(res[1]);
+			//m_renderSystem.m_pickedString = std::to_string(pickedID) + " is " + std::to_string(res[0]) + " and " + std::to_string(res[1]);
 
 			if( pickedID == 0)
 			{

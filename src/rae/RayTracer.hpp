@@ -21,6 +21,7 @@ using glm::vec3;
 namespace Rae
 {
 
+class CameraSystem;
 class Camera;
 class Material;
 
@@ -50,14 +51,14 @@ struct ImageBuffer
 class RayTracer
 {
 public:
-	RayTracer(Camera& setCamera);
+	RayTracer(CameraSystem& cameraSystem);
 	~RayTracer();
 
 	void showScene(int number);
 	void clearScene();
 
-	void createSceneOne(HitableList& world, Camera& camera, bool loadBunny = false);
-	void createSceneFromBook(HitableList& list, Camera& camera);
+	void createSceneOne(HitableList& world, bool loadBunny = false);
+	void createSceneFromBook(HitableList& list);
 
 	void update(double time, double deltaTime);
 	void renderAllAtOnce(double time);
@@ -89,6 +90,8 @@ public:
 	void plusBounces(int delta = 1);
 	void minusBounces(int delta = 1);
 
+	void onCameraChanged(const Camera& camera);
+
 protected:
 
 	bool m_isInfoText = true;
@@ -109,7 +112,7 @@ protected:
 	// for renderAllAtOnce:
 	double m_startTime = -1.0;
 
-	Camera& m_camera;
+	CameraSystem& m_cameraSystem;
 	HitableList m_world;
 	BvhNode m_tree;
 

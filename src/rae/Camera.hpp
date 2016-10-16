@@ -26,14 +26,14 @@ public:
 
 	void calculateFrustum();
 
-	glm::mat4 getProjectionAndViewMatrix() { return m_projectionMatrix * m_viewMatrix; }
-	const glm::mat4& viewMatrix() { return m_viewMatrix; }
-	const glm::mat4& projectionMatrix() { return m_projectionMatrix; }
+	glm::mat4 getProjectionAndViewMatrix() const { return m_projectionMatrix * m_viewMatrix; }
+	const glm::mat4& viewMatrix() const { return m_viewMatrix; }
+	const glm::mat4& projectionMatrix() const { return m_projectionMatrix; }
 
 	// return true if frustum was updated
 	bool update(double time, double deltaTime);
 
-	bool needsUpdate() { return m_needsUpdate; }
+	bool needsUpdate() const { return m_needsUpdate; }
 	void setNeedsUpdate() { m_needsUpdate = true; }
 
 	const vec3& position() { return m_position; }
@@ -85,7 +85,7 @@ public:
 
 	void toggleContinuousAutoFocus() { m_isContinuousAutoFocus = !m_isContinuousAutoFocus; }
 	bool isContinuousAutoFocus() { return m_isContinuousAutoFocus; }
-	bool shouldWeAutoFocus();
+	bool shouldWeAutoFocus() const;
 
 protected:
 

@@ -5,6 +5,8 @@
 using glm::vec3;
 using glm::dot;
 
+#include <iostream>
+
 #include "Random.hpp"
 #include "Camera.hpp"
 
@@ -293,13 +295,20 @@ void Camera::setFocusPosition(const vec3& pos)
 
 void Camera::animateFocusPosition(const vec3& pos, float duration)
 {
-	m_focusDistanceAnimator.init(m_focusDistance, glm::length(m_position - pos), duration);
-	m_needsUpdate = true;
+	// TODO this is annoyingly complex. Make an animation system, and handle this case better (when no need for an animation after init).
+	if (m_focusDistanceAnimator.isFinished())
+	{
+		if (isCloseEnough(m_focusDistance, glm::length(m_position - pos)) == false)
+		{
+			m_focusDistanceAnimator.init(m_focusDistance, glm::length(m_position - pos), duration);
+			m_needsUpdate = true;
+		}
+	}
 }
 
-bool Camera::shouldWeAutoFocus()
+bool Camera::shouldWeAutoFocus() const
 {
-	return needsUpdate() && m_isContinuousAutoFocus;
+	return m_isContinuousAutoFocus;
 }
 
 } // end namespace Rae

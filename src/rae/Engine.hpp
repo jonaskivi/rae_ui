@@ -9,6 +9,8 @@
 #include "ObjectFactory.hpp"
 #include "core/ScreenSystem.hpp"
 #include "ui/Input.hpp"
+#include "CameraSystem.hpp"
+#include "RenderSystem.hpp"
 
 namespace Rae
 {
@@ -33,6 +35,8 @@ public:
 
 	void createTestWorld();
 	void createTestWorld2();
+
+	void addSystem(System& ownSystem);
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
@@ -59,7 +63,8 @@ protected:
 
 	std::vector<System*> m_systems;
 
-	RenderSystem* m_renderSystem;
+	CameraSystem m_cameraSystem;
+	RenderSystem m_renderSystem;
 
 	int m_meshID; // These should go someplace else...
 	int m_modelID;

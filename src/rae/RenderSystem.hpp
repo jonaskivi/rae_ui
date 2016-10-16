@@ -8,7 +8,6 @@
 #include <GLFW/glfw3.h>
 
 #include "System.hpp"
-#include "Camera.hpp"
 #include "RayTracer.hpp"
 
 struct NVGcontext;
@@ -16,6 +15,7 @@ struct NVGcontext;
 namespace Rae
 {
 
+class CameraSystem;
 class ObjectFactory;
 class Transform;
 class Material;
@@ -26,7 +26,7 @@ class Input;
 class RenderSystem : public System
 {
 public:
-	RenderSystem(ObjectFactory* set_factory, GLFWwindow* set_window, Input& input);
+	RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input, CameraSystem& cameraSystem);
 	~RenderSystem();
 
 	void initNanoVG();
@@ -44,7 +44,6 @@ public:
 	void renderPicking(std::vector<Entity>& entities);
 	void render2dBackground(double time, double delta_time);
 	void render2d(double time, double delta_time);
-	void updateCamera(double time, double delta_time);
 
 	void renderMesh(Transform* transform, Material* material, Mesh* mesh);
 	void renderMeshPicking(Transform* transform, Mesh* mesh, int entity_id);
@@ -52,7 +51,6 @@ public:
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
 
-	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);
 
 	int   windowPixelHeight() { return m_windowPixelHeight; }
@@ -94,7 +92,7 @@ protected:
 	NVGcontext* vg;
 	
 	// dependencies
-	ObjectFactory* m_objectFactory;
+	ObjectFactory& m_objectFactory;
 	Input& m_input;
 
 	int m_windowWidth;
@@ -109,11 +107,10 @@ protected:
 	int m_nroFrames;
 	double m_fpsTimer;
 	std::string m_fpsString;
-	
-	Camera m_camera;
 
 	bool m_glRendererOn = false;
 
+	CameraSystem& m_cameraSystem;
 	RayTracer m_rayTracer;
 };
 

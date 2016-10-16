@@ -21,6 +21,8 @@
 #include "Shader.hpp"
 #include "ComponentType.hpp"
 
+#include "CameraSystem.hpp"
+
 namespace Rae
 {
 
@@ -40,17 +42,17 @@ int loadFonts(NVGcontext* vg)
 	return 0;
 }
 
-RenderSystem::RenderSystem(ObjectFactory* set_factory, GLFWwindow* set_window, Input& input)
-: m_objectFactory(set_factory),
-m_window(set_window),
+RenderSystem::RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input, CameraSystem& cameraSystem)
+: m_objectFactory(objectFactory),
+m_window(setWindow),
 m_input(input),
 m_nroFrames(0),
 m_fpsTimer(0.0),
 m_fpsString("fps:"),
 //m_pickedString("Nothing picked"),
 vg(nullptr),
-m_camera(/*fieldOfView*/Math::toRadians(20.0f), /*aspect*/16.0f / 9.0f, /*aperture*/0.1f, /*focusDistance*/10.0f),
-m_rayTracer(m_camera)
+m_cameraSystem(cameraSystem),
+m_rayTracer(cameraSystem)
 {
 	debugTransform = new Transform(1,0,0,0);
 	debugTransform2 = new Transform(1,0,0,0);
@@ -60,11 +62,7 @@ m_rayTracer(m_camera)
 	init();
 
 	using std::placeholders::_1;
-	m_input.registerMouseButtonPressCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
-	m_input.registerMouseButtonReleaseCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
-	m_input.registerMouseMotionCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
-	m_input.registerScrollCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
-	m_input.registerKeyEventCallback(std::bind(&RenderSystem::onKeyEvent, this, _1));
+	m_input.connectKeyEventHandler(std::bind(&RenderSystem::onKeyEvent, this, _1));
 }
 
 RenderSystem::~RenderSystem()
@@ -135,7 +133,7 @@ void RenderSystem::init()
 
 Mesh& RenderSystem::createBox()
 {
-	Mesh& mesh = m_objectFactory->createMesh();
+	Mesh& mesh = m_objectFactory.createMesh();
 
 	mesh.generateBox();
 	mesh.createVBOs();
@@ -144,14 +142,14 @@ Mesh& RenderSystem::createBox()
 
 Material& RenderSystem::createMaterial(int type, const glm::vec4& color)
 {
-	Material& material = m_objectFactory->createMaterial(type, color);
+	Material& material = m_objectFactory.createMaterial(type, color);
 	material.generateFBO(vg);
 	return material;
 }
 
 Material& RenderSystem::createAnimatingMaterial(int type, const glm::vec4& color)
 {
-	Material& material = m_objectFactory->createMaterial(type, color);
+	Material& material = m_objectFactory.createMaterial(type, color);
 	material.animate(true);
 	material.generateFBO(vg);
 	return material;
@@ -201,12 +199,10 @@ void RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 		m_fpsTimer = 0.0;
 	}
 
-	for (auto& material : m_objectFactory->materials())
+	for (auto& material : m_objectFactory.materials())
 	{
 		material.update(vg, time);
 	}
-
-	updateCamera(time, delta_time);
 
 	if (m_glRendererOn == false)
 		m_rayTracer.update(time, delta_time);
@@ -251,13 +247,13 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 				break;
 				case ComponentType::TRANSFORM:
 					if(transform == nullptr)
-						transform = m_objectFactory->getTransform(componentIndex.id);
+						transform = m_objectFactory.getTransform(componentIndex.id);
 					else cout << "ERROR: Found another transform component. id: " << componentIndex.id << "\n";
 				break;
 				case ComponentType::MATERIAL:
 					if(material == nullptr)
 					{
-						material = m_objectFactory->getMaterial(componentIndex.id);
+						material = m_objectFactory.getMaterial(componentIndex.id);
 						debugMaterial = material;
 					}
 					else cout << "ERROR: Found another material component. id: " << componentIndex.id << "\n";
@@ -265,7 +261,7 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 				case ComponentType::MESH:
 					if(mesh == nullptr)
 					{
-						mesh = m_objectFactory->getMesh(componentIndex.id);
+						mesh = m_objectFactory.getMesh(componentIndex.id);
 						debugMesh = mesh;
 					}
 					else cout << "ERROR: Found another mesh component. id: " << componentIndex.id << "\n";
@@ -324,14 +320,14 @@ void RenderSystem::renderPicking(std::vector<Entity>& entities)
 				break;
 				case ComponentType::TRANSFORM:
 					if(transform == nullptr)
-						transform = m_objectFactory->getTransform(componentIndex.id);
+						transform = m_objectFactory.getTransform(componentIndex.id);
 					else cout << "ERROR: Found another transform component. id: " << componentIndex.id << "\n";
 				break;
 				case ComponentType::MATERIAL:
 				break;
 				case ComponentType::MESH:
 					if(mesh == nullptr)
-						mesh = m_objectFactory->getMesh(componentIndex.id);
+						mesh = m_objectFactory.getMesh(componentIndex.id);
 					else cout << "ERROR: Found another mesh component. id: " << componentIndex.id << "\n";
 				break;
 			}
@@ -357,12 +353,14 @@ void RenderSystem::renderMesh(Transform* transform, Material* material, Mesh* me
 	glEnable(GL_DEPTH_TEST);
 
 	glm::mat4& modelMatrix = transform->modelMatrix();
+
+	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	// The model-view-projection matrix
-	glm::mat4 combinedMatrix = m_camera.getProjectionAndViewMatrix() * modelMatrix;
+	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
 
 	glUniformMatrix4fv(modelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
 	glUniformMatrix4fv(modelMatrixUni, 1, GL_FALSE, &modelMatrix[0][0]);
-	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &m_camera.viewMatrix()[0][0]);
+	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &camera.viewMatrix()[0][0]);
 
 	glm::vec3 lightPos = glm::vec3(2.0f, 0.0f, 0.0f);
 	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
@@ -387,8 +385,10 @@ void RenderSystem::renderMeshPicking(Transform* transform, Mesh* mesh, int entit
 	glEnable(GL_DEPTH_TEST);
 
 	glm::mat4& modelMatrix = transform->modelMatrix();
+
+	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	// The model-view-projection matrix
-	glm::mat4 combinedMatrix = m_camera.getProjectionAndViewMatrix() * modelMatrix;
+	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
 
 	glUniformMatrix4fv(pickingModelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
 	glUniform1i(entityUni, entity_id);
@@ -432,16 +432,16 @@ void RenderSystem::render2d(double time, double delta_time)
 			nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
 			nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 
-			std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory->entityCount());
+			std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory.entityCount());
 			nvgText(vg, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string transform_count_str = "Transforms: " + std::to_string(m_objectFactory->transformCount());
+			std::string transform_count_str = "Transforms: " + std::to_string(m_objectFactory.transformCount());
 			nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string mesh_count_str = "Meshes: " + std::to_string(m_objectFactory->meshCount());
+			std::string mesh_count_str = "Meshes: " + std::to_string(m_objectFactory.meshCount());
 			nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string material_count_str = "Materials: " + std::to_string(m_objectFactory->materialCount());
+			std::string material_count_str = "Materials: " + std::to_string(m_objectFactory.materialCount());
 			nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 			//nvgText(vg, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
@@ -469,49 +469,13 @@ void RenderSystem::osEventResizeWindowPixels(int width, int height)
 	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
 }
 
-void RenderSystem::onMouseEvent(const Input& input)
-{
-	if (input.eventType == EventType::MOUSE_MOTION)
-	{
-		if (input.mouse.button(MouseButton::SECOND))
-		{
-			//cout << "RenderSystem mouse motion. x: " << input->mouse.xRel
-			//	<< " y: " << input->mouse.yRel << endl;
-
-			const float rotateSpeedMul = 5.0f;
-
-			m_camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
-			m_camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
-		}
-	}
-	else if (input.eventType == EventType::MOUSE_BUTTON_PRESS)
-	{
-		//cout << "RenderSystem mouse press. x: " << input->mouse.x
-		//	<< " y: " << input->mouse.y << endl;
-	}
-	else if (input.eventType == EventType::MOUSE_BUTTON_RELEASE)
-	{
-		if (input.mouse.eventButton == MouseButton::FIRST)
-		{
-			//cout << "RenderSystem mouse release. x: " << input->mouse.x
-			//	<< " y: " << input->mouse.y << endl;
-		}
-	}
-
-	if (input.eventType == EventType::SCROLL)
-	{
-		const float scrollSpeedMul = -0.1f;
-		m_camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
-	}
-}
-
 void RenderSystem::onKeyEvent(const Input& input)
 {
 	if (input.eventType == EventType::KEY_PRESS)
 	{
 		switch (input.key.value)
 		{
-			case KeySym::P: m_objectFactory->measure(); break; // JONDE TEMP measure
+			case KeySym::P: m_objectFactory.measure(); break; // JONDE TEMP measure
 			case KeySym::R: clearImageRenderer(); break;
 			case KeySym::G: toggleGlRenderer(); break; // more like debug view currently
 			case KeySym::T: m_rayTracer.toggleInfoText(); break;
@@ -524,65 +488,6 @@ void RenderSystem::onKeyEvent(const Input& input)
 			default:
 			break;
 		}
-	}
-}
-
-void RenderSystem::updateCamera(double time, double delta_time)
-{
-	m_camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
-
-	if (m_input.getKeyState(KeySym::Control_L))
-		m_camera.setCameraSpeedDown(true);
-	else m_camera.setCameraSpeedDown(false);
-
-	if (m_input.getKeyState(KeySym::Shift_L))
-		m_camera.setCameraSpeedUp(true);
-	else m_camera.setCameraSpeedUp(false);
-
-	// Rotation with arrow keys
-	if (m_input.getKeyState(KeySym::Left))
-		m_camera.rotateYaw(float(delta_time), +1);
-	else if (m_input.getKeyState(KeySym::Right))
-		m_camera.rotateYaw(float(delta_time), -1);
-
-	if (m_input.getKeyState(KeySym::Up))
-		m_camera.rotatePitch(float(delta_time), +1);
-	else if (m_input.getKeyState(KeySym::Down))
-		m_camera.rotatePitch(float(delta_time), -1);
-
-	// Camera movement
-	if (m_input.getKeyState(KeySym::W)) { m_camera.moveForward(float(delta_time));  }
-	if (m_input.getKeyState(KeySym::S)) { m_camera.moveBackward(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::D)) { m_camera.moveRight(float(delta_time));    }
-	if (m_input.getKeyState(KeySym::A)) { m_camera.moveLeft(float(delta_time));     }
-	if (m_input.getKeyState(KeySym::E)) { m_camera.moveUp(float(delta_time));       }
-	if (m_input.getKeyState(KeySym::Q)) { m_camera.moveDown(float(delta_time));     }
-
-	if (m_input.getKeyState(KeySym::N)) { m_camera.minusAperture(); }
-	if (m_input.getKeyState(KeySym::M)) { m_camera.plusAperture();  }
-
-	if (m_input.getKeyState(KeySym::V)) { m_camera.minusFocusDistance(); }
-	if (m_input.getKeyState(KeySym::B)) { m_camera.plusFocusDistance();  }
-
-	if (m_input.getKeyPressed(KeySym::F))
-	{
-		m_camera.toggleContinuousAutoFocus();
-	}
-
-	if (m_camera.shouldWeAutoFocus() || m_input.getKeyPressed(KeySym::F))
-	{
-		m_rayTracer.autoFocus();
-		debugTransform2->setTarget(m_rayTracer.debugHitRecord.point, m_camera.focusSpeed());
-		debugTransform->setTarget(m_camera.getFocusPosition(), m_camera.focusSpeed() * 0.5f);
-	}
-
-	// TODO use KeySym::Page_Up
-	if (m_input.getKeyState(KeySym::K)) { m_rayTracer.minusBounces(); }
-	if (m_input.getKeyState(KeySym::L)) { m_rayTracer.plusBounces(); }
-
-	if (m_camera.update(time, delta_time))
-	{
-		m_rayTracer.clear();
 	}
 }
 

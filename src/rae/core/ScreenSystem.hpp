@@ -13,6 +13,7 @@ public:
 
 	ScreenSystem()
 	{
+		updateScreenInfo();
 	}
 
 	void updateScreenInfo();

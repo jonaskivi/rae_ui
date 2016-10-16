@@ -511,6 +511,7 @@ void RenderSystem::onKeyEvent(const Input& input)
 	{
 		switch (input.key.value)
 		{
+			case KeySym::P: m_objectFactory->measure(); break; // JONDE TEMP measure
 			case KeySym::R: clearImageRenderer(); break;
 			case KeySym::G: toggleGlRenderer(); break; // more like debug view currently
 			case KeySym::T: m_rayTracer.toggleInfoText(); break;

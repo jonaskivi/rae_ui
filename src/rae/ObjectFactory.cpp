@@ -12,12 +12,18 @@ using namespace std;
 namespace Rae
 {
 
+Id ObjectFactory::m_nextId = 0;
+
 ObjectFactory::ObjectFactory()
 {
 	m_entities.  reserve( INITIAL_ENTITY_RESERVE    );
 	m_transforms.reserve( INITIAL_TRANSFORM_RESERVE );
 	m_meshes.    reserve( INITIAL_MESH_RESERVE      );
 	m_hierarchies.reserve( INITIAL_ENTITY_RESERVE   );
+
+	m_exists.reserve     (INITIAL_ENTITY_RESERVE);
+	m_transforms2.reserve(INITIAL_TRANSFORM_RESERVE);
+	m_meshes2.reserve    (INITIAL_MESH_RESERVE);
 }
 
 ObjectFactory::~ObjectFactory()
@@ -28,11 +34,254 @@ ObjectFactory::~ObjectFactory()
 	m_hierarchies.clear();
 }
 
+void ObjectFactory::measure()
+{
+	int countOld = 0;
+	auto old = measureOld(countOld);
+
+	int countNew = 0;
+	auto news = measureNew(countNew);
+
+	std::cout << "Old took: " << old.first
+		<< " average: " << old.second
+		<< " old ents: " << m_entities.size()
+		<< " transforms: " << m_transforms.size()
+		<< " materials: " << m_materials.size()
+		<< " meshes: " << m_meshes.size()
+		<< " count: " << countOld
+		<< "\n";
+	std::cout << "New took: " << news.first
+		<< " average: " << news.second
+		<< " new ents: " << m_exists.size()
+		<< " transforms: " << m_transforms2.size()
+		<< " materials: " << m_materials2.size()
+		<< " meshes: " << m_meshes2.size()
+		<< " count: " << countNew
+		<< "\n";
+}
+
+const int ents = 10000;
+const int times = 2000;
+
+std::pair<double, float> ObjectFactory::measureOld(int& outCount)
+{
+	double startTime = glfwGetTime();
+
+	// Old
+	for (int i = 0; i < ents; ++i)
+	{
+		Entity& entity = createEmptyEntity();
+		entity.addComponent( (int)ComponentType::TRANSFORM, createTransform(vec3(52.0f + float(i), 14.0f, 30.0f + float(i))).id() );
+		entity.addComponent( (int)ComponentType::MATERIAL, createMaterial(0, vec4(1.0f, 0.5f, 0.1f, 1.0f)).id() );
+		
+		Mesh& mesh = createMesh();
+		mesh.generateBox();
+		entity.addComponent( (int)ComponentType::MESH, mesh.id() );
+	}
+
+	float average = 0.0f;
+	for (int i = 0; i < times; ++i)
+	{
+		average += renderIterateOld(outCount);
+	}
+
+	double endTime = glfwGetTime();
+
+	return std::make_pair(endTime - startTime, average / times);
+	//std::cout << "Old took: " << endTime - startTime << "\n";
+}
+
+std::pair<double, float> ObjectFactory::measureNew(int& outCount)
+{
+	double startTime = glfwGetTime();
+
+	// New
+	for (int i = 0; i < ents; ++i)
+	{
+		Id id = createEntity();
+		createTransform(id, vec3(52.0f + float(i), 14.0f, 30.0f + float(i)));
+		createMaterial(id, 0, vec4(1.0f, 0.5f, 0.1f, 1.0f));
+		
+		//Mesh& mesh = createMesh();
+		//mesh.generateBox();
+		createMesh(id);
+		Mesh* mesh = getMesh2(id);
+		if (mesh)
+			mesh->generateBox();
+	}
+
+	float average = 0.0f;
+	for (int i = 0; i < times; ++i)
+	{
+		average += renderIterateNew(outCount);
+	}
+
+	double endTime = glfwGetTime();
+
+	return std::make_pair(endTime - startTime, average / times);
+	//std::cout << "New took: " << endTime - startTime << "\n";
+}
+
+float ObjectFactory::renderIterateOld(int& outCount)
+{
+	vec3 average;
+
+	for (auto& entity : m_entities)
+	{
+		Transform* transform = nullptr;
+		Material*  material  = nullptr;
+		Mesh*      mesh      = nullptr;
+		
+		for (auto& componentIndex : entity.components())
+		{
+			switch( (ComponentType)componentIndex.type )
+			{
+				default:
+					//cout << "ERROR: Strange type: " << componentIndex.type << "\n";
+				break;
+				case ComponentType::TRANSFORM:
+					if(transform == nullptr)
+						transform = getTransform(componentIndex.id);
+					else cout << "ERROR: Found another transform component. id: " << componentIndex.id << "\n";
+				break;
+				case ComponentType::MATERIAL:
+					if(material == nullptr)
+					{
+						material = getMaterial(componentIndex.id);
+					}
+					else cout << "ERROR: Found another material component. id: " << componentIndex.id << "\n";
+				break;
+				case ComponentType::MESH:
+					if(mesh == nullptr)
+					{
+						mesh = getMesh(componentIndex.id);
+					}
+					else cout << "ERROR: Found another mesh component. id: " << componentIndex.id << "\n";
+				break;
+			}
+		}
+
+		if (transform)
+		{
+			outCount++;
+			average += transform->position();
+		}
+
+		/*if( transform && mesh )
+		{
+			#ifdef RAE_DEBUG
+				cout << "Going to render Mesh. id: " << mesh->id() << "\n";
+			#endif
+
+			// Update animation... TODO move this elsewhere.
+			////transform->update(time, delta_time);
+
+			////renderMesh(transform, material, mesh);
+		}*/
+		//else cout << "No mesh and no transform.\n";
+	}
+
+	float aveX = average.x / (float)m_entities.size();
+	float aveY = average.y / (float)m_entities.size();
+	float aveZ = average.z / (float)m_entities.size();
+
+	return aveX;
+	//std::cout << "Old average: " << aveX << ", " << aveY << ", " << aveZ << "\n";
+}
+
+float ObjectFactory::renderIterateNew(int& outCount)
+{
+	vec3 average;
+
+	Id id = 0;
+	for (const auto& exist : m_exists)
+	{
+		Id id = exist.first;
+
+		Transform* transform = getTransform2(id);
+		Material*  material  = getMaterial2(id);
+		Mesh*      mesh      = getMesh2(id);
+
+		if (transform)
+		{
+			outCount++;
+			average += transform->position();
+
+			id++;
+		}
+	}
+
+	float aveX = average.x / (float)m_exists.size();
+	float aveY = average.y / (float)m_exists.size();
+	float aveZ = average.z / (float)m_exists.size();
+
+	return aveX;
+	//std::cout << "New average: " << aveX << ", " << aveY << ", " << aveZ << "\n";
+}
+
+// New system
+Id ObjectFactory::createEntity()
+{
+	Id id = getNextId();
+	m_exists[id] = Exist();
+	return id;
+}
+
+void ObjectFactory::createTransform(Id id, const vec3& setPosition)
+{
+	m_transforms2.emplace(id, Transform(id, setPosition));
+
+	/*m_transforms2.emplace(std::piecewise_construct,
+		std::forward_as_tuple(id),
+		std::forward_as_tuple(id, setPosition));*/
+
+	//auto trans = Transform(id, setPosition);
+	//m_transforms2[id] = trans;
+	///////m_transforms2[id] = Transform(id, setPosition);
+}
+
+/*Transform* ObjectFactory::getTransform2(Id id)
+{
+	return &m_transforms2[id];
+	//return &m_transforms2.at(id);
+	//return check(m_transforms2, id) ? &m_transforms2.at(id) : nullptr;
+	//return check(m_transforms2, id) ? &m_transforms2[id] : nullptr;
+}
+*/
+void ObjectFactory::createMesh(Id id)
+{
+	m_meshes2.emplace(id, Mesh(id));
+}
+
+/*Mesh* ObjectFactory::getMesh2(Id id)
+{
+	return &m_meshes2[id];
+	//return &m_meshes2.at(id);
+	//return check(m_meshes2, id) ? &m_meshes2.at(id) : nullptr;
+	//return check(m_meshes2, id) ? &m_meshes2[id] : nullptr;
+}
+*/
+void ObjectFactory::createMaterial(Id id, int type, const glm::vec4& color)
+{
+	m_materials2.emplace(id, Material((int)m_materials.size(), type, color));
+}
+
+/*
+Material* ObjectFactory::getMaterial2(Id id)
+{
+	return &m_materials2[id];
+	//return &m_materials2.at(id);
+	//return check(m_materials2, id) ? &m_materials2.at(id) : nullptr;
+	//return check(m_materials2, id) ? &m_materials2[id] : nullptr;
+}
+*/
+
 // Entities
 
 Entity& ObjectFactory::createEmptyEntity()
 {
 	m_entities.emplace_back( static_cast<Rae::Id>(m_entities.size()) );
+
 	return m_entities.back();
 }
 

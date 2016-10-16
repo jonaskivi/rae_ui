@@ -32,6 +32,7 @@ protected:
 	int m_id;
 
 public:
+	Mesh(){}
 	Mesh(int set_id);
 	~Mesh();
 	

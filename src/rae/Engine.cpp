@@ -30,6 +30,7 @@ m_input(m_screenSystem)
 	m_renderSystem = new RenderSystem(&m_objectFactory, m_window, m_input);
 	m_systems.push_back(m_renderSystem);
 	
+	#ifdef TEMP_EMPTY_DATA
 	// Load model
 	Mesh& mesh = m_objectFactory.createMesh();
 	mesh.loadModel("./data/models/bunny.obj");
@@ -43,6 +44,7 @@ m_input(m_screenSystem)
 	createEmptyEntity(); // hack at index 0
 
 	createTestWorld2();
+	#endif
 
 	/*
 	for(unsigned i = 0; i < 50; ++i)
@@ -143,9 +145,14 @@ Entity& Engine::createRandomCubeEntity()
 Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
 {
 	Entity& entity = createEmptyEntity();
-	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
+	// The desired API:
+	/*m_transformSystem.setTransform(entity, position);
+	m_geometrySystem.setMesh(entity, m_meshID);
+	m_materialSystem.setMaterial(entity, color);
+	*/
 
-	//entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem->createAnimatingMaterial(0, color).id() );
+	// The old API:
+	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
 	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem->createMaterial(0, color).id() );
 	entity.addComponent( (int)ComponentType::MESH, m_meshID );
 	return entity;

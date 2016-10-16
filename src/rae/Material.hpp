@@ -22,7 +22,7 @@ protected:
 	int m_id;
 
 public:
-
+	Material(){}
 	Material(vec3 set_albedo)
 	: albedo(set_albedo)
 	{

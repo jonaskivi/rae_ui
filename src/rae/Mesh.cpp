@@ -152,7 +152,7 @@ vec3 Mesh::getFaceNormal(int idx) const
 //version without initializer lists (vs2012):
 void Mesh::generateBox()
 {
-	std::cout<<"Generating Mesh.\n";
+	//std::cout<<"Generating Mesh.\n";
 
 	float boxSize = 0.5f; // Actually half of the box size
 
@@ -328,7 +328,7 @@ void Mesh::generateBox()
 
 	computeAabb();
 
-	std::cout << "size of: vertices: " << vertices.size() << " size of indices: " << indices.size() << "\n";
+	//std::cout << "size of: vertices: " << vertices.size() << " size of indices: " << indices.size() << "\n";
 }
 
 void Mesh::computeAabb()

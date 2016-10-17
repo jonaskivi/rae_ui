@@ -42,7 +42,8 @@ int loadFonts(NVGcontext* vg)
 	return 0;
 }
 
-RenderSystem::RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input, CameraSystem& cameraSystem)
+RenderSystem::RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input,
+	CameraSystem& cameraSystem, RayTracer& rayTracer)
 : m_objectFactory(objectFactory),
 m_window(setWindow),
 m_input(input),
@@ -52,7 +53,7 @@ m_fpsString("fps:"),
 //m_pickedString("Nothing picked"),
 vg(nullptr),
 m_cameraSystem(cameraSystem),
-m_rayTracer(cameraSystem)
+m_rayTracer(rayTracer)
 {
 	debugTransform = new Transform(1,0,0,0);
 	debugTransform2 = new Transform(1,0,0,0);
@@ -60,9 +61,6 @@ m_rayTracer(cameraSystem)
 	initNanoVG();
 
 	init();
-
-	using std::placeholders::_1;
-	m_input.connectKeyEventHandler(std::bind(&RenderSystem::onKeyEvent, this, _1));
 }
 
 RenderSystem::~RenderSystem()
@@ -199,13 +197,11 @@ void RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 		m_fpsTimer = 0.0;
 	}
 
+	// TODO move to material system
 	for (auto& material : m_objectFactory.materials())
 	{
 		material.update(vg, time);
 	}
-
-	if (m_glRendererOn == false)
-		m_rayTracer.update(time, delta_time);
 
 	render(time, delta_time, entities);
 
@@ -362,7 +358,7 @@ void RenderSystem::renderMesh(Transform* transform, Material* material, Mesh* me
 	glUniformMatrix4fv(modelMatrixUni, 1, GL_FALSE, &modelMatrix[0][0]);
 	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &camera.viewMatrix()[0][0]);
 
-	glm::vec3 lightPos = glm::vec3(2.0f, 0.0f, 0.0f);
+	glm::vec3 lightPos = glm::vec3(5.0f, 4.0f, 5.0f);
 	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
 
 	// Bind texture in Texture Unit 0
@@ -460,6 +456,7 @@ void RenderSystem::osEventResizeWindow(int width, int height)
 	m_windowWidth = width;
 	m_windowHeight = height;
 	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
+	m_cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
 void RenderSystem::osEventResizeWindowPixels(int width, int height)
@@ -467,28 +464,7 @@ void RenderSystem::osEventResizeWindowPixels(int width, int height)
 	m_windowPixelWidth = width;
 	m_windowPixelHeight = height;
 	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
-}
-
-void RenderSystem::onKeyEvent(const Input& input)
-{
-	if (input.eventType == EventType::KEY_PRESS)
-	{
-		switch (input.key.value)
-		{
-			case KeySym::P: m_objectFactory.measure(); break; // JONDE TEMP measure
-			case KeySym::R: clearImageRenderer(); break;
-			case KeySym::G: toggleGlRenderer(); break; // more like debug view currently
-			case KeySym::T: m_rayTracer.toggleInfoText(); break;
-			case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
-			case KeySym::U: m_rayTracer.toggleFastMode(); break;
-			case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;
-			case KeySym::_1: m_rayTracer.showScene(1); break;
-			case KeySym::_2: m_rayTracer.showScene(2); break;
-			case KeySym::_3: m_rayTracer.showScene(3); break;
-			default:
-			break;
-		}
-	}
+	m_cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
 } //end namespace Rae

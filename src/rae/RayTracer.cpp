@@ -71,10 +71,20 @@ void ImageBuffer::init()
 
 void ImageBuffer::createImage(NVGcontext* vg)
 {
-	if(imageId == -1 && vg != nullptr)
+	if (imageId == -1 && vg != nullptr)
 	{
-		//imageId = nvgCreateImage(vg, "/Users/joonaz/Dropbox/taustakuvat/apple_galaxy.jpg", 0);
+		//std::cout << "Creating image " << width << "x" << height << "\n";
 		imageId = nvgCreateImageRGBA(vg, width, height, /*imageFlags*/0, &data[0]);
+	}
+	else
+	{
+		std::cout << "Failed to create an image " << width << "x" << height << "\n";
+		if (imageId != -1)
+			std::cout << "imageId was not -1. It was " << imageId << "\n";
+		if (vg == nullptr)
+			std::cout << "vg was null.\n";
+		assert(imageId == -1);
+		assert(vg != nullptr);
 	}
 }
 
@@ -98,6 +108,28 @@ void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 
 		nvgUpdateImage(vg, imageId, &data[0]);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+RayTracer::RayTracer(CameraSystem& cameraSystem)
+: m_world(4),
+m_cameraSystem(cameraSystem)
+{
+	m_smallBuffer.init(300, 150);
+	m_bigBuffer.init(1920, 1080);
+
+	m_buffer = &m_smallBuffer;
+
+	createSceneOne(m_world);
+	//createSceneFromBook(m_world);
+
+	using std::placeholders::_1;
+	m_cameraSystem.connectCameraChangedEventHandler(std::bind(&RayTracer::onCameraChanged, this, _1));
+}
+
+RayTracer::~RayTracer()
+{
 }
 
 void ImageBuffer::clear()
@@ -255,28 +287,10 @@ void RayTracer::clear()
 	m_startTime = -1.0f;
 }
 
-RayTracer::RayTracer(CameraSystem& cameraSystem)
-: m_world(4),
-m_cameraSystem(cameraSystem)
-{
-	m_smallBuffer.init(300, 150);
-	m_bigBuffer.init(1920, 1080);
-
-	m_buffer = &m_smallBuffer;
-
-	createSceneOne(m_world);
-	//createSceneFromBook(m_world);
-
-	using std::placeholders::_1;
-	m_cameraSystem.connectCameraChangedEventHandler(std::bind(&RayTracer::onCameraChanged, this, _1));
-}
-
-RayTracer::~RayTracer()
-{
-}
-
 void RayTracer::setNanovgContext(NVGcontext* setVg)
 {
+	assert(setVg != NULL);
+
 	m_vg = setVg;
 
 	m_smallBuffer.createImage(m_vg);
@@ -352,7 +366,7 @@ vec3 RayTracer::sky(const Ray& ray)
 
 //#define RENDER_ALL_AT_ONCE
 
-void RayTracer::update(double time, double deltaTime)
+void RayTracer::update(double time, double deltaTime, std::vector<Entity>& entities)
 {
 	/*
 	Old time based switch buffers system:

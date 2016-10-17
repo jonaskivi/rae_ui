@@ -360,14 +360,14 @@ public:
 	};
 	Keyboard key;
 
-	bool getKeyState(int keyValue)
+	bool getKeyState(int keyValue) const
 	{
 		if (keyValue < key.keyStatesSize)
 			return key.keyStates[keyValue];
 		return false;
 	}
 
-	bool getKeyPressed(int keyValue)
+	bool getKeyPressed(int keyValue) const
 	{
 		if (keyValue < key.keyStatesSize)
 			return key.pressedThisFrame[keyValue];
@@ -375,7 +375,7 @@ public:
 	}
 
 	// return true if the key was released during this frame
-	bool getKeyReleased(int keyValue)
+	bool getKeyReleased(int keyValue) const
 	{
 		if (keyValue < key.keyStatesSize)
 			return key.releasedThisFrame[keyValue];

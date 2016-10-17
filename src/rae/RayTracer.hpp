@@ -12,6 +12,8 @@
 #include <glm/glm.hpp>
 using glm::vec3;
 
+#include "System.hpp"
+
 #include "Ray.hpp"
 #include "HitRecord.hpp"
 #include "Hitable.hpp"
@@ -48,7 +50,7 @@ struct ImageBuffer
 	int imageId;
 };
 
-class RayTracer
+class RayTracer : public System
 {
 public:
 	RayTracer(CameraSystem& cameraSystem);
@@ -60,7 +62,7 @@ public:
 	void createSceneOne(HitableList& world, bool loadBunny = false);
 	void createSceneFromBook(HitableList& list);
 
-	void update(double time, double deltaTime);
+	void update(double time, double delta_time, std::vector<Entity>& entities) override;
 	void renderAllAtOnce(double time);
 	void renderSamples(double time, double deltaTime);
 	void updateImageBuffer();

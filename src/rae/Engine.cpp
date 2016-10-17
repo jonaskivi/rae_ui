@@ -17,7 +17,8 @@ Engine::Engine(GLFWwindow* set_window)
 : m_window(set_window),
 m_input(m_screenSystem),
 m_cameraSystem(m_input),
-m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem)
+m_rayTracer(m_cameraSystem),
+m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem, m_rayTracer)
 {
 	m_currentTime = glfwGetTime();
 	m_previousTime = m_currentTime;
@@ -27,6 +28,7 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem)
 	//m_systems.push_back(g_input);
 
 	addSystem(m_cameraSystem);
+	addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
 
 	// Load model
@@ -57,6 +59,7 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem)
 
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&Engine::onMouseEvent, this, _1));
+	m_input.connectKeyEventHandler(std::bind(&Engine::onKeyEvent, this, _1));
 }
 
 void Engine::addSystem(System& ownSystem)
@@ -88,25 +91,12 @@ void Engine::run()
 
 void Engine::update(double time, double delta_time)
 {
-	if (m_input.getKeyState(KeySym::I))
-	{
-		createRandomCubeEntity();
-		createRandomBunnyEntity();
-		/*Entity& entity = createEmptyEntity();
-		entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
-		entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
-		entity.addComponent( (int)ComponentType::MESH, m_meshID );
-		*/
-	}
-
-	if (m_input.getKeyState(KeySym::O))
-	{
-		m_objectFactory.destroyEntity(getRandomInt(2, m_objectFactory.entityCount() )); // Hmm. Magic number 2 is the first index with created box entities.
-	}
+	reactToInput(m_input);
 
 	for(auto system : m_systems)
 	{
-		system->update(time, delta_time, m_objectFactory.entities() );
+		if (system->isEnabled())
+			system->update(time, delta_time, m_objectFactory.entities() );
 	}	
 }
 
@@ -311,6 +301,49 @@ void Engine::onMouseEvent(const Input& input)
 			}		
 		}
 	}
+}
+
+void Engine::onKeyEvent(const Input& input)
+{
+	if (input.eventType == EventType::KEY_PRESS)
+	{
+		switch (input.key.value)
+		{
+			case KeySym::P: m_objectFactory.measure(); break; // JONDE TEMP measure
+			case KeySym::R: m_renderSystem.clearImageRenderer(); break;
+			case KeySym::G:
+				m_renderSystem.toggleGlRenderer(); // more like debug view currently
+				m_rayTracer.toggleIsEnabled();
+				break;
+			case KeySym::T: m_rayTracer.toggleInfoText(); break;
+			case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
+			case KeySym::U: m_rayTracer.toggleFastMode(); break;
+			case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;
+			case KeySym::_1: m_rayTracer.showScene(1); break;
+			case KeySym::_2: m_rayTracer.showScene(2); break;
+			case KeySym::_3: m_rayTracer.showScene(3); break;
+			default:
+			break;
+		}
+	}
+}
+
+void Engine::reactToInput(const Input& input)
+{
+	if (input.getKeyState(KeySym::I))
+	{
+		createRandomCubeEntity();
+		createRandomBunnyEntity();
+	}
+
+	if (input.getKeyState(KeySym::O))
+	{
+		m_objectFactory.destroyEntity(getRandomInt(2, m_objectFactory.entityCount() )); // Hmm. Magic number 2 is the first index with created box entities.
+	}
+
+	// TODO use KeySym::Page_Up
+	if (input.getKeyState(KeySym::K)) { m_rayTracer.minusBounces(); }
+	if (input.getKeyState(KeySym::L)) { m_rayTracer.plusBounces(); }
 }
 
 } // end namespace Rae

@@ -26,7 +26,8 @@ class Input;
 class RenderSystem : public System
 {
 public:
-	RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input, CameraSystem& cameraSystem);
+	RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input, CameraSystem& cameraSystem,
+		RayTracer& rayTracer);
 	~RenderSystem();
 
 	void initNanoVG();
@@ -50,8 +51,6 @@ public:
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
-
-	void onKeyEvent(const Input& input);
 
 	int   windowPixelHeight() { return m_windowPixelHeight; }
 	int   windowPixelWidth()  { return m_windowPixelWidth;  }
@@ -111,7 +110,7 @@ protected:
 	bool m_glRendererOn = false;
 
 	CameraSystem& m_cameraSystem;
-	RayTracer m_rayTracer;
+	RayTracer& m_rayTracer;
 };
 
 }

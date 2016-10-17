@@ -58,7 +58,7 @@ public:
 	void setCameraSpeedUp(bool set) { m_cameraSpeedUp = set; }
 	void setCameraSpeedDown(bool set) { m_cameraSpeedDown = set; }
 
-	void setAspectRatio(float aspect) { m_aspectRatio = aspect; }
+	void setAspectRatio(float aspect) { m_aspectRatio = aspect; m_needsUpdate = true; }
 
 	float fieldOfView() { return m_fieldOfView; } // in radians
 	// also handles negative input unlike other similar funcs
@@ -84,7 +84,7 @@ public:
 	float focusSpeed() { return m_focusSpeed; }
 
 	void toggleContinuousAutoFocus() { m_isContinuousAutoFocus = !m_isContinuousAutoFocus; }
-	bool isContinuousAutoFocus() { return m_isContinuousAutoFocus; }
+	bool isContinuousAutoFocus() const { return m_isContinuousAutoFocus; }
 	bool shouldWeAutoFocus() const;
 
 protected:

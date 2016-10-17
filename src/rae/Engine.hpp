@@ -11,6 +11,7 @@
 #include "ui/Input.hpp"
 #include "CameraSystem.hpp"
 #include "RenderSystem.hpp"
+#include "RayTracer.hpp"
 
 namespace Rae
 {
@@ -48,6 +49,8 @@ public:
 	void osKeyEvent(int key, int scancode, int action, int mods);
 
 	void onMouseEvent(const Input& input);
+	void onKeyEvent(const Input& input);
+	void reactToInput(const Input& input);
 
 protected:
 
@@ -63,8 +66,9 @@ protected:
 
 	std::vector<System*> m_systems;
 
-	CameraSystem m_cameraSystem;
-	RenderSystem m_renderSystem;
+	CameraSystem		m_cameraSystem;
+	RayTracer			m_rayTracer;
+	RenderSystem		m_renderSystem;
 
 	int m_meshID; // These should go someplace else...
 	int m_modelID;

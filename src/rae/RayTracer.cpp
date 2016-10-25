@@ -88,6 +88,21 @@ void ImageBuffer::createImage(NVGcontext* vg)
 	}
 }
 
+vec3 pow(const vec3& color, float power)
+{
+	vec3 result;
+	result.r = glm::pow(color.r, power);
+	result.g = glm::pow(color.g, power);
+	result.b = glm::pow(color.b, power);
+	return result;
+}
+
+vec3 gammaCorrectionAnd255(const vec3& linear)
+{
+	const float gammaMul = 1.0f/2.2f;
+	return 255.99f * glm::clamp( pow(linear, gammaMul), 0.0f, 1.0f);
+}
+
 void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 {
 	// update 8 bit image buffer
@@ -96,13 +111,13 @@ void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 		{
 			for (int i = 0; i < width; ++i)
 			{
-				
-				vec3 color = colorData[(j*width)+i];
+				const vec3& linear = colorData[(j*width)+i];
 
-				// Gamma correction done with sqrt only
-				data[(j*width*channels) + (i*channels) + 0] = int8_t(255.99 * sqrt(color.r));
-				data[(j*width*channels) + (i*channels) + 1] = int8_t(255.99 * sqrt(color.g));
-				data[(j*width*channels) + (i*channels) + 2] = int8_t(255.99 * sqrt(color.b));
+				vec3 color = gammaCorrectionAnd255(linear);
+
+				data[(j*width*channels) + (i*channels) + 0] = int8_t(color.r);
+				data[(j*width*channels) + (i*channels) + 1] = int8_t(color.g);
+				data[(j*width*channels) + (i*channels) + 2] = int8_t(color.b);
 			}
 		}
 
@@ -156,10 +171,24 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 	camera.setAperture(0.07f);
 	camera.setFocusDistance(14.763986f);
 
+	// A big light
+	world.add(
+		new Sphere(vec3(0.0f, 6.0f, -1.0f), 2.0f,
+		new Light(vec3(4.0f, 4.0f, 4.0f)))
+		);
+
+	// A small light
+	world.add(
+		new Sphere(vec3(0.85, 0.3, -0.15f), 0.1f,
+		new Light(vec3(16.0f, 16.0f, 16.0f)))
+		);
+
+	// A ball
 	world.add(
 		new Sphere(vec3(0, 0, -1), 0.5f,
 		new Lambertian(vec3(0.8f, 0.3f, 0.3f)))
 		);
+	// The planet
 	world.add(
 		new Sphere(vec3(0, -100.5f, -1), 100.0f,
 		new Lambertian(vec3(0.0f, 0.7f, 0.8f)))
@@ -339,14 +368,15 @@ vec3 RayTracer::rayTrace(const Ray& ray, Hitable& world, int depth)
 		{
 			Ray scattered;
 			vec3 attenuation;
+			vec3 emitted = record.material->emitted(record.point);
 
 			if (depth < m_bouncesLimit && record.material->scatter(ray, record, attenuation, scattered))
 			{
-				return attenuation * rayTrace(scattered, world, depth + 1);
+				return emitted + attenuation * rayTrace(scattered, world, depth + 1);
 			}
 			else
 			{
-				return vec3();
+				return emitted;
 			}
 		}
 		else // FastMode returns just the material color

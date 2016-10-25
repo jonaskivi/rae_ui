@@ -29,6 +29,7 @@ public:
 	}
 
 	virtual bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
+	virtual vec3 emitted(const vec3& p) const { return vec3(0.0f, 0.0f, 0.0f); }
 	
 	bool metal(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
 
@@ -67,7 +68,7 @@ public:
 		: Material(set_albedo)
 	{}
 
-	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
+	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
 };
 
 class Metal : public Material
@@ -78,7 +79,7 @@ public:
 		roughness(set_roughness)
 	{}
 
-	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
+	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
 
 	float roughness = 0.0f;
 };
@@ -91,9 +92,21 @@ public:
 		refractive_index(set_refractive_index)
 	{}
 
-	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
+	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
 
 	float refractive_index = 0.0f;
+};
+
+class Light : public Material
+{
+public:
+	Light(vec3 setAlbedo)
+		: Material(setAlbedo)
+	{
+	}
+
+	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override { return false; }
+	vec3 emitted(const vec3& p) const override { return albedo; }
 };
 
 }

@@ -6,7 +6,7 @@
 
 #include "core/Utils.hpp"
 
-namespace Rae
+namespace rae
 {
 
 enum class AnimatorType

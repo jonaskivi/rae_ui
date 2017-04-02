@@ -3,9 +3,9 @@
 
 #include <vector>
 
-#include "Types.hpp"
+#include "rae/core/Types.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class Hierarchy

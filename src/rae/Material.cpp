@@ -14,7 +14,7 @@ using namespace std;
 using glm::vec3;
 using glm::dot;
 
-namespace Rae
+namespace rae
 {
 
 // ray_tracing_utils.hpp

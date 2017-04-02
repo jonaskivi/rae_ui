@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-namespace Rae
+namespace rae
 {
 
 namespace Math
@@ -28,12 +28,12 @@ namespace Utils
 int randomInt(int low, int high);
 
 // 2D versions of distance:
-float getManhattanDistance( float rx, float ry );
-float getDistance( float rx, float ry );
+float getManhattanDistance(float rx, float ry);
+float getDistance(float rx, float ry);
 
-float weightedAverageClip( float val1, float val2, float set_position );
-float weightedAverage( float val1, float val2, float set_position );
-float backwardsWeightedAverage( float val1, float val2, float the_val );
+float lerpClip(float val1, float val2, float set_position);
+float lerp(float val1, float val2, float set_position);
+float backwardsLerp(float val1, float val2, float the_val);
 
 std::string boolToString(bool set);
 
@@ -43,6 +43,6 @@ bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon = 
 
 }
 
-} // end namespace Rae
+} // end namespace rae
 
 #endif

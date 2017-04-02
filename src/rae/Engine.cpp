@@ -10,7 +10,7 @@
 #include "ComponentType.hpp"
 #include "Random.hpp"
 
-namespace Rae
+namespace rae
 {
 
 Engine::Engine(GLFWwindow* set_window)
@@ -27,8 +27,9 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem, m_rayTracer)
 	//m_inputSystem = new InputSystem(window, &m_objectFactory);
 	//m_systems.push_back(g_input);
 
+	addSystem(m_transformSystem);
 	addSystem(m_cameraSystem);
-	addSystem(m_rayTracer);
+	////////addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
 
 	// Load model
@@ -69,42 +70,56 @@ void Engine::addSystem(System& ownSystem)
 
 void Engine::run()
 {
-	do{
-		// Measure speed
-		m_currentTime = glfwGetTime();
-		double deltaTime = m_currentTime - m_previousTime;
+	do {
+		//glfwPollEvents(); //Don't use this here, it's for games. Use it in the inner loop if something is updating.
+		// It will take up too much CPU all the time, even when nothing is happening.
+		glfwWaitEvents();//use this instead. It will sleep when no events are being received.
 
-		update(m_currentTime, deltaTime);
+		while (m_running == true && update() == true)
+		{
+			// Swap buffers
+			glfwSwapBuffers(m_window);
 
-		// Swap buffers
-		glfwSwapBuffers(m_window);
+			m_input.update();
+			glfwPollEvents();
 
-		m_input.update();
-		glfwPollEvents();
+			if (glfwWindowShouldClose(m_window) != 0)
+				m_running = false;
 
-		m_previousTime = m_currentTime;
+			m_previousTime = m_currentTime;
+		}
 
 	} // Check if the ESC key was pressed or the window was closed
-	while( glfwGetKey(m_window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
-		   glfwWindowShouldClose(m_window) == 0 );
+	while (glfwGetKey(m_window, GLFW_KEY_ESCAPE) != GLFW_PRESS
+		   && glfwWindowShouldClose(m_window) == 0);
 }
 
-void Engine::update(double time, double delta_time)
+bool Engine::update()
 {
+	// Measure speed
+	m_currentTime = glfwGetTime();
+	double deltaTime = m_currentTime - m_previousTime;
+
 	reactToInput(m_input);
+
+	bool changed = false;
 
 	for(auto system : m_systems)
 	{
 		if (system->isEnabled())
-			system->update(time, delta_time, m_objectFactory.entities() );
-	}	
+		{
+			changed = system->update(m_currentTime, deltaTime, m_objectFactory.entities()) ? true : changed;
+		}
+	}
+
+	return changed;
 }
 
 Entity& Engine::createAddObjectButton()
 {
 	Entity& entity = createEmptyEntity();
 	Transform& transform = m_objectFactory.createTransform(0.0f, 0.0f, 5.0f);
-	transform.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+	transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
 	entity.addComponent( (int)ComponentType::TRANSFORM, transform.id() );
 	entity.addComponent( (int)ComponentType::MATERIAL, m_buttonMaterialID );
 	entity.addComponent( (int)ComponentType::MESH, m_meshID );
@@ -134,7 +149,7 @@ Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
 {
 	Entity& entity = createEmptyEntity();
 	// The desired API:
-	//m_transformSystem.setTransform(entity, position);
+	m_transformSystem.addTransform(entity.id(), Transform(position));
 	//m_geometrySystem.setMesh(entity, m_meshID);
 	//m_materialSystem.setMaterial(entity, color);
 
@@ -156,7 +171,7 @@ Entity& Engine::createBunny(glm::vec3 position, glm::vec4 color)
 
 Entity& Engine::createEmptyEntity()
 {
-	return m_objectFactory.createEmptyEntity();			
+	return m_objectFactory.createEmptyEntity();
 }
 
 void Engine::createTestWorld()
@@ -258,7 +273,6 @@ void Engine::osKeyEvent(int key, int scancode, int action, int mods)
 		eventType = EventType::KEY_RELEASE;
 
 	m_input.osKeyEvent(eventType, key, (int32_t)scancode);
-	
 }
 
 void Engine::onMouseEvent(const Input& input)
@@ -309,6 +323,7 @@ void Engine::onKeyEvent(const Input& input)
 	{
 		switch (input.key.value)
 		{
+			case KeySym::Escape: m_running = false; break;
 			case KeySym::P: m_objectFactory.measure(); break; // JONDE TEMP measure
 			case KeySym::R: m_renderSystem.clearImageRenderer(); break;
 			case KeySym::G:
@@ -346,5 +361,5 @@ void Engine::reactToInput(const Input& input)
 	if (input.getKeyState(KeySym::L)) { m_rayTracer.plusBounces(); }
 }
 
-} // end namespace Rae
+} // end namespace rae
 

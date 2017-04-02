@@ -1,7 +1,7 @@
 #ifndef RAE_COMPONENTTYPE_HPP
 #define RAE_COMPONENTTYPE_HPP
 
-namespace Rae
+namespace rae
 {
 
 enum class ComponentType

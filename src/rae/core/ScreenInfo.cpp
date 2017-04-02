@@ -96,7 +96,7 @@ SCENARIO("ScreenInfo unittest", "[Rae][ScreenInfo]")
 }
 #endif
 
-namespace Rae
+namespace rae
 {
 
 ScreenInfo::ScreenInfo()
@@ -179,4 +179,4 @@ void ScreenInfo::screenHeightP(int set)
 	calculateHalfScreens();
 }
 
-} // end namespace Rae
+} // end namespace rae

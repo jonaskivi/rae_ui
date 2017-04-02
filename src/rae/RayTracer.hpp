@@ -20,35 +20,14 @@ using glm::vec3;
 #include "HitableList.hpp"
 #include "BvhNode.hpp"
 
-namespace Rae
+#include "rae/image/ImageBuffer.hpp"
+
+namespace rae
 {
 
 class CameraSystem;
 class Camera;
 class Material;
-
-struct ImageBuffer
-{
-	ImageBuffer();
-	ImageBuffer(int setWidth, int setHeight);
-
-	void init(int setWidth, int setHeight);
-	void init();
-
-	void createImage(NVGcontext* vg);
-	void update8BitImageBuffer(NVGcontext* vg);
-	void clear();
-
-	int channels = 4; // needs to be 4 for rgba with nanovg create image func
-	
-	int width;
-	int height;
-
-	std::vector<vec3> colorData;
-	std::vector<uint8_t> data;
-
-	int imageId;
-};
 
 class RayTracer : public System
 {
@@ -62,7 +41,7 @@ public:
 	void createSceneOne(HitableList& world, bool loadBunny = false);
 	void createSceneFromBook(HitableList& list);
 
-	void update(double time, double delta_time, std::vector<Entity>& entities) override;
+	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
 	void renderAllAtOnce(double time);
 	void renderSamples(double time, double deltaTime);
 	void updateImageBuffer();
@@ -122,4 +101,4 @@ protected:
 	NVGpaint m_imgPaint;
 };
 
-} // end namespace Rae
+} // end namespace rae

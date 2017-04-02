@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Rae
+namespace rae
 {
 
 class Material;

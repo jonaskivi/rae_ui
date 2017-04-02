@@ -35,7 +35,7 @@
 
 #include "core/ScreenSystem.hpp"
 
-namespace Rae
+namespace rae
 {
 
 namespace TouchPointState
@@ -448,7 +448,8 @@ public:
 	
 	void osKeyEvent( EventType::e set_event_type, int set_key, int32_t set_unicode )
 	{
-		//Trace.formatln("Input.keyEvent() set_key: {}", set_key );
+		//JONDE DEBUG:
+		std::cout << "Input.keyEvent() set_key: " << set_key << "\n";
 
 		isHandled = false;
 		//window = set_window;

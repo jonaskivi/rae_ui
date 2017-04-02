@@ -3,9 +3,9 @@
 
 #include <vector>
 
-#include "Types.hpp"
+#include "rae/core/Types.hpp"
 
-namespace Rae
+namespace rae
 {
 
 using Id = int;
@@ -56,6 +56,6 @@ protected:
 	std::vector<ComponentIndex> m_components;
 };
 
-}//end namespace Rae
+}//end namespace rae
 
 #endif

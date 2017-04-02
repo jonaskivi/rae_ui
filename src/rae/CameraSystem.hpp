@@ -6,7 +6,7 @@
 #include "Camera.hpp"
 #include "System.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class Input;
@@ -16,7 +16,7 @@ class CameraSystem : public System
 public:
 	CameraSystem(Input& input);
 
-	void update(double time, double delta_time, std::vector<Entity>& entities) override;
+	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
 
 	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);

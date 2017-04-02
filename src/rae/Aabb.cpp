@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-using namespace Rae;
+using namespace rae;
 
 void  Aabb::init(const Aabb& left, const Aabb& right)
 {

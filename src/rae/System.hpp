@@ -4,7 +4,7 @@
 #include <vector>
 #include "Entity.hpp"
 
-namespace Rae
+namespace rae
 {
 
 // interface
@@ -15,7 +15,8 @@ public:
 	{
 	}
 
-	virtual void update(double time, double delta_time, std::vector<Entity>& entities) = 0;
+	// Returns changed == true if we need to render again because of changes in the system.
+	virtual bool update(double time, double delta_time, std::vector<Entity>& entities) = 0;
 
 	virtual void toggleIsEnabled() { m_isEnabled = !m_isEnabled; }
 	virtual bool isEnabled() { return m_isEnabled; }

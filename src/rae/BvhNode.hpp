@@ -8,7 +8,7 @@ using glm::vec3;
 #include "Hitable.hpp"
 #include "Aabb.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class Ray;

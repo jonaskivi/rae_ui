@@ -11,9 +11,14 @@ using glm::vec3;
 using glm::vec4;
 
 #include "Hierarchy.hpp"
-#include "Types.hpp"
+#include "rae/core/Types.hpp"
 
-namespace Rae
+#include "rae/entity/Table.hpp"
+#include "Transform.hpp"
+#include "Mesh.hpp"
+#include "Material.hpp"
+
+namespace rae
 {
 
 struct ComponentIndex;
@@ -27,6 +32,7 @@ const unsigned INITIAL_ENTITY_RESERVE = 20;
 const unsigned INITIAL_TRANSFORM_RESERVE = 20;
 const unsigned INITIAL_MESH_RESERVE = 5;
 
+// JONDE RENAME to EntitySystem and only care about entity lifetime. Pooling of Ids.
 class ObjectFactory
 {
 public:
@@ -37,9 +43,11 @@ public:
 
 	std::pair<double, float> measureOld(int& outCount);
 	std::pair<double, float> measureNew(int& outCount);
+	std::pair<double, float> measureNew3(int& outCount);
 
 	float renderIterateOld(int& outCount);
 	float renderIterateNew(int& outCount);
+	float renderIterateNew3(int& outCount);
 
 	// New system
 
@@ -60,6 +68,7 @@ public:
 	// Entities
 
 	Entity& createEmptyEntity();
+	Entity& createEmptyEntity3();
 	void destroyEntity(int index);
 	int entityCount() { return (int)m_entities.size(); }
 
@@ -100,6 +109,7 @@ public:
 
 protected:
 	Array<Entity>          m_entities;
+	//JONDE REMOVE
 	Array<Transform>       m_transforms;
 	Array<Mesh>            m_meshes;
 	Array<Material>        m_materials;
@@ -110,6 +120,11 @@ protected:
 	Map<Id, Transform>	m_transforms2;
 	Map<Id, Mesh>		m_meshes2;
 	Map<Id, Material>	m_materials2;
+
+	Array<Entity>		m_entities3;
+	Table<Transform>	m_transforms3;
+	Table<Mesh>			m_meshes3;
+	Table<Material>		m_materials3;
 };
 
 }

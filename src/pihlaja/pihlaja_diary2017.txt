@@ -1,0 +1,133 @@
+2017.3.26 Sunday
+
+Started HdrFlow last monday. Used OpenCV for Optical Flow and FFMPEG for video loading. It has been fast and fun.
+Program structure is difficult. I'm sure I'll have trouble with it later. I guess I'll just have to think how to use
+less state, and "tell, don't ask" -principle. And to look at my dependencies to be more sane.
+
+I need to put stuff into Pihlaja main class instead of letting the systems handle too much. The main class should
+ask the systems to do tasks, and combine the systems together into one system, instead of the systems knowing too
+much about each other.
+
+Now I'm thinking, I need some quick way to do a UI system. I have the old NanoVG example project that has some funny
+custom windows flying around, and it's a nice project. But my new thinking would be to make it more like a component UI
+system. Instead of everything deriving from the Rectangle uber-class, I need to have a rectangle component.
+And actually better is to split the visual and the logical functionality into separate components.
+In Unity they have the Image component and it is the visual. Then they have a Button component which is the clickable logic. And both of these use the Rect Transform 2D component as their data.
+
+In Rae UI we should have probably something like:
+
+Rect Transform -> Rectangle : the position, size and layout data.
+Image -> Image : The visual representation. I guess we should make a wrapper class for ImageBuffer. But why?
+
+
+2017.3.30 Thursday
+
+class Rectangle
+{
+	// position in relation to pivot
+	vec3 position
+	float width
+	float height
+
+	// relative diffs in relation to anchors if anchors are spread out.
+	float left;
+	float right;
+	float top;
+	float bottom;
+
+	// Anchors are normalized positions in the parent rectangle where this rectangle is anchored to.
+	// In Unity, if the anchors min and max are the same, then use position, width and height coords.
+	// If the anchors are spread out (different min & max) then use relative left, right etc coords.
+	// These are also separated by X and Y min and max.
+	vec2 minAnchor; // lower left corner anchor in parent
+	vec2 maxAnchor; // upper right corner anchor in parent
+
+	// Pivot determines the internal center from where the position is calculated.
+	// It is between 0.0f and 1.0f in both x and y. Y-positive is up.
+	// 0,1-----1,1
+	// |         |
+	// |         |
+	// 0,0-----1,0
+	vec2 pivot;
+	qua rotation;
+	vec3 scale;
+}
+
+// Hmm This Unity way seems to have a very high learning curve. I've looked at these coord systems for a couple
+of months, and still I find it un-intuitive to figure out which parameter is affecting what. And Unity's
+automatic compensation system is not helping either. It is just awful.
+
+So how to do layout, and what I'd like to see, and what would I expect.
+Simple Rectangles.
+Which is better:
+pivot in center
+or pivot in top right corner?
+
+What to think of Y-up in UI coords?
+
+What did we have in old Rae UI?
+
+3D-space:
+
+Preferred coordinate system:
+
+Maya, Right handed coordinate system
+Y-up, Z-out, X-right
+
+
+   +Y    
+    |    
+    |    
+    |----+X
+   /
+  /
++Z
+
+This is best because in a 3D-editor the user can easily manipulate all axes.
+If Z was going into the screen, then it is more difficult to manipulate it.
+This is also Maya and OpenGL convention.
+
+2D-space:
+
+School books always have it like this:
+   +Y    
+    |    
+    |    
+    |----+X
+
+But reading direction is Y-down. What to do here...
+
+Y-up is more natural because plus means going up, and minus means going down.
+
+Then center or lower left corner for origin?
+Center.
+Have an interface class, and let the user use pixel sizes if they want.
+Pixel sizes are 1920x1080 virtual resolution pixel sizes.
+
+Hmm. Should we then just use virtual resolution pixel sizes everywhere. But it doesn't make sense.
+It is such a random resolution. But at least you get the pixels to match on Full-Hd...
+2000x1000 would be much better, but then again, that would just create a funny scaling offset artifact.
+
+1.777 x 1.0
+vs
+1920.0 x 1080.0
+Stored in the Rectangles.
+1.0 is better for 3D UIs, but virtual resolution is better for everything else.
+
+0,1-----1,1
+|         |
+|         |
+0,0-----1,0
+
+2---------3
+|         |
+|         |
+0---------1
+
+But with the center thing we get:
+0.0 0.0 center
+1920 width 1080 height
++960 and +540. Better learn those numbers then.
+
+Screen start is at -960, -540
+

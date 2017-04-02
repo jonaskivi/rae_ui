@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-using namespace Rae;
+using namespace rae;
 
 int g_deep = 0;
 

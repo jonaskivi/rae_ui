@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 using glm::vec3;
 
-namespace Rae
+namespace rae
 {
 
 class Ray;

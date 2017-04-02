@@ -10,7 +10,7 @@
 struct NVGcontext;
 struct NVGLUframebuffer;
 
-namespace Rae
+namespace rae
 {
 
 class Material

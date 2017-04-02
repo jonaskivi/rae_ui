@@ -10,7 +10,7 @@ using glm::dot;
 #include "Random.hpp"
 #include "Camera.hpp"
 
-namespace Rae
+namespace rae
 {
 
 vec3 randomInUnitDisk()
@@ -311,5 +311,5 @@ bool Camera::shouldWeAutoFocus() const
 	return m_isContinuousAutoFocus;
 }
 
-} // end namespace Rae
+} // end namespace rae
 

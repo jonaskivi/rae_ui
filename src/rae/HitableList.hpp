@@ -3,7 +3,7 @@
 #include <vector>
 #include "Hitable.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class Ray;

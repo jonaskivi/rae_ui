@@ -51,7 +51,7 @@ SOFTWARE.
 	#include <GLFW/glfw3.h>
 #endif
 
-namespace Rae
+namespace rae
 {
 
 namespace KeySym
@@ -74,7 +74,11 @@ enum e //enum KeySym
 	Pause = 0xff13,  /* Pause, hold */
 	Scroll_Lock = 0xff14,
 	Sys_Req = 0xff15,
+#ifdef version_glfw
+	Escape = 256,
+#else
 	Escape = 0xff1b,
+#endif
 	Delete = 0xffff,  /* Delete, rubout */
 
 
@@ -114,23 +118,29 @@ enum e //enum KeySym
 
 /* Cursor control & motion */
 
-	Home = 0xff50,
 #ifdef version_glfw
+	Home = 268,
 	Left = 263,  /* Move left, left arrow */
 	Up = 265,  /* Move up, up arrow */
 	Right = 262,  /* Move right, right arrow */
 	Down = 264,  /* Move down, down arrow */
+	Prior = 266,  /* Prior, previous */
+	Page_Up = 266,
+	Next = 267,  /* Next */
+	Page_Down = 267,
+	End = 269,  /* EOL */
 #else
+	Home = 0xff50,
 	Left = 0xff51,  /* Move left, left arrow */
 	Up = 0xff52,  /* Move up, up arrow */
 	Right = 0xff53,  /* Move right, right arrow */
 	Down = 0xff54,  /* Move down, down arrow */
-#endif
 	Prior = 0xff55,  /* Prior, previous */
 	Page_Up = 0xff55,
 	Next = 0xff56,  /* Next */
 	Page_Down = 0xff56,
 	End = 0xff57,  /* EOL */
+#endif
 	Begin = 0xff58,  /* BOL */
 
 
@@ -2274,5 +2284,5 @@ enum e //enum KeySym
 	braille_dots_12345678 = 0x10028ff  /* U+28ff BRAILLE PATTERN DOTS-12345678 */
 };//enum e
 };//namespace KeySym
-};//namespace Rae
+};//namespace rae
 

@@ -5,7 +5,7 @@ using glm::vec3;
 
 #include "Hitable.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class Ray;

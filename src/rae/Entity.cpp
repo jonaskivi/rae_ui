@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-namespace Rae
+namespace rae
 {
 
 Entity::Entity(int set_id)
@@ -16,4 +16,4 @@ Entity::~Entity()
 	
 }
 
-}//end namespace Rae
+}//end namespace rae

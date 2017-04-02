@@ -4,7 +4,7 @@
 #include <random>
 #include <algorithm>
 
-namespace Rae
+namespace rae
 {
 
 typedef std::mt19937 RandomGeneratorEngine;
@@ -20,6 +20,6 @@ float getRandom( float from, float to );
 float getRandomDistribution(float mean, float deviation);
 int getRandomInt( int from, int to );
 
-} // end namespace Rae
+} // end namespace rae
 
 #endif

@@ -5,7 +5,7 @@
 	#include <GLFW/glfw3.h>
 #endif
 
-using namespace Rae;
+using namespace rae;
 
 #ifdef version_cocoa
 

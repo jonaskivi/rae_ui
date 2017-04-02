@@ -1,6 +1,6 @@
 #include "Hierarchy.hpp"
 
-using namespace Rae;
+using namespace rae;
 
 Hierarchy::Hierarchy(CompId set_id)
 : m_id(set_id)

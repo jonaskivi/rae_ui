@@ -1,9 +1,10 @@
-#ifndef RAE_TYPES_HPP
-#define RAE_TYPES_HPP
+#pragma once
 
 #include <unordered_map>
+#include <vector>
+#include <string>
 
-namespace Rae
+namespace rae
 {
 
 using Id = int;
@@ -11,6 +12,7 @@ using CompId = int;
 
 template < class T, class Allocator = std::allocator<T> >
 using Array = std::vector<T, Allocator>;
+using String = std::string;
 
 template<
 	class Key,
@@ -33,6 +35,4 @@ bool check(const Map<Key, T, Hash, KeyEqual, Allocator>& map, Key key)
 
 class Exist {}; // Temporary test component for the unordered_map version (which was slow).
 
-}//end namespace Rae
-
-#endif
+}//end namespace rae

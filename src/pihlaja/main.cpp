@@ -17,22 +17,8 @@ GLFWwindow* window;
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "Random.hpp"
-#include "Animator.hpp"
-#include "Shader.hpp"
-#include "ComponentType.hpp"
-#include "Entity.hpp"
-#include "Transform.hpp"
-#include "Mesh.hpp"
-#include "Material.hpp"
-#include "ObjectFactory.hpp"
-#include "System.hpp"
-#include "RenderSystem.hpp"
-#include "Engine.hpp"
-using namespace Rae;
+#include "rae/Engine.hpp"
+#include "pihlaja/Pihlaja.hpp"
 
 //----------------------------------------
 
@@ -145,20 +131,18 @@ int main()
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	// Load it into a VBO
+	Pihlaja pihlaja(window);
 
-	Engine engine(window);
-	
 	// Set global access point just for GLFW callbacks.
-	g_engine = &engine;
+	g_engine = pihlaja.getEngine();
 	glfwSetWindowSizeCallback     (window, windowSizeCallback);
 	glfwSetFramebufferSizeCallback(window, windowPixelSizeCallback); // Support hi-dpi displays
 	glfwSetMouseButtonCallback    (window, glfwOnMouseButton);
 	glfwSetCursorPosCallback      (window, glfwOnMouseMotion);
 	glfwSetKeyCallback            (window, glfwKeyCallback);
 	glfwSetScrollCallback         (window, glfwScrollCallback);
-	
-	engine.run();
+
+	pihlaja.run();
 
 	g_engine = nullptr;
 

@@ -4,7 +4,7 @@
 
 #include "core/ScreenInfo.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class ScreenSystem

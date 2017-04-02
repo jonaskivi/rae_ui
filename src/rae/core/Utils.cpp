@@ -3,7 +3,7 @@
 #include <cstdlib> // for rand. TODO remove deprecated rand stuff.
 #include <assert.h>
 
-namespace Rae
+namespace rae
 {
 
 namespace Math
@@ -51,17 +51,17 @@ bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon)
 		&& isEqual(set_a.z, set_b.z, epsilon);
 }
 
-float getManhattanDistance( float rx, float ry )
+float getManhattanDistance(float rx, float ry)
 {
 	return (float)(rx * rx + ry * ry);
 }
 
-float getDistance( float rx, float ry )
+float getDistance(float rx, float ry)
 {
 	return sqrt((float)(rx * rx + ry * ry));
 }
 
-float weightedAverageClip( float val1, float val2, float set_position )
+float lerpClip(float val1, float val2, float set_position)
 {
 	// weighted average (so that the sum of the weights becomes 1.0.)
 	// return (set_position * val1) + ((1.0f-set_position) * val2);
@@ -85,7 +85,7 @@ float weightedAverageClip( float val1, float val2, float set_position )
 	return ret; // won't happen.
 }
 
-float weightedAverage( float val1, float val2, float set_position )
+float lerp(float val1, float val2, float set_position)
 {
 	// weighted average (so that the sum of the weights becomes 1.0.)
 	// return (set_position * val1) + ((1.0f-set_position) * val2);
@@ -110,9 +110,9 @@ result should be = 0.3 (set_pos)
 */
 
 // percentageWeightedAverage
-// kind of like backwardsWeightedAverage. You give this the result of weightedAverage,
+// kind of like backwardsLerp. You give this the result of lerp,
 // and this will give you the percentage for set_position to use in e.g. Sliders.
-float backwardsWeightedAverage( float val1, float val2, float the_val )
+float backwardsLerp(float val1, float val2, float the_val)
 {
 	return (the_val - val1) / (val2 - val1);
 }

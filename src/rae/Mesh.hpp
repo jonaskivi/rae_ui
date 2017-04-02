@@ -18,7 +18,7 @@ using glm::vec3;
 #include "Hitable.hpp"
 #include "Aabb.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class Material;
@@ -73,4 +73,4 @@ protected:
 	Material* material; // TODO make better, don't use pointer. Use component ID.
 };
 
-} // end namespace Rae
+} // end namespace rae

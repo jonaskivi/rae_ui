@@ -9,11 +9,12 @@
 #include "ObjectFactory.hpp"
 #include "core/ScreenSystem.hpp"
 #include "ui/Input.hpp"
+#include "TransformSystem.hpp"
 #include "CameraSystem.hpp"
 #include "RenderSystem.hpp"
 #include "RayTracer.hpp"
 
-namespace Rae
+namespace rae
 {
 
 class System;
@@ -26,7 +27,7 @@ public:
 	Engine(GLFWwindow* set_window); // TODO move the GLFWwindow into it's own Window class.
 
 	void run();
-	void update(double time, double delta_time);
+	bool update();
 	Entity& createAddObjectButton();
 	Entity& createRandomBunnyEntity();
 	Entity& createRandomCubeEntity();
@@ -38,6 +39,8 @@ public:
 	void createTestWorld2();
 
 	void addSystem(System& ownSystem);
+	RenderSystem& getRenderSystem() { return m_renderSystem; }
+	Input& getInput() { return m_input; }
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
@@ -58,6 +61,7 @@ protected:
 
 	double m_previousTime;
 	double m_currentTime;
+	bool m_running = true;
 
 	ScreenSystem m_screenSystem;
 	Input m_input;
@@ -66,6 +70,7 @@ protected:
 
 	std::vector<System*> m_systems;
 
+	TransformSystem		m_transformSystem;
 	CameraSystem		m_cameraSystem;
 	RayTracer			m_rayTracer;
 	RenderSystem		m_renderSystem;

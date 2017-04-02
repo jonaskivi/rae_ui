@@ -4,6 +4,12 @@
 	using namespace std;
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+using glm::vec3;
+using glm::quat;
+using glm::mat4;
 
 #include "nanovg.h"
 #define NANOVG_GL2_IMPLEMENTATION
@@ -23,7 +29,7 @@
 
 #include "CameraSystem.hpp"
 
-namespace Rae
+namespace rae
 {
 
 int loadFonts(NVGcontext* vg)
@@ -94,6 +100,9 @@ void RenderSystem::initNanoVG()
 	}
 
 	m_rayTracer.setNanovgContext(vg);
+
+	//m_backgroundImage.load(vg, "/Users/joonaz/Documents/jonas/opencv-3.2.0/samples/data/basketball1.png");
+	//m_backgroundImage.load(vg, "/Users/joonaz/Dropbox/taustakuvat/apple_galaxy.jpg");
 }
 
 void RenderSystem::init()
@@ -178,7 +187,7 @@ void RenderSystem::checkErrors(const char *file, int line)
 	}
 }
 
-void RenderSystem::update(double time, double delta_time, std::vector<Entity>& entities)
+bool RenderSystem::update(double time, double delta_time, std::vector<Entity>& entities)
 {
 	#ifdef RAE_DEBUG
 		cout<<"RenderSystem::update().\n";
@@ -203,10 +212,14 @@ void RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 		material.update(vg, time);
 	}
 
+	//JONDE TEMP:
+	m_backgroundImage.update(vg);
+
 	render(time, delta_time, entities);
 
 	render2d(time, delta_time);
-	
+
+	return false; // for now
 }
 
 void RenderSystem::render(double time, double delta_time, std::vector<Entity>& entities)
@@ -228,13 +241,13 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 	Mesh* debugMesh = nullptr;
 	Material* debugMaterial = nullptr;
 
-	for(auto& entity : entities)
+	for (auto& entity : entities)
 	{
 		Transform* transform = nullptr;
 		Material*  material  = nullptr;
 		Mesh*      mesh      = nullptr;
 		
-		for(auto& componentIndex : entity.components())
+		for (auto& componentIndex : entity.components())
 		{
 			switch( (ComponentType)componentIndex.type )
 			{
@@ -265,7 +278,7 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 			}
 		}
 
-		if( transform && mesh )
+		if (transform && mesh)
 		{
 			#ifdef RAE_DEBUG
 				cout << "Going to render Mesh. id: " << mesh->id() << "\n";
@@ -302,12 +315,12 @@ void RenderSystem::renderPicking(std::vector<Entity>& entities)
 	glUseProgram(pickingShaderID);
 
 	int entity_id = 0;
-	for(auto& entity : entities)
+	for (auto& entity : entities)
 	{
 		Transform* transform = nullptr;
 		Mesh*      mesh      = nullptr;
 		
-		for(auto& componentIndex : entity.components())
+		for (auto& componentIndex : entity.components())
 		{
 			switch( (ComponentType)componentIndex.type )
 			{
@@ -348,7 +361,11 @@ void RenderSystem::renderMesh(Transform* transform, Material* material, Mesh* me
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
-	glm::mat4& modelMatrix = transform->modelMatrix();
+	//JONDE REMOVE glm::mat4& modelMatrix = transform->modelMatrix();
+
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform->position);
+	mat4 rotationMatrix = glm::toMat4(transform->rotation);
+	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
 
 	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	// The model-view-projection matrix
@@ -380,7 +397,9 @@ void RenderSystem::renderMeshPicking(Transform* transform, Mesh* mesh, int entit
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
-	glm::mat4& modelMatrix = transform->modelMatrix();
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform->position);
+	mat4 rotationMatrix = glm::toMat4(transform->rotation);
+	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
 
 	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	// The model-view-projection matrix
@@ -401,8 +420,24 @@ void RenderSystem::render2dBackground(double time, double delta_time)
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
-		m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+		//////////JONDE OLD: m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+		renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+		
 	nvgEndFrame(vg);
+}
+
+void RenderSystem::renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
+	float x, float y, float w, float h)
+{
+	nvgSave(vg);
+
+	NVGpaint imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId, 1.0f);
+	nvgBeginPath(vg);
+	nvgRect(vg, x, y, w, h);
+	nvgFillPaint(vg, imgPaint);
+	nvgFill(vg);
+
+	nvgRestore(vg);
 }
 
 void RenderSystem::render2d(double time, double delta_time)
@@ -467,5 +502,5 @@ void RenderSystem::osEventResizeWindowPixels(int width, int height)
 	m_cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
-} //end namespace Rae
+} //end namespace rae
 

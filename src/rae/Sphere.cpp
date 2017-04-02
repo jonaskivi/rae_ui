@@ -3,7 +3,7 @@
 #include "HitRecord.hpp"
 #include "Aabb.hpp"
 
-using namespace Rae;
+using namespace rae;
 
 Sphere::~Sphere()
 {

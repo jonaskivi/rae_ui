@@ -5,7 +5,7 @@
 	using namespace std;
 
 
-namespace Rae
+namespace rae
 {
 
 class ScreenInfo

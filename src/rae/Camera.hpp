@@ -11,7 +11,7 @@ using glm::vec3;
 
 #include "Animator.hpp"
 
-namespace Rae
+namespace rae
 {
 
 vec3 randomInUnitDisk();

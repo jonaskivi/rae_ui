@@ -7,7 +7,7 @@
 
 #include "Material.hpp"
 
-namespace Rae
+namespace rae
 {
 
 Mesh::Mesh(int set_id)
@@ -740,4 +740,4 @@ void Mesh::render(unsigned set_shader_program_id)
 		glDisableVertexAttribArray(vertex_normal_id);
 }
 
-}//end namespace Rae
+}//end namespace rae

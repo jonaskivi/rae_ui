@@ -10,9 +10,11 @@
 #include "System.hpp"
 #include "RayTracer.hpp"
 
+#include "rae/image/ImageBuffer.hpp" //JONDE TEMP HACK
+
 struct NVGcontext;
 
-namespace Rae
+namespace rae
 {
 
 class CameraSystem;
@@ -39,12 +41,17 @@ public:
 	Material& createMaterial(int type, const glm::vec4& color);
 	Material& createAnimatingMaterial(int type, const glm::vec4& color);
 
-	void update(double time, double delta_time, std::vector<Entity>& entities) override;
+	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
 
 	void render(double time, double delta_time, std::vector<Entity>& entities);
 	void renderPicking(std::vector<Entity>& entities);
 	void render2dBackground(double time, double delta_time);
 	void render2d(double time, double delta_time);
+
+	//JONDE TEMP:
+	void renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
+		float x, float y, float w, float h);
+	ImageBuffer& getBackgroundImage() { return m_backgroundImage; }
 
 	void renderMesh(Transform* transform, Material* material, Mesh* mesh);
 	void renderMeshPicking(Transform* transform, Mesh* mesh, int entity_id);
@@ -111,6 +118,8 @@ protected:
 
 	CameraSystem& m_cameraSystem;
 	RayTracer& m_rayTracer;
+
+	ImageBuffer m_backgroundImage;
 };
 
 }

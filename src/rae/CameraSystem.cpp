@@ -3,7 +3,7 @@
 #include "core/Utils.hpp"
 #include "ui/Input.hpp"
 
-using namespace Rae;
+using namespace rae;
 
 CameraSystem::CameraSystem(Input& input)
 : m_input(input),
@@ -79,7 +79,7 @@ void CameraSystem::emitCameraChangedEvent()
 	}
 }
 
-void CameraSystem::update(double time, double delta_time, std::vector<Entity>&)
+bool CameraSystem::update(double time, double delta_time, std::vector<Entity>&)
 {
 	//JONDE TODO: m_screenInfo??? from ScreenSystem???
 	//JONDE m_camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
@@ -132,5 +132,7 @@ void CameraSystem::update(double time, double delta_time, std::vector<Entity>&)
 
 	if (cameraChanged)
 		emitCameraChangedEvent();
+
+	return cameraChanged;
 }
 

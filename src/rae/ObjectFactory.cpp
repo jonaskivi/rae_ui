@@ -9,12 +9,14 @@ using namespace std;
 #include "Material.hpp"
 #include "Hierarchy.hpp"
 
-namespace Rae
+namespace rae
 {
 
 Id ObjectFactory::m_nextId = 0;
 
 ObjectFactory::ObjectFactory()
+: m_transforms3(INITIAL_TRANSFORM_RESERVE),
+  m_meshes3(INITIAL_MESH_RESERVE)
 {
 	m_entities.  reserve( INITIAL_ENTITY_RESERVE    );
 	m_transforms.reserve( INITIAL_TRANSFORM_RESERVE );
@@ -42,6 +44,9 @@ void ObjectFactory::measure()
 	int countNew = 0;
 	auto news = measureNew(countNew);
 
+	int countNew3 = 0;
+	auto news3 = measureNew3(countNew3);
+
 	std::cout << "Old took: " << old.first
 		<< " average: " << old.second
 		<< " old ents: " << m_entities.size()
@@ -57,6 +62,15 @@ void ObjectFactory::measure()
 		<< " materials: " << m_materials2.size()
 		<< " meshes: " << m_meshes2.size()
 		<< " count: " << countNew
+		<< "\n";
+
+	std::cout << "New3 took: " << news3.first
+		<< " average: " << news3.second
+		//<< " new ents: " << m_exists.size()
+		<< " transforms: " << m_transforms3.items().size()
+		<< " materials: " << m_materials3.items().size()
+		<< " meshes: " << m_meshes3.items().size()
+		<< " count: " << countNew3
 		<< "\n";
 }
 
@@ -122,6 +136,33 @@ std::pair<double, float> ObjectFactory::measureNew(int& outCount)
 	//std::cout << "New took: " << endTime - startTime << "\n";
 }
 
+std::pair<double, float> ObjectFactory::measureNew3(int& outCount)
+{
+	double startTime = glfwGetTime();
+
+	for (int i = 0; i < ents; ++i)
+	{
+		Entity& entity = createEmptyEntity3();
+		m_transforms3.create(entity.id(), Transform(vec3(52.0f + float(i), 14.0f, 30.0f + float(i))));
+		m_materials3.create(entity.id(), Material(/*id:*/0, /*type:*/0, vec4(1.0f, 0.5f, 0.1f, 1.0f)));
+
+		Mesh mesh = Mesh(0);
+		mesh.generateBox();
+		m_meshes3.create(entity.id(), std::move(mesh));
+	}
+
+	float average = 0.0f;
+	for (int i = 0; i < times; ++i)
+	{
+		average += renderIterateNew3(outCount);
+	}
+
+	double endTime = glfwGetTime();
+
+	return std::make_pair(endTime - startTime, average / times);
+	//std::cout << "Old took: " << endTime - startTime << "\n";
+}
+
 float ObjectFactory::renderIterateOld(int& outCount)
 {
 	vec3 average;
@@ -164,7 +205,7 @@ float ObjectFactory::renderIterateOld(int& outCount)
 		if (transform)
 		{
 			outCount++;
-			average += transform->position();
+			average += transform->position;
 		}
 
 		/*if( transform && mesh )
@@ -205,7 +246,7 @@ float ObjectFactory::renderIterateNew(int& outCount)
 		if (transform)
 		{
 			outCount++;
-			average += transform->position();
+			average += transform->position;
 
 			id++;
 		}
@@ -217,6 +258,56 @@ float ObjectFactory::renderIterateNew(int& outCount)
 
 	return aveX;
 	//std::cout << "New average: " << aveX << ", " << aveY << ", " << aveZ << "\n";
+}
+
+float ObjectFactory::renderIterateNew3(int& outCount)
+{
+	vec3 average;
+
+	for (auto& entity : m_entities)
+	{
+		Transform& transform = m_transforms3.get(entity.id());
+		Material&  material  = m_materials3.get(entity.id());
+		Mesh&      mesh      = m_meshes3.get(entity.id());
+
+		//if (transform)
+		//{
+			outCount++;
+			average += transform.position;
+		//}
+
+		/*
+		Transform* transform = m_transforms3.get(entity.id());
+		Material*  material  = m_materials3.get(entity.id());
+		Mesh*      mesh      = m_meshes3.get(entity.id());
+
+		if (transform)
+		{
+			outCount++;
+			average += transform->position;
+		}
+		*/
+
+		/*if( transform && mesh )
+		{
+			#ifdef RAE_DEBUG
+				cout << "Going to render Mesh. id: " << mesh->id() << "\n";
+			#endif
+
+			// Update animation... TODO move this elsewhere.
+			////transform->update(time, delta_time);
+
+			////renderMesh(transform, material, mesh);
+		}*/
+		//else cout << "No mesh and no transform.\n";
+	}
+
+	float aveX = average.x / (float)m_entities.size();
+	float aveY = average.y / (float)m_entities.size();
+	float aveZ = average.z / (float)m_entities.size();
+
+	return aveX;
+	//std::cout << "Old average: " << aveX << ", " << aveY << ", " << aveZ << "\n";
 }
 
 // New system
@@ -280,9 +371,16 @@ Material* ObjectFactory::getMaterial2(Id id)
 
 Entity& ObjectFactory::createEmptyEntity()
 {
-	m_entities.emplace_back( static_cast<Rae::Id>(m_entities.size()) );
+	m_entities.emplace_back( static_cast<rae::Id>(m_entities.size()) );
 
 	return m_entities.back();
+}
+
+Entity& ObjectFactory::createEmptyEntity3()
+{
+	m_entities3.emplace_back( static_cast<rae::Id>(m_entities3.size()) );
+
+	return m_entities3.back();
 }
 
 void ObjectFactory::destroyEntity(int index)

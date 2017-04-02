@@ -3,7 +3,7 @@
 
 #include "Random.hpp"
 
-namespace Rae
+namespace rae
 {
 
 RandomGeneratorEngine g_randomEngine;
@@ -42,4 +42,4 @@ int getRandomInt( int from, int to )
 	return uniform_dist( g_randomEngine, std::uniform_int_distribution<int>::param_type(from, to) );
 }
 
-} // end namespace Rae
+} // end namespace rae

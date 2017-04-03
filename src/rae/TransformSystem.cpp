@@ -11,7 +11,7 @@ TransformSystem::TransformSystem()
 
 }
 
-bool TransformSystem::update(double time, double delta_time, std::vector<Entity>& entities)
+bool TransformSystem::update(double time, double deltaTime, std::vector<Entity>& entities)
 {
 	/* JONDE REMOVE
 	std::cout << "Printing out TransformSystem:\n";
@@ -22,11 +22,21 @@ bool TransformSystem::update(double time, double delta_time, std::vector<Entity>
 		++i;
 	}
 	*/
+
+	for (auto&& transform : m_transforms.items())
+	{
+		transform.update(time, deltaTime);
+	}
 }
 
 void TransformSystem::addTransform(Id id, Transform&& transform)
 {
 	m_transforms.create(id, std::move(transform));
+}
+
+const Transform& TransformSystem::getTransform(Id id)
+{
+	return m_transforms.get(id);
 }
 
 void TransformSystem::setPosition(Id id, const vec3& position)

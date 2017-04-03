@@ -52,16 +52,9 @@ public:
 	// New system
 
 	Id createEntity();
-	void createTransform(Id id, const vec3& setPosition);
 	void createMesh(Id id);
 	void createMaterial(Id id, int type, const glm::vec4& color);
 
-	/*Transform*	getTransform2(Id id);
-	Material*	getMaterial2(Id id);
-	Mesh*		getMesh2(Id id);
-	*/
-
-	Transform* getTransform2(Id set_id) { return &m_transforms2.at(set_id); }
 	Mesh* getMesh2(Id set_id) { return &m_meshes2.at(set_id); }
 	Material* getMaterial2(Id set_id) { return &m_materials2.at(set_id); }
 
@@ -77,14 +70,6 @@ public:
 	// Components
 
 	void removedComponent(ComponentIndex componentIndex);
-
-	// Transforms
-
-	Transform& createTransform(float set_x, float set_y, float set_z);
-	Transform& createTransform(const glm::vec3& position);
-	//Transform* getTransform(unsigned set_id) { return &m_transforms.at(set_id); } // JONDE test speed
-	Transform* getTransform(unsigned set_id) { return &m_transforms[set_id]; }
-	int transformCount() { return (int)m_transforms.size(); }
 
 	// Meshes
 
@@ -109,15 +94,12 @@ public:
 
 protected:
 	Array<Entity>          m_entities;
-	//JONDE REMOVE
-	Array<Transform>       m_transforms;
 	Array<Mesh>            m_meshes;
 	Array<Material>        m_materials;
 	Array<Hierarchy>       m_hierarchies;
 
 	static Id			m_nextId;
 	Map<Id, Exist>		m_exists;
-	Map<Id, Transform>	m_transforms2;
 	Map<Id, Mesh>		m_meshes2;
 	Map<Id, Material>	m_materials2;
 

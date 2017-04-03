@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 
 #include "System.hpp"
+#include "TransformSystem.hpp"
 #include "RayTracer.hpp"
 
 #include "rae/image/ImageBuffer.hpp" //JONDE TEMP HACK
@@ -18,6 +19,7 @@ namespace rae
 {
 
 class CameraSystem;
+class TransformSystem;
 class ObjectFactory;
 class Transform;
 class Material;
@@ -28,7 +30,11 @@ class Input;
 class RenderSystem : public System
 {
 public:
-	RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input, CameraSystem& cameraSystem,
+	RenderSystem(ObjectFactory& objectFactory,
+		GLFWwindow* setWindow,
+		Input& input,
+		CameraSystem& cameraSystem,
+		TransformSystem& transformSystem,
 		RayTracer& rayTracer);
 	~RenderSystem();
 
@@ -53,8 +59,8 @@ public:
 		float x, float y, float w, float h);
 	ImageBuffer& getBackgroundImage() { return m_backgroundImage; }
 
-	void renderMesh(Transform* transform, Material* material, Mesh* mesh);
-	void renderMeshPicking(Transform* transform, Mesh* mesh, int entity_id);
+	void renderMesh(const Transform& transform, Material* material, Mesh* mesh);
+	void renderMeshPicking(const Transform& transform, Mesh* mesh, int entity_id);
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
@@ -116,8 +122,9 @@ protected:
 
 	bool m_glRendererOn = false;
 
-	CameraSystem& m_cameraSystem;
-	RayTracer& m_rayTracer;
+	CameraSystem&			m_cameraSystem;
+	TransformSystem&		m_transformSystem;
+	RayTracer&				m_rayTracer;
 
 	ImageBuffer m_backgroundImage;
 };

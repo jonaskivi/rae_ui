@@ -18,7 +18,7 @@ Engine::Engine(GLFWwindow* set_window)
 m_input(m_screenSystem),
 m_cameraSystem(m_input),
 m_rayTracer(m_cameraSystem),
-m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem, m_rayTracer)
+m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem, m_transformSystem, m_rayTracer)
 {
 	m_currentTime = glfwGetTime();
 	m_previousTime = m_currentTime;
@@ -118,9 +118,12 @@ bool Engine::update()
 Entity& Engine::createAddObjectButton()
 {
 	Entity& entity = createEmptyEntity();
-	Transform& transform = m_objectFactory.createTransform(0.0f, 0.0f, 5.0f);
-	transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
-	entity.addComponent( (int)ComponentType::TRANSFORM, transform.id() );
+	m_transformSystem.addTransform(entity.id(), Transform(vec3(0.0f, 0.0f, 5.0f)));
+	m_transformSystem.setPosition(entity.id(), vec3(0.0f, 0.0f, 0.0f));
+
+	//JONDE REMOVE Transform& transform = m_objectFactory.createTransform(0.0f, 0.0f, 5.0f);
+	//JONDE REMOVE transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, transform.id() );
 	entity.addComponent( (int)ComponentType::MATERIAL, m_buttonMaterialID );
 	entity.addComponent( (int)ComponentType::MESH, m_meshID );
 	return entity;
@@ -129,7 +132,8 @@ Entity& Engine::createAddObjectButton()
 Entity& Engine::createRandomBunnyEntity()
 {
 	Entity& entity = createEmptyEntity();
-	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
+	m_transformSystem.addTransform(entity.id(), Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
 	entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
 	entity.addComponent( (int)ComponentType::MESH, m_modelID );
 	
@@ -139,7 +143,8 @@ Entity& Engine::createRandomBunnyEntity()
 Entity& Engine::createRandomCubeEntity()
 {
 	Entity& entity = createEmptyEntity();
-	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
+	m_transformSystem.addTransform(entity.id(), Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
 	entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
 	entity.addComponent( (int)ComponentType::MESH, m_meshID );
 	return entity;
@@ -154,7 +159,7 @@ Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
 	//m_materialSystem.setMaterial(entity, color);
 
 	// The old API:
-	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
 	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem.createMaterial(0, color).id() );
 	entity.addComponent( (int)ComponentType::MESH, m_meshID );
 	return entity;
@@ -163,7 +168,8 @@ Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
 Entity& Engine::createBunny(glm::vec3 position, glm::vec4 color)
 {
 	Entity& entity = createEmptyEntity();
-	entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
+	m_transformSystem.addTransform(entity.id(), Transform(position));
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
 	entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
 	entity.addComponent( (int)ComponentType::MESH, m_modelID );
 	return entity;

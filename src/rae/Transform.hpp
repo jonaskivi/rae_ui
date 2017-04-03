@@ -16,15 +16,16 @@ namespace rae
 class Transform
 {
 public:
-	int id() { return m_id; }
+	/*int id() { return m_id; }
 protected:
 	void id(int set) { m_id = set; }
 	int m_id;
+	*/
 
 public:
 	Transform(){}
-	Transform(int set_id, float set_x = 0.0f, float set_y = 0.0f, float set_z = 0.0f);
-	Transform(int set_id, const vec3& position);
+	//JONDE REMOVE Transform(int set_id, float set_x = 0.0f, float set_y = 0.0f, float set_z = 0.0f);
+	//JONDE REMOVE Transform(int set_id, const vec3& position);
 
 	Transform(const vec3& position);
 	String toString() const;

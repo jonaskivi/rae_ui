@@ -48,8 +48,12 @@ int loadFonts(NVGcontext* vg)
 	return 0;
 }
 
-RenderSystem::RenderSystem(ObjectFactory& objectFactory, GLFWwindow* setWindow, Input& input,
-	CameraSystem& cameraSystem, RayTracer& rayTracer)
+RenderSystem::RenderSystem(ObjectFactory& objectFactory,
+	GLFWwindow* setWindow,
+	Input& input,
+	CameraSystem& cameraSystem,
+	TransformSystem& transformSystem,
+	RayTracer& rayTracer)
 : m_objectFactory(objectFactory),
 m_window(setWindow),
 m_input(input),
@@ -59,10 +63,11 @@ m_fpsString("fps:"),
 //m_pickedString("Nothing picked"),
 vg(nullptr),
 m_cameraSystem(cameraSystem),
+m_transformSystem(transformSystem),
 m_rayTracer(rayTracer)
 {
-	debugTransform = new Transform(1,0,0,0);
-	debugTransform2 = new Transform(1,0,0,0);
+	debugTransform = new Transform(vec3(0,0,0));
+	debugTransform2 = new Transform(vec3(0,0,0));
 
 	initNanoVG();
 
@@ -243,7 +248,7 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 
 	for (auto& entity : entities)
 	{
-		Transform* transform = nullptr;
+		const Transform& transform = m_transformSystem.getTransform(entity.id());
 		Material*  material  = nullptr;
 		Mesh*      mesh      = nullptr;
 		
@@ -254,11 +259,12 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 				default:
 					//cout << "ERROR: Strange type: " << componentIndex.type << "\n";
 				break;
-				case ComponentType::TRANSFORM:
+				/*JONDE REMOVE case ComponentType::TRANSFORM:
 					if(transform == nullptr)
 						transform = m_objectFactory.getTransform(componentIndex.id);
 					else cout << "ERROR: Found another transform component. id: " << componentIndex.id << "\n";
 				break;
+				*/
 				case ComponentType::MATERIAL:
 					if(material == nullptr)
 					{
@@ -278,14 +284,11 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 			}
 		}
 
-		if (transform && mesh)
+		if (mesh)
 		{
 			#ifdef RAE_DEBUG
 				cout << "Going to render Mesh. id: " << mesh->id() << "\n";
 			#endif
-
-			// Update animation... TODO move this elsewhere.
-			transform->update(time, delta_time);
 
 			renderMesh(transform, material, mesh);
 		}
@@ -317,7 +320,7 @@ void RenderSystem::renderPicking(std::vector<Entity>& entities)
 	int entity_id = 0;
 	for (auto& entity : entities)
 	{
-		Transform* transform = nullptr;
+		const Transform& transform = m_transformSystem.getTransform(entity.id());
 		Mesh*      mesh      = nullptr;
 		
 		for (auto& componentIndex : entity.components())
@@ -327,11 +330,12 @@ void RenderSystem::renderPicking(std::vector<Entity>& entities)
 				default:
 					//cout << "ERROR: Strange type: " << componentIndex.type << "\n";
 				break;
-				case ComponentType::TRANSFORM:
+				/*JONDE REMOVE case ComponentType::TRANSFORM:
 					if(transform == nullptr)
 						transform = m_objectFactory.getTransform(componentIndex.id);
 					else cout << "ERROR: Found another transform component. id: " << componentIndex.id << "\n";
 				break;
+				*/
 				case ComponentType::MATERIAL:
 				break;
 				case ComponentType::MESH:
@@ -342,7 +346,7 @@ void RenderSystem::renderPicking(std::vector<Entity>& entities)
 			}
 		}
 
-		if( transform && mesh )
+		if (mesh)
 		{
 			#ifdef RAE_DEBUG
 				cout << "Going to render Mesh. id: " << mesh->id() << "\n";
@@ -356,15 +360,15 @@ void RenderSystem::renderPicking(std::vector<Entity>& entities)
 	}
 }
 
-void RenderSystem::renderMesh(Transform* transform, Material* material, Mesh* mesh)
+void RenderSystem::renderMesh(const Transform& transform, Material* material, Mesh* mesh)
 {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
 	//JONDE REMOVE glm::mat4& modelMatrix = transform->modelMatrix();
 
-	mat4 translationMatrix = glm::translate(mat4(1.0f), transform->position);
-	mat4 rotationMatrix = glm::toMat4(transform->rotation);
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+	mat4 rotationMatrix = glm::toMat4(transform.rotation);
 	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
 
 	const Camera& camera = m_cameraSystem.getCurrentCamera();
@@ -391,14 +395,14 @@ void RenderSystem::renderMesh(Transform* transform, Material* material, Mesh* me
 	mesh->render(shaderID);
 }
 
-void RenderSystem::renderMeshPicking(Transform* transform, Mesh* mesh, int entity_id)
+void RenderSystem::renderMeshPicking(const Transform& transform, Mesh* mesh, int entity_id)
 {
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
-	mat4 translationMatrix = glm::translate(mat4(1.0f), transform->position);
-	mat4 rotationMatrix = glm::toMat4(transform->rotation);
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+	mat4 rotationMatrix = glm::toMat4(transform.rotation);
 	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
 
 	const Camera& camera = m_cameraSystem.getCurrentCamera();
@@ -466,7 +470,7 @@ void RenderSystem::render2d(double time, double delta_time)
 			std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory.entityCount());
 			nvgText(vg, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string transform_count_str = "Transforms: " + std::to_string(m_objectFactory.transformCount());
+			std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
 			nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 			std::string mesh_count_str = "Meshes: " + std::to_string(m_objectFactory.meshCount());

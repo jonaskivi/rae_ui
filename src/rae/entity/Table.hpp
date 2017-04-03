@@ -25,6 +25,11 @@ public:
 		m_items.reserve(reserveSize);
 	}
 
+	int size()
+	{
+		return m_items.size();
+	}
+
 	void create(Id id, Comp&& comp)
 	{
 		//std::cout << "Creating id: " << id << " size: " << m_idMap2.size() << "\n";
@@ -47,6 +52,8 @@ public:
 	//JONDE void remove(Id id)
 
 	const Array<Comp>& items() const { return m_items; }
+	Array<Comp>& items() { return m_items; }
+
 	bool check(Id id)
 	{
 		//if (m_idMap.find(id) != m_idMap.end())

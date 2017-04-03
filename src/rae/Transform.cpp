@@ -4,12 +4,13 @@
 namespace rae
 {
 
+/* JONDE REMOVE
 Transform::Transform(int set_id, float set_x, float set_y, float set_z)
 : m_id(set_id),
 position(set_x, set_y, set_z)
 //JONDE REMOVE m_modelMatrix(1.0f)
 {
-	setTarget(vec3(set_x, set_y, set_z), 5.0f);
+	
 	//JONDE REMOVE updateMatrix();
 }
 
@@ -22,12 +23,12 @@ position(position)
 	setTarget(position, 5.0f);
 	//JONDE REMOVE updateMatrix();
 }
+*/
 
 Transform::Transform(const vec3& position)
-: m_id(0),
-position(position)
+: position(position)
 {
-
+	setTarget(position, 5.0f);
 }
 
 String Transform::toString() const

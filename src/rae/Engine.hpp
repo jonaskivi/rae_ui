@@ -8,9 +8,10 @@
 
 #include "ObjectFactory.hpp"
 #include "core/ScreenSystem.hpp"
-#include "ui/Input.hpp"
+#include "rae/ui/Input.hpp"
 #include "TransformSystem.hpp"
 #include "CameraSystem.hpp"
+#include "rae/ui/UISystem.hpp"
 #include "RenderSystem.hpp"
 #include "RayTracer.hpp"
 
@@ -25,6 +26,8 @@ class Engine
 {
 public:
 	Engine(GLFWwindow* set_window); // TODO move the GLFWwindow into it's own Window class.
+
+	UISystem& getUISystem() { return m_uiSystem; }
 
 	void run();
 	bool update();
@@ -73,6 +76,7 @@ protected:
 	TransformSystem		m_transformSystem;
 	CameraSystem		m_cameraSystem;
 	RayTracer			m_rayTracer;
+	UISystem			m_uiSystem;
 	RenderSystem		m_renderSystem;
 
 	int m_meshID; // These should go someplace else...

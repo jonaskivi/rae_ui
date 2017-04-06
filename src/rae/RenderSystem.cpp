@@ -53,6 +53,7 @@ RenderSystem::RenderSystem(ObjectFactory& objectFactory,
 	Input& input,
 	CameraSystem& cameraSystem,
 	TransformSystem& transformSystem,
+	UISystem& uiSystem,
 	RayTracer& rayTracer)
 : m_objectFactory(objectFactory),
 m_window(setWindow),
@@ -64,6 +65,7 @@ m_fpsString("fps:"),
 vg(nullptr),
 m_cameraSystem(cameraSystem),
 m_transformSystem(transformSystem),
+m_uiSystem(uiSystem),
 m_rayTracer(rayTracer)
 {
 	debugTransform = new Transform(vec3(0,0,0));
@@ -222,7 +224,8 @@ bool RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 
 	render(time, delta_time, entities);
 
-	render2d(time, delta_time);
+	m_uiSystem.render(time, delta_time, entities, vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
+	//JONDE TEMP RAYTRACER render2d(time, delta_time);
 
 	return false; // for now
 }

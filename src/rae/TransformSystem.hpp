@@ -22,7 +22,8 @@ public:
 	bool update(double time, double deltaTime, std::vector<Entity>& entities) override;
 
 	void addTransform(Id id, Transform&& transform);
-	const Transform& getTransform(Id id);
+	bool hasTransform(Id id) const;
+	const Transform& getTransform(Id id) const;
 
 	void setPosition(Id id, const vec3& position);
 	const vec3& getPosition(Id id);

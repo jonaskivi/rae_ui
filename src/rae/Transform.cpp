@@ -1,5 +1,9 @@
+#include <iostream>
+
 #include "Transform.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "rae/core/Utils.hpp"
 
 namespace rae
 {
@@ -25,20 +29,21 @@ position(position)
 }
 */
 
-Transform::Transform(const vec3& position)
-: position(position)
+Transform::Transform(const vec3& setPosition)
+: position(0.0f, 0.0f, 0.0f),
+localPosition(0.0f, 0.0f, 0.0f)
 {
-	setTarget(position, 5.0f);
+	setTarget(setPosition, 5.0f);
 }
 
 String Transform::toString() const
 {
 	String ret = "x: ";
-	ret += std::to_string(position.x);
+	ret += Utils::floatToString(position.x);
 	ret += ", y: ";
-	ret += std::to_string(position.y);
+	ret += Utils::floatToString(position.y);
 	ret += ", z: ";
-	ret += std::to_string(position.z);
+	ret += Utils::floatToString(position.z);
 	return ret;
 }
 
@@ -48,17 +53,19 @@ String Transform::toString() const
 }
 */
 
-void Transform::setTarget(glm::vec3 set_target, float duration)
+void Transform::setTarget(glm::vec3 setTarget, float duration)
 {
-	m_positionAnimator.init(position, set_target, duration);
+	m_positionAnimator.init(position, setTarget, duration);
 }
 
-void Transform::update(double time, double delta_time)
+void Transform::update(double time, double deltaTime)
 {
-	if( m_positionAnimator.update((float)time) )
+	if (m_positionAnimator.update((float)time) )
 	{
 		position = m_positionAnimator.value();
 	}
+
+	//JONDE REMOVE std::cout << "transform::update: " + toString() << "\n";
 
 	//JONDE REMOVE updateMatrix();
 }

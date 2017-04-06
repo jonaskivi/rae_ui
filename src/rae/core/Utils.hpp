@@ -7,6 +7,8 @@
 
 #include <glm/glm.hpp>
 
+#include "rae/core/Types.hpp"
+
 namespace rae
 {
 
@@ -35,7 +37,9 @@ float lerpClip(float val1, float val2, float set_position);
 float lerp(float val1, float val2, float set_position);
 float backwardsLerp(float val1, float val2, float the_val);
 
-std::string boolToString(bool set);
+String boolToString(bool set);
+String floatToString(float value); // A string with four decimal places
+String toString(glm::vec3 position);
 
 float randFloat(float a_min, float a_max);
 bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);

@@ -37,6 +37,8 @@ public:
 
 	Engine* getEngine() { return &m_engine; }
 
+	void initUI();
+
 	void onKeyEvent(const Input& input);
 
 	void run();

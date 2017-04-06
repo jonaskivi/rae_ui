@@ -13,7 +13,7 @@ using glm::mat4;
 namespace rae
 {
 
-class Transform
+struct Transform
 {
 public:
 	/*int id() { return m_id; }
@@ -27,12 +27,12 @@ public:
 	//JONDE REMOVE Transform(int set_id, float set_x = 0.0f, float set_y = 0.0f, float set_z = 0.0f);
 	//JONDE REMOVE Transform(int set_id, const vec3& position);
 
-	Transform(const vec3& position);
+	Transform(const vec3& setPosition);
 	String toString() const;
 
 	//JONDE REMOVE void setPosition(glm::vec3 set);
-	void setTarget(glm::vec3 set_target, float duration);
-	void update(double time, double delta_time);
+	void setTarget(glm::vec3 setTarget, float duration);
+	void update(double time, double deltaTime);
 
 	//JONDE REMOVE void updateMatrix();
 
@@ -42,6 +42,10 @@ public:
 	vec3 position;
 	quat rotation;
 	vec3 scale;
+
+	vec3 localPosition;
+	quat localRotation;
+	vec3 localScale;
 
 protected:
 

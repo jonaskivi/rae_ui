@@ -1,24 +1,24 @@
-#include "Aabb.hpp"
+#include "Box.hpp"
 #include "Ray.hpp"
 
 #include <algorithm>
 
 using namespace rae;
 
-void  Aabb::init(const Aabb& left, const Aabb& right)
+void Box::init(const Box& left, const Box& right)
 {
 	clear();
 	grow(left);
 	grow(right);
 }
 
-void Aabb::grow(const Aabb& set)
+void Box::grow(const Box& set)
 {
 	grow(set.min());
 	grow(set.max());
 }
 
-void Aabb::grow(vec3 set)
+void Box::grow(vec3 set)
 {
 	if(m_min.x > set.x)
 		m_min.x = set.x;
@@ -35,7 +35,7 @@ void Aabb::grow(vec3 set)
 		m_max.z = set.z;
 }
 
-bool Aabb::hit(const Ray& ray, float minDistance, float maxDistance) const
+bool Box::hit(const Ray& ray, float minDistance, float maxDistance) const
 {
 	for (int a = 0; a < 3; ++a)
 	{

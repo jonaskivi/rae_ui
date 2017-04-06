@@ -10,6 +10,7 @@
 #include "System.hpp"
 #include "TransformSystem.hpp"
 #include "RayTracer.hpp"
+#include "rae/ui/UISystem.hpp"
 
 #include "rae/image/ImageBuffer.hpp" //JONDE TEMP HACK
 
@@ -35,6 +36,7 @@ public:
 		Input& input,
 		CameraSystem& cameraSystem,
 		TransformSystem& transformSystem,
+		UISystem& uiSystem,
 		RayTracer& rayTracer);
 	~RenderSystem();
 
@@ -106,6 +108,7 @@ protected:
 	// dependencies
 	ObjectFactory& m_objectFactory;
 	Input& m_input;
+	UISystem& m_uiSystem;
 
 	int m_windowWidth;
 	int m_windowHeight;

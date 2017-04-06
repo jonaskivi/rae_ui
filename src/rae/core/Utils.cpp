@@ -117,12 +117,31 @@ float backwardsLerp(float val1, float val2, float the_val)
 	return (the_val - val1) / (val2 - val1);
 }
 
-std::string boolToString(bool set)
+String boolToString(bool set)
 {
 	if( set == true )
 		return "true";
 	//else
 		return "false";
+}
+
+String floatToString(float value)
+{
+	String ret(16, '\0');
+	auto written = std::snprintf(&ret[0], ret.size(), "%.4f", value);
+	ret.resize(written);
+	return ret;
+}
+
+String toString(glm::vec3 position)
+{
+	String ret = "x: ";
+	ret += Utils::floatToString(position.x);
+	ret += ", y: ";
+	ret += Utils::floatToString(position.y);
+	ret += ", z: ";
+	ret += Utils::floatToString(position.z);
+	return ret;
 }
 
 }

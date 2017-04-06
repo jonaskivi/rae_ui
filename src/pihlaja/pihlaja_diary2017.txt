@@ -131,3 +131,57 @@ But with the center thing we get:
 
 Screen start is at -960, -540
 
+2017.4.4 Monday
+
+- Refactored to use the TransformSystem.
+Thinking about how does UI map into components? We have the Transform (pos rot scale) for the Rectangle.
+What else do we need?
+
+// Extents has the problem, that all Rectangles have a center pivot, and the sides are mirrored to an uniform shape.
+// If we need to rotate in a non centered way, this becomes a problem, so please no Extents.
+struct Extents
+{
+	vec3 extents;
+}
+
+// 2D rectangle has the problem that it is 2D. This is a 3D system. Why not just make it 3D from the start.
+// A 2D rect is just a 3D box with 0.0f Z-depth.
+struct Rectangle
+{
+}
+
+// NanoVG can only render 2D on its own. We can of course render that 2D into a framebuffer object (Material)
+// and so we can have 3D objects with NanoVG stuff on them.
+// But if we go with 3D Box, we could use a special 2D rendering mode, where we just use NanoVG directly.
+struct Box
+{
+	
+}
+
+
+2------------------------------3
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+|                              |
+0------------------------------1
+
+
+
+
+
+
+
+
+
+
+

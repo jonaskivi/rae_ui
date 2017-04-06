@@ -14,6 +14,16 @@ Pihlaja::Pihlaja(GLFWwindow* glfwWindow)
 
 	m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/MVI_9001.MOV");
 	////////m_hdrFlow.setExposureWeight(0.75f);
+
+	initUI();
+}
+
+void Pihlaja::initUI()
+{
+	auto& uiSystem = m_engine.getUISystem();
+
+	//uiSystem.createButton(vec3(350.0f, 80.0f, 0.0f), vec3(260.0f, 320.0f, 0.1f));
+	uiSystem.createButton(vec3(350.0f, 80.0f, 0.0f), vec3(100.0f, 35.0f, 0.1f));
 }
 
 void Pihlaja::onKeyEvent(const Input& input)

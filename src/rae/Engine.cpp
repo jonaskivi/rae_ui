@@ -18,7 +18,9 @@ Engine::Engine(GLFWwindow* set_window)
 m_input(m_screenSystem),
 m_cameraSystem(m_input),
 m_rayTracer(m_cameraSystem),
-m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem, m_transformSystem, m_rayTracer)
+m_uiSystem(m_objectFactory, m_transformSystem), 
+m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
+			   m_transformSystem, m_uiSystem, m_rayTracer)
 {
 	m_currentTime = glfwGetTime();
 	m_previousTime = m_currentTime;

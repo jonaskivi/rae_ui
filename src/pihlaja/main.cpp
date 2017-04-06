@@ -106,7 +106,7 @@ int main()
 	GLFWmonitor* screen     = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(screen);
 
-	window = glfwCreateWindow( mode->width - 200, mode->height - 200, "Rae Ray", nullptr, nullptr);
+	window = glfwCreateWindow( mode->width - 200, mode->height - 200, "Pihlaja HDR Flow", nullptr, nullptr);
 	
 	if( window == nullptr )
 	{

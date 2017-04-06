@@ -54,13 +54,20 @@ public:
 	const Array<Comp>& items() const { return m_items; }
 	Array<Comp>& items() { return m_items; }
 
-	bool check(Id id)
+	bool check(Id id) const
 	{
 		//if (m_idMap.find(id) != m_idMap.end())
 		int index = (int)id;
 		if (index < m_idMap2.size() && m_idMap2[index] != InvalidIndex)
 			return true;
 		return false;
+	}
+
+	const Comp& get(Id id) const
+	{
+		if (check(id))
+			return m_items[m_idMap2[id]];
+		return m_empty;
 	}
 
 	Comp& get(Id id)

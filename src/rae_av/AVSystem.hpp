@@ -32,6 +32,8 @@ class AVSystem : public rae::System
 public:
 	AVSystem(RenderSystem& renderSystem);
 
+	String name() override { return "AVSystem"; }
+
 	AssetId loadAsset(String filepath);
 
 	// This AssetId system is not good, because it doesn't allow deleting or unloading assets.

@@ -37,8 +37,9 @@ float lerpClip(float val1, float val2, float set_position);
 float lerp(float val1, float val2, float set_position);
 float backwardsLerp(float val1, float val2, float the_val);
 
-String boolToString(bool set);
-String floatToString(float value); // A string with four decimal places
+String toString(bool set);
+String toString(float value); // A string with four decimal places
+String toString(int value);
 String toString(glm::vec3 position);
 
 float randFloat(float a_min, float a_max);

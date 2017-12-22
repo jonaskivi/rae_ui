@@ -155,9 +155,20 @@ struct Rectangle
 // But if we go with 3D Box, we could use a special 2D rendering mode, where we just use NanoVG directly.
 struct Box
 {
-	
+	vec3 min;
+	vec3 max;
+}
+or
+struct Box
+{
+	vec3 ;
+	vec3 max;
 }
 
+class UISystem
+{
+	Table<Box> m_boxes;
+}
 
 2------------------------------3
 |                              |
@@ -176,10 +187,13 @@ struct Box
 0------------------------------1
 
 
+2017.12.22
 
+Good string functions for doing permutations:
 
-
-
+std::random_shuffle(name.begin(), name.end());
+std::next_permutation(name.begin(), name.end());
+std::prev_permutation(name.begin(), name.end());
 
 
 

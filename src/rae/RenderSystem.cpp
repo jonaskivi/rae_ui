@@ -36,15 +36,26 @@ int loadFonts(NVGcontext* vg)
 {
 	int font;
 	font = nvgCreateFont(vg, "sans", "./data/fonts/Roboto-Regular.ttf");
-	if (font == -1) {
+	if (font == -1)
+	{
 		printf("Could not add font regular. File missing: ./data/fonts/Roboto-Regular.ttf\n");
 		return -1;
 	}
+
 	font = nvgCreateFont(vg, "sans-bold", "./data/fonts/Roboto-Bold.ttf");
-	if (font == -1) {
+	if (font == -1)
+	{
 		printf("Could not add font bold. File missing: ./data/fonts/Roboto-Bold.ttf\n");
 		return -1;
 	}
+
+	font = nvgCreateFont(vg, "logo", "./data/fonts/coolvetica_pupu.ttf");
+	if (font == -1)
+	{
+		printf("Could not add font Avenir. File missing: ./data/fonts/coolvetica_pupu.ttf\n");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -205,7 +216,7 @@ bool RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 	m_nroFrames++;
 	m_fpsTimer += delta_time;
 
-	if( m_fpsTimer >= 5.0 )
+	if (m_fpsTimer >= 5.0)
 	{
 		m_fpsString = std::string("fps: ") + std::to_string(m_nroFrames / 5.0)
 			+ " / " + std::to_string(5000.0f / m_nroFrames) + " ms";

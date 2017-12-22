@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-
+#include "core/Types.hpp"
 #include "core/ScreenInfo.hpp"
 
 namespace rae
@@ -11,10 +10,7 @@ class ScreenSystem
 {
 public:
 
-	ScreenSystem()
-	{
-		updateScreenInfo();
-	}
+	ScreenSystem();
 
 	void updateScreenInfo();
 	int numberOfScreens();
@@ -70,7 +66,7 @@ public:
 	float curveSideSize(int set_screen = 0);
 
 protected:
-	std::vector<ScreenInfo*> screens;
+	Array<ScreenInfo> screens;
 };
 	
 }

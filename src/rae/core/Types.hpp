@@ -4,11 +4,16 @@
 #include <vector>
 #include <string>
 
+#include <glm/glm.hpp>
+
 namespace rae
 {
 
 using Id = int;
+const Id InvalidId = 0;
+
 using CompId = int;
+using Colour = glm::vec4;
 
 template < class T, class Allocator = std::allocator<T> >
 using Array = std::vector<T, Allocator>;

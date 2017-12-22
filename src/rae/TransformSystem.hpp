@@ -19,11 +19,14 @@ class TransformSystem : public System
 public:
 	TransformSystem();
 
+	String name() override { return "TransformSystem"; }
+
 	bool update(double time, double deltaTime, std::vector<Entity>& entities) override;
 
 	void addTransform(Id id, Transform&& transform);
 	bool hasTransform(Id id) const;
 	const Transform& getTransform(Id id) const;
+	Transform& getTransform(Id id);
 
 	void setPosition(Id id, const vec3& position);
 	const vec3& getPosition(Id id);

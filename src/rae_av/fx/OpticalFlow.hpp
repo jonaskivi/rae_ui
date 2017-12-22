@@ -57,6 +57,9 @@ public:
 	void replaceFrame0(AVFrame* frameRGB);
 	const cv::Mat& getOutputAtTime(float lerpTime);
 
+	void writeFrameToImage(ImageBuffer& image);
+	void writeFrameToDiskAndImage(String filepath, ImageBuffer& image);
+
 	//JONDE MOVE TO UTILS OR OTHER CLASS:
 	void copyMatToImage(const cv::Mat& mat, ImageBuffer& image);
 	void copyAVFrameToMat(AVFrame* frameRGB, cv::Mat& mat);
@@ -75,6 +78,7 @@ private:
 	OpticalFlowMethod m_opticalFlowMethod;
 
 	int frameCount = 0;
+	int m_outFrameCount = 0;
 
 	cv::Mat m_frame0;
 	cv::Mat m_frame1;

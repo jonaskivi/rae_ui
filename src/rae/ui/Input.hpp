@@ -27,6 +27,7 @@
 
 #include "ui/KeySym.hpp"
 
+#include <cassert>
 #include <iostream>
 #include <vector>
 #include <functional>
@@ -35,97 +36,119 @@
 
 #include "core/ScreenSystem.hpp"
 
+#include "System.hpp"
+
 namespace rae
 {
 
-namespace TouchPointState
+enum class TouchPointState
 {
-	enum e
-	{
-		UNDEFINED,
-		PRESSED, //finger touched the screen on last frame
-		RELEASED, //finger left the screen on last frame
-		MOVED, //finger position moved
-		STATIONARY //i.e. didn't move from last frame
-	};
-}
+	Undefined,
+	Pressed, // finger touched the screen on last frame
+	Released, // finger left the screen on last frame
+	Moved, // finger position moved
+	Stationary // i.e. didn't move from last frame
+};
 
 // Notice that:
 // Gtk  MIDDLE = 2, RIGHT = 3
 // GLFW MIDDLE = 3, RIGHT = 2
 
 #ifdef version_cocoa
-namespace MouseButton
+enum class MouseButton
 {
-	enum e
-	{
-		UNDEFINED = 0,
-		FIRST,// = 1,
-		MIDDLE,
-		SECOND,
-		FOURTH,
-		FIFTH
-	};
+	Undefined = 0,
+	First, // = 1,
+	Middle,
+	Second,
+	Fourth,
+	Fifth
 };
 #endif
 #ifdef version_glfw
-namespace MouseButton
+enum class MouseButton
 {
-	enum e
-	{
-		UNDEFINED = -1,
-		FIRST = 0,// = 1,
-		SECOND,
-		MIDDLE,
-		FOURTH,
-		FIFTH
-	};
+	Undefined = -1,
+	First = 0,// = 1,
+	Second,
+	Middle,
+	Fourth,
+	Fifth
 };
 #endif
 
-
-namespace EventType
+enum class EventType
 {
-	enum e
+	Undefined,
+	MouseMotion,
+	MouseButtonPress,
+	MouseButtonRelease,
+	// since multitouch has so many beginnings, updates and ends,
+	// we don't do separate events, but you'll have to track them yourself,
+	// from the states and lists of touchpoints.
+	Touch,
+	KeyPress,
+	KeyRelease,
+	KeyHold,
+	EnterNotify,
+	LeaveNotify,
+	Scroll
+};
+
+/*JONDE REMOVE
+struct MouseButtonState
+{
+	MouseButtonState(MouseButton set)
+	: button(set)
 	{
-		UNDEFINED,
-		MOUSE_MOTION,
-		MOUSE_BUTTON_PRESS,
-		MOUSE_BUTTON_RELEASE,
-		// since multitouch has so many beginnings, updates and ends,
-		// we don't do separate events, but you'll have to track them yourself,
-		// from the states and lists of touchpoints.
-		TOUCH,
-		KEY_PRESS,
-		KEY_RELEASE,
-		KEY_HOLD,
-		ENTER_NOTIFY,
-		LEAVE_NOTIFY,
-		SCROLL
-	};
-}
+	}
 
+	MouseButton button;
+	EventType event;
+};
+*/
 
-class Input
+class Input : public System
 {
 public:
 	Input(ScreenSystem& screenSystem)
 	: m_screenSystem(screenSystem),
-	eventType(EventType::UNDEFINED),
+	eventType(EventType::Undefined),
 	isHandled(false)
 	{
 	
 	}
 
-	EventType::e eventType;
+	String name() override { return "InputSystem"; }
+
+	bool update(double time, double deltaTime, std::vector<Entity>& entities) override
+	{
+		return m_changed;
+	}
+
+	// Must be called every frame to clear key up and down states
+	void onFrameEnd() override
+	{
+		m_changed = false;
+		key.clearFrame();
+
+		// Clear button events
+		for (int i = 0; i < 6; ++i)
+		{
+			MouseButton iButton = intToMouseButton(i);
+			mouse.setButtonEvent(iButton, EventType::Undefined);
+		}
+	}
+
+	EventType eventType;
 	//IRectangle* eventWindow;	
 	bool isHandled;
+	bool m_changed = false;
 	
 	struct Mouse
 	{
 		Mouse()
-		: eventButton(0),
-			//button((bool[]){false, false, false, false, false, false}),
+		: //button((bool[]){false, false, false, false, false, false}),
 			doubleClickButton(0),
 			x(0.0f),
 			y(0.0f),
@@ -179,19 +202,31 @@ public:
 				yRelOnButtonPressP[i] = 0.0f;
 		}
 	
-		bool button(MouseButton::e but) const
+		bool button(MouseButton but) const
 		{
 			return m_button[(int)but];
 		}
 
-		void setButton(MouseButton::e but, bool set)
+		void setButton(MouseButton but, bool set)
 		{
 			m_button[(int)but] = set;
 		}
 
-		uint eventButton;// = 0;
+		MouseButton eventButton = MouseButton::Undefined;
+
+		EventType buttonEvent(MouseButton but) const
+		{
+			return m_buttonEvent[(int)but];
+		}
+
+		void setButtonEvent(MouseButton but, EventType set)
+		{
+			m_buttonEvent[(int)but] = set;
+		}
+
 	protected:
 		bool m_button[6];
+		EventType m_buttonEvent[6]; // the event on this frame. Will be cleared on end of frame.
 	public:
 		uint doubleClickButton;// = 0;
 		//in height coordinates:
@@ -237,7 +272,7 @@ public:
 	{
 		TouchPoint()
 		: id(0),
-			state(TouchPointState::UNDEFINED),
+			state(TouchPointState::Undefined),
 			x(0.0f),
 			y(0.0f),
 			xLocal(0.0f),
@@ -259,7 +294,7 @@ public:
 
 		int id;
 
-		TouchPointState::e state;
+		TouchPointState state;
 
 		float x;// = 0.0;
 		float y;// = 0.0;
@@ -320,12 +355,6 @@ public:
 
 	Touch touch;
 
-	// Must be called every frame to clear key up and down states
-	void update()
-	{
-		key.clearFrame();
-	}
-
 	struct Keyboard
 	{
 		Keyboard()
@@ -382,11 +411,11 @@ public:
 		return false;
 	}
 
-	void addTouchPoint( TouchPointState::e set_state, int set_id, float set_x_pixels, float set_y_pixels )
+	void addTouchPoint( TouchPointState set_state, int set_id, float set_x_pixels, float set_y_pixels )
 	{
 		isHandled = false;
 
-		eventType = EventType::TOUCH;
+		eventType = EventType::Touch;
 
 		//touch.addTouchPoint(set_id, set_x_pixels, set_y_pixels);
 		set_x_height = m_screenSystem.pixelsToHeight(set_x_pixels);
@@ -437,8 +466,9 @@ public:
 
 	void osScrollEvent( float set_delta_x, float set_delta_y )
 	{
+		m_changed = true;
 		isHandled = false;
-		eventType = EventType::SCROLL;
+		eventType = EventType::Scroll;
 		
 		mouse.scrollX = set_delta_x;
 		mouse.scrollY = set_delta_y;
@@ -446,11 +476,12 @@ public:
 		emitScrollEvent();
 	}
 	
-	void osKeyEvent( EventType::e set_event_type, int set_key, int32_t set_unicode )
+	void osKeyEvent( EventType set_event_type, int set_key, int32_t set_unicode )
 	{
 		//JONDE DEBUG:
 		std::cout << "Input.keyEvent() set_key: " << set_key << "\n";
 
+		m_changed = true;
 		isHandled = false;
 		//window = set_window;
 		eventType = set_event_type;
@@ -471,7 +502,7 @@ public:
 		}
 		*/
 		
-		if( set_event_type == EventType::KEY_PRESS )
+		if( set_event_type == EventType::KeyPress )
 		{
 			//cout << "KEY_PRESS: " << hex << set_key << dec << " unicode: " << set_unicode <<"\n";
 			if( key.value < key.keyStatesSize )
@@ -482,7 +513,7 @@ public:
 			else cout << "ERROR: key.value: " << key.value << " is bigger than keyStatesSize: " << key.keyStatesSize << "\n";
 			//Trace.formatln("PRESS. {}", key.keyStates[set_key]);
 		}
-		else if( set_event_type == EventType::KEY_RELEASE )
+		else if( set_event_type == EventType::KeyRelease )
 		{
 			//cout << "KEY_RELEASE: " << hex << set_key << dec << " unicode: " << set_unicode <<"\n";
 			if( key.value < key.keyStatesSize )
@@ -499,35 +530,62 @@ public:
 
 	float set_x_height;
 	float set_y_height;
-	void osMouseEvent( /*IRectangle* set_window,*/ EventType::e set_event_type, int set_button, float set_x_pixels, float set_y_pixels, float set_amount = 0.0f )
+	void osMouseEvent( /*IRectangle* set_window,*/ EventType set_event_type, int set_button, float set_x_pixels, float set_y_pixels, float set_amount = 0.0f )
 	{
+		assert(set_button >= 0); // "Mouse button is smaller than 0. Platform not supported yet."
+
 		set_x_height = m_screenSystem.pixelsToHeight(set_x_pixels);
 		set_y_height = m_screenSystem.pixelsToHeight(set_y_pixels);
-	
+
+		m_changed = true;
 		isHandled = false;
 		//eventWindow = set_window;
 		eventType = set_event_type;
 		
-		mouse.eventButton = set_button;
+		MouseButton mouseButton = intToMouseButton(set_button);
+		mouse.eventButton = mouseButton;
 
 		mouse.amount = set_amount;
 		
 		mouse.doubleClickButton = 0;//Zero this, we can only emit one double click button per event... Is that bad? Propably ok,
 		//as there can only be one eventButton per event as well.
 
-		if( eventType == EventType::MOUSE_MOTION )
+		/*JONDE REMOVE
+		for (int i = 0; i < 6; ++i)
+		{
+			MouseButton iButton = intToMouseButton(i);
+			if (set_button == i)
+			{
+				if (eventType == EventType::MouseButtonPress)
+				{	
+					mouse.setButtonEvent(iButton, eventType);
+					mouse.xOnButtonPressP[i] = set_x_pixels;
+					mouse.yOnButtonPressP[i] = set_y_pixels;
+					mouse.xOnButtonPress[i] = set_x_height;
+					mouse.yOnButtonPress[i] = set_y_height;
+				}
+				else if (eventType == EventType::MouseButtonRelease)
+				{
+					mouse.setButtonEvent(iButton, eventType);
+				}
+			}
+		}
+		*/
+
+		if( eventType == EventType::MouseMotion )
 		{
 			/////doubleClickValid1 = false;
 		}
-		else if( eventType == EventType::MOUSE_BUTTON_PRESS )
-		{	
-			mouse.setButton((MouseButton::e)set_button, true);
+		else if (eventType == EventType::MouseButtonPress)
+		{
+			mouse.setButtonEvent(mouseButton, eventType);
+			mouse.setButton(mouseButton, true);
 			mouse.xOnButtonPressP[set_button] = set_x_pixels;
 			mouse.yOnButtonPressP[set_button] = set_y_pixels;
 			mouse.xOnButtonPress[set_button] = set_x_height;
 			mouse.yOnButtonPress[set_button] = set_y_height;
 		}
-		else if( eventType == EventType::MOUSE_BUTTON_RELEASE )
+		else if( eventType == EventType::MouseButtonRelease )
 		{
 			/*
 			//Double click handling is on button release.
@@ -558,7 +616,8 @@ public:
 				}
 			}
 			*/
-			mouse.setButton((MouseButton::e)set_button, false);
+			mouse.setButtonEvent(mouseButton, eventType);
+			mouse.setButton((MouseButton)set_button, false);
 		}
 		//else
 		//{
@@ -582,15 +641,15 @@ public:
 		mouse.xLocal = set_x_height;
 		mouse.yLocal = set_y_height;
 
-		if( eventType == EventType::MOUSE_MOTION )
+		if( eventType == EventType::MouseMotion )
 		{
 			emitMouseMotionEvent();
 		}
-		else if( eventType == EventType::MOUSE_BUTTON_PRESS )
+		else if( eventType == EventType::MouseButtonPress )
 		{
 			emitMouseButtonPressEvent();
 		}
-		else if( eventType == EventType::MOUSE_BUTTON_RELEASE )
+		else if( eventType == EventType::MouseButtonRelease )
 		{
 			emitMouseButtonReleaseEvent();
 		}
@@ -622,6 +681,38 @@ public:
 	}
 
 protected:
+
+	#ifdef version_cocoa
+	MouseButton intToMouseButton(int button)
+	{
+		switch(button)
+		{
+			default:
+			case 0: return MouseButton::Undefined;
+			case 1: return MouseButton::First;
+			case 2: return MouseButton::Second;
+			case 3: return MouseButton::Middle;
+			case 4: return MouseButton::Fourth;
+			case 5: return MouseButton::Fifth;
+		}
+	}
+	#endif
+	#ifdef version_glfw
+	MouseButton intToMouseButton(int button)
+	{
+		switch(button)
+		{
+			default:
+			case -1: return MouseButton::Undefined;
+			case 0: return MouseButton::First;
+			case 1: return MouseButton::Second;
+			case 2: return MouseButton::Middle;
+			case 3: return MouseButton::Fourth;
+			case 4: return MouseButton::Fifth;
+		}
+	}
+	#endif
+
 	ScreenSystem& m_screenSystem;
 
 	void emitMouseButtonPressEvent() { for (auto&& event : mouseButtonPressEvent) event(*this); }

@@ -35,6 +35,15 @@ void Box::grow(vec3 set)
 		m_max.z = set.z;
 }
 
+void Box::transform(const Transform& tr)
+{
+	if (not valid())
+		return;
+	m_min += tr.position;
+	m_max += tr.position;
+	// TODO scale, rotate
+}
+
 bool Box::hit(const Ray& ray, float minDistance, float maxDistance) const
 {
 	for (int a = 0; a < 3; ++a)
@@ -50,4 +59,14 @@ bool Box::hit(const Ray& ray, float minDistance, float maxDistance) const
 			return false;
 	}
 	return true;
+}
+
+bool Box::hit(vec2 position) const
+{
+	if (position.x <= m_max.x &&
+		position.x >= m_min.x &&
+		position.y <= m_max.y &&
+		position.y >= m_min.y)
+		return true;
+	return false;
 }

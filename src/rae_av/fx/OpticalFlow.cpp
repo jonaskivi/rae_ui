@@ -167,7 +167,7 @@ void OpticalFlow::update(double time, double deltaTime)
 			//float lerpValue = fabs((fmod(time, m_duration) / (m_duration/2.0f)) - 1.0f);
 			//std::cout << "time: " << time << " lerpValue: " << lerpValue << "\n";
 
-			int writeFrames = 10;
+			int writeFrames = 4;
 			float lerpValue = (float)doneCounter / (float)writeFrames;
 			std::cout << "time: " << time << " lerpValue: " << lerpValue << "\n";
 			std::cout << "doneCounter: " << doneCounter << " frameCount: " << frameCount << "\n";
@@ -201,27 +201,28 @@ void OpticalFlow::update(double time, double deltaTime)
 			remapWithFLow(m_frame1, output1, m_flowForward, inverseLerpValue);
 
 			cv::addWeighted(output0, inverseLerpValue, output1, lerpValue, 0.0f, m_output);
+			//START JONDE OpticalFlow version
 			//JONDE THINK MORE Screen output: copyMatToImage(m_output, image);
 
 			// To debug flows individually:
 			//copyMatToImage(output0, image);
 
-			/*String outFolder = "/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/testrender/";
+			/*String outFolder = "/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/glassrender/";
 			int numberOfZeroes = 6;
 			String tempString = std::to_string(frameCount);
 			String outFile = String(numberOfZeroes - tempString.length(), '0') + tempString;
 			writeMatToPng(outFolder + outFile + ".png", m_output);
 			*/
+			//END JONDE OpticalFlow version
 
 			frameCount++;
 
-			/*doneCounter++;
+			doneCounter++;
 			if (doneCounter >= writeFrames)
 			{
 				doneCounter = 0;
 				setState(EffectNodeState::WaitingForData);
 			}
-			*/
 		}
 	}
 }
@@ -345,4 +346,22 @@ void OpticalFlow::copyAVFrameToMat(AVFrame* frameRGB, cv::Mat& mat)
 
 	std::cout << "Copied AVFrame to Mat. width: "
 		<< mat.cols << " height: " << mat.rows << "\n";
+}
+
+void OpticalFlow::writeFrameToImage(ImageBuffer& image)
+{
+	copyMatToImage(m_output, image);
+}
+
+void OpticalFlow::writeFrameToDiskAndImage(String filepath, ImageBuffer& image)
+{
+	copyMatToImage(m_output, image);
+
+	String outFolder = filepath;
+		int numberOfZeroes = 6;
+		String tempString = std::to_string(m_outFrameCount);
+		String outFile = String(numberOfZeroes - tempString.length(), '0') + tempString;
+		writeMatToPng(outFolder + outFile + ".png", m_output);
+
+	m_outFrameCount++;
 }

@@ -32,12 +32,28 @@ public:
 
 	void create(Id id, Comp&& comp)
 	{
-		//std::cout << "Creating id: " << id << " size: " << m_idMap2.size() << "\n";
+		if (check(id))
+		{
+			m_items[m_idMap2[id]] = std::move(comp);
+			return;
+		}
 
+		// Find next free place
+		if (m_freeItems.size() > 0)
+		{
+			int freeIndex = m_freeItems.back();
+			m_freeItems.pop_back();
+			m_idMap2[id] = freeIndex;
+			m_items[freeIndex] = std::move(comp);
+			return;
+		}
+
+		// else we need to create a new one.
+		//std::cout << "Creating id: " << id << " size: " << m_idMap2.size() << "\n";
 		int index = (int)id;
 		while ((int)m_idMap2.size() <= index)
 		{
-			m_idMap2.push_back(-1);
+			m_idMap2.push_back(InvalidIndex);
 			//std::cout << "Created: " << m_idMap2.size() << "\n";
 		}
 
@@ -49,7 +65,14 @@ public:
 		m_items.emplace_back(std::move(comp));
 	}
 
-	//JONDE void remove(Id id)
+	void remove(Id id)
+	{
+		if (check(id))
+		{
+			m_freeItems.emplace_back(m_idMap2[id]);
+			m_idMap2[id] = InvalidIndex;
+		}
+	}
 
 	const Array<Comp>& items() const { return m_items; }
 	Array<Comp>& items() { return m_items; }
@@ -86,11 +109,13 @@ public:
 		return nullptr;
 	}
 	*/
+protected:
 
 	Comp m_empty;
 	Array<Comp> m_items;
 	Array<int> m_idMap2;
-	//Map<Id, size_t> m_idMap;
+	Array<int> m_freeItems;
+	
 };
 
 };

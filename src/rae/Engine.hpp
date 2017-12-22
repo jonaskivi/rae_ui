@@ -25,12 +25,15 @@ class Entity;
 class Engine
 {
 public:
-	Engine(GLFWwindow* set_window); // TODO move the GLFWwindow into it's own Window class.
+	Engine(GLFWwindow* set_window); // TODO move the GLFWwindow into its own Window class.
 
 	UISystem& getUISystem() { return m_uiSystem; }
 
 	void run();
 	bool update();
+
+	void askForFrameUpdate();
+
 	Entity& createAddObjectButton();
 	Entity& createRandomBunnyEntity();
 	Entity& createRandomCubeEntity();

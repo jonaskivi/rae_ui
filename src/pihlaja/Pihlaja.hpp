@@ -1,11 +1,5 @@
 #pragma once
 
-/*JONDE REMOVE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-*/
-
-#include "rae/Random.hpp" //JONDE REMOVE?
 #include "rae/Animator.hpp"
 #include "rae/Shader.hpp"
 #include "rae/ComponentType.hpp"
@@ -35,6 +29,8 @@ class Pihlaja : public rae::System
 public:
 	Pihlaja(GLFWwindow* glfwWindow);
 
+	String name() { return "PihlajaSystem"; }
+
 	Engine* getEngine() { return &m_engine; }
 
 	void initUI();
@@ -44,7 +40,13 @@ public:
 	void run();
 	bool update(double time, double deltaTime, std::vector<Entity>&);
 
+	void rewind();
+	void togglePlay();
+	bool isPlay() { return m_play; }
+
 protected:
+
+	void setNeedsFrameUpdate(bool value);
 
 	void setVideoRenderingState(VideoRenderingState state)
 	{
@@ -67,7 +69,10 @@ protected:
 	VideoRenderingState		m_videoRenderingState = VideoRenderingState::Player;
 	bool					m_evenFrames = true;
 
-	int m_frameCount = 0;
-	bool m_play = true;
-	bool m_needsFrameUpdate = false;
+	Id		m_playButtonId;
+	Id		m_debugNeedsFrameUpdateButtonId;
+
+	int		m_frameCount = 0;
+	bool	m_play = true;
+	bool	m_needsFrameUpdate = true; //false for hdrflow?
 };

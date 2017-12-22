@@ -2,24 +2,28 @@
 
 #include <glm/glm.hpp>
 using glm::vec3;
+using glm::vec2;
+
+#include "Transform.hpp"
 
 namespace rae
 {
 
 class Ray;
+class Transform;
 
 class Box
 {
 public:
-	Box()
-	: m_min(FLT_MAX, FLT_MAX, FLT_MAX),
-	m_max(FLT_MIN, FLT_MIN, FLT_MIN)
+	Box() :
+		m_min(FLT_MAX, FLT_MAX, FLT_MAX),
+		m_max(FLT_MIN, FLT_MIN, FLT_MIN)
 	{
 	}
 
-	Box(const vec3& setMin, const vec3& setMax)
-	: m_min(setMin),
-	m_max(setMax)
+	Box(const vec3& setMin, const vec3& setMax) :
+		m_min(setMin),
+		m_max(setMax)
 	{
 	}
 
@@ -47,10 +51,13 @@ public:
 		return m_max - m_min;
 	}
 
+	void transform(const Transform& tr);
+
 	const vec3& min() const { return m_min; }
 	const vec3& max() const { return m_max; }
 
 	bool hit(const Ray& ray, float minDistance, float maxDistance) const;
+	bool hit(vec2 position) const;
 
 protected:
 	vec3 m_min;

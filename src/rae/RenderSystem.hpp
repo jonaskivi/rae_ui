@@ -40,6 +40,8 @@ public:
 		RayTracer& rayTracer);
 	~RenderSystem();
 
+	String name() override { return "RenderSystem"; }
+
 	void initNanoVG();
 	void init();
 

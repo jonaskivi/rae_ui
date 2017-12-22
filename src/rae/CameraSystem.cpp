@@ -19,9 +19,9 @@ m_camera(/*fieldOfView*/Math::toRadians(20.0f), /*aspect*/16.0f / 9.0f, /*apertu
 
 void CameraSystem::onMouseEvent(const Input& input)
 {
-	if (input.eventType == EventType::MOUSE_MOTION)
+	if (input.eventType == EventType::MouseMotion)
 	{
-		if (input.mouse.button(MouseButton::SECOND))
+		if (input.mouse.button(MouseButton::Second))
 		{
 			//cout << "RenderSystem mouse motion. x: " << input->mouse.xRel
 			//	<< " y: " << input->mouse.yRel << endl;
@@ -32,21 +32,21 @@ void CameraSystem::onMouseEvent(const Input& input)
 			m_camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
 		}
 	}
-	else if (input.eventType == EventType::MOUSE_BUTTON_PRESS)
+	else if (input.eventType == EventType::MouseButtonPress)
 	{
 		//cout << "RenderSystem mouse press. x: " << input->mouse.x
 		//	<< " y: " << input->mouse.y << endl;
 	}
-	else if (input.eventType == EventType::MOUSE_BUTTON_RELEASE)
+	else if (input.eventType == EventType::MouseButtonRelease)
 	{
-		if (input.mouse.eventButton == MouseButton::FIRST)
+		if (input.mouse.eventButton == MouseButton::First)
 		{
 			//cout << "RenderSystem mouse release. x: " << input->mouse.x
 			//	<< " y: " << input->mouse.y << endl;
 		}
 	}
 
-	if (input.eventType == EventType::SCROLL)
+	if (input.eventType == EventType::Scroll)
 	{
 		const float scrollSpeedMul = -0.1f;
 		m_camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
@@ -55,7 +55,7 @@ void CameraSystem::onMouseEvent(const Input& input)
 
 void CameraSystem::onKeyEvent(const Input& input)
 {
-	if (input.eventType == EventType::KEY_PRESS)
+	if (input.eventType == EventType::KeyPress)
 	{
 		switch (input.key.value)
 		{

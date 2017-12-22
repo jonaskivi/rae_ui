@@ -16,6 +16,8 @@ class CameraSystem : public System
 public:
 	CameraSystem(Input& input);
 
+	String name() override { return "CameraSystem"; }
+
 	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
 
 	void onMouseEvent(const Input& input);

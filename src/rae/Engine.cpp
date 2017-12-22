@@ -18,7 +18,7 @@ Engine::Engine(GLFWwindow* set_window)
 m_input(m_screenSystem),
 m_cameraSystem(m_input),
 m_rayTracer(m_cameraSystem),
-m_uiSystem(m_objectFactory, m_transformSystem), 
+m_uiSystem(m_input, m_screenSystem, m_objectFactory, m_transformSystem, m_renderSystem), 
 m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 			   m_transformSystem, m_uiSystem, m_rayTracer)
 {
@@ -29,8 +29,10 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	//m_inputSystem = new InputSystem(window, &m_objectFactory);
 	//m_systems.push_back(g_input);
 
+	addSystem(m_input);
 	addSystem(m_transformSystem);
 	addSystem(m_cameraSystem);
+	addSystem(m_uiSystem);
 	////////addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
 
@@ -73,16 +75,16 @@ void Engine::addSystem(System& ownSystem)
 void Engine::run()
 {
 	do {
-		//glfwPollEvents(); //Don't use this here, it's for games. Use it in the inner loop if something is updating.
+		//glfwPollEvents(); // Don't use this here, it's for games. Use it in the inner loop if something is updating.
 		// It will take up too much CPU all the time, even when nothing is happening.
-		glfwWaitEvents();//use this instead. It will sleep when no events are being received.
+		glfwWaitEvents(); //use this instead. It will sleep when no events are being received.
 
 		while (m_running == true && update() == true)
 		{
 			// Swap buffers
 			glfwSwapBuffers(m_window);
 
-			m_input.update();
+			////JONDE REMOVE m_input.clearFrame();
 			glfwPollEvents();
 
 			if (glfwWindowShouldClose(m_window) != 0)
@@ -106,15 +108,34 @@ bool Engine::update()
 
 	bool changed = false;
 
-	for(auto system : m_systems)
+	//std::cout << "FRAME START.\n";
+
+	for (auto system : m_systems)
 	{
 		if (system->isEnabled())
 		{
-			changed = system->update(m_currentTime, deltaTime, m_objectFactory.entities()) ? true : changed;
+			bool systemChanged = system->update(m_currentTime, deltaTime, m_objectFactory.entities());
+			changed = systemChanged ? true : changed;
+			//std::cout << system->name() << " update: " << systemChanged << "\n";
+		}
+	}
+
+	//std::cout << "FRAME END.\n";
+
+	for (auto system : m_systems)
+	{
+		if (system->isEnabled())
+		{
+			system->onFrameEnd();
 		}
 	}
 
 	return changed;
+}
+
+void Engine::askForFrameUpdate()
+{
+	//glfwPostEmptyEvent(); //TODO need to update to GLFW 3.1
 }
 
 Entity& Engine::createAddObjectButton()
@@ -231,7 +252,7 @@ void Engine::osMouseButtonPress(int set_button, float set_xP, float set_yP)
 	set_yP = set_yP * m_renderSystem.screenPixelRatio();
 
 	m_input.osMouseEvent(
-		EventType::MOUSE_BUTTON_PRESS,
+		EventType::MouseButtonPress,
 		set_button,
 		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
 		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
@@ -245,7 +266,7 @@ void Engine::osMouseButtonRelease(int set_button, float set_xP, float set_yP)
 	set_yP = set_yP * m_renderSystem.screenPixelRatio();
 
 	m_input.osMouseEvent(
-		EventType::MOUSE_BUTTON_RELEASE,
+		EventType::MouseButtonRelease,
 		set_button,
 		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
 		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
@@ -259,8 +280,8 @@ void Engine::osMouseMotion(float set_xP, float set_yP)
 	set_yP = set_yP * m_renderSystem.screenPixelRatio();
 
 	m_input.osMouseEvent(
-		EventType::MOUSE_MOTION,
-		MouseButton::UNDEFINED,
+		EventType::MouseMotion,
+		(int)MouseButton::Undefined,
 		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
 		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
 		/*set_amount*/0.0f );
@@ -274,20 +295,20 @@ void Engine::osScrollEvent(float scrollX, float scrollY)
 void Engine::osKeyEvent(int key, int scancode, int action, int mods)
 {
 	// glfw mods are not handled at the moment
-	EventType::e eventType = EventType::UNDEFINED;
+	EventType eventType = EventType::Undefined;
 	if (action == GLFW_PRESS)
-		eventType = EventType::KEY_PRESS;
+		eventType = EventType::KeyPress;
 	else if (action == GLFW_RELEASE)
-		eventType = EventType::KEY_RELEASE;
+		eventType = EventType::KeyRelease;
 
 	m_input.osKeyEvent(eventType, key, (int32_t)scancode);
 }
 
 void Engine::onMouseEvent(const Input& input)
 {
-	if (input.eventType == EventType::MOUSE_BUTTON_PRESS)
+	if (input.eventType == EventType::MouseButtonPress)
 	{
-		if (input.mouse.eventButton == MouseButton::FIRST)
+		if (input.mouse.eventButton == MouseButton::First)
 		{
 			//cout << "mouse press: x: "<< input.mouse.x << " y: " << input.mouse.y << endl;
 			//cout << "mouse press: xP: "<< (int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2)
@@ -327,7 +348,7 @@ void Engine::onMouseEvent(const Input& input)
 
 void Engine::onKeyEvent(const Input& input)
 {
-	if (input.eventType == EventType::KEY_PRESS)
+	if (input.eventType == EventType::KeyPress)
 	{
 		switch (input.key.value)
 		{

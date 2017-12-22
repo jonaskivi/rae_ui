@@ -66,7 +66,11 @@ enum e //enum KeySym
  * tables in client code).
  */
 
+#ifdef version_glfw
+	BackSpace = 259,
+#else
 	BackSpace = 0xff08,  /* Back space, back char */
+#endif
 	Tab = 0xff09,
 	Linefeed = 0xff0a,  /* Linefeed, LF */
 	Clear = 0xff0b,

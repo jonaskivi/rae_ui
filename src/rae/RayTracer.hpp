@@ -35,6 +35,8 @@ public:
 	RayTracer(CameraSystem& cameraSystem);
 	~RayTracer();
 
+	String name() override { return "RayTracer"; }
+
 	void showScene(int number);
 	void clearScene();
 

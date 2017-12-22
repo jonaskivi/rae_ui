@@ -27,7 +27,7 @@ bool TransformSystem::update(double time, double deltaTime, std::vector<Entity>&
 	{
 		transform.update(time, deltaTime);
 	}
-	return true;
+	return false;
 }
 
 void TransformSystem::addTransform(Id id, Transform&& transform)
@@ -41,6 +41,11 @@ bool TransformSystem::hasTransform(Id id) const
 }
 
 const Transform& TransformSystem::getTransform(Id id) const
+{
+	return m_transforms.get(id);
+}
+
+Transform& TransformSystem::getTransform(Id id)
 {
 	return m_transforms.get(id);
 }

@@ -39,11 +39,11 @@ localPosition(0.0f, 0.0f, 0.0f)
 String Transform::toString() const
 {
 	String ret = "x: ";
-	ret += Utils::floatToString(position.x);
+	ret += Utils::toString(position.x);
 	ret += ", y: ";
-	ret += Utils::floatToString(position.y);
+	ret += Utils::toString(position.y);
 	ret += ", z: ";
-	ret += Utils::floatToString(position.z);
+	ret += Utils::toString(position.z);
 	return ret;
 }
 

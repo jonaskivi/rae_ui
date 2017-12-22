@@ -100,7 +100,6 @@ namespace rae
 {
 
 ScreenInfo::ScreenInfo()
-//ScreenInfo::ScreenInfo()
 : m_screenNumber(-1),
 m_screenWidthP(1280),
 m_screenHeightP(800),
@@ -119,7 +118,8 @@ m_visibleAreaHeightP(-1)
 	printInfo();
 }
 
-ScreenInfo::ScreenInfo( int set_screenNumber, int set_screenWidthP, int set_screenHeightP, int set_visibleAreaWidthP, int set_visibleAreaHeightP)
+ScreenInfo::ScreenInfo(int set_screenNumber,
+	int set_screenWidthP, int set_screenHeightP, int set_visibleAreaWidthP, int set_visibleAreaHeightP)
 {
 	screenNumber(set_screenNumber);
 	//screenHeightP(set_screenHeightP);
@@ -154,7 +154,7 @@ void ScreenInfo::setScreenSizeP(int set_widthP, int set_heightP)
 	m_screenHeightP = set_heightP;
 
 	calculateScreenAspect();
-	calculateHalfScreens();	
+	calculateHalfScreens();
 }
 
 void ScreenInfo::screenWidthP(int set)

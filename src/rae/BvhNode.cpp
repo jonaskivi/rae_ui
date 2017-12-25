@@ -26,8 +26,8 @@ void BvhNode::init(std::vector<Hitable*>& hitables, float time0, float time1)
 	auto aabbCompare = [axis](Hitable* a, Hitable* b) -> bool
 	{
 		//JONDE REMOVE std::cout << "axis down: " << axis << std::endl;
-		Aabb left = a->getAabb(0,0);
-		Aabb right = b->getAabb(0,0);
+		Box left = a->getAabb(0,0);
+		Box right = b->getAabb(0,0);
 		if (left.valid() == false || right.valid() == false)
 			std::cerr << "No aabb in BvhNode constructor\n";
 
@@ -63,8 +63,8 @@ void BvhNode::init(std::vector<Hitable*>& hitables, float time0, float time1)
 		m_right = new BvhNode(splitHigh, time0, time1);
 	}
 
-	Aabb left = m_left->getAabb(time0, time1);
-	Aabb right = m_right->getAabb(time0, time1);
+	Box left = m_left->getAabb(time0, time1);
+	Box right = m_right->getAabb(time0, time1);
 	if (left.valid() == false || right.valid() == false)
 		std::cerr << "No aabb in BvhNode constructor\n";
 
@@ -101,7 +101,7 @@ bool BvhNode::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) c
 	return false;
 }
 
-Aabb BvhNode::getAabb(float t0, float t1) const
+Box BvhNode::getAabb(float t0, float t1) const
 {
 	return m_aabb;
 }

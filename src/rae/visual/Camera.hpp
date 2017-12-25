@@ -7,7 +7,7 @@
 using glm::vec3;
 
 #include "core/Utils.hpp"
-#include "Ray.hpp"
+#include "rae/visual/Ray.hpp"
 
 #include "Animator.hpp"
 

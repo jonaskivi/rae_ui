@@ -32,11 +32,11 @@
 #include <vector>
 #include <functional>
 
-#include "core/version.hpp"
+#include "rae/core/version.hpp"
 
-#include "core/ScreenSystem.hpp"
+#include "rae/core/ScreenSystem.hpp"
 
-#include "System.hpp"
+#include "rae/core/ISystem.hpp"
 
 namespace rae
 {
@@ -108,13 +108,13 @@ struct MouseButtonState
 };
 */
 
-class Input : public System
+class Input : public ISystem
 {
 public:
-	Input(ScreenSystem& screenSystem)
-	: m_screenSystem(screenSystem),
-	eventType(EventType::Undefined),
-	isHandled(false)
+	Input(ScreenSystem& screenSystem) :
+		m_screenSystem(screenSystem),
+		eventType(EventType::Undefined),
+		isHandled(false)
 	{
 	
 	}

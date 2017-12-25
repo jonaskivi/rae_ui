@@ -1,15 +1,15 @@
 #pragma once
 
-#include "rae/Animator.hpp"
-#include "rae/Shader.hpp"
+#include "rae/animation/Animator.hpp"
+#include "rae/visual/Shader.hpp"
 #include "rae/ComponentType.hpp"
 #include "rae/Entity.hpp"
-#include "rae/Transform.hpp"
-#include "rae/Mesh.hpp"
+#include "rae/visual/Transform.hpp"
+#include "rae/visual/Mesh.hpp"
 #include "rae/Material.hpp"
 #include "rae/ObjectFactory.hpp"
-#include "rae/System.hpp"
-#include "rae/RenderSystem.hpp"
+#include "rae/core/ISystem.hpp"
+#include "rae/visual/RenderSystem.hpp"
 #include "rae/Engine.hpp"
 
 #include "rae_av/AVSystem.hpp"
@@ -24,7 +24,7 @@ enum class VideoRenderingState
 	RenderToDisk,
 };
 
-class Pihlaja : public rae::System
+class Pihlaja : public rae::ISystem
 {
 public:
 	Pihlaja(GLFWwindow* glfwWindow);

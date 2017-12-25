@@ -4,14 +4,14 @@
 #include "Entity.hpp"
 
 #include "Camera.hpp"
-#include "System.hpp"
+#include "rae/core/ISystem.hpp"
 
 namespace rae
 {
 
 class Input;
 
-class CameraSystem : public System
+class CameraSystem : public ISystem
 {
 public:
 	CameraSystem(Input& input);

@@ -10,7 +10,7 @@ extern "C"
 }
 
 #include "rae/core/Types.hpp"
-#include "rae/System.hpp"
+#include "rae/core/ISystem.hpp"
 #include "rae/image/ImageBuffer.hpp"
 
 #include "rae_av/media/MediaAsset.hpp"
@@ -27,7 +27,7 @@ namespace av
 class HdrFlow;
 class OpticalFlow;
 
-class AVSystem : public rae::System
+class AVSystem : public rae::ISystem
 {
 public:
 	AVSystem(RenderSystem& renderSystem);

@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "Ray.hpp"
+#include "rae/visual/Ray.hpp"
 #include "HitRecord.hpp"
 
 struct NVGcontext;

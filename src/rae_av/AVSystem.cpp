@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include "rae/RenderSystem.hpp"
+#include "rae/visual/RenderSystem.hpp"
 
 #include "fx/HdrFlow.hpp"
 #include "fx/OpticalFlow.hpp"
 
-#include "AVSystem.hpp"
+#include "rae_av/AVSystem.hpp"
 
 using namespace rae::av;
 

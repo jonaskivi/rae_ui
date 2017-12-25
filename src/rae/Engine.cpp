@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "System.hpp"
+#include "rae/core/ISystem.hpp"
 #include "Entity.hpp"
 #include "Mesh.hpp"
 #include "Transform.hpp"
@@ -33,7 +33,7 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	addSystem(m_transformSystem);
 	addSystem(m_cameraSystem);
 	addSystem(m_uiSystem);
-	////////addSystem(m_rayTracer);
+	addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
 
 	// Load model
@@ -67,7 +67,7 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	m_input.connectKeyEventHandler(std::bind(&Engine::onKeyEvent, this, _1));
 }
 
-void Engine::addSystem(System& ownSystem)
+void Engine::addSystem(ISystem& ownSystem)
 {
 	m_systems.push_back(&ownSystem);
 }

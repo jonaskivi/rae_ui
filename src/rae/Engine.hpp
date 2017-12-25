@@ -18,7 +18,7 @@
 namespace rae
 {
 
-class System;
+class ISystem;
 class RenderSystem;
 class Entity;
 
@@ -44,7 +44,7 @@ public:
 	void createTestWorld();
 	void createTestWorld2();
 
-	void addSystem(System& ownSystem);
+	void addSystem(ISystem& ownSystem);
 	RenderSystem& getRenderSystem() { return m_renderSystem; }
 	Input& getInput() { return m_input; }
 
@@ -74,7 +74,7 @@ protected:
 	
 	ObjectFactory m_objectFactory;
 
-	std::vector<System*> m_systems;
+	std::vector<ISystem*> m_systems;
 
 	TransformSystem		m_transformSystem;
 	CameraSystem		m_cameraSystem;

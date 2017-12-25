@@ -16,7 +16,7 @@ using glm::vec3;
 //end // ASSIMP
 
 #include "Hitable.hpp"
-#include "Aabb.hpp"
+#include "rae/visual/Box.hpp"
 
 namespace rae
 {
@@ -37,7 +37,7 @@ public:
 	~Mesh();
 	
 	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
-	virtual Aabb getAabb(float t0, float t1) const { return m_aabb; }
+	virtual Box getAabb(float t0, float t1) const { return m_aabb; }
 
 	void generateBox();
 
@@ -69,7 +69,7 @@ protected:
 	unsigned normalBufferID;
 	unsigned indexBufferID;
 
-	Aabb m_aabb;
+	Box m_aabb;
 	Material* material; // TODO make better, don't use pointer. Use component ID.
 };
 

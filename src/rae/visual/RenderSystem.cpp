@@ -438,8 +438,23 @@ void RenderSystem::render2dBackground(double time, double delta_time)
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
-		//////////JONDE OLD: m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
-		renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+	
+	//JONDE RAYTRACER:
+	//m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+	//renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+
+	Box rayWindow(
+		vec3(0.0f, 0.0f, 0.0f),
+		vec3(float(m_windowWidth) * 0.5f, float(m_windowHeight) * 0.5f, 0.0f));
+	m_rayTracer.renderNanoVG(vg,
+		rayWindow.min().x, rayWindow.min().y,
+		rayWindow.dimensions().x, rayWindow.dimensions().y);
+	Box imageWindow(
+		vec3(float(m_windowWidth) * 0.5f, float(m_windowHeight) * 0.5f, 0.0f),
+		vec3((float(m_windowWidth) * 0.5f) * 2.0f, (float(m_windowHeight) * 0.5f) * 2.0f, 0.0f));
+	renderImageBuffer(vg, m_backgroundImage,
+		imageWindow.min().x, imageWindow.min().y,
+		imageWindow.dimensions().x, imageWindow.dimensions().y);
 		
 	nvgEndFrame(vg);
 }

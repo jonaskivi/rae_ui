@@ -1,7 +1,7 @@
 #include "Sphere.hpp"
-#include "Ray.hpp"
+#include "rae/visual/Ray.hpp"
 #include "HitRecord.hpp"
-#include "Aabb.hpp"
+#include "rae/visual/Box.hpp"
 
 using namespace rae;
 
@@ -32,8 +32,8 @@ bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) co
 	return false;
 }
 
-Aabb Sphere::getAabb(float t0, float t1) const
+Box Sphere::getAabb(float t0, float t1) const
 {
 	vec3 cornerVec = vec3(radius, radius, radius);
-	return Aabb(center - cornerVec, center + cornerVec);
+	return Box(center - cornerVec, center + cornerVec);
 }

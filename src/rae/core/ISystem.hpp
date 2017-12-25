@@ -1,5 +1,4 @@
-#ifndef RAE_SYSTEM_HPP
-#define RAE_SYSTEM_HPP
+#pragma once
 
 #include <vector>
 #include "rae/core/Types.hpp"
@@ -8,11 +7,10 @@
 namespace rae
 {
 
-// interface
-class System
+class ISystem
 {
 public:
-	System()
+	ISystem()
 	{
 	}
 
@@ -31,6 +29,3 @@ protected:
 };
 
 }
-
-#endif
-

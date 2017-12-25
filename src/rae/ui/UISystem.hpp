@@ -11,10 +11,10 @@ using glm::vec3;
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
 
-#include "rae/ui/Box.hpp"
+#include "rae/visual/Box.hpp"
 #include "rae/ui/Button.hpp"
 
-#include "System.hpp"
+#include "rae/core/ISystem.hpp"
 #include "ObjectFactory.hpp"
 #include "TransformSystem.hpp"
 
@@ -73,7 +73,7 @@ enum class ButtonThemeColourKey
 	Count
 };
 
-class UISystem : public System
+class UISystem : public ISystem
 {
 public:
 	UISystem(Input& input, ScreenSystem& screenSystem,

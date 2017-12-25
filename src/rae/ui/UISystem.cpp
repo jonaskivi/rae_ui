@@ -44,7 +44,7 @@ m_boxes(ReserveBoxes)
 	createDefaultTheme();
 
 	m_infoButtonId = createButton("Info",
-		virxels(550.0f, 300.0f, 0.0f),
+		virxels(-550.0f, -300.0f, 0.0f),
 		virxels(300.0f, 25.0f, 0.1f),
 		[](){});
 }
@@ -97,14 +97,19 @@ bool UISystem::update(double time, double deltaTime, Array<Entity>& entities)
 	if (m_buttons.check(m_infoButtonId))
 	{
 		auto& button = m_buttons.get(m_infoButtonId);
+		const auto& transform = m_transformSystem.getTransform(m_infoButtonId);
 		button.setText("Mouse: xP: " + Utils::toString(m_input.mouse.xP)
 			+ " yP: " + Utils::toString(m_input.mouse.yP)
 			+ " x: " + Utils::toString(m_input.mouse.x)
 			+ " y: " + Utils::toString(m_input.mouse.y)
-			+ " frame: " + Utils::toString(frameCount));
+			+ " frame: " + Utils::toString(frameCount)
+			+ "\nx: " + Utils::toString(transform.position.x)
+			+ "y: " + Utils::toString(transform.position.y)
+			+ "z: " + Utils::toString(transform.position.z)
+			);
 	}
 
-	/* TEMP DEBUG
+	// TEMP DEBUG
 	if (m_transformSystem.hasTransform(m_infoButtonId))
 	{
 		auto& transform = m_transformSystem.getTransform(m_infoButtonId);
@@ -113,7 +118,7 @@ bool UISystem::update(double time, double deltaTime, Array<Entity>& entities)
 			transform.setTarget(vec3(m_input.mouse.x, m_input.mouse.y, 0.0f), 1.0f);
 			std::cout << "Click " << frameCount << "\n";
 		}
-	}*/
+	}
 
 	frameCount++;
 

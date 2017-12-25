@@ -1,7 +1,7 @@
 #include "HitableList.hpp"
-#include "Ray.hpp"
+#include "rae/visual/Ray.hpp"
 #include "HitRecord.hpp"
-#include "Aabb.hpp"
+#include "rae/visual/Box.hpp"
 
 using namespace rae;
 
@@ -22,7 +22,7 @@ bool HitableList::hit(const Ray& ray, float t_min, float t_max, HitRecord& recor
 	return hitAnything;
 }
 
-Aabb HitableList::getAabb(float t0, float t1) const
+Box HitableList::getAabb(float t0, float t1) const
 {
-	return Aabb();
+	return Box();
 }

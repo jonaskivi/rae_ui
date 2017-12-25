@@ -1,7 +1,7 @@
 #include "pihlaja/Pihlaja.hpp"
 
-Pihlaja::Pihlaja(GLFWwindow* glfwWindow)
-	: m_engine(glfwWindow),
+Pihlaja::Pihlaja(GLFWwindow* glfwWindow) :
+	m_engine(glfwWindow),
 	m_avSystem(m_engine.getRenderSystem()),
 	m_screenImage(m_engine.getRenderSystem().getBackgroundImage()),
 	m_input(m_engine.getInput())
@@ -13,7 +13,8 @@ Pihlaja::Pihlaja(GLFWwindow* glfwWindow)
 	m_input.connectKeyEventHandler(std::bind(&Pihlaja::onKeyEvent, this, _1));
 
 	//m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/MVI_9132.MOV");
-	m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/glass/MVI_8882.MOV");
+	//m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/glass/MVI_8882.MOV");
+	m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/test5.mov");
 
 	////////m_hdrFlow.setExposureWeight(0.75f);
 
@@ -126,7 +127,6 @@ bool Pihlaja::update(double time, double deltaTime, std::vector<Entity>&)
 {
 	if (not m_play and not m_needsFrameUpdate)
 	{
-		std::cout << "TEMP DEBUG No need to play.\n";
 		return false;
 	}
 

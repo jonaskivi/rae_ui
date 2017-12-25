@@ -7,14 +7,14 @@
 #include "rae/entity/Table.hpp"
 
 #include "Transform.hpp"
-#include "System.hpp"
+#include "rae/core/ISystem.hpp"
 
 namespace rae
 {
 
 class Input;
 
-class TransformSystem : public System
+class TransformSystem : public ISystem
 {
 public:
 	TransformSystem();

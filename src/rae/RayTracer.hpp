@@ -12,9 +12,9 @@
 #include <glm/glm.hpp>
 using glm::vec3;
 
-#include "System.hpp"
+#include "rae/core/ISystem.hpp"
 
-#include "Ray.hpp"
+#include "rae/visual/Ray.hpp"
 #include "HitRecord.hpp"
 #include "Hitable.hpp"
 #include "HitableList.hpp"
@@ -29,7 +29,7 @@ class CameraSystem;
 class Camera;
 class Material;
 
-class RayTracer : public System
+class RayTracer : public ISystem
 {
 public:
 	RayTracer(CameraSystem& cameraSystem);

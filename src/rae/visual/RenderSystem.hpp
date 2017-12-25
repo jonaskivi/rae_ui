@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 
-#include "System.hpp"
+#include "rae/core/ISystem.hpp"
 #include "TransformSystem.hpp"
 #include "RayTracer.hpp"
 #include "rae/ui/UISystem.hpp"
@@ -28,7 +28,7 @@ class Mesh;
 class Entity;
 class Input;
 
-class RenderSystem : public System
+class RenderSystem : public ISystem
 {
 public:
 	RenderSystem(ObjectFactory& objectFactory,

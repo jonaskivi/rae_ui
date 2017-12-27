@@ -283,7 +283,7 @@ vec3 RayTracer::sky(const Ray& ray)
 
 //#define RENDER_ALL_AT_ONCE
 
-bool RayTracer::update(double time, double deltaTime, std::vector<Entity>& entities)
+bool RayTracer::update(double time, double deltaTime)
 {
 	/*
 	Old time based switch buffers system:

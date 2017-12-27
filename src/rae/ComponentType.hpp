@@ -1,4 +1,4 @@
-#ifndef RAE_COMPONENTTYPE_HPP
+/*#ifndef RAE_COMPONENTTYPE_HPP
 #define RAE_COMPONENTTYPE_HPP
 
 namespace rae
@@ -16,3 +16,4 @@ enum class ComponentType
 
 #endif
 
+*/

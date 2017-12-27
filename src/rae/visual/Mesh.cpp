@@ -681,7 +681,7 @@ void Mesh::createVBOs()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0] , GL_STATIC_DRAW);
 }
 
-void Mesh::render(unsigned set_shader_program_id)
+void Mesh::render(unsigned set_shader_program_id) const
 {
 
 	// Get a handle for our buffers

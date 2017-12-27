@@ -118,6 +118,7 @@ bool Dielectric::scatter(const Ray& r_in, const HitRecord& record, vec3& attenua
 
 // --------------------- Legacy:
 
+/*JONDE REMOVE
 Material::Material(int set_id, int set_type, const glm::vec4& set_color) // TODO that type should be an enum... :)
 : m_id(set_id),
 m_framebufferObject(nullptr),
@@ -127,6 +128,7 @@ m_type(set_type),
 m_color(set_color)
 {
 }
+*/
 
 void Material::generateFBO(NVGcontext* vg)
 {
@@ -186,14 +188,14 @@ void Material::update(NVGcontext* vg, double time)
 	m_initialized = true;
 }
 
-GLuint Material::textureID()
+GLuint Material::textureID() const
 {
 	if( m_framebufferObject == nullptr )
 		return 0;
 	return m_framebufferObject->texture;
 }
 
-void Material::setColor(glm::vec4 set)
+void Material::setColor(Colour set)
 {
 	m_color = set;
 }

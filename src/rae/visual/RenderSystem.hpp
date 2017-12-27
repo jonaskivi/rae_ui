@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 
+#include "rae/core/Types.hpp"
 #include "rae/core/ISystem.hpp"
 #include "TransformSystem.hpp"
 #include "RayTracer.hpp"
@@ -47,14 +48,15 @@ public:
 
 	void checkErrors(const char *file, int line);
 
-	Mesh& createBox();
-	Material& createMaterial(int type, const glm::vec4& color);
-	Material& createAnimatingMaterial(int type, const glm::vec4& color);
+	Id createBox();
+	Id createMesh(const String& filename);
+	Id createMaterial(const Colour& color);
+	Id createAnimatingMaterial(const Colour& color);
 
-	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
+	bool update(double time, double delta_time) override;
 
-	void render(double time, double delta_time, std::vector<Entity>& entities);
-	void renderPicking(std::vector<Entity>& entities);
+	void render(double time, double delta_time);
+	void renderPicking();
 	void render2dBackground(double time, double delta_time);
 	void render2d(double time, double delta_time);
 
@@ -63,8 +65,8 @@ public:
 		float x, float y, float w, float h);
 	ImageBuffer& getBackgroundImage() { return m_backgroundImage; }
 
-	void renderMesh(const Transform& transform, Material* material, Mesh* mesh);
-	void renderMeshPicking(const Transform& transform, Mesh* mesh, int entity_id);
+	void renderMesh(const Transform& transform, const Material& material, const Mesh& mesh);
+	void renderMeshPicking(const Transform& transform, const Mesh& mesh, Id id);
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
@@ -81,7 +83,18 @@ public:
 	{
 		m_glRendererOn = !m_glRendererOn;
 	}
-	
+
+	void addMesh(Id id, Mesh&& comp);
+	const Mesh& getMesh(Id id);
+	void addMeshLink(Id id, Id linkId);
+
+	void addMaterial(Id id, Material&& comp);
+	const Material& getMaterial(Id id);
+	void addMaterialLink(Id id, Id linkId);
+
+	int meshCount() { return m_meshes.size(); }
+	int materialCount() { return m_materials.size(); }
+
 protected:
 
 	// basic shader
@@ -132,6 +145,12 @@ protected:
 	RayTracer&				m_rayTracer;
 
 	ImageBuffer m_backgroundImage;
+
+	// Move to VisualSystem or something?:
+	Table<Mesh>			m_meshes;
+	Table<Id>			m_meshLinks;
+	Table<Material>		m_materials;
+	Table<Id>			m_materialLinks;
 };
 
 }

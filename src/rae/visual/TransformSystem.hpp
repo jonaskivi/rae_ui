@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include "Entity.hpp"
 
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
@@ -21,7 +20,7 @@ public:
 
 	String name() override { return "TransformSystem"; }
 
-	bool update(double time, double deltaTime, std::vector<Entity>& entities) override;
+	bool update(double time, double deltaTime) override;
 
 	void addTransform(Id id, Transform&& transform);
 	bool hasTransform(Id id) const;

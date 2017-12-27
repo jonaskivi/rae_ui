@@ -121,7 +121,7 @@ public:
 
 	String name() override { return "InputSystem"; }
 
-	bool update(double time, double deltaTime, std::vector<Entity>& entities) override
+	bool update(double time, double deltaTime) override
 	{
 		return m_changed;
 	}

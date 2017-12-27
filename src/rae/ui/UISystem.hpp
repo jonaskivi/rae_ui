@@ -6,8 +6,6 @@
 #include <glm/glm.hpp>
 using glm::vec3;
 
-#include "Entity.hpp"
-
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
 
@@ -81,8 +79,8 @@ public:
 
 	String name() override { return "UISystem"; }
 
-	bool update(double time, double deltaTime, Array<Entity>& entities) override;
-	void render(double time, double deltaTime, Array<Entity>& entities, NVGcontext* vg,
+	bool update(double time, double deltaTime) override;
+	void render(double time, double deltaTime, NVGcontext* vg,
 				int windowWidth, int windowHeight, float screenPixelRatio);
 
 	Id createButton(const String& text, vec3 position, vec3 extents, std::function<void()> handler);

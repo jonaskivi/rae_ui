@@ -58,14 +58,13 @@ void UISystem::createDefaultTheme()
 	m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveHover]	= Colour(0.1f, 1.0f, 0.235f, 1.0f);
 }
 
-bool UISystem::update(double time, double deltaTime, Array<Entity>& entities)
+bool UISystem::update(double time, double deltaTime)
 {
 	static int frameCount = 0;
 
 	// hover boxes
-	for (auto& entity : entities)
+	for (Id id : m_objectFactory.entities())
 	{
-		Id id = entity.id();
 		if (m_transformSystem.hasTransform(id)
 			&& m_boxes.check(id))
 		{
@@ -125,7 +124,7 @@ bool UISystem::update(double time, double deltaTime, Array<Entity>& entities)
 	return false;
 }
 
-void UISystem::render(double time, double deltaTime, Array<Entity>& entities, NVGcontext* vg,
+void UISystem::render(double time, double deltaTime, NVGcontext* vg,
 	int windowWidth, int windowHeight, float screenPixelRatio)
 {
 	m_vg = vg;
@@ -140,9 +139,8 @@ void UISystem::render(double time, double deltaTime, Array<Entity>& entities, NV
 	nvgBeginFrame(vg, windowWidth, windowHeight, screenPixelRatio);
 
 		int i = 0;
-		for (auto& entity : entities)
+		for (Id id : m_objectFactory.entities())
 		{
-			Id id = entity.id();
 			if (m_transformSystem.hasTransform(id) and
 				m_buttons.check(id) and
 				m_boxes.check(id))
@@ -202,10 +200,10 @@ void UISystem::render(double time, double deltaTime, Array<Entity>& entities, NV
 		std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
 		nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-		std::string mesh_count_str = "Meshes: " + std::to_string(m_objectFactory.meshCount());
+		std::string mesh_count_str = "Meshes: " + std::to_string(m_renderSystem.meshCount());
 		nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-		std::string material_count_str = "Materials: " + std::to_string(m_objectFactory.materialCount());
+		std::string material_count_str = "Materials: " + std::to_string(m_renderSystem.materialCount());
 		nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 		//nvgText(vg, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
@@ -361,28 +359,28 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, flo
 
 Id UISystem::createButton(const String& text, vec3 position, vec3 extents, std::function<void()> handler)
 {
-	Entity& entity = m_objectFactory.createEmptyEntity();
+	Id id = m_objectFactory.createEmptyEntity();
 	//m_transformSystem.addTransform(entity.id(), Transform(vec3(0.0f, 0.0f, 0.0f)));
-	m_transformSystem.addTransform(entity.id(), Transform(position));
+	m_transformSystem.addTransform(id, Transform(position));
 	//m_transformSystem.setPosition(entity.id(), position); //JONDE TEMP animation
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(entity.id(), Box(-(halfExtents), halfExtents));
-	addButton(entity.id(), Button(text));
-	addCommand(entity.id(), Command(handler));
-	return entity.id();
+	addBox(id, Box(-(halfExtents), halfExtents));
+	addButton(id, Button(text));
+	addCommand(id, Command(handler));
+	return id;
 }
 
 Id UISystem::createTextBox(const String& text, vec3 position, vec3 extents)
 {
-	Entity& entity = m_objectFactory.createEmptyEntity();
-	m_transformSystem.addTransform(entity.id(), Transform(position));
-	m_transformSystem.setPosition(entity.id(), position);
+	Id id = m_objectFactory.createEmptyEntity();
+	m_transformSystem.addTransform(id, Transform(position));
+	m_transformSystem.setPosition(id, position);
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(entity.id(), Box(-(halfExtents), halfExtents));
-	addText(entity.id(), text);
-	return entity.id();
+	addBox(id, Box(-(halfExtents), halfExtents));
+	addText(id, text);
+	return id;
 }
 
 void UISystem::addBox(Id id, Box&& box)

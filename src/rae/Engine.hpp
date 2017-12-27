@@ -34,12 +34,12 @@ public:
 
 	void askForFrameUpdate();
 
-	Entity& createAddObjectButton();
-	Entity& createRandomBunnyEntity();
-	Entity& createRandomCubeEntity();
-	Entity& createCube(glm::vec3 position, glm::vec4 color);
-	Entity& createBunny(glm::vec3 position, glm::vec4 color);
-	Entity& createEmptyEntity();
+	Id createAddObjectButton();
+	Id createRandomBunnyEntity();
+	Id createRandomCubeEntity();
+	Id createCube(const vec3& position, const Colour& color);
+	Id createBunny(const vec3& position, const Colour& color);
+	//JONDE REMOVE Entity& createEmptyEntity();
 
 	void createTestWorld();
 	void createTestWorld2();

@@ -17,7 +17,7 @@ public:
 	virtual String name() { return "System name"; }
 
 	// Returns changed == true if we need to render again because of changes in the system. JONDE REMOVE return value. that is just horrible.
-	virtual bool update(double time, double delta_time, std::vector<Entity>& entities) {};
+	virtual bool update(double time, double delta_time) {};
 	virtual void onFrameEnd() {};
 
 	virtual void toggleIsEnabled() { m_isEnabled = !m_isEnabled; }

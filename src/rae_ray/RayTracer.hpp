@@ -43,7 +43,7 @@ public:
 	void createSceneOne(HitableList& world, bool loadBunny = false);
 	void createSceneFromBook(HitableList& list);
 
-	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
+	bool update(double time, double delta_time) override;
 	void renderAllAtOnce(double time);
 	void renderSamples(double time, double deltaTime);
 	void updateImageBuffer();

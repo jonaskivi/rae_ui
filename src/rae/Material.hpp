@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+#include "rae/core/Types.hpp"
 #include "rae/visual/Ray.hpp"
 #include "HitRecord.hpp"
 
@@ -23,8 +24,15 @@ protected:
 
 public:
 	Material(){}
-	Material(vec3 set_albedo)
-	: albedo(set_albedo)
+	Material(vec3 albedo) :
+		albedo(albedo),
+		m_color(albedo.r, albedo.g, albedo.b, 1.0f)
+	{
+	}
+
+	Material(Colour albedo) :
+		m_color(albedo),
+		albedo(albedo.r, albedo.g, albedo.b)
 	{
 	}
 
@@ -33,32 +41,36 @@ public:
 	
 	bool metal(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
 
+	//JONDE REALLY NOW: Combine albedo with m_color...
 	vec3 albedo;
 
 	// ----------------------- Legacy:
 
-	Material(int set_id, int set_type, const glm::vec4& set_color); // That type thing is really strange...
+	//JONDE REMOVE Material(int set_id, int set_type, const glm::vec4& set_color); // That type thing is really strange...
 
 	void generateFBO(NVGcontext* vg);
 	void update(NVGcontext* vg, double time);
 
-	GLuint textureID();
+	GLuint textureID() const;
 
-	void setColor(glm::vec4 set);
-	const glm::vec4& color() { return m_color; }
+	// JONDE UMM, DECIDE THE SPELLING ALREADY:
+	void setColor(Colour set);
+	const Colour& color() { return m_color; }
 
 	void animate(bool set) { m_animate = set; }
 
 protected:
-	NVGLUframebuffer* m_framebufferObject;
-	int m_width;
-	int m_height;
+	NVGLUframebuffer* m_framebufferObject = nullptr;
+	int m_width = 512;
+	int m_height = 512;
 
-	glm::vec4 m_color;
+	// JONDE DECIDE SPELLING, REALLY:
+	Colour m_color;
 
 	bool m_initialized = false;
 	bool m_animate = false;
-	int m_type; // TODO enum. Currently 0 and 1 supported!
+	//JONDE REMOVE?
+	int m_type = 1; // TODO enum. Currently 0 and 1 supported!
 };
 
 class Lambertian : public Material

@@ -21,8 +21,8 @@ using glm::vec4;
 namespace rae
 {
 
-struct ComponentIndex;
-class Entity;
+//JONDE REMOVE struct ComponentIndex;
+//JONDE REMOVE class Entity;
 class Mesh;
 class Material;
 class Transform;
@@ -32,6 +32,10 @@ const unsigned INITIAL_ENTITY_RESERVE = 20;
 const unsigned INITIAL_TRANSFORM_RESERVE = 20;
 const unsigned INITIAL_MESH_RESERVE = 5;
 
+struct Entity
+{
+};
+
 // JONDE RENAME to EntitySystem and only care about entity lifetime. Pooling of Ids.
 class ObjectFactory
 {
@@ -39,74 +43,74 @@ public:
 	ObjectFactory();
 	~ObjectFactory();
 
-	void measure();
+//JONDE REMOVE 	void measure();
 
-	std::pair<double, float> measureOld(int& outCount);
-	std::pair<double, float> measureNew(int& outCount);
-	std::pair<double, float> measureNew3(int& outCount);
+//JONDE REMOVE 	std::pair<double, float> measureOld(int& outCount);
+//JONDE REMOVE 	std::pair<double, float> measureNew(int& outCount);
+//JONDE REMOVE 	std::pair<double, float> measureNew3(int& outCount);
 
-	float renderIterateOld(int& outCount);
-	float renderIterateNew(int& outCount);
-	float renderIterateNew3(int& outCount);
+//JONDE REMOVE 	float renderIterateOld(int& outCount);
+//JONDE REMOVE 	float renderIterateNew(int& outCount);
+//JONDE REMOVE 	float renderIterateNew3(int& outCount);
 
 	// New system
 
 	Id createEntity();
-	void createMesh(Id id);
-	void createMaterial(Id id, int type, const glm::vec4& color);
+	//void createMesh(Id id);
+	//void createMaterial(Id id, int type, const glm::vec4& color);
 
-	Mesh* getMesh2(Id set_id) { return &m_meshes2.at(set_id); }
-	Material* getMaterial2(Id set_id) { return &m_materials2.at(set_id); }
+	//JONDE REMOVE Mesh* getMesh2(Id set_id) { return &m_meshes2.at(set_id); }
+	//JONDE REMOVE Material* getMaterial2(Id set_id) { return &m_materials2.at(set_id); }
 
 	// Entities
 
-	Entity& createEmptyEntity();
-	Entity& createEmptyEntity3();
-	void destroyEntity(int index);
+	Id createEmptyEntity();
+	//JONDE REMOVE Entity& createEmptyEntity3();
+	//void destroyEntity(int index);
 	int entityCount() { return (int)m_entities.size(); }
+	const Array<Id>& entities() { return m_entities; }
 
-	std::vector<Entity>& entities() { return m_entities; }
-
-	// Components
-
-	void removedComponent(ComponentIndex componentIndex);
-
+	//TODO move to VisualSystem:
 	// Meshes
-
-	Mesh& createMesh();
+//JONDE REMOVE 	Mesh& createMesh();
 	//Mesh* getMesh(unsigned set_id) { return &m_meshes.at(set_id); } //JONDE test speed
-	Mesh* getMesh(unsigned set_id) { return &m_meshes[set_id]; }
-	int meshCount() { return (int)m_meshes.size(); }
+//JONDE REMOVE 	Mesh* getMesh(unsigned set_id) { return &m_meshes[set_id]; }
+//JONDE REMOVE 	int meshCount() { return (int)m_meshes.size(); }
 
-	Material& createMaterial(int type, const glm::vec4& color);
+//JONDE REMOVE 	Material& createMaterial(int type, const glm::vec4& color);
 	//Material* getMaterial(unsigned set_id) { return &m_materials.at(set_id); } // JONDE test speed
-	Material* getMaterial(unsigned set_id) { return &m_materials[set_id]; }
-	int materialCount() { return (int)m_materials.size(); }
+//JONDE REMOVE 	Material* getMaterial(unsigned set_id) { return &m_materials[set_id]; }
+//JONDE REMOVE 	int materialCount() { return (int)m_materials.size(); }
 
-	std::vector<Material>& materials() { return m_materials; }
+//JONDE REMOVE 	std::vector<Material>& materials() { return m_materials; }
 
-	Hierarchy& createHierarchy();
+//JONDE REMOVE 	Hierarchy& createHierarchy();
 	//Hierarchy* getHierarchy(unsigned set_id) { return &m_hierarchies.at(set_id); } // JONDE test speed
-	Hierarchy* getHierarchy(unsigned set_id) { return &m_hierarchies[set_id]; }
-	int hierarchyCount() { return (int)m_hierarchies.size(); }
+//JONDE REMOVE 	Hierarchy* getHierarchy(unsigned set_id) { return &m_hierarchies[set_id]; }
+//JONDE REMOVE 	int hierarchyCount() { return (int)m_hierarchies.size(); }
 
 	Id getNextId() { return ++m_nextId; }
 
 protected:
+	/* JONDE REMOVE:
 	Array<Entity>          m_entities;
 	Array<Mesh>            m_meshes;
 	Array<Material>        m_materials;
 	Array<Hierarchy>       m_hierarchies;
 
-	static Id			m_nextId;
 	Map<Id, Exist>		m_exists;
 	Map<Id, Mesh>		m_meshes2;
 	Map<Id, Material>	m_materials2;
 
 	Array<Entity>		m_entities3;
-	Table<Transform>	m_transforms3;
-	Table<Mesh>			m_meshes3;
-	Table<Material>		m_materials3;
+	*/
+
+	static Id			m_nextId;
+
+	Array<Id>			m_entities;
+	//Table<Entity>		m_entities;
+	//JONDE MOVE TO VisualSystem:
+	//Table<Transform>	m_transforms;
 };
 
 }

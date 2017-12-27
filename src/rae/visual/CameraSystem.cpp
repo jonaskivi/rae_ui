@@ -79,7 +79,7 @@ void CameraSystem::emitCameraChangedEvent()
 	}
 }
 
-bool CameraSystem::update(double time, double delta_time, std::vector<Entity>&)
+bool CameraSystem::update(double time, double delta_time)
 {
 	//JONDE TODO: m_screenInfo??? from ScreenSystem???
 	//JONDE m_camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );

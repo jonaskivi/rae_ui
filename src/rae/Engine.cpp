@@ -37,16 +37,16 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	addSystem(m_renderSystem);
 
 	// Load model
-	Mesh& mesh = m_objectFactory.createMesh();
-	mesh.loadModel("./data/models/bunny.obj");
-	m_modelID = mesh.id();
+	Id meshID = m_renderSystem.createMesh("./data/models/bunny.obj");
+	m_modelID = meshID;
 
-	m_meshID     = m_renderSystem.createBox().id();
-	m_materialID = m_renderSystem.createMaterial(0, glm::vec4(0.2f, 0.5f, 0.7f, 0.0f)).id();
-	m_bunnyMaterialID = m_renderSystem.createMaterial(1, glm::vec4(0.7f, 0.3f, 0.1f, 0.0f)).id();
-	m_buttonMaterialID = m_renderSystem.createAnimatingMaterial(2, glm::vec4(0.0f, 0.0f, 0.1f, 0.0f)).id();
-	
-	createEmptyEntity(); // hack at index 0
+	m_meshID     = m_renderSystem.createBox();
+	m_materialID = m_renderSystem.createMaterial(Colour(0.2f, 0.5f, 0.7f, 0.0f));
+	m_bunnyMaterialID = m_renderSystem.createMaterial(Colour(0.7f, 0.3f, 0.1f, 0.0f));
+	m_buttonMaterialID = m_renderSystem.createAnimatingMaterial(Colour(0.0f, 0.0f, 0.1f, 0.0f));
+
+	// JONDE CHECK THIS:
+	m_objectFactory.createEmptyEntity(); // hack at index 0
 
 	createTestWorld2();
 
@@ -114,7 +114,7 @@ bool Engine::update()
 	{
 		if (system->isEnabled())
 		{
-			bool systemChanged = system->update(m_currentTime, deltaTime, m_objectFactory.entities());
+			bool systemChanged = system->update(m_currentTime, deltaTime);
 			changed = systemChanged ? true : changed;
 			//std::cout << system->name() << " update: " << systemChanged << "\n";
 		}
@@ -138,70 +138,91 @@ void Engine::askForFrameUpdate()
 	//glfwPostEmptyEvent(); //TODO need to update to GLFW 3.1
 }
 
-Entity& Engine::createAddObjectButton()
+Id Engine::createAddObjectButton()
 {
-	Entity& entity = createEmptyEntity();
-	m_transformSystem.addTransform(entity.id(), Transform(vec3(0.0f, 0.0f, 5.0f)));
-	m_transformSystem.setPosition(entity.id(), vec3(0.0f, 0.0f, 0.0f));
+	Id id = m_objectFactory.createEmptyEntity();
+	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
+	m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
 
 	//JONDE REMOVE Transform& transform = m_objectFactory.createTransform(0.0f, 0.0f, 5.0f);
 	//JONDE REMOVE transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, transform.id() );
-	entity.addComponent( (int)ComponentType::MATERIAL, m_buttonMaterialID );
-	entity.addComponent( (int)ComponentType::MESH, m_meshID );
-	return entity;
+	//entity.addComponent( (int)ComponentType::MATERIAL, m_buttonMaterialID );
+	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
+
+	m_renderSystem.addMaterialLink(id, m_buttonMaterialID);
+	m_renderSystem.addMeshLink(id, m_meshID);
+
+	return id;
 }
 
-Entity& Engine::createRandomBunnyEntity()
+Id Engine::createRandomBunnyEntity()
 {
-	Entity& entity = createEmptyEntity();
-	m_transformSystem.addTransform(entity.id(), Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
+	Id id = m_objectFactory.createEmptyEntity();
+	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
-	entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
-	entity.addComponent( (int)ComponentType::MESH, m_modelID );
-	
-	return entity;
+	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
+	//entity.addComponent( (int)ComponentType::MESH, m_modelID );
+
+	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
+	m_renderSystem.addMeshLink(id, m_modelID);
+
+	return id;
 }
 
-Entity& Engine::createRandomCubeEntity()
+Id Engine::createRandomCubeEntity()
 {
-	Entity& entity = createEmptyEntity();
-	m_transformSystem.addTransform(entity.id(), Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
+	Id id = m_objectFactory.createEmptyEntity();
+	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
-	entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
-	entity.addComponent( (int)ComponentType::MESH, m_meshID );
-	return entity;
+	//entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
+	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
+
+	m_renderSystem.addMaterialLink(id, m_materialID);
+	m_renderSystem.addMeshLink(id, m_meshID);
+
+	return id;
 }
 
-Entity& Engine::createCube(glm::vec3 position, glm::vec4 color)
+Id Engine::createCube(const vec3& position, const Colour& color)
 {
-	Entity& entity = createEmptyEntity();
+	Id id = m_objectFactory.createEmptyEntity();
 	// The desired API:
-	m_transformSystem.addTransform(entity.id(), Transform(position));
+	m_transformSystem.addTransform(id, Transform(position));
 	//m_geometrySystem.setMesh(entity, m_meshID);
 	//m_materialSystem.setMaterial(entity, color);
 
 	// The old API:
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
-	entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem.createMaterial(0, color).id() );
-	entity.addComponent( (int)ComponentType::MESH, m_meshID );
-	return entity;
+	//entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem.createMaterial(0, color).id() );
+	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
+
+	m_renderSystem.addMaterial(id, Material(color));
+	m_renderSystem.addMeshLink(id, m_meshID);
+
+	return id;
 }
 
-Entity& Engine::createBunny(glm::vec3 position, glm::vec4 color)
+Id Engine::createBunny(const vec3& position, const Colour& color)
 {
-	Entity& entity = createEmptyEntity();
-	m_transformSystem.addTransform(entity.id(), Transform(position));
+	Id id = m_objectFactory.createEmptyEntity();
+	m_transformSystem.addTransform(id, Transform(position));
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
-	entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
-	entity.addComponent( (int)ComponentType::MESH, m_modelID );
-	return entity;
+	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
+	//entity.addComponent( (int)ComponentType::MESH, m_modelID );
+
+	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
+	m_renderSystem.addMeshLink(id, m_modelID);
+
+	return id;
 }
 
-Entity& Engine::createEmptyEntity()
+/* JONDE REMOVE
+Id Engine::createEmptyEntity()
 {
 	return m_objectFactory.createEmptyEntity();
 }
+*/
 
 void Engine::createTestWorld()
 {
@@ -221,7 +242,7 @@ void Engine::createTestWorld2()
 
 	auto bunny1 = createBunny(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
 
-	Hierarchy& hierarchy1 = m_objectFactory.createHierarchy();
+	/*Hierarchy& hierarchy1 = m_objectFactory.createHierarchy();
 	cube1.addComponent( (int)ComponentType::HIERARCHY, hierarchy1.id() );
 	hierarchy1.addChild(cube2.id());
 
@@ -233,6 +254,7 @@ void Engine::createTestWorld2()
 	Hierarchy& hierarchy3 = m_objectFactory.createHierarchy();
 	cube3.addComponent( (int)ComponentType::HIERARCHY, hierarchy3.id() );
 	hierarchy3.setParent(cube2.id());
+	*/
 }
 
 void Engine::osEventResizeWindow(int width, int height)
@@ -316,7 +338,7 @@ void Engine::onMouseEvent(const Input& input)
 	
 			unsigned char res[4];
 
-			m_renderSystem.renderPicking( m_objectFactory.entities() );
+			m_renderSystem.renderPicking();
 
 			//glGetIntegerv(GL_VIEWPORT, viewport);
 			glReadPixels(
@@ -340,7 +362,7 @@ void Engine::onMouseEvent(const Input& input)
 			}
 			else
 			{
-				m_objectFactory.destroyEntity( pickedID );
+				//JONDE TODO m_objectFactory.destroyEntity( pickedID );
 			}		
 		}
 	}
@@ -353,7 +375,6 @@ void Engine::onKeyEvent(const Input& input)
 		switch (input.key.value)
 		{
 			case KeySym::Escape: m_running = false; break;
-			case KeySym::P: m_objectFactory.measure(); break; // JONDE TEMP measure
 			case KeySym::R: m_renderSystem.clearImageRenderer(); break;
 			case KeySym::G:
 				m_renderSystem.toggleGlRenderer(); // more like debug view currently
@@ -382,7 +403,7 @@ void Engine::reactToInput(const Input& input)
 
 	if (input.getKeyState(KeySym::O))
 	{
-		m_objectFactory.destroyEntity(getRandomInt(2, m_objectFactory.entityCount() )); // Hmm. Magic number 2 is the first index with created box entities.
+		//JONDE TODO m_objectFactory.destroyEntity(getRandomInt(2, m_objectFactory.entityCount() )); // Hmm. Magic number 2 is the first index with created box entities.
 	}
 
 	// TODO use KeySym::Page_Up

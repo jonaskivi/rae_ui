@@ -47,7 +47,7 @@ public:
 	//end // ASSIMP
 
 	void createVBOs();
-	void render(unsigned set_shader_program_id);
+	void render(unsigned set_shader_program_id) const;
 	int triangleCount() const { return indices.size() / 3; }
 	void computeAabb();
 

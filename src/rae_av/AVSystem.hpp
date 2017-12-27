@@ -41,7 +41,7 @@ public:
 	bool hasAsset(AssetId id);
 	MediaAsset& getAsset(AssetId id); // Could return Optional instead.
 
-	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
+	bool update(double time, double delta_time) override;
 
 	void copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image);
 

@@ -156,28 +156,72 @@ void RenderSystem::init()
 	entityUni = glGetUniformLocation(pickingShaderID, "entityID");
 }
 
-Mesh& RenderSystem::createBox()
+Id RenderSystem::createBox()
 {
-	Mesh& mesh = m_objectFactory.createMesh();
-
+	Id id = m_objectFactory.createEmptyEntity();
+	Mesh mesh;
 	mesh.generateBox();
 	mesh.createVBOs();
-	return mesh;
+	addMesh(id, std::move(mesh));
+	return id;
 }
 
-Material& RenderSystem::createMaterial(int type, const glm::vec4& color)
+Id RenderSystem::createMesh(const String& filename)
 {
-	Material& material = m_objectFactory.createMaterial(type, color);
+	Id id = m_objectFactory.createEmptyEntity();
+	Mesh mesh;
+	mesh.loadModel(filename);
+	addMesh(id, std::move(mesh));
+	return id;
+}
+
+Id RenderSystem::createMaterial(const Colour& color)
+{
+	Id id = m_objectFactory.createEmptyEntity();
+	Material material(color);
 	material.generateFBO(vg);
-	return material;
+	addMaterial(id, std::move(material));
+	return id;
 }
 
-Material& RenderSystem::createAnimatingMaterial(int type, const glm::vec4& color)
+Id RenderSystem::createAnimatingMaterial(const Colour& color)
 {
-	Material& material = m_objectFactory.createMaterial(type, color);
+	Id id = m_objectFactory.createEmptyEntity();
+	Material material(color);
 	material.animate(true);
 	material.generateFBO(vg);
-	return material;
+	addMaterial(id, std::move(material));
+	return id;
+}
+
+void RenderSystem::addMesh(Id id, Mesh&& comp)
+{
+	m_meshes.create(id, std::move(comp));
+}
+
+const Mesh& RenderSystem::getMesh(Id id)
+{
+	return m_meshes.get(id);
+}
+
+void RenderSystem::addMeshLink(Id id, Id linkId)
+{
+	m_meshLinks.create(id, std::move(linkId));
+}
+
+void RenderSystem::addMaterial(Id id, Material&& comp)
+{
+	m_materials.create(id, std::move(comp));
+}
+
+const Material& RenderSystem::getMaterial(Id id)
+{
+	return m_materials.get(id);
+}
+
+void RenderSystem::addMaterialLink(Id id, Id linkId)
+{
+	m_materialLinks.create(id, std::move(linkId));
 }
 
 void RenderSystem::checkErrors(const char *file, int line)
@@ -205,7 +249,7 @@ void RenderSystem::checkErrors(const char *file, int line)
 	}
 }
 
-bool RenderSystem::update(double time, double delta_time, std::vector<Entity>& entities)
+bool RenderSystem::update(double time, double delta_time)
 {
 	#ifdef RAE_DEBUG
 		cout<<"RenderSystem::update().\n";
@@ -225,7 +269,7 @@ bool RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 	}
 
 	// TODO move to material system
-	for (auto& material : m_objectFactory.materials())
+	for (auto& material : m_materials.items())
 	{
 		material.update(vg, time);
 	}
@@ -233,15 +277,15 @@ bool RenderSystem::update(double time, double delta_time, std::vector<Entity>& e
 	//JONDE TEMP:
 	m_backgroundImage.update(vg);
 
-	render(time, delta_time, entities);
+	render(time, delta_time);
 
-	m_uiSystem.render(time, delta_time, entities, vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
+	m_uiSystem.render(time, delta_time, vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
 	//JONDE TEMP RAYTRACER render2d(time, delta_time);
 
 	return false; // for now
 }
 
-void RenderSystem::render(double time, double delta_time, std::vector<Entity>& entities)
+void RenderSystem::render(double time, double delta_time)
 {
 	glViewport(0, 0, m_windowPixelWidth, m_windowPixelHeight);
 
@@ -260,53 +304,37 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 	Mesh* debugMesh = nullptr;
 	Material* debugMaterial = nullptr;
 
-	for (auto& entity : entities)
+	for (Id id : m_objectFactory.entities())
 	{
-		const Transform& transform = m_transformSystem.getTransform(entity.id());
-		Material*  material  = nullptr;
-		Mesh*      mesh      = nullptr;
-		
-		for (auto& componentIndex : entity.components())
-		{
-			switch( (ComponentType)componentIndex.type )
-			{
-				default:
-					//cout << "ERROR: Strange type: " << componentIndex.type << "\n";
-				break;
-				/*JONDE REMOVE case ComponentType::TRANSFORM:
-					if(transform == nullptr)
-						transform = m_objectFactory.getTransform(componentIndex.id);
-					else cout << "ERROR: Found another transform component. id: " << componentIndex.id << "\n";
-				break;
-				*/
-				case ComponentType::MATERIAL:
-					if(material == nullptr)
-					{
-						material = m_objectFactory.getMaterial(componentIndex.id);
-						debugMaterial = material;
-					}
-					else cout << "ERROR: Found another material component. id: " << componentIndex.id << "\n";
-				break;
-				case ComponentType::MESH:
-					if(mesh == nullptr)
-					{
-						mesh = m_objectFactory.getMesh(componentIndex.id);
-						debugMesh = mesh;
-					}
-					else cout << "ERROR: Found another mesh component. id: " << componentIndex.id << "\n";
-				break;
-			}
-		}
+		const Material* material = nullptr;
+		const Mesh* mesh = nullptr;
 
-		if (mesh)
+		if (m_meshes.check(id))
+			mesh = &getMesh(id);
+		else if (m_meshLinks.check(id))
+			mesh = &getMesh(m_meshLinks.get(id));
+
+		if (m_materials.check(id))
+			material = &getMaterial(id);
+		else if (m_materialLinks.check(id))
+			material = &getMaterial(m_materialLinks.get(id));
+
+		if (m_transformSystem.hasTransform(id) &&
+			mesh &&
+			material)
 		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			//const Material& material = getMaterial(id);
+			//const Mesh& mesh = getMesh(id);
+
+			//debugMaterial = &material;
+			//debugMesh = &mesh;
+
 			#ifdef RAE_DEBUG
-				cout << "Going to render Mesh. id: " << mesh->id() << "\n";
+				cout << "Going to render Mesh. id: " << id << "\n";
 			#endif
-
-			renderMesh(transform, material, mesh);
+			renderMesh(transform, *material, *mesh);
 		}
-		//else cout << "No mesh and no transform.\n";
 	}
 
 	/*
@@ -320,7 +348,7 @@ void RenderSystem::render(double time, double delta_time, std::vector<Entity>& e
 	*/
 }
 
-void RenderSystem::renderPicking(std::vector<Entity>& entities)
+void RenderSystem::renderPicking()
 {
 	glViewport(0, 0, m_windowPixelWidth, m_windowPixelHeight);
 	//glViewport(0, 0, m_windowWidth, m_windowHeight);
@@ -331,50 +359,31 @@ void RenderSystem::renderPicking(std::vector<Entity>& entities)
 
 	glUseProgram(pickingShaderID);
 
-	int entity_id = 0;
-	for (auto& entity : entities)
+	for (Id id : m_objectFactory.entities())
 	{
-		const Transform& transform = m_transformSystem.getTransform(entity.id());
-		Mesh*      mesh      = nullptr;
-		
-		for (auto& componentIndex : entity.components())
-		{
-			switch( (ComponentType)componentIndex.type )
-			{
-				default:
-					//cout << "ERROR: Strange type: " << componentIndex.type << "\n";
-				break;
-				/*JONDE REMOVE case ComponentType::TRANSFORM:
-					if(transform == nullptr)
-						transform = m_objectFactory.getTransform(componentIndex.id);
-					else cout << "ERROR: Found another transform component. id: " << componentIndex.id << "\n";
-				break;
-				*/
-				case ComponentType::MATERIAL:
-				break;
-				case ComponentType::MESH:
-					if(mesh == nullptr)
-						mesh = m_objectFactory.getMesh(componentIndex.id);
-					else cout << "ERROR: Found another mesh component. id: " << componentIndex.id << "\n";
-				break;
-			}
-		}
+		const Mesh* mesh = nullptr;
 
-		if (mesh)
+		if (m_meshes.check(id))
+			mesh = &getMesh(id);
+		else if (m_meshLinks.check(id))
+			mesh = &getMesh(m_meshLinks.get(id));
+
+		if (m_transformSystem.hasTransform(id) &&
+			mesh)
 		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			//const Mesh& mesh = getMesh(id);
+
 			#ifdef RAE_DEBUG
-				cout << "Going to render Mesh. id: " << mesh->id() << "\n";
+				cout << "Going to render Mesh. id: " << id << "\n";
 			#endif
 
-			renderMeshPicking(transform, mesh, entity_id);
+			renderMeshPicking(transform, *mesh, id);
 		}
-		//else cout << "No mesh and no transform.\n";
-
-		++entity_id;
 	}
 }
 
-void RenderSystem::renderMesh(const Transform& transform, Material* material, Mesh* mesh)
+void RenderSystem::renderMesh(const Transform& transform, const Material& material, const Mesh& mesh)
 {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
@@ -397,19 +406,16 @@ void RenderSystem::renderMesh(const Transform& transform, Material* material, Me
 	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
 
 	// Bind texture in Texture Unit 0
-	if( material != nullptr )
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, material->textureID());
-		// Set textureSampler to use Texture Unit 0
-		glUniform1i(textureUni, 0);
-	}
-	else glBindTexture(GL_TEXTURE_2D, 0);
-	
-	mesh->render(shaderID);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, material.textureID());
+	// Set textureSampler to use Texture Unit 0
+	glUniform1i(textureUni, 0);
+	//JONDE REMOVE else glBindTexture(GL_TEXTURE_2D, 0);
+
+	mesh.render(shaderID);
 }
 
-void RenderSystem::renderMeshPicking(const Transform& transform, Mesh* mesh, int entity_id)
+void RenderSystem::renderMeshPicking(const Transform& transform, const Mesh& mesh, Id id)
 {
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
@@ -424,11 +430,11 @@ void RenderSystem::renderMeshPicking(const Transform& transform, Mesh* mesh, int
 	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
 
 	glUniformMatrix4fv(pickingModelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
-	glUniform1i(entityUni, entity_id);
-	
+	glUniform1i(entityUni, id);
+
 	glBindTexture(GL_TEXTURE_2D, 0); // No texture
-	
-	mesh->render(pickingShaderID);
+
+	mesh.render(pickingShaderID);
 }
 
 void RenderSystem::render2dBackground(double time, double delta_time)
@@ -502,10 +508,10 @@ void RenderSystem::render2d(double time, double delta_time)
 			std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
 			nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string mesh_count_str = "Meshes: " + std::to_string(m_objectFactory.meshCount());
+			std::string mesh_count_str = "Meshes: " + std::to_string(meshCount());
 			nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string material_count_str = "Materials: " + std::to_string(m_objectFactory.materialCount());
+			std::string material_count_str = "Materials: " + std::to_string(materialCount());
 			nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 			//nvgText(vg, 10.0f, vertPos, m_pickedString.c_str(), nullptr);

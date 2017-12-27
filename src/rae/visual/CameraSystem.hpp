@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include "Entity.hpp"
 
 #include "Camera.hpp"
 #include "rae/core/ISystem.hpp"
@@ -18,7 +17,7 @@ public:
 
 	String name() override { return "CameraSystem"; }
 
-	bool update(double time, double delta_time, std::vector<Entity>& entities) override;
+	bool update(double time, double delta_time) override;
 
 	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);

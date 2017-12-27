@@ -11,7 +11,7 @@ TransformSystem::TransformSystem()
 
 }
 
-bool TransformSystem::update(double time, double deltaTime, std::vector<Entity>& entities)
+bool TransformSystem::update(double time, double deltaTime)
 {
 	/* JONDE REMOVE
 	std::cout << "Printing out TransformSystem:\n";

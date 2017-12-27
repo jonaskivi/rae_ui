@@ -1,4 +1,4 @@
-#ifndef RAE_3D_ENTITY_HPP
+/*#ifndef RAE_3D_ENTITY_HPP
 #define RAE_3D_ENTITY_HPP
 
 #include <vector>
@@ -59,3 +59,4 @@ protected:
 }//end namespace rae
 
 #endif
+*/

@@ -31,7 +31,7 @@ MediaAsset& AVSystem::getAsset(AssetId id)
 	return m_mediaAssets[id];
 }
 
-bool AVSystem::update(double time, double deltaTime, std::vector<Entity>&)
+bool AVSystem::update(double time, double deltaTime)
 {
 	return false; // for now
 }

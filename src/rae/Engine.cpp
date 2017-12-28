@@ -4,11 +4,11 @@
 
 #include "rae/core/ISystem.hpp"
 #include "Entity.hpp"
-#include "Mesh.hpp"
-#include "Transform.hpp"
+#include "rae/visual/Mesh.hpp"
+#include "rae/visual/Transform.hpp"
 #include "Material.hpp"
 #include "ComponentType.hpp"
-#include "Random.hpp"
+#include "rae/core/Random.hpp"
 
 namespace rae
 {

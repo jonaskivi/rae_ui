@@ -1,3 +1,4 @@
+#ifdef USE_RAE_AV
 #include <iostream>
 #include <cmath>
 #include <chrono>
@@ -365,3 +366,4 @@ void OpticalFlow::writeFrameToDiskAndImage(String filepath, ImageBuffer& image)
 
 	m_outFrameCount++;
 }
+#endif

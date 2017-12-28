@@ -12,10 +12,14 @@
 #include "rae/visual/RenderSystem.hpp"
 #include "rae/Engine.hpp"
 
+#ifdef USE_RAE_AV
 #include "rae_av/AVSystem.hpp"
+#endif
 
 using namespace rae;
+#ifdef USE_RAE_AV
 using namespace rae::av;
+#endif
 
 enum class VideoRenderingState
 {
@@ -57,15 +61,19 @@ protected:
 	}
 
 	Engine m_engine;
+	#ifdef USE_RAE_AV
 	AVSystem m_avSystem;
+	#endif
 	Input& m_input;
 
 	ImageBuffer&			m_screenImage;
 
+	#ifdef USE_RAE_AV
 	AssetId					m_videoAssetId;
 
 	HdrFlow					m_hdrFlow;
 	OpticalFlow				m_opticalFlow;
+	#endif
 
 	VideoRenderingState		m_videoRenderingState = VideoRenderingState::Player;
 	bool					m_evenFrames = true;

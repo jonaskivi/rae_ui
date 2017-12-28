@@ -1,6 +1,8 @@
 #include "BvhNode.hpp"
 #include "HitRecord.hpp"
 
+#include "rae/core/Random.hpp"
+
 #include <iostream>
 
 using namespace rae;

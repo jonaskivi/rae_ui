@@ -7,8 +7,8 @@ using glm::dot;
 
 #include <iostream>
 
-#include "Random.hpp"
-#include "Camera.hpp"
+#include "rae/core/Random.hpp"
+#include "rae/visual/Camera.hpp"
 
 namespace rae
 {

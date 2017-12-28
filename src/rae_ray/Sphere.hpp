@@ -9,7 +9,7 @@ namespace rae
 {
 
 class Ray;
-class HitRecord;
+struct HitRecord;
 class Material;
 class Aabb;
 

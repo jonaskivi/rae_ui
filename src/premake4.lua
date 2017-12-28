@@ -36,7 +36,9 @@ solution "pihlaja"
          "rae/**.hpp",
          "rae/**.cpp",
          "rae_av/**.hpp",
-         "rae_av/**.cpp"
+         "rae_av/**.cpp",
+         "rae_ray/**.hpp",
+         "rae_ray/**.cpp"
       }
       includedirs
       {
@@ -47,28 +49,30 @@ solution "pihlaja"
          "external/glm/glm",
          "./",
          "rae",
+         "rae_av",
+         "rae_ray",
          "external/" }
       links
       {
          "glfw3", "glew", "nanovg", "assimp",
          --"opencv_calib3d",
-         "opencv_core",
-         "opencv_imgcodecs",
-         "opencv_highgui",
-         "opencv_imgproc",
+         --NOT_ON_WINDOWS: "opencv_core",
+         --NOT_ON_WINDOWS: "opencv_imgcodecs",
+         --NOT_ON_WINDOWS: "opencv_highgui",
+         --NOT_ON_WINDOWS: "opencv_imgproc",
          --"opencv_flann",
-         "opencv_features2d",
-         "opencv_video",
+         --NOT_ON_WINDOWS: "opencv_features2d",
+         --NOT_ON_WINDOWS: "opencv_video",
          --"opencv_nonfree",
          --"opencv_ml",
          ---- "opencv_cudaarithm",
          ---- "opencv_cudaoptflow",
          -- opencv contrib stuff:
-         "opencv_optflow",
+         --NOT_ON_WINDOWS: "opencv_optflow",
          -- ffmpeg stuff:
-         "avcodec",
-         "avformat",
-         "swscale",
+         --NOT_ON_WINDOWS: "avcodec",
+         --NOT_ON_WINDOWS: "avformat",
+         --NOT_ON_WINDOWS: "swscale",
       }
       defines { "GLEW_STATIC", "NANOVG_GLEW" }
 

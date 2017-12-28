@@ -17,7 +17,7 @@ public:
 	virtual String name() { return "System name"; }
 
 	// Returns changed == true if we need to render again because of changes in the system. JONDE REMOVE return value. that is just horrible.
-	virtual bool update(double time, double delta_time) {}
+	virtual bool update(double time, double delta_time) { return false; }
 	virtual void onFrameEnd() {}
 	virtual void destroyEntities(const Array<Id>& entities) {}
 

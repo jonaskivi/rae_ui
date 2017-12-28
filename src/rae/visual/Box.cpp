@@ -1,6 +1,7 @@
 #include "rae/visual/Box.hpp"
 #include "rae/visual/Ray.hpp"
 
+#include <ciso646>
 #include <algorithm>
 
 using namespace rae;

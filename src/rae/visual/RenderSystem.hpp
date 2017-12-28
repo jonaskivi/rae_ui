@@ -10,7 +10,7 @@
 #include "rae/core/Types.hpp"
 #include "rae/core/ISystem.hpp"
 #include "TransformSystem.hpp"
-#include "RayTracer.hpp"
+#include "rae_ray/RayTracer.hpp"
 #include "rae/ui/UISystem.hpp"
 
 #include "rae/image/ImageBuffer.hpp" //JONDE TEMP HACK
@@ -23,10 +23,10 @@ namespace rae
 class CameraSystem;
 class TransformSystem;
 class ObjectFactory;
-class Transform;
+struct Transform;
 class Material;
 class Mesh;
-class Entity;
+struct Entity;
 class Input;
 
 class RenderSystem : public ISystem

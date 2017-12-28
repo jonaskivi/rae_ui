@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "Camera.hpp"
 #include "rae/core/ISystem.hpp"

@@ -9,18 +9,18 @@
 #include "ObjectFactory.hpp"
 #include "core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
-#include "TransformSystem.hpp"
-#include "CameraSystem.hpp"
+#include "rae/visual/TransformSystem.hpp"
+#include "rae/visual/CameraSystem.hpp"
 #include "rae/ui/UISystem.hpp"
-#include "RenderSystem.hpp"
-#include "RayTracer.hpp"
+#include "rae/visual/RenderSystem.hpp"
+#include "rae_ray/RayTracer.hpp"
 
 namespace rae
 {
 
 class ISystem;
 class RenderSystem;
-class Entity;
+struct Entity;
 
 class Engine
 {

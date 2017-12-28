@@ -15,7 +15,7 @@ using glm::vec3;
 #include "assimp/LogStream.hpp"
 //end // ASSIMP
 
-#include "Hitable.hpp"
+#include "rae_ray/Hitable.hpp"
 #include "rae/visual/Box.hpp"
 
 namespace rae
@@ -48,7 +48,7 @@ public:
 
 	void createVBOs();
 	void render(unsigned set_shader_program_id) const;
-	int triangleCount() const { return indices.size() / 3; }
+	int triangleCount() const { return int(indices.size()) / 3; }
 	void computeAabb();
 
 protected:

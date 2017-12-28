@@ -27,7 +27,7 @@ public:
 
 	int size()
 	{
-		return m_items.size();
+		return (int)m_items.size();
 	}
 
 	void create(Id id, Comp&& comp)
@@ -89,7 +89,7 @@ public:
 	{
 		//if (m_idMap.find(id) != m_idMap.end())
 		int index = (int)id;
-		if (index < m_idMap2.size() && m_idMap2[index] != InvalidIndex)
+		if (index < (int)m_idMap2.size() && m_idMap2[index] != InvalidIndex)
 			return true;
 		return false;
 	}

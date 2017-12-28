@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef USE_RAE_AV
 #include <iostream>
 
 #include "opencv2/core.hpp"
@@ -94,3 +94,4 @@ private:
 
 }
 }
+#endif

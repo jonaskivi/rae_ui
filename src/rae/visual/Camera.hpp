@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ciso646>
+
 //#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -9,7 +11,7 @@ using glm::vec3;
 #include "core/Utils.hpp"
 #include "rae/visual/Ray.hpp"
 
-#include "Animator.hpp"
+#include "rae/animation/Animator.hpp"
 
 namespace rae
 {

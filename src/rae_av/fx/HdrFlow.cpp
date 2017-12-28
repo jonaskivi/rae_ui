@@ -1,3 +1,4 @@
+#ifdef USE_RAE_AV
 #include "rae_av/fx/HdrFlow.hpp"
 
 using namespace cv;
@@ -113,3 +114,4 @@ void HdrFlow::waitForData()
 	m_flows[1].waitForData();
 	setState(EffectNodeState::WaitingForData);
 }
+#endif

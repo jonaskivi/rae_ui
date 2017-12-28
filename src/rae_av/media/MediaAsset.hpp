@@ -1,14 +1,17 @@
 #pragma once
 
+#ifdef USE_RAE_AV
 extern "C"
 {
 	#include <libavcodec/avcodec.h>
 	#include <libavformat/avformat.h>
 	#include <libswscale/swscale.h>
 }
+#endif
 
 #include "rae/asset/IAsset.hpp"
 
+#ifdef USE_RAE_AV
 namespace rae
 {
 namespace av
@@ -24,6 +27,7 @@ public:
 	~MediaAsset();
 
 	bool load(); // Load the mediafile. Return true on success.
+
 	void unload(); // Free memory and resources.
 
 	bool isLoaded() { return m_loaded; }
@@ -49,3 +53,4 @@ protected:
 
 }
 }
+#endif

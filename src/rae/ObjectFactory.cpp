@@ -5,8 +5,8 @@ using namespace std;
 #include "ObjectFactory.hpp"
 #include "ComponentType.hpp"
 #include "Entity.hpp"
-#include "Transform.hpp"
-#include "Mesh.hpp"
+#include "rae/visual/Transform.hpp"
+#include "rae/visual/Mesh.hpp"
 #include "Material.hpp"
 #include "Hierarchy.hpp"
 

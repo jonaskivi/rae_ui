@@ -12,7 +12,7 @@ namespace rae
 {
 
 class Ray;
-class HitRecord;
+struct HitRecord;
 class Box;
 
 class BvhNode : public Hitable

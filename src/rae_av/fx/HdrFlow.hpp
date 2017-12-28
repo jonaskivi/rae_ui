@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef USE_RAE_AV
 #include "rae_av/fx/OpticalFlow.hpp"
 
 namespace rae
@@ -45,3 +45,4 @@ private:
 
 }
 }
+#endif

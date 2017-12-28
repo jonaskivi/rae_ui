@@ -1,3 +1,4 @@
+#ifdef USE_RAE_AV
 #include <iostream>
 
 #include "rae_av/media/MediaAsset.hpp"
@@ -200,3 +201,4 @@ void MediaAsset::unload()
 	// Close the video file
 	avformat_close_input(&m_formatContext);
 }
+#endif

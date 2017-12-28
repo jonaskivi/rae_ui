@@ -1,3 +1,4 @@
+#ifdef USE_RAE_AV
 #include <iostream>
 
 #include "rae/visual/RenderSystem.hpp"
@@ -61,3 +62,4 @@ void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 
 	image.needsUpdate = true;
 }
+#endif

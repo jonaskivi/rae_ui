@@ -6,7 +6,7 @@
 
 #include "rae/core/Types.hpp"
 #include "rae/visual/Ray.hpp"
-#include "HitRecord.hpp"
+#include "rae_ray/HitRecord.hpp"
 
 struct NVGcontext;
 struct NVGLUframebuffer;

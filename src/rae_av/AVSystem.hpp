@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef USE_RAE_AV
 #include <vector>
 
 extern "C"
@@ -55,3 +55,4 @@ private:
 
 }
 }
+#endif

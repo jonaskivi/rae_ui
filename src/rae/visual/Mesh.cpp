@@ -334,7 +334,7 @@ void Mesh::generateBox()
 void Mesh::computeAabb()
 {
 	m_aabb.clear();
-	for(int i = 0; i < vertices.size(); ++i)
+	for(int i = 0; i < (int)vertices.size(); ++i)
 	{
 		m_aabb.grow(vertices[i]);
 	}

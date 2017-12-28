@@ -57,9 +57,10 @@ Transform& TransformSystem::getTransform(Id id)
 
 void TransformSystem::setPosition(Id id, const vec3& position)
 {
+	m_transforms.get(id).position = position;
 }
 
 const vec3& TransformSystem::getPosition(Id id)
 {
-
+	return m_transforms.get(id).position;
 }

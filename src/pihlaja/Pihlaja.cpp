@@ -2,21 +2,27 @@
 
 Pihlaja::Pihlaja(GLFWwindow* glfwWindow) :
 	m_engine(glfwWindow),
+	#ifdef USE_RAE_AV
 	m_avSystem(m_engine.getRenderSystem()),
+	#endif
 	m_screenImage(m_engine.getRenderSystem().getBackgroundImage()),
 	m_input(m_engine.getInput())
 {
+	#ifdef USE_RAE_AV
 	m_engine.addSystem(m_avSystem);
+	#endif
 	m_engine.addSystem(*this);
 
 	using std::placeholders::_1;
 	m_input.connectKeyEventHandler(std::bind(&Pihlaja::onKeyEvent, this, _1));
 
+	#ifdef USE_RAE_AV
 	//m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/MVI_9132.MOV");
 	//m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/glass/MVI_8882.MOV");
 	m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/test5.mov");
 
 	////////m_hdrFlow.setExposureWeight(0.75f);
+	#endif
 
 	initUI();
 }
@@ -54,6 +60,7 @@ void Pihlaja::togglePlay()
 
 void Pihlaja::rewind()
 {
+	#ifdef USE_RAE_AV
 	if (not m_avSystem.hasAsset(m_videoAssetId))
 	{
 		std::cout << "No asset found in AVSystem.\n";
@@ -68,6 +75,7 @@ void Pihlaja::rewind()
 	}
 
 	asset.seekToStart();
+	#endif
 	setNeedsFrameUpdate(true);
 	m_frameCount = 0;
 }
@@ -126,6 +134,7 @@ void Pihlaja::run()
 // OpticalFlow version
 bool Pihlaja::update(double time, double deltaTime)
 {
+#ifdef USE_RAE_AV
 	if (not m_play and not m_needsFrameUpdate)
 	{
 		return false;
@@ -198,7 +207,7 @@ bool Pihlaja::update(double time, double deltaTime)
 	//}
 
 	//m_opticalFlow.update(time, deltaTime, m_screenImage);
-	
+#endif
 	return m_needsFrameUpdate || m_play;
 	//return false;
 }

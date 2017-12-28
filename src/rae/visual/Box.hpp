@@ -10,7 +10,7 @@ namespace rae
 {
 
 class Ray;
-class Transform;
+struct Transform;
 
 class Box
 {

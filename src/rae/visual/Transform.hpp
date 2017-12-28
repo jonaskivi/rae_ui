@@ -8,7 +8,7 @@ using glm::quat;
 using glm::mat4;
 
 #include "rae/core/Types.hpp"
-#include "Animator.hpp"
+#include "rae/animation/Animator.hpp"
 
 namespace rae
 {

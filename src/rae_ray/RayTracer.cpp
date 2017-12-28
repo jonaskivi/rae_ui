@@ -9,13 +9,13 @@ using glm::vec3;
 using glm::dot;
 
 #include "core/Utils.hpp"
-#include "Random.hpp"
+#include "rae/core/Random.hpp"
 
-#include "CameraSystem.hpp"
+#include "rae/visual/CameraSystem.hpp"
 #include "Material.hpp"
 #include "Sphere.hpp"
-#include "Mesh.hpp"
-#include "image/ImageBuffer.hpp"
+#include "rae/visual/Mesh.hpp"
+#include "rae/image/ImageBuffer.hpp"
 
 using namespace rae;
 

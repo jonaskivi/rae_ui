@@ -3,7 +3,7 @@ using namespace std;
 #include <math.h>
 #include <assert.h>
 
-#include "Random.hpp"
+#include "rae/core/Random.hpp"
 
 #include "Material.hpp" // includes glew.h which is needed by nanovg headers.
 

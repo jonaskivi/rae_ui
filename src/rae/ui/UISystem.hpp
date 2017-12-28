@@ -14,7 +14,7 @@ using glm::vec3;
 
 #include "rae/core/ISystem.hpp"
 #include "ObjectFactory.hpp"
-#include "TransformSystem.hpp"
+#include "rae/visual/TransformSystem.hpp"
 
 struct NVGcontext;
 

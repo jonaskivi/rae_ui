@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ciso646>
 
 #include "rae/image/ImageBuffer.hpp"
 

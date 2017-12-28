@@ -1,5 +1,6 @@
 #include "rae/ui/UISystem.hpp"
 #include <iostream>
+#include <ciso646>
 
 #include "nanovg.h"
 #include "nanovg_gl.h"
@@ -8,7 +9,7 @@
 #include "rae/core/Utils.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
-#include "RenderSystem.hpp"
+#include "rae/visual/RenderSystem.hpp"
 
 using namespace rae;
 

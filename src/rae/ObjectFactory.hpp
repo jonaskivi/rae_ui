@@ -14,8 +14,8 @@ using glm::vec4;
 #include "rae/core/Types.hpp"
 
 #include "rae/entity/Table.hpp"
-#include "Transform.hpp"
-#include "Mesh.hpp"
+#include "rae/visual/Transform.hpp"
+#include "rae/visual/Mesh.hpp"
 #include "Material.hpp"
 
 namespace rae
@@ -25,7 +25,7 @@ namespace rae
 //JONDE REMOVE class Entity;
 class Mesh;
 class Material;
-class Transform;
+struct Transform;
 //class Hierarchy;
 
 const unsigned INITIAL_ENTITY_RESERVE = 20;

@@ -1,15 +1,8 @@
-# Rae Ray
-A small beginning of a ray tracer inspired by/copied from Peter Shirley's minibooks
+# Rae UI
+WIP on a component based UI system, which happens to use NanoVG.
 
+For some reason currently contains also a raytracer...
 ![ScreenShot](https://cloud.githubusercontent.com/assets/6566641/16933706/ae8202a8-4d58-11e6-9008-33fd87df6dd8.jpeg)
-
-# Features
-
-- Ray tracing spheres
-- Depth of field
-- Cumulative rendering. Image gets less noisier over time.
-- Interactive moveable camera (Second mouse button + WASDQE)
-- Three material types (Lambertian, Metal, Dielectric)
 
 Source code is found under "src/rae". 
 
@@ -26,7 +19,7 @@ Source code is found under "src/rae".
     # And finally:
     make
     # cd into the bin directory and run:
-    ./rae_ray
+    ./pihlaja
 
     # on OSX:
     premake4 xcode4

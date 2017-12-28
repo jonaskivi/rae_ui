@@ -136,3 +136,6 @@ bool CameraSystem::update(double time, double delta_time)
 	return cameraChanged;
 }
 
+void CameraSystem::destroyEntities(const Array<Id>& entities)
+{
+}

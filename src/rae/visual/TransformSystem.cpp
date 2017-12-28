@@ -30,6 +30,11 @@ bool TransformSystem::update(double time, double deltaTime)
 	return false;
 }
 
+void TransformSystem::destroyEntities(const Array<Id>& entities)
+{
+	m_transforms.removeEntities(entities);
+}
+
 void TransformSystem::addTransform(Id id, Transform&& transform)
 {
 	m_transforms.create(id, std::move(transform));

@@ -66,9 +66,13 @@ public:
 
 	Id createEmptyEntity();
 	//JONDE REMOVE Entity& createEmptyEntity3();
-	//void destroyEntity(int index);
-	int entityCount() { return (int)m_entities.size(); }
-	const Array<Id>& entities() { return m_entities; }
+	//void destroyEntity(Id id);
+
+	Id biggestId() const;
+	int entityCount() const { return (int)m_entities.size(); }
+	const Array<Id>& entities() const { return m_entities; }
+
+	void destroyEntities(const Array<Id>& entities);
 
 	//TODO move to VisualSystem:
 	// Meshes

@@ -135,7 +135,7 @@ void RenderSystem::init()
 	// Init basic shader
 
 	shaderID = loadShaders( "./data/shaders/basic.vert", "./data/shaders/basic.frag" );
-	if(shaderID == 0)
+	if (shaderID == 0)
 		exit(0);
 
 	modelViewMatrixUni = glGetUniformLocation(shaderID, "modelViewProjectionMatrix");
@@ -150,7 +150,7 @@ void RenderSystem::init()
 	// Init picking shader
 
 	pickingShaderID = loadShaders( "./data/shaders/picking.vert", "./data/shaders/picking.frag" );
-	if(pickingShaderID == 0)
+	if (pickingShaderID == 0)
 		exit(0);
 	pickingModelViewMatrixUni = glGetUniformLocation(pickingShaderID, "modelViewProjectionMatrix");
 	entityUni = glGetUniformLocation(pickingShaderID, "entityID");
@@ -159,53 +159,74 @@ void RenderSystem::init()
 Id RenderSystem::createBox()
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createBox entity: " << id << "\n";
 	Mesh mesh;
-	mesh.generateBox();
-	mesh.createVBOs();
 	addMesh(id, std::move(mesh));
+
+	// Got into nasty crashes when I first created the VBOs and then moved the mesh to the table.
+	// Apparently you can't do that. Must first move mesh into table, and only create VBOs at the final memory pointers.
+	Mesh& mesh2 = getMesh(id);
+	mesh2.generateBox();
+	mesh2.createVBOs();
 	return id;
 }
 
 Id RenderSystem::createMesh(const String& filename)
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createMesh entity: " << id << "\n";
 	Mesh mesh;
-	mesh.loadModel(filename);
 	addMesh(id, std::move(mesh));
+
+	Mesh& mesh2 = getMesh(id);
+	mesh2.loadModel(filename);
 	return id;
 }
 
 Id RenderSystem::createMaterial(const Colour& color)
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createMaterial entity: " << id << "\n";
 	Material material(color);
-	material.generateFBO(vg);
 	addMaterial(id, std::move(material));
+
+	Material& material2 = getMaterial(id);
+	material2.generateFBO(vg);
 	return id;
 }
 
 Id RenderSystem::createAnimatingMaterial(const Colour& color)
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createAnimatingMaterial entity: " << id << "\n";
 	Material material(color);
-	material.animate(true);
-	material.generateFBO(vg);
 	addMaterial(id, std::move(material));
+
+	Material& material2 = getMaterial(id);
+	material2.animate(true);
+	material2.generateFBO(vg);
 	return id;
 }
 
 void RenderSystem::addMesh(Id id, Mesh&& comp)
 {
+	std::cout << "addMesh to entity: " << id << "\n";
 	m_meshes.create(id, std::move(comp));
 }
 
-const Mesh& RenderSystem::getMesh(Id id)
+const Mesh& RenderSystem::getMesh(Id id) const
+{
+	return m_meshes.get(id);
+}
+
+Mesh& RenderSystem::getMesh(Id id)
 {
 	return m_meshes.get(id);
 }
 
 void RenderSystem::addMeshLink(Id id, Id linkId)
 {
+	std::cout << "addMeshLink: to id: " << id << " linkId: " << linkId << "\n";
 	m_meshLinks.create(id, std::move(linkId));
 }
 
@@ -214,13 +235,19 @@ void RenderSystem::addMaterial(Id id, Material&& comp)
 	m_materials.create(id, std::move(comp));
 }
 
-const Material& RenderSystem::getMaterial(Id id)
+const Material& RenderSystem::getMaterial(Id id) const
+{
+	return m_materials.get(id);
+}
+
+Material& RenderSystem::getMaterial(Id id)
 {
 	return m_materials.get(id);
 }
 
 void RenderSystem::addMaterialLink(Id id, Id linkId)
 {
+		std::cout << "addMaterialLink: to id: " << id << " linkId: " << linkId << "\n";
 	m_materialLinks.create(id, std::move(linkId));
 }
 
@@ -285,6 +312,14 @@ bool RenderSystem::update(double time, double delta_time)
 	return false; // for now
 }
 
+void RenderSystem::destroyEntities(const Array<Id>& entities)
+{
+	m_meshes.removeEntities(entities);
+	m_meshLinks.removeEntities(entities);
+	m_materials.removeEntities(entities);
+	m_materialLinks.removeEntities(entities);
+}
+
 void RenderSystem::render(double time, double delta_time)
 {
 	glViewport(0, 0, m_windowPixelWidth, m_windowPixelHeight);
@@ -306,8 +341,8 @@ void RenderSystem::render(double time, double delta_time)
 
 	for (Id id : m_objectFactory.entities())
 	{
-		const Material* material = nullptr;
-		const Mesh* mesh = nullptr;
+		Material* material = nullptr;
+		Mesh* mesh = nullptr;
 
 		if (m_meshes.check(id))
 			mesh = &getMesh(id);
@@ -324,14 +359,13 @@ void RenderSystem::render(double time, double delta_time)
 			material)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
-			//const Material& material = getMaterial(id);
-			//const Mesh& mesh = getMesh(id);
 
 			//debugMaterial = &material;
 			//debugMesh = &mesh;
 
 			#ifdef RAE_DEBUG
 				cout << "Going to render Mesh. id: " << id << "\n";
+				cout << "MeshLink is: " << m_meshLinks.get(id) << "\n";
 			#endif
 			renderMesh(transform, *material, *mesh);
 		}
@@ -361,8 +395,8 @@ void RenderSystem::renderPicking()
 
 	for (Id id : m_objectFactory.entities())
 	{
-		const Mesh* mesh = nullptr;
-
+		Mesh* mesh = nullptr;
+		
 		if (m_meshes.check(id))
 			mesh = &getMesh(id);
 		else if (m_meshLinks.check(id))
@@ -372,7 +406,6 @@ void RenderSystem::renderPicking()
 			mesh)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
-			//const Mesh& mesh = getMesh(id);
 
 			#ifdef RAE_DEBUG
 				cout << "Going to render Mesh. id: " << id << "\n";
@@ -411,6 +444,10 @@ void RenderSystem::renderMesh(const Transform& transform, const Material& materi
 	// Set textureSampler to use Texture Unit 0
 	glUniform1i(textureUni, 0);
 	//JONDE REMOVE else glBindTexture(GL_TEXTURE_2D, 0);
+
+	#ifdef RAE_DEBUG
+	std::cout << "Going to renderMesh with shaderID: " << shaderID << "\n";
+	#endif
 
 	mesh.render(shaderID);
 }

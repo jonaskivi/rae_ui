@@ -25,7 +25,7 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	m_currentTime = glfwGetTime();
 	m_previousTime = m_currentTime;
 
-	// TODO: now we only have 1 system... :)
+	// TODO what's this?:
 	//m_inputSystem = new InputSystem(window, &m_objectFactory);
 	//m_systems.push_back(g_input);
 
@@ -36,6 +36,10 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
 
+	// JONDE CHECK THIS:
+	Id emptyEntityId = m_objectFactory.createEmptyEntity(); // hack at index 0
+	std::cout << "Create empty hack entity at 0: " << emptyEntityId << "\n";
+
 	// Load model
 	Id meshID = m_renderSystem.createMesh("./data/models/bunny.obj");
 	m_modelID = meshID;
@@ -44,9 +48,6 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	m_materialID = m_renderSystem.createMaterial(Colour(0.2f, 0.5f, 0.7f, 0.0f));
 	m_bunnyMaterialID = m_renderSystem.createMaterial(Colour(0.7f, 0.3f, 0.1f, 0.0f));
 	m_buttonMaterialID = m_renderSystem.createAnimatingMaterial(Colour(0.0f, 0.0f, 0.1f, 0.0f));
-
-	// JONDE CHECK THIS:
-	m_objectFactory.createEmptyEntity(); // hack at index 0
 
 	createTestWorld2();
 
@@ -65,6 +66,11 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&Engine::onMouseEvent, this, _1));
 	m_input.connectKeyEventHandler(std::bind(&Engine::onKeyEvent, this, _1));
+}
+
+void Engine::destroyEntity(Id id)
+{
+	m_destroyEntities.emplace_back(id);
 }
 
 void Engine::addSystem(ISystem& ownSystem)
@@ -130,6 +136,16 @@ bool Engine::update()
 		}
 	}
 
+	if (!m_destroyEntities.empty())
+	{
+		for (auto system : m_systems)
+		{
+			system->destroyEntities(m_destroyEntities);
+		}
+		m_objectFactory.destroyEntities(m_destroyEntities);
+		m_destroyEntities.clear();
+	}
+
 	return changed;
 }
 
@@ -141,6 +157,7 @@ void Engine::askForFrameUpdate()
 Id Engine::createAddObjectButton()
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createAddObjectButton id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
 	m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
 
@@ -159,6 +176,7 @@ Id Engine::createAddObjectButton()
 Id Engine::createRandomBunnyEntity()
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createRandomBunnyEntity id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
@@ -173,6 +191,7 @@ Id Engine::createRandomBunnyEntity()
 Id Engine::createRandomCubeEntity()
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createRandomCubeEntity id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
@@ -187,6 +206,7 @@ Id Engine::createRandomCubeEntity()
 Id Engine::createCube(const vec3& position, const Colour& color)
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createCube id: " << id << "\n";
 	// The desired API:
 	m_transformSystem.addTransform(id, Transform(position));
 	//m_geometrySystem.setMesh(entity, m_meshID);
@@ -206,6 +226,7 @@ Id Engine::createCube(const vec3& position, const Colour& color)
 Id Engine::createBunny(const vec3& position, const Colour& color)
 {
 	Id id = m_objectFactory.createEmptyEntity();
+	std::cout << "createBunny id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(position));
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
@@ -351,19 +372,20 @@ void Engine::onMouseEvent(const Input& input)
 
 			//m_renderSystem.m_pickedString = std::to_string(pickedID) + " is " + std::to_string(res[0]) + " and " + std::to_string(res[1]);
 
-			if( pickedID == 0)
+			if (pickedID == 0)
 			{
 				// do nothing, it's the background.
 			}
-			else if( pickedID == 1)
+			else if (pickedID == 13)
 			{
-				createRandomCubeEntity(); // Hmm, we have no proper event handling yet, so entity 1 is the Add Object button!
+				createRandomCubeEntity();
 				createRandomBunnyEntity();
 			}
 			else
 			{
-				//JONDE TODO m_objectFactory.destroyEntity( pickedID );
-			}		
+				std::cout << "Picked entity: " << pickedID << "\n";
+				destroyEntity(pickedID);
+			}
 		}
 	}
 }
@@ -403,7 +425,8 @@ void Engine::reactToInput(const Input& input)
 
 	if (input.getKeyState(KeySym::O))
 	{
-		//JONDE TODO m_objectFactory.destroyEntity(getRandomInt(2, m_objectFactory.entityCount() )); // Hmm. Magic number 2 is the first index with created box entities.
+		std::cout << "biggestId: " << m_objectFactory.biggestId() << "\n";
+		destroyEntity((Id)getRandomInt(20, m_objectFactory.biggestId()));
 	}
 
 	// TODO use KeySym::Page_Up

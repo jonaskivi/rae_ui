@@ -323,6 +323,10 @@ bool RayTracer::update(double time, double deltaTime)
 	return false; // for now
 }
 
+void RayTracer::destroyEntities(const Array<Id>& entities)
+{
+}
+
 void RayTracer::toggleBufferQuality()
 {
 	if (m_buffer == &m_smallBuffer)

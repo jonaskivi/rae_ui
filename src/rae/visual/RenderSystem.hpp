@@ -54,6 +54,7 @@ public:
 	Id createAnimatingMaterial(const Colour& color);
 
 	bool update(double time, double delta_time) override;
+	void destroyEntities(const Array<Id>& entities) override;
 
 	void render(double time, double delta_time);
 	void renderPicking();
@@ -85,11 +86,13 @@ public:
 	}
 
 	void addMesh(Id id, Mesh&& comp);
-	const Mesh& getMesh(Id id);
+	const Mesh& getMesh(Id id) const;
+	Mesh& getMesh(Id id);
 	void addMeshLink(Id id, Id linkId);
 
 	void addMaterial(Id id, Material&& comp);
-	const Material& getMaterial(Id id);
+	const Material& getMaterial(Id id) const;
+	Material& getMaterial(Id id);
 	void addMaterialLink(Id id, Id linkId);
 
 	int meshCount() { return m_meshes.size(); }

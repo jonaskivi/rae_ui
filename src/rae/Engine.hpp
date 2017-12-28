@@ -44,6 +44,8 @@ public:
 	void createTestWorld();
 	void createTestWorld2();
 
+	void destroyEntity(Id id);
+
 	void addSystem(ISystem& ownSystem);
 	RenderSystem& getRenderSystem() { return m_renderSystem; }
 	Input& getInput() { return m_input; }
@@ -74,13 +76,15 @@ protected:
 	
 	ObjectFactory m_objectFactory;
 
-	std::vector<ISystem*> m_systems;
+	Array<ISystem*> m_systems;
 
 	TransformSystem		m_transformSystem;
 	CameraSystem		m_cameraSystem;
 	RayTracer			m_rayTracer;
 	UISystem			m_uiSystem;
 	RenderSystem		m_renderSystem;
+
+	Array<Id>			m_destroyEntities;
 
 	int m_meshID; // These should go someplace else...
 	int m_modelID;

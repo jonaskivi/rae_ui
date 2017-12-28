@@ -47,6 +47,8 @@ m_boxes(ReserveBoxes)
 		virxels(-550.0f, -300.0f, 0.0f),
 		virxels(300.0f, 25.0f, 0.1f),
 		[](){});
+
+	std::cout << "UISystem creating Info button: " << m_infoButtonId << "\n";
 }
 
 void UISystem::createDefaultTheme()
@@ -124,6 +126,17 @@ bool UISystem::update(double time, double deltaTime)
 	return false;
 }
 
+void UISystem::destroyEntities(const Array<Id>& entities)
+{
+	m_boxes.removeEntities(entities);
+	m_texts.removeEntities(entities);
+	m_buttons.removeEntities(entities);
+	m_commands.removeEntities(entities);
+	m_colours.removeEntities(entities);
+	m_actives.removeEntities(entities);
+	m_hovers.removeEntities(entities);
+}
+
 void UISystem::render(double time, double deltaTime, NVGcontext* vg,
 	int windowWidth, int windowHeight, float screenPixelRatio)
 {
@@ -179,8 +192,8 @@ void UISystem::render(double time, double deltaTime, NVGcontext* vg,
 			}
 		}
 
-		//JONDE nvgFontFace(vg, "sans");
-		nvgFontFace(vg, "logo");
+		nvgFontFace(vg, "sans");
+		//nvgFontFace(vg, "logo");
 
 		float vertPos = 10.0f;
 

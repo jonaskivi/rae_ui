@@ -18,6 +18,7 @@ public:
 	String name() override { return "CameraSystem"; }
 
 	bool update(double time, double delta_time) override;
+	void destroyEntities(const Array<Id>& entities) override;
 
 	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);
@@ -33,7 +34,7 @@ public:
 
 private:
 	Input& m_input;
-	Camera m_camera;
+	Camera m_camera; // TODO Table of cameras
 
 	void emitCameraChangedEvent();
 	std::vector<std::function<void(const Camera&)>> cameraChangedEvent;

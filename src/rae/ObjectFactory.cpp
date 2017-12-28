@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 #include "ObjectFactory.hpp"
@@ -67,12 +68,30 @@ Id ObjectFactory::createEmptyEntity()
 {
 	Id id = getNextId();
 	m_entities.emplace_back(id);
-	//m_entities.create(id, std::move(Entity()));
 	return id;
 }
 
+Id ObjectFactory::biggestId() const
+{
+	Id biggest = 0;
+	for (Id id : m_entities)
+	{
+		if (id > biggest)
+			biggest = id;
+	}
+	return biggest;
+}
+
+void ObjectFactory::destroyEntities(const Array<Id>& entities)
+{
+	for (Id id : entities)
+	{
+		m_entities.erase(std::remove(m_entities.begin(), m_entities.end(), id), m_entities.end());
+	}
+}
+
 /*
-void ObjectFactory::destroyEntity(int index)
+void ObjectFactory::destroyEntity(Id id)
 {
 	if( index < 0 || index >= m_entities.size() )
 		return;
@@ -107,9 +126,6 @@ void ObjectFactory::destroyEntity(int index)
 	m_entities.erase(m_entities.begin() + index);
 }
 */
-
-//JONDE I WAS HERE.
-
 // Meshes
 /*
 Mesh& ObjectFactory::createMesh()

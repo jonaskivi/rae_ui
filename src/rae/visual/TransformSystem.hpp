@@ -21,6 +21,7 @@ public:
 	String name() override { return "TransformSystem"; }
 
 	bool update(double time, double deltaTime) override;
+	void destroyEntities(const Array<Id>& entities) override;
 
 	void addTransform(Id id, Transform&& transform);
 	bool hasTransform(Id id) const;

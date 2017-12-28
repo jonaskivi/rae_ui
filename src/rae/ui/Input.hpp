@@ -126,6 +126,8 @@ public:
 		return m_changed;
 	}
 
+	void destroyEntities(const Array<Id>& entities) override {}
+
 	// Must be called every frame to clear key up and down states
 	void onFrameEnd() override
 	{

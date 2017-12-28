@@ -105,12 +105,13 @@ void Pihlaja::onKeyEvent(const Input& input)
 				else m_videoRenderingState = VideoRenderingState::Player;
 				setNeedsFrameUpdate(true);
 				break;
-			case KeySym::E:
+			/*case KeySym::E:
 				if (m_videoRenderingState == VideoRenderingState::Player)
 					m_videoRenderingState = VideoRenderingState::RenderToDisk;
 				else m_videoRenderingState = VideoRenderingState::Player;
 				setNeedsFrameUpdate(true);
 				break;
+				*/
 			default:
 			break;
 		}
@@ -123,7 +124,7 @@ void Pihlaja::run()
 }
 
 // OpticalFlow version
-bool Pihlaja::update(double time, double deltaTime, std::vector<Entity>&)
+bool Pihlaja::update(double time, double deltaTime)
 {
 	if (not m_play and not m_needsFrameUpdate)
 	{

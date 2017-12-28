@@ -2,7 +2,7 @@
 
 #include "rae/core/Types.hpp"
 
-//#include <iostream>
+#include <iostream>
 
 namespace rae
 {
@@ -34,7 +34,7 @@ public:
 	{
 		if (check(id))
 		{
-			m_items[m_idMap2[id]] = std::move(comp);
+			m_items[m_idMap2[id]] = comp;//std::move(comp);
 			return;
 		}
 
@@ -44,7 +44,7 @@ public:
 			int freeIndex = m_freeItems.back();
 			m_freeItems.pop_back();
 			m_idMap2[id] = freeIndex;
-			m_items[freeIndex] = std::move(comp);
+			m_items[freeIndex] = comp;//std::move(comp);
 			return;
 		}
 
@@ -61,8 +61,8 @@ public:
 
 		m_idMap2[index] = (int)m_items.size();
 
-		//m_idMap.emplace(id, m_items.size());
-		m_items.emplace_back(std::move(comp));
+		//MAYBE WITH std::move: m_items.emplace_back(std::move(comp));
+		m_items.emplace_back(comp);
 	}
 
 	void remove(Id id)
@@ -71,6 +71,14 @@ public:
 		{
 			m_freeItems.emplace_back(m_idMap2[id]);
 			m_idMap2[id] = InvalidIndex;
+		}
+	}
+
+	void removeEntities(const Array<Id>& entities)
+	{
+		for (auto&& id : entities)
+		{
+			remove(id);
 		}
 	}
 
@@ -90,6 +98,7 @@ public:
 	{
 		if (check(id))
 			return m_items[m_idMap2[id]];
+		std::cout << "Table: invalid get: " << id << "\n";
 		return m_empty;
 	}
 

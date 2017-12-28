@@ -36,6 +36,10 @@ bool AVSystem::update(double time, double deltaTime)
 	return false; // for now
 }
 
+void AVSystem::destroyEntities(const Array<Id>& entities)
+{
+}
+
 void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 {
 	if (image.width != frameRGB->width or image.height != frameRGB->height)

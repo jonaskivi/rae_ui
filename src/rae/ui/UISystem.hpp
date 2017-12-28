@@ -80,6 +80,7 @@ public:
 	String name() override { return "UISystem"; }
 
 	bool update(double time, double deltaTime) override;
+	void destroyEntities(const Array<Id>& entities) override;
 	void render(double time, double deltaTime, NVGcontext* vg,
 				int windowWidth, int windowHeight, float screenPixelRatio);
 

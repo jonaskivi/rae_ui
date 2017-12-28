@@ -38,7 +38,8 @@ public:
 	void onKeyEvent(const Input& input);
 
 	void run();
-	bool update(double time, double deltaTime, std::vector<Entity>&);
+	bool update(double time, double deltaTime) override;
+	void destroyEntities(const Array<Id>& entities) override {}
 
 	void rewind();
 	void togglePlay();

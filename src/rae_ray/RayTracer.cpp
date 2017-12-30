@@ -12,7 +12,7 @@ using glm::dot;
 #include "rae/core/Random.hpp"
 
 #include "rae/visual/CameraSystem.hpp"
-#include "Material.hpp"
+#include "rae/visual/Material.hpp"
 #include "Sphere.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/image/ImageBuffer.hpp"
@@ -101,7 +101,7 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 
 	///////////////////
 
-	auto bunny = new Mesh(0);
+	auto bunny = new Mesh();
 	if (loadBunny)
 		bunny->loadModel("./data/models/bunny.obj");
 	else bunny->generateBox();

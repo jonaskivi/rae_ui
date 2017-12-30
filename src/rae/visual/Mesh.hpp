@@ -26,16 +26,15 @@ class Material;
 class Mesh : public Hitable
 {
 public:
-	int id() { return m_id; }
-protected:
-	void id(int set) { m_id = set; }
-	int m_id;
-
-public:
-	Mesh(){}
-	Mesh(int set_id);
+	Mesh();
 	~Mesh();
-	
+
+	Mesh(Mesh&& other);
+	Mesh& operator=(Mesh&& other);
+
+	void createVBOs();
+	void freeVBOs();
+
 	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
 	virtual Box getAabb(float t0, float t1) const { return m_aabb; }
 
@@ -46,9 +45,8 @@ public:
 	void loadNode(const aiScene* scene, const aiNode* node);
 	//end // ASSIMP
 
-	void createVBOs();
-	void render(unsigned set_shader_program_id) const;
-	int triangleCount() const { return int(indices.size()) / 3; }
+	void render(uint shaderProgramId) const;
+	int triangleCount() const { return int(m_indices.size()) / 3; }
 	void computeAabb();
 
 protected:
@@ -59,18 +57,18 @@ protected:
 	void getTriangle(int idx, vec3& out0, vec3& out1, vec3& out2) const;
 	vec3 getFaceNormal(int idx) const;
 
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals;
-	std::vector<unsigned short> indices;
+	Array<vec3> m_vertices;
+	Array<vec2> m_uvs;
+	Array<vec3> m_normals;
+	Array<GLushort> m_indices;
 
-	unsigned vertexBufferID;
-	unsigned uvBufferID;
-	unsigned normalBufferID;
-	unsigned indexBufferID;
+	GLuint m_vertexBufferId	= 0;
+	GLuint m_uvBufferId		= 0;
+	GLuint m_normalBufferId	= 0;
+	GLuint m_indexBufferId	= 0;
 
 	Box m_aabb;
-	Material* material; // TODO make better, don't use pointer. Use component ID.
+	Material* m_material; // TODO make better, don't use pointer. Use component ID.
 };
 
 } // end namespace rae

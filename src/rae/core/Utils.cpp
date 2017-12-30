@@ -1,11 +1,10 @@
-#include "core/Utils.hpp"
+#include "rae/core/Utils.hpp"
 #include <math.h>
 #include <cstdlib> // for rand. TODO remove deprecated rand stuff.
 #include <assert.h>
 
 namespace rae
 {
-
 namespace Math
 {
 
@@ -147,7 +146,4 @@ String toString(glm::vec3 position)
 }
 
 }
-
 }
-
-

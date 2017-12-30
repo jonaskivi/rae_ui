@@ -1,5 +1,4 @@
-#ifndef RAE_RENDERSYSTEM_HPP
-#define RAE_RENDERSYSTEM_HPP
+#pragma once
 
 #include <string>
 
@@ -13,16 +12,20 @@
 #include "rae_ray/RayTracer.hpp"
 #include "rae/ui/UISystem.hpp"
 
-#include "rae/image/ImageBuffer.hpp" //JONDE TEMP HACK
+#include "rae/entity/Table.hpp"
+#include "rae/visual/Mesh.hpp"
+#include "rae/visual/Material.hpp"
+
+#include "rae/image/ImageBuffer.hpp"
 
 struct NVGcontext;
 
 namespace rae
 {
 
+class EntitySystem;
 class CameraSystem;
 class TransformSystem;
-class ObjectFactory;
 struct Transform;
 class Material;
 class Mesh;
@@ -32,7 +35,7 @@ class Input;
 class RenderSystem : public ISystem
 {
 public:
-	RenderSystem(ObjectFactory& objectFactory,
+	RenderSystem(EntitySystem& entitySystem,
 		GLFWwindow* setWindow,
 		Input& input,
 		CameraSystem& cameraSystem,
@@ -55,6 +58,7 @@ public:
 
 	bool update(double time, double delta_time) override;
 	void destroyEntities(const Array<Id>& entities) override;
+	void defragmentTables() override;
 
 	void render(double time, double delta_time);
 	void renderPicking();
@@ -124,7 +128,7 @@ protected:
 	NVGcontext* vg;
 	
 	// dependencies
-	ObjectFactory& m_objectFactory;
+	EntitySystem& m_entitySystem;
 	Input& m_input;
 	UISystem& m_uiSystem;
 
@@ -149,7 +153,6 @@ protected:
 
 	ImageBuffer m_backgroundImage;
 
-	// Move to VisualSystem or something?:
 	Table<Mesh>			m_meshes;
 	Table<Id>			m_meshLinks;
 	Table<Material>		m_materials;
@@ -157,6 +160,3 @@ protected:
 };
 
 }
-
-#endif
-

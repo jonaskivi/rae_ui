@@ -1,5 +1,4 @@
-#ifndef RAE_RANDOM_HPP
-#define RAE_RANDOM_HPP
+#pragma once
 
 #include <random>
 #include <algorithm>
@@ -20,6 +19,4 @@ float getRandom( float from, float to );
 float getRandomDistribution(float mean, float deviation);
 int getRandomInt( int from, int to );
 
-} // end namespace rae
-
-#endif
+} // end namespace ra

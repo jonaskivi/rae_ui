@@ -1,10 +1,9 @@
+#include "rae/core/ScreenInfo.hpp"
 
-#include "core/ScreenInfo.hpp"
-
-#include "core/Utils.hpp"
+#include "rae/core/Utils.hpp"
 
 #ifdef version_catch
-#include "core/catch.hpp"
+#include "rae/core/catch.hpp"
 
 SCENARIO("ScreenInfo unittest", "[Rae][ScreenInfo]")
 {
@@ -96,8 +95,7 @@ SCENARIO("ScreenInfo unittest", "[Rae][ScreenInfo]")
 }
 #endif
 
-namespace rae
-{
+using namespace rae;
 
 ScreenInfo::ScreenInfo()
 : m_screenNumber(-1),
@@ -178,5 +176,3 @@ void ScreenInfo::screenHeightP(int set)
 	calculateScreenAspect();
 	calculateHalfScreens();
 }
-
-} // end namespace rae

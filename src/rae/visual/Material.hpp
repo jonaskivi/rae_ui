@@ -1,5 +1,4 @@
-#ifndef RAE_MATERIAL_HPP
-#define RAE_MATERIAL_HPP
+#pragma once
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -17,13 +16,7 @@ namespace rae
 class Material
 {
 public:
-	int id() { return m_id; }
-protected:
-	void id(int set) { m_id = set; }
-	int m_id;
-
-public:
-	Material(){}
+	Material() {}
 	Material(vec3 albedo) :
 		albedo(albedo),
 		m_color(albedo.r, albedo.g, albedo.b, 1.0f)
@@ -43,10 +36,6 @@ public:
 
 	//JONDE REALLY NOW: Combine albedo with m_color...
 	vec3 albedo;
-
-	// ----------------------- Legacy:
-
-	//JONDE REMOVE Material(int set_id, int set_type, const glm::vec4& set_color); // That type thing is really strange...
 
 	void generateFBO(NVGcontext* vg);
 	void update(NVGcontext* vg, double time);
@@ -122,6 +111,3 @@ public:
 };
 
 }
-
-#endif
-

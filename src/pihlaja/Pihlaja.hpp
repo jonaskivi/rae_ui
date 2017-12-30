@@ -2,12 +2,10 @@
 
 #include "rae/animation/Animator.hpp"
 #include "rae/visual/Shader.hpp"
-#include "rae/ComponentType.hpp"
-#include "rae/Entity.hpp"
 #include "rae/visual/Transform.hpp"
 #include "rae/visual/Mesh.hpp"
-#include "rae/Material.hpp"
-#include "rae/ObjectFactory.hpp"
+#include "rae/visual/Material.hpp"
+#include "rae/entity/EntitySystem.hpp"
 #include "rae/core/ISystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
 #include "rae/Engine.hpp"
@@ -44,6 +42,7 @@ public:
 	void run();
 	bool update(double time, double deltaTime) override;
 	void destroyEntities(const Array<Id>& entities) override {}
+	void defragmentTables() override {}
 
 	void rewind();
 	void togglePlay();

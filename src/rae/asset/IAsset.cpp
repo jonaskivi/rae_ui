@@ -6,7 +6,7 @@ IAsset::IAsset()
 {
 }
 
-IAsset::IAsset(String setFilepath)
-: m_filepath(setFilepath)
+IAsset::IAsset(String setFilepath) :
+	m_filepath(setFilepath)
 {
 }

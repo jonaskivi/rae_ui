@@ -20,6 +20,7 @@ public:
 
 	bool update(double time, double delta_time) override;
 	void destroyEntities(const Array<Id>& entities) override;
+	void defragmentTables() override {}
 
 	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);

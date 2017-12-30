@@ -1,9 +1,7 @@
-#ifndef _ScreenInfo_hpp_
-#define _ScreenInfo_hpp_
+#pragma once
 
 #include <iostream>
-	using namespace std;
-
+using namespace std;
 
 namespace rae
 {
@@ -162,9 +160,4 @@ public:
 	protected: float m_curveSideSize;// = 0.3f;
 };
 
-}//namespace rae
-
-#endif
-
-
-
+} // namespace rae

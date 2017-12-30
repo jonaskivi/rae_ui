@@ -1,12 +1,11 @@
-#ifndef RAE_ENGINE_HPP
-#define RAE_ENGINE_HPP
-
-#include <vector>
+#pragma once
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "ObjectFactory.hpp"
+#include "rae/core/Types.hpp"
+
+#include "rae/entity/EntitySystem.hpp"
 #include "core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
 #include "rae/visual/TransformSystem.hpp"
@@ -39,12 +38,12 @@ public:
 	Id createRandomCubeEntity();
 	Id createCube(const vec3& position, const Colour& color);
 	Id createBunny(const vec3& position, const Colour& color);
-	//JONDE REMOVE Entity& createEmptyEntity();
 
 	void createTestWorld();
 	void createTestWorld2();
 
 	void destroyEntity(Id id);
+	void defragmentTablesAsync();
 
 	void addSystem(ISystem& ownSystem);
 	RenderSystem& getRenderSystem() { return m_renderSystem; }
@@ -74,7 +73,7 @@ protected:
 	ScreenSystem m_screenSystem;
 	Input m_input;
 	
-	ObjectFactory m_objectFactory;
+	EntitySystem m_entitySystem;
 
 	Array<ISystem*> m_systems;
 
@@ -85,6 +84,7 @@ protected:
 	RenderSystem		m_renderSystem;
 
 	Array<Id>			m_destroyEntities;
+	bool				m_defragmentTables = false;
 
 	int m_meshID; // These should go someplace else...
 	int m_modelID;
@@ -94,6 +94,3 @@ protected:
 };
 
 }
-
-#endif
-

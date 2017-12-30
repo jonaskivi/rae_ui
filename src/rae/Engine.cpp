@@ -1,33 +1,26 @@
-#include "Engine.hpp"
+#include "rae/Engine.hpp"
 
 #include <glm/glm.hpp>
 
 #include "rae/core/ISystem.hpp"
-#include "Entity.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Transform.hpp"
-#include "Material.hpp"
-#include "ComponentType.hpp"
+#include "rae/visual/Material.hpp"
 #include "rae/core/Random.hpp"
 
-namespace rae
-{
+using namespace rae;
 
-Engine::Engine(GLFWwindow* set_window)
-: m_window(set_window),
-m_input(m_screenSystem),
-m_cameraSystem(m_input),
-m_rayTracer(m_cameraSystem),
-m_uiSystem(m_input, m_screenSystem, m_objectFactory, m_transformSystem, m_renderSystem), 
-m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
-			   m_transformSystem, m_uiSystem, m_rayTracer)
+Engine::Engine(GLFWwindow* set_window) :
+	m_window(set_window),
+	m_input(m_screenSystem),
+	m_cameraSystem(m_input),
+	m_rayTracer(m_cameraSystem),
+	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem), 
+	m_renderSystem(m_entitySystem, m_window, m_input, m_cameraSystem,
+		m_transformSystem, m_uiSystem, m_rayTracer)
 {
 	m_currentTime = glfwGetTime();
 	m_previousTime = m_currentTime;
-
-	// TODO what's this?:
-	//m_inputSystem = new InputSystem(window, &m_objectFactory);
-	//m_systems.push_back(g_input);
 
 	addSystem(m_input);
 	addSystem(m_transformSystem);
@@ -37,7 +30,7 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 	addSystem(m_renderSystem);
 
 	// JONDE CHECK THIS:
-	Id emptyEntityId = m_objectFactory.createEmptyEntity(); // hack at index 0
+	Id emptyEntityId = m_entitySystem.createEntity(); // hack at index 0
 	std::cout << "Create empty hack entity at 0: " << emptyEntityId << "\n";
 
 	// Load model
@@ -51,18 +44,6 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 
 	createTestWorld2();
 
-	/*
-	for(unsigned i = 0; i < 50; ++i)
-	{
-		Entity& entity = createEmptyEntity();
-		//entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(float(i) - 25.0f, float(i % 10) - 5.0f, 10.0f + (i % 10)).id() );
-		entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
-		if(i % 2 == 1)
-			entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
-		entity.addComponent( (int)ComponentType::MESH, m_meshID );
-	}
-	*/
-
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&Engine::onMouseEvent, this, _1));
 	m_input.connectKeyEventHandler(std::bind(&Engine::onKeyEvent, this, _1));
@@ -71,6 +52,11 @@ m_renderSystem(m_objectFactory, m_window, m_input, m_cameraSystem,
 void Engine::destroyEntity(Id id)
 {
 	m_destroyEntities.emplace_back(id);
+}
+
+void Engine::defragmentTablesAsync()
+{
+	m_defragmentTables = true;
 }
 
 void Engine::addSystem(ISystem& ownSystem)
@@ -110,6 +96,25 @@ bool Engine::update()
 	m_currentTime = glfwGetTime();
 	double deltaTime = m_currentTime - m_previousTime;
 
+	if (!m_destroyEntities.empty())
+	{
+		for (auto system : m_systems)
+		{
+			system->destroyEntities(m_destroyEntities);
+		}
+		m_entitySystem.destroyEntities(m_destroyEntities);
+		m_destroyEntities.clear();
+	}
+
+	if (m_defragmentTables)
+	{
+		for (auto system : m_systems)
+		{
+			system->defragmentTables();
+		}
+		m_defragmentTables = false;
+	}
+
 	reactToInput(m_input);
 
 	bool changed = false;
@@ -136,16 +141,6 @@ bool Engine::update()
 		}
 	}
 
-	if (!m_destroyEntities.empty())
-	{
-		for (auto system : m_systems)
-		{
-			system->destroyEntities(m_destroyEntities);
-		}
-		m_objectFactory.destroyEntities(m_destroyEntities);
-		m_destroyEntities.clear();
-	}
-
 	return changed;
 }
 
@@ -156,12 +151,12 @@ void Engine::askForFrameUpdate()
 
 Id Engine::createAddObjectButton()
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createAddObjectButton id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
 	m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
 
-	//JONDE REMOVE Transform& transform = m_objectFactory.createTransform(0.0f, 0.0f, 5.0f);
+	//JONDE REMOVE Transform& transform = m_entitySystem.createTransform(0.0f, 0.0f, 5.0f);
 	//JONDE REMOVE transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
 	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, transform.id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_buttonMaterialID );
@@ -175,10 +170,10 @@ Id Engine::createAddObjectButton()
 
 Id Engine::createRandomBunnyEntity()
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createRandomBunnyEntity id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
 	//entity.addComponent( (int)ComponentType::MESH, m_modelID );
 
@@ -190,10 +185,10 @@ Id Engine::createRandomBunnyEntity()
 
 Id Engine::createRandomCubeEntity()
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createRandomCubeEntity id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
 	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
 
@@ -205,7 +200,7 @@ Id Engine::createRandomCubeEntity()
 
 Id Engine::createCube(const vec3& position, const Colour& color)
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createCube id: " << id << "\n";
 	// The desired API:
 	m_transformSystem.addTransform(id, Transform(position));
@@ -213,7 +208,7 @@ Id Engine::createCube(const vec3& position, const Colour& color)
 	//m_materialSystem.setMaterial(entity, color);
 
 	// The old API:
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(position).id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem.createMaterial(0, color).id() );
 	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
 
@@ -225,10 +220,10 @@ Id Engine::createCube(const vec3& position, const Colour& color)
 
 Id Engine::createBunny(const vec3& position, const Colour& color)
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createBunny id: " << id << "\n";
 	m_transformSystem.addTransform(id, Transform(position));
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_objectFactory.createTransform(position).id() );
+	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(position).id() );
 	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
 	//entity.addComponent( (int)ComponentType::MESH, m_modelID );
 
@@ -238,13 +233,6 @@ Id Engine::createBunny(const vec3& position, const Colour& color)
 	return id;
 }
 
-/* JONDE REMOVE
-Id Engine::createEmptyEntity()
-{
-	return m_objectFactory.createEmptyEntity();
-}
-*/
-
 void Engine::createTestWorld()
 {
 	createAddObjectButton(); // at index 1
@@ -252,6 +240,8 @@ void Engine::createTestWorld()
 
 void Engine::createTestWorld2()
 {
+	std::cout << "createTestWorld2\n";
+
 	//createAddObjectButton(); // at index 1
 
 	auto cube0 = createCube(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
@@ -263,16 +253,16 @@ void Engine::createTestWorld2()
 
 	auto bunny1 = createBunny(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
 
-	/*Hierarchy& hierarchy1 = m_objectFactory.createHierarchy();
+	/*Hierarchy& hierarchy1 = m_entitySystem.createHierarchy();
 	cube1.addComponent( (int)ComponentType::HIERARCHY, hierarchy1.id() );
 	hierarchy1.addChild(cube2.id());
 
-	Hierarchy& hierarchy2 = m_objectFactory.createHierarchy();
+	Hierarchy& hierarchy2 = m_entitySystem.createHierarchy();
 	cube2.addComponent( (int)ComponentType::HIERARCHY, hierarchy2.id() );
 	hierarchy2.setParent(cube1.id());
 	hierarchy2.addChild(cube3.id());
 
-	Hierarchy& hierarchy3 = m_objectFactory.createHierarchy();
+	Hierarchy& hierarchy3 = m_entitySystem.createHierarchy();
 	cube3.addComponent( (int)ComponentType::HIERARCHY, hierarchy3.id() );
 	hierarchy3.setParent(cube2.id());
 	*/
@@ -425,14 +415,16 @@ void Engine::reactToInput(const Input& input)
 
 	if (input.getKeyState(KeySym::O))
 	{
-		std::cout << "biggestId: " << m_objectFactory.biggestId() << "\n";
-		destroyEntity((Id)getRandomInt(20, m_objectFactory.biggestId()));
+		std::cout << "biggestId: " << m_entitySystem.biggestId() << "\n";
+		destroyEntity((Id)getRandomInt(20, m_entitySystem.biggestId()));
+	}
+
+	if (input.getKeyState(KeySym::P))
+	{
+		defragmentTablesAsync();
 	}
 
 	// TODO use KeySym::Page_Up
 	if (input.getKeyState(KeySym::K)) { m_rayTracer.minusBounces(); }
 	if (input.getKeyState(KeySym::L)) { m_rayTracer.plusBounces(); }
 }
-
-} // end namespace rae
-

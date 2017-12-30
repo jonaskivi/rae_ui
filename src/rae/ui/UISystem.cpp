@@ -34,10 +34,10 @@ float rae::virxels(float virtualPixels)
 }
 
 UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
-	ObjectFactory& objectFactory, TransformSystem& transformSystem, RenderSystem& renderSystem)
+	EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem)
 : m_input(input),
 m_screenSystem(screenSystem),
-m_objectFactory(objectFactory),
+m_entitySystem(entitySystem),
 m_transformSystem(transformSystem),
 m_renderSystem(renderSystem),
 m_boxes(ReserveBoxes)
@@ -66,7 +66,7 @@ bool UISystem::update(double time, double deltaTime)
 	static int frameCount = 0;
 
 	// hover boxes
-	for (Id id : m_objectFactory.entities())
+	for (Id id : m_entitySystem.entities())
 	{
 		if (m_transformSystem.hasTransform(id)
 			&& m_boxes.check(id))
@@ -138,6 +138,17 @@ void UISystem::destroyEntities(const Array<Id>& entities)
 	m_hovers.removeEntities(entities);
 }
 
+void UISystem::defragmentTables()
+{
+	m_boxes.defragment();
+	m_texts.defragment();
+	m_buttons.defragment();
+	m_commands.defragment();
+	m_colours.defragment();
+	m_actives.defragment();
+	m_hovers.defragment();
+}
+
 void UISystem::render(double time, double deltaTime, NVGcontext* vg,
 	int windowWidth, int windowHeight, float screenPixelRatio)
 {
@@ -153,7 +164,7 @@ void UISystem::render(double time, double deltaTime, NVGcontext* vg,
 	nvgBeginFrame(vg, windowWidth, windowHeight, screenPixelRatio);
 
 		int i = 0;
-		for (Id id : m_objectFactory.entities())
+		for (Id id : m_entitySystem.entities())
 		{
 			if (m_transformSystem.hasTransform(id) and
 				m_buttons.check(id) and
@@ -208,7 +219,7 @@ void UISystem::render(double time, double deltaTime, NVGcontext* vg,
 		nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
 		nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 
-		std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory.entityCount());
+		std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
 		nvgText(vg, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
@@ -373,7 +384,7 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, flo
 
 Id UISystem::createButton(const String& text, vec3 position, vec3 extents, std::function<void()> handler)
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	//m_transformSystem.addTransform(entity.id(), Transform(vec3(0.0f, 0.0f, 0.0f)));
 	m_transformSystem.addTransform(id, Transform(position));
 	//m_transformSystem.setPosition(entity.id(), position); //JONDE TEMP animation
@@ -387,7 +398,7 @@ Id UISystem::createButton(const String& text, vec3 position, vec3 extents, std::
 
 Id UISystem::createTextBox(const String& text, vec3 position, vec3 extents)
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 	m_transformSystem.setPosition(id, position);
 
@@ -399,7 +410,7 @@ Id UISystem::createTextBox(const String& text, vec3 position, vec3 extents)
 
 void UISystem::addBox(Id id, Box&& box)
 {
-	m_boxes.create(id, std::move(box));
+	m_boxes.assign(id, std::move(box));
 }
 
 const Box& UISystem::getBox(Id id)
@@ -409,12 +420,12 @@ const Box& UISystem::getBox(Id id)
 
 void UISystem::addText(Id id, const String& text)
 {
-	m_texts.create(id, std::move(Text(text)));
+	m_texts.assign(id, std::move(Text(text)));
 }
 
 void UISystem::addText(Id id, Text&& text)
 {
-	m_texts.create(id, std::move(text));
+	m_texts.assign(id, std::move(text));
 }
 
 const Text& UISystem::getText(Id id)
@@ -424,7 +435,7 @@ const Text& UISystem::getText(Id id)
 
 void UISystem::addButton(Id id, Button&& element)
 {
-	m_buttons.create(id, std::move(element));
+	m_buttons.assign(id, std::move(element));
 }
 
 const Button& UISystem::getButton(Id id)
@@ -434,7 +445,7 @@ const Button& UISystem::getButton(Id id)
 
 void UISystem::addColour(Id id, Colour&& element)
 {
-	m_colours.create(id, std::move(element));
+	m_colours.assign(id, std::move(element));
 }
 
 const Colour& UISystem::getColour(Id id)
@@ -444,7 +455,7 @@ const Colour& UISystem::getColour(Id id)
 
 void UISystem::addCommand(Id id, Command&& element)
 {
-	m_commands.create(id, std::move(element));
+	m_commands.assign(id, std::move(element));
 }
 
 const Command& UISystem::getCommand(Id id)
@@ -455,7 +466,7 @@ const Command& UISystem::getCommand(Id id)
 void UISystem::setHovered(Id id, bool hovered)
 {
 	if (hovered)
-		m_hovers.create(id, std::move(Hover()));
+		m_hovers.assign(id, std::move(Hover()));
 	else m_hovers.remove(id);
 }
 
@@ -466,7 +477,7 @@ bool UISystem::isHovered(Id id)
 
 void UISystem::setActive(Id id, bool active)
 {
-	m_actives.create(id, std::move(Active(active)));
+	m_actives.assign(id, std::move(Active(active)));
 }
 
 bool UISystem::isActive(Id id)

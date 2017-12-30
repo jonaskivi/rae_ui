@@ -1,5 +1,5 @@
-#include "core/ScreenSystem.hpp"
-#include "core/version.hpp"
+#include "rae/core/ScreenSystem.hpp"
+#include "rae/core/version.hpp"
 
 #ifdef version_glfw
 	#include <GLFW/glfw3.h>

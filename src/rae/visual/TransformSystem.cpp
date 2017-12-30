@@ -35,9 +35,14 @@ void TransformSystem::destroyEntities(const Array<Id>& entities)
 	m_transforms.removeEntities(entities);
 }
 
+void TransformSystem::defragmentTables()
+{
+	m_transforms.defragment();
+}
+
 void TransformSystem::addTransform(Id id, Transform&& transform)
 {
-	m_transforms.create(id, std::move(transform));
+	m_transforms.assign(id, std::move(transform));
 }
 
 bool TransformSystem::hasTransform(Id id) const

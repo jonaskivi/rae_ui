@@ -5,7 +5,7 @@ using namespace std;
 
 #include "rae/core/Random.hpp"
 
-#include "Material.hpp" // includes glew.h which is needed by nanovg headers.
+#include "rae/visual/Material.hpp" // includes glew.h which is needed by nanovg headers.
 
 #include "nanovg.h"
 #include "nanovg_gl.h"
@@ -14,11 +14,10 @@ using namespace std;
 using glm::vec3;
 using glm::dot;
 
-namespace rae
-{
+using namespace rae;
 
-// ray_tracing_utils.hpp
-vec3 random_in_unit_sphere()
+// TODO move to RayTracerUtils.hpp
+vec3 randomInUnitSphere()
 {
 	vec3 p;
 	do
@@ -35,7 +34,7 @@ bool Material::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuati
 
 bool Lambertian::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
 {
-	vec3 target = record.point + record.normal + random_in_unit_sphere();
+	vec3 target = record.point + record.normal + randomInUnitSphere();
 	scattered = Ray(record.point, target - record.point);
 	attenuation = albedo;
 	return true;
@@ -49,7 +48,7 @@ vec3 reflect(const vec3& v, const vec3& normal)
 bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
 {
 	vec3 reflected = reflect( glm::normalize(r_in.direction()), record.normal );
-	scattered = Ray(record.point, reflected + roughness * random_in_unit_sphere());
+	scattered = Ray(record.point, reflected + roughness * randomInUnitSphere());
 	attenuation = albedo;
 	return (dot(scattered.direction(), record.normal) > 0);
 }
@@ -115,20 +114,6 @@ bool Dielectric::scatter(const Ray& r_in, const HitRecord& record, vec3& attenua
 	}
 	return true;
 }
-
-// --------------------- Legacy:
-
-/*JONDE REMOVE
-Material::Material(int set_id, int set_type, const glm::vec4& set_color) // TODO that type should be an enum... :)
-: m_id(set_id),
-m_framebufferObject(nullptr),
-m_width(512),
-m_height(512),
-m_type(set_type),
-m_color(set_color)
-{
-}
-*/
 
 void Material::generateFBO(NVGcontext* vg)
 {
@@ -199,6 +184,3 @@ void Material::setColor(Colour set)
 {
 	m_color = set;
 }
-
-}
-

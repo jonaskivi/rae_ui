@@ -22,10 +22,9 @@
 * THE SOFTWARE.
 */
 
-#ifndef _rae_ui_Input_hpp_
-#define _rae_ui_Input_hpp_
+#pragma once
 
-#include "ui/KeySym.hpp"
+#include "rae/ui/KeySym.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -127,6 +126,7 @@ public:
 	}
 
 	void destroyEntities(const Array<Id>& entities) override {}
+	void defragmentTables() override {}
 
 	// Must be called every frame to clear key up and down states
 	void onFrameEnd() override
@@ -534,7 +534,7 @@ public:
 	float set_y_height;
 	void osMouseEvent( /*IRectangle* set_window,*/ EventType set_event_type, int set_button, float set_x_pixels, float set_y_pixels, float set_amount = 0.0f )
 	{
-		assert(set_button >= 0); // "Mouse button is smaller than 0. Platform not supported yet."
+		//assert(set_button >= 0); // "Mouse button is smaller than 0. Platform not supported yet."
 
 		set_x_height = m_screenSystem.pixelsToHeight(set_x_pixels);
 		set_y_height = m_screenSystem.pixelsToHeight(set_y_pixels);
@@ -728,9 +728,6 @@ protected:
 	void emitKeyEvent() { for (auto&& event : keyEvent) event(*this); }
 	std::vector<std::function<void(const Input&)>> keyEvent;
 
-};//end Input
+}; //end Input
 
-};//end Rae
-
-#endif //_rae_ui_Input_hpp_
-
+} // end Rae

@@ -13,7 +13,7 @@ using glm::vec3;
 #include "rae/ui/Button.hpp"
 
 #include "rae/core/ISystem.hpp"
-#include "ObjectFactory.hpp"
+#include "rae/entity/EntitySystem.hpp"
 #include "rae/visual/TransformSystem.hpp"
 
 struct NVGcontext;
@@ -75,12 +75,13 @@ class UISystem : public ISystem
 {
 public:
 	UISystem(Input& input, ScreenSystem& screenSystem,
-		ObjectFactory& objectFactory, TransformSystem& transformSystem, RenderSystem& renderSystem);
+		EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem);
 
 	String name() override { return "UISystem"; }
 
 	bool update(double time, double deltaTime) override;
 	void destroyEntities(const Array<Id>& entities) override;
+	void defragmentTables() override;
 	void render(double time, double deltaTime, NVGcontext* vg,
 				int windowWidth, int windowHeight, float screenPixelRatio);
 
@@ -123,7 +124,7 @@ private:
 
 	Input& m_input;
 	/*TODO const*/ ScreenSystem& m_screenSystem;
-	ObjectFactory& m_objectFactory;
+	EntitySystem& m_entitySystem;
 	TransformSystem& m_transformSystem;
 	RenderSystem& m_renderSystem;
 	NVGcontext* m_vg;

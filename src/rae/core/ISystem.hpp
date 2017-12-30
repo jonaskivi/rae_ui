@@ -1,8 +1,6 @@
 #pragma once
 
-#include <vector>
 #include "rae/core/Types.hpp"
-#include "Entity.hpp"
 
 namespace rae
 {
@@ -20,6 +18,7 @@ public:
 	virtual bool update(double time, double delta_time) { return false; }
 	virtual void onFrameEnd() {}
 	virtual void destroyEntities(const Array<Id>& entities) {}
+	virtual void defragmentTables() {}
 
 	virtual void toggleIsEnabled() { m_isEnabled = !m_isEnabled; }
 	virtual bool isEnabled() { return m_isEnabled; }

@@ -1,7 +1,4 @@
-#ifndef RAE_HIERARCHY_HPP
-#define RAE_HIERARCHY_HPP
-
-#include <vector>
+#pragma once
 
 #include "rae/core/Types.hpp"
 
@@ -11,13 +8,7 @@ namespace rae
 class Hierarchy
 {
 public:
-	CompId id() { return m_id; }
-protected:
-	void id(CompId set) { m_id = set; }
-	CompId m_id;
-
-public:
-	Hierarchy(CompId set_id);
+	Hierarchy();
 
 	Id parent() { return m_parent; }
 	void setParent(Id set_parent) { m_parent = set_parent; }
@@ -26,10 +17,7 @@ public:
 	
 protected:
 	Id m_parent;
-	std::vector<Id> m_children;
+	Array<Id> m_children;
 };
 
 }
-
-#endif
-

@@ -59,7 +59,7 @@ void CameraSystem::onKeyEvent(const Input& input)
 	{
 		switch (input.key.value)
 		{
-			//case KeySym::P: m_objectFactory.measure(); break;
+			//case KeySym::P: m_entitySystem.measure(); break;
 			default:
 			break;
 		}

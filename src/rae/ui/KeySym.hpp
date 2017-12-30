@@ -46,6 +46,8 @@ SOFTWARE.
 
 ******************************************************************/
 
+#pragma once
+
 #include "core/version.hpp"
 #ifdef version_glfw
 	#include <GLFW/glfw3.h>
@@ -2286,7 +2288,7 @@ enum e //enum KeySym
 	braille_dots_1345678 = 0x10028fd,  /* U+28fd BRAILLE PATTERN DOTS-1345678 */
 	braille_dots_2345678 = 0x10028fe,  /* U+28fe BRAILLE PATTERN DOTS-2345678 */
 	braille_dots_12345678 = 0x10028ff  /* U+28ff BRAILLE PATTERN DOTS-12345678 */
-};//enum e
-};//namespace KeySym
-};//namespace rae
+}; // enum e
+} // namespace KeySym
+} // namespace rae
 

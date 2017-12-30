@@ -5,24 +5,102 @@
 #include <iostream>
 #include <fstream>
 
-#include "Material.hpp"
+#include "rae/visual/Material.hpp"
 
-namespace rae
-{
+using namespace rae;
 
-Mesh::Mesh(int set_id)
-: m_id(set_id)
+Mesh::Mesh()
 {
-	//material = new Lambertian(vec3(0.1f, 0.2f, 0.7f));
-	material = new Metal(vec3(0.1f, 0.2f, 0.7f), 0.3f);
+	//m_material = new Lambertian(vec3(0.1f, 0.2f, 0.7f));
+	m_material = new Metal(vec3(0.1f, 0.2f, 0.7f), 0.3f);
 }
 
 Mesh::~Mesh()
 {
-	glDeleteBuffers(1, &vertexBufferID);
-	glDeleteBuffers(1, &uvBufferID);
-	glDeleteBuffers(1, &normalBufferID);
-	glDeleteBuffers(1, &indexBufferID);	
+	std::cout << "Mesh destructor.\n";
+	freeVBOs();
+	delete m_material;
+}
+
+Mesh::Mesh(Mesh&& other)
+{
+	other.freeVBOs();
+
+	m_vertices = std::move(other.m_vertices);
+	m_uvs = std::move(other.m_uvs);
+	m_normals = std::move(other.m_normals);
+	m_indices = std::move(other.m_indices);
+	m_aabb = std::move(other.m_aabb);
+	m_material = other.m_material;
+
+	other.m_material = nullptr;
+
+	createVBOs();
+}
+
+Mesh& Mesh::operator=(Mesh&& other)
+{
+	if (this != &other)
+	{
+		freeVBOs();
+		other.freeVBOs();
+
+		m_vertices = std::move(other.m_vertices);
+		m_uvs = std::move(other.m_uvs);
+		m_normals = std::move(other.m_normals);
+		m_indices = std::move(other.m_indices);
+		m_aabb = std::move(other.m_aabb);
+		m_material = other.m_material;
+
+		other.m_material = nullptr;
+
+		createVBOs();
+	}
+	return *this;
+}
+
+void Mesh::createVBOs()
+{
+	std::cout << "Mesh::createVBOs.\n";
+
+	glGenBuffers(1, &m_vertexBufferId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_uvBufferId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_uvBufferId);
+	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_normalBufferId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
+	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_indexBufferId);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLushort), &m_indices[0], GL_STATIC_DRAW);
+}
+
+void Mesh::freeVBOs()
+{
+	if (m_vertexBufferId == 0 &&
+		m_uvBufferId == 0 &&
+		m_normalBufferId == 0 &&
+		m_indexBufferId == 0)
+	{
+		std::cout << "Mesh::freeVBOs, but no resources created.\n";
+		return;
+	}
+
+	std::cout << "Mesh::freeVBOs.\n";
+	glDeleteBuffers(1, &m_vertexBufferId);
+	glDeleteBuffers(1, &m_uvBufferId);
+	glDeleteBuffers(1, &m_normalBufferId);
+	glDeleteBuffers(1, &m_indexBufferId);
+
+	m_vertexBufferId	= 0;
+	m_uvBufferId		= 0;
+	m_normalBufferId	= 0;
+	m_indexBufferId	= 0;
 }
 
 // Möller-Trumbore ray triangle intersection
@@ -112,8 +190,8 @@ bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) cons
 			isHit = true;
 			record.t = hitDistance;
 			record.point = ray.point_at_parameter(record.t);
-			record.normal = getFaceNormal(i); // currently just face normals
-			record.material = material;
+			record.normal = getFaceNormal(i); // currently just face m_normals
+			record.material = m_material;
 		}
 	}
 
@@ -129,9 +207,9 @@ void Mesh::getTriangle(int idx, vec3& out0, vec3& out1, vec3& out2) const
 	}
 
 	idx = idx * 3;
-	out0 = vertices[indices[idx]];
-	out1 = vertices[indices[idx+1]];
-	out2 = vertices[indices[idx+2]];
+	out0 = m_vertices[m_indices[idx]];
+	out1 = m_vertices[m_indices[idx+1]];
+	out2 = m_vertices[m_indices[idx+2]];
 }
 
 vec3 Mesh::getFaceNormal(int idx) const
@@ -143,9 +221,9 @@ vec3 Mesh::getFaceNormal(int idx) const
 	}
 
 	idx = idx * 3;
-	vec3 normal = normals[indices[idx]];
-	normal += normals[indices[idx+1]];
-	normal += normals[indices[idx+2]];
+	vec3 normal = m_normals[m_indices[idx]];
+	normal += m_normals[m_indices[idx+1]];
+	normal += m_normals[m_indices[idx+2]];
 	return glm::normalize(normal);
 }
 
@@ -156,65 +234,65 @@ void Mesh::generateBox()
 
 	float boxSize = 0.5f; // Actually half of the box size
 
-	vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 0
-	vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 1
-	vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 2
-	vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 3
+	m_vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 0
+	m_vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 1
+	m_vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 2
+	m_vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 3
 
-	vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 4
-	vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 5
-	vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 6
-	vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) ); // 7
+	m_vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 4
+	m_vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 5
+	m_vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 6
+	m_vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) ); // 7
 
-	vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 8
-	vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 9
-	vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 10
-	vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 11
+	m_vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 8
+	m_vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 9
+	m_vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 10
+	m_vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 11
 		
-	vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) ); // 12
-	vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 13
-	vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 14
-	vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 15
+	m_vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) ); // 12
+	m_vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 13
+	m_vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 14
+	m_vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 15
 
-	vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 16
-	vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 17
-	vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 18
-	vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 19
+	m_vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 16
+	m_vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 17
+	m_vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 18
+	m_vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 19
 		
-	vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 20
-	vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 21
-	vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 22
-	vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) );// 23
+	m_vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 20
+	m_vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 21
+	m_vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 22
+	m_vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) );// 23
 
-	uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
+	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
+	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
+	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
+	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
 		
-	uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
+	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
+	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
+	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
+	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
 
-	uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
+	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
+	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
+	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
+	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
 
-	uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
+	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
+	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
+	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
+	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
 
-	uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
+	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
+	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
+	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
+	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
 
-	uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
+	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
+	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
+	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
+	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
 
 	// *--------*
 	// |\      /|
@@ -248,100 +326,100 @@ void Mesh::generateBox()
 	// |/      \|
 	// 16      23
 
-	normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 0
-	normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 1
-	normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 2
-	normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 3
+	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 0
+	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 1
+	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 2
+	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 3
 		
-	normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 0
-	normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 1
-	normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 2
-	normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 3
+	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 0
+	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 1
+	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 2
+	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 3
 
-	normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 0
-	normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 1
-	normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 2
-	normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 3
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 0
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 1
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 2
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 3
 
-	normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 0
-	normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 1
-	normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 2
-	normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 3
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 0
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 1
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 2
+	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 3
 
-	normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 0
-	normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 1
-	normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 2
-	normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 3
+	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 0
+	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 1
+	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 2
+	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 3
 
-	normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 0
-	normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 1
-	normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 2
-	normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) );// 3
+	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 0
+	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 1
+	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 2
+	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) );// 3
 	
 	//roof
-	indices.push_back( 0);
-	indices.push_back( 1);
-	indices.push_back( 2);
-	indices.push_back( 0);
-	indices.push_back( 2);
-	indices.push_back( 3);
+	m_indices.push_back( 0);
+	m_indices.push_back( 1);
+	m_indices.push_back( 2);
+	m_indices.push_back( 0);
+	m_indices.push_back( 2);
+	m_indices.push_back( 3);
 	
 	//floor
-	indices.push_back( 4);
-	indices.push_back( 5);
-	indices.push_back( 6); 
-	indices.push_back( 4);
-	indices.push_back( 6);
-	indices.push_back( 7); 
+	m_indices.push_back( 4);
+	m_indices.push_back( 5);
+	m_indices.push_back( 6); 
+	m_indices.push_back( 4);
+	m_indices.push_back( 6);
+	m_indices.push_back( 7); 
 
 	//back
-	indices.push_back( 8);
-	indices.push_back( 9);
-	indices.push_back(10);
-	indices.push_back( 8);
-	indices.push_back(10);
-	indices.push_back(11);
+	m_indices.push_back( 8);
+	m_indices.push_back( 9);
+	m_indices.push_back(10);
+	m_indices.push_back( 8);
+	m_indices.push_back(10);
+	m_indices.push_back(11);
 
 	//front
-	indices.push_back(12);
-	indices.push_back(13);
-	indices.push_back(14);
-	indices.push_back(12);
-	indices.push_back(14);
-	indices.push_back(15);
+	m_indices.push_back(12);
+	m_indices.push_back(13);
+	m_indices.push_back(14);
+	m_indices.push_back(12);
+	m_indices.push_back(14);
+	m_indices.push_back(15);
 
 	//left
-	indices.push_back(16);
-	indices.push_back(17);
-	indices.push_back(18);
-	indices.push_back(16);
-	indices.push_back(18);
-	indices.push_back(19);
+	m_indices.push_back(16);
+	m_indices.push_back(17);
+	m_indices.push_back(18);
+	m_indices.push_back(16);
+	m_indices.push_back(18);
+	m_indices.push_back(19);
 
 	//right
-	indices.push_back(20);
-	indices.push_back(21);
-	indices.push_back(22);
-	indices.push_back(20);
-	indices.push_back(22);
-	indices.push_back(23);
+	m_indices.push_back(20);
+	m_indices.push_back(21);
+	m_indices.push_back(22);
+	m_indices.push_back(20);
+	m_indices.push_back(22);
+	m_indices.push_back(23);
 
 	computeAabb();
 
-	//std::cout << "size of: vertices: " << vertices.size() << " size of indices: " << indices.size() << "\n";
+	//std::cout << "size of: m_vertices: " << m_vertices.size() << " size of m_indices: " << m_indices.size() << "\n";
 }
 
 void Mesh::computeAabb()
 {
 	m_aabb.clear();
-	for(int i = 0; i < (int)vertices.size(); ++i)
+	for(int i = 0; i < (int)m_vertices.size(); ++i)
 	{
-		m_aabb.grow(vertices[i]);
+		m_aabb.grow(m_vertices[i]);
 	}
 }
 
 /*
-// C++11 version. TODO fix UVs in this version to be the same as above
+// C++11 version. TODO fix m_UVs in this version to be the same as above
 
 void Mesh::generateBox()
 {
@@ -349,7 +427,7 @@ void Mesh::generateBox()
 
 	float boxSize = 0.5f; // Actually half of the box size
 
-	vertices =
+	m_vertices =
 	{
 		glm::vec3(-boxSize,  boxSize,  boxSize), // 0
 		glm::vec3( boxSize,  boxSize,  boxSize), // 1
@@ -382,7 +460,7 @@ void Mesh::generateBox()
 		glm::vec3( boxSize, -boxSize,  boxSize) // 23
 	};
 
-	uvs =
+	m_uvs =
 	{
 		glm::vec2( 0.0f,  0.0f), // 0
 		glm::vec2( 1.0f,  0.0f), // 1
@@ -447,7 +525,7 @@ void Mesh::generateBox()
 	// |/      \|
 	// 16      23
 
-	normals =
+	m_normals =
 	{
 		glm::vec3( 0.0f,  1.0f,  0.0f), // 0
 		glm::vec3( 0.0f,  1.0f,  0.0f), // 1
@@ -482,7 +560,7 @@ void Mesh::generateBox()
 
 	
 	
-	indices =
+	m_indices =
 	{
 		//roof
 		0, 1, 2,
@@ -510,7 +588,7 @@ void Mesh::generateBox()
 
 	};
 
-	std::cout<<"size of: vertices: "<<vertices.size()<<" size of indices: "<<indices.size()<<"\n";	
+	std::cout<<"size of: m_vertices: "<<m_vertices.size()<<" size of m_indices: "<<m_indices.size()<<"\n";	
 }
 */
 
@@ -566,24 +644,24 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 {
 	cout << "Node mesh count: " << node->mNumMeshes << "\n";
 
-	if(node->mNumMeshes > 0)
+	if (node->mNumMeshes > 0)
 	{
 
-		for(unsigned i = 0; i < node->mNumMeshes; ++i)
+		for (uint i = 0; i < node->mNumMeshes; ++i)
 		{
 			cout << "Node: " << i << "\n";
 
 			const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
-			unsigned f;
-			for(f = 0; f < mesh->mNumFaces; ++f)
+			uint f;
+			for (f = 0; f < mesh->mNumFaces; ++f)
 			{
 			
 			}
 
 			cout << "Faces: " << f << "\n";
 
-			for(unsigned n = 0; n < node->mNumChildren; ++n)
+			for (uint n = 0; n < node->mNumChildren; ++n)
 			{
 				loadNode(scene, node->mChildren[n]);
 			}
@@ -594,152 +672,128 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 	{
 		const aiMesh* mesh = scene->mMeshes[0]; // In this simple example code we always use the 1rst mesh (in OBJ files there is often only one anyway)
 
-		cout << "vertices: " << mesh->mNumVertices << "\n";
+		cout << "m_vertices: " << mesh->mNumVertices << "\n";
 		cout << "faces: " << mesh->mNumFaces << "\n";
 		
-		if(mesh->HasTextureCoords(0) == false)
+		if (mesh->HasTextureCoords(0) == false)
 		{
 			cout << "no texture coordinates in mesh.\n";
 		}
 
 		m_aabb.clear();
 
-		// Fill vertices positions
-		vertices.reserve(mesh->mNumVertices);
-		for(unsigned i = 0; i < mesh->mNumVertices; i++)
+		// Fill m_vertices positions
+		m_vertices.reserve(mesh->mNumVertices);
+		for (uint i = 0; i < mesh->mNumVertices; i++)
 		{
 			aiVector3D pos = mesh->mVertices[i];
-			vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
-			m_aabb.grow(vertices[i]);
+			m_vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
+			m_aabb.grow(m_vertices[i]);
 		}
 
-		// Fill vertices texture coordinates
-		uvs.reserve(mesh->mNumVertices);
-		for(unsigned i = 0; i < mesh->mNumVertices; i++)
+		// Fill m_vertices texture coordinates
+		m_uvs.reserve(mesh->mNumVertices);
+		for (uint i = 0; i < mesh->mNumVertices; i++)
 		{
 			//REMOVE cout <<"uv: " << i <<"\n";
 			if(mesh->HasTextureCoords(0))
 			{
 				aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-				uvs.push_back(glm::vec2(UVW.x, UVW.y));
+				m_uvs.push_back(glm::vec2(UVW.x, UVW.y));
 			}
 			else
 			{
-				// really TEMP uvs
-				//uvs.push_back(glm::vec2(float(i) / float(mesh->mNumVertices), float(i) / float(mesh->mNumVertices)));
+				// really TEMP m_uvs
+				//m_uvs.push_back(glm::vec2(float(i) / float(mesh->mNumVertices), float(i) / float(mesh->mNumVertices)));
 
-				uvs.push_back(glm::vec2((vertices[i].x - m_aabb.min().x) / m_aabb.dimensions().x, (vertices[i].y - m_aabb.min().y) / m_aabb.dimensions().y));
+				m_uvs.push_back(glm::vec2((m_vertices[i].x - m_aabb.min().x) / m_aabb.dimensions().x, (m_vertices[i].y - m_aabb.min().y) / m_aabb.dimensions().y));
 			}
 		}
 
-		// Fill vertices normals
-		normals.reserve(mesh->mNumVertices);
-		for(unsigned i = 0; i<mesh->mNumVertices; i++)
+		// Fill m_vertices m_normals
+		m_normals.reserve(mesh->mNumVertices);
+		for (uint i = 0; i<mesh->mNumVertices; i++)
 		{
 			if(mesh->HasNormals())
 			{
 				aiVector3D n = mesh->mNormals[i];
-				normals.push_back(glm::vec3(n.x, n.y, n.z));
+				m_normals.push_back(glm::vec3(n.x, n.y, n.z));
 			}
 			else
 			{
-				// really TEMP normals
-				normals.push_back(glm::normalize( glm::vec3(float(i) / float(mesh->mNumVertices), float(i) / float(mesh->mNumVertices), 1.0f) ));
+				// really TEMP m_normals
+				m_normals.push_back(glm::normalize( glm::vec3(float(i) / float(mesh->mNumVertices), float(i) / float(mesh->mNumVertices), 1.0f) ));
 			}
 		}
 
-		// Fill face indices
-		indices.reserve(3*mesh->mNumFaces);
-		for (unsigned i = 0; i<mesh->mNumFaces; i++)
+		// Fill face m_indices
+		m_indices.reserve(3*mesh->mNumFaces);
+		for (uint i = 0; i<mesh->mNumFaces; i++)
 		{
 			// Assume the model has only triangles.
-			indices.push_back(mesh->mFaces[i].mIndices[0]);
-			indices.push_back(mesh->mFaces[i].mIndices[1]);
-			indices.push_back(mesh->mFaces[i].mIndices[2]);
+			m_indices.push_back(mesh->mFaces[i].mIndices[0]);
+			m_indices.push_back(mesh->mFaces[i].mIndices[1]);
+			m_indices.push_back(mesh->mFaces[i].mIndices[2]);
 		}
 	}
 }
 //end // ASSIMP
 
-
-void Mesh::createVBOs()
-{
-	std::cout << "Mesh::createVBOs.\n";
-
-	glGenBuffers(1, &vertexBufferID);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &uvBufferID);
-	glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &normalBufferID);
-	glBindBuffer(GL_ARRAY_BUFFER, normalBufferID);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &indexBufferID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
-}
-
-void Mesh::render(unsigned set_shader_program_id) const
+void Mesh::render(uint shaderProgramId) const
 {
 
 	// Get a handle for our buffers
-	GLuint vertex_position_id = glGetAttribLocation(set_shader_program_id, "inPosition");
-	GLuint vertex_uv_id = glGetAttribLocation(set_shader_program_id, "inUV");
-	GLuint vertex_normal_id = glGetAttribLocation(set_shader_program_id, "inNormal");
+	GLuint vertexPositionId		= glGetAttribLocation(shaderProgramId, "inPosition");
+	GLuint vertexUvId			= glGetAttribLocation(shaderProgramId, "inUV");
+	GLuint vertexNormalId		= glGetAttribLocation(shaderProgramId, "inNormal");
 
-		// vertices
-		glEnableVertexAttribArray(vertex_position_id);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
+		// m_vertices
+		glEnableVertexAttribArray(vertexPositionId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
 		glVertexAttribPointer(
-			vertex_position_id,  // The attribute we want to configure
-			3,                            // size
-			GL_FLOAT,                     // type
-			GL_FALSE,                     // normalized?
-			0,                            // stride
-			(void*)0                      // array buffer offset
+			vertexPositionId,	// The attribute we want to configure
+			3,					// size
+			GL_FLOAT,			// type
+			GL_FALSE,			// normalized?
+			0,					// stride
+			(void*)0			// array buffer offset
 		);
 
-		// UVs
-		glEnableVertexAttribArray(vertex_uv_id);
-		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
+		// m_UVs
+		glEnableVertexAttribArray(vertexUvId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_uvBufferId);
 		glVertexAttribPointer(
-			vertex_uv_id,                   // The attribute we want to configure
-			2,                            // size : U+V => 2
-			GL_FLOAT,                     // type
-			GL_FALSE,                     // normalized?
-			0,                            // stride
-			(void*)0                      // array buffer offset
+			vertexUvId,			// The attribute we want to configure
+			2,					// size : U+V => 2
+			GL_FLOAT,			// type
+			GL_FALSE,			// normalized?
+			0,					// stride
+			(void*)0			// array buffer offset
 		);
 
-		// normals
-		glEnableVertexAttribArray(vertex_normal_id);
-		glBindBuffer(GL_ARRAY_BUFFER, normalBufferID);
+		// m_normals
+		glEnableVertexAttribArray(vertexNormalId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
 		glVertexAttribPointer(
-			vertex_normal_id,    // The attribute we want to configure
-			3,                            // size
-			GL_FLOAT,                     // type
-			GL_FALSE,                     // normalized?
-			0,                            // stride
-			(void*)0                      // array buffer offset
+			vertexNormalId,		// The attribute we want to configure
+			3,					// size
+			GL_FLOAT,			// type
+			GL_FALSE,			// normalized?
+			0,					// stride
+			(void*)0			// array buffer offset
 		);
 
 		// Index buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 
 		glDrawElements(
 			GL_TRIANGLES,
-			(GLsizei)indices.size(),
+			(GLsizei)m_indices.size(),
 			GL_UNSIGNED_SHORT,
 			(void*)0
 		);
 
-		glDisableVertexAttribArray(vertex_position_id);
-		glDisableVertexAttribArray(vertex_uv_id);
-		glDisableVertexAttribArray(vertex_normal_id);
+		glDisableVertexAttribArray(vertexPositionId);
+		glDisableVertexAttribArray(vertexUvId);
+		glDisableVertexAttribArray(vertexNormalId);
 }
-
-}//end namespace rae

@@ -5,5 +5,7 @@
 
 #ifdef _WIN32
 typedef unsigned int uint;
+#else
+	#define RAE_AV
 #endif
 

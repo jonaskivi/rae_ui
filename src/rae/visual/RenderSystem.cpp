@@ -16,21 +16,17 @@ using glm::mat4;
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-#include "core/Utils.hpp"
-#include "ui/Input.hpp"
+#include "rae/core/Utils.hpp"
+#include "rae/ui/Input.hpp"
 
-#include "ObjectFactory.hpp"
-#include "Transform.hpp"
-#include "Material.hpp"
-#include "Mesh.hpp"
-#include "Entity.hpp"
-#include "Shader.hpp"
-#include "ComponentType.hpp"
+#include "rae/entity/EntitySystem.hpp"
+#include "rae/visual/Transform.hpp"
+#include "rae/visual/Material.hpp"
+#include "rae/visual/Mesh.hpp"
+#include "rae/visual/Shader.hpp"
+#include "rae/visual/CameraSystem.hpp"
 
-#include "CameraSystem.hpp"
-
-namespace rae
-{
+using namespace rae;
 
 int loadFonts(NVGcontext* vg)
 {
@@ -59,14 +55,14 @@ int loadFonts(NVGcontext* vg)
 	return 0;
 }
 
-RenderSystem::RenderSystem(ObjectFactory& objectFactory,
+RenderSystem::RenderSystem(EntitySystem& entitySystem,
 	GLFWwindow* setWindow,
 	Input& input,
 	CameraSystem& cameraSystem,
 	TransformSystem& transformSystem,
 	UISystem& uiSystem,
 	RayTracer& rayTracer)
-: m_objectFactory(objectFactory),
+: m_entitySystem(entitySystem),
 m_window(setWindow),
 m_input(input),
 m_nroFrames(0),
@@ -158,7 +154,7 @@ void RenderSystem::init()
 
 Id RenderSystem::createBox()
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createBox entity: " << id << "\n";
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
@@ -173,7 +169,7 @@ Id RenderSystem::createBox()
 
 Id RenderSystem::createMesh(const String& filename)
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createMesh entity: " << id << "\n";
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
@@ -185,7 +181,7 @@ Id RenderSystem::createMesh(const String& filename)
 
 Id RenderSystem::createMaterial(const Colour& color)
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createMaterial entity: " << id << "\n";
 	Material material(color);
 	addMaterial(id, std::move(material));
@@ -197,7 +193,7 @@ Id RenderSystem::createMaterial(const Colour& color)
 
 Id RenderSystem::createAnimatingMaterial(const Colour& color)
 {
-	Id id = m_objectFactory.createEmptyEntity();
+	Id id = m_entitySystem.createEntity();
 	std::cout << "createAnimatingMaterial entity: " << id << "\n";
 	Material material(color);
 	addMaterial(id, std::move(material));
@@ -211,7 +207,7 @@ Id RenderSystem::createAnimatingMaterial(const Colour& color)
 void RenderSystem::addMesh(Id id, Mesh&& comp)
 {
 	std::cout << "addMesh to entity: " << id << "\n";
-	m_meshes.create(id, std::move(comp));
+	m_meshes.assign(id, std::move(comp));
 }
 
 const Mesh& RenderSystem::getMesh(Id id) const
@@ -227,12 +223,12 @@ Mesh& RenderSystem::getMesh(Id id)
 void RenderSystem::addMeshLink(Id id, Id linkId)
 {
 	std::cout << "addMeshLink: to id: " << id << " linkId: " << linkId << "\n";
-	m_meshLinks.create(id, std::move(linkId));
+	m_meshLinks.assign(id, std::move(linkId));
 }
 
 void RenderSystem::addMaterial(Id id, Material&& comp)
 {
-	m_materials.create(id, std::move(comp));
+	m_materials.assign(id, std::move(comp));
 }
 
 const Material& RenderSystem::getMaterial(Id id) const
@@ -247,8 +243,8 @@ Material& RenderSystem::getMaterial(Id id)
 
 void RenderSystem::addMaterialLink(Id id, Id linkId)
 {
-		std::cout << "addMaterialLink: to id: " << id << " linkId: " << linkId << "\n";
-	m_materialLinks.create(id, std::move(linkId));
+	std::cout << "addMaterialLink: to id: " << id << " linkId: " << linkId << "\n";
+	m_materialLinks.assign(id, std::move(linkId));
 }
 
 void RenderSystem::checkErrors(const char *file, int line)
@@ -296,7 +292,7 @@ bool RenderSystem::update(double time, double delta_time)
 	}
 
 	// TODO move to material system
-	for (auto& material : m_materials.items())
+	for (auto&& material : m_materials.items())
 	{
 		material.update(vg, time);
 	}
@@ -320,6 +316,14 @@ void RenderSystem::destroyEntities(const Array<Id>& entities)
 	m_materialLinks.removeEntities(entities);
 }
 
+void RenderSystem::defragmentTables()
+{
+	m_meshes.defragment();
+	m_meshLinks.defragment();
+	m_materials.defragment();
+	m_materialLinks.defragment();
+}
+
 void RenderSystem::render(double time, double delta_time)
 {
 	glViewport(0, 0, m_windowPixelWidth, m_windowPixelHeight);
@@ -339,7 +343,7 @@ void RenderSystem::render(double time, double delta_time)
 	Mesh* debugMesh = nullptr;
 	Material* debugMaterial = nullptr;
 
-	for (Id id : m_objectFactory.entities())
+	for (Id id : m_entitySystem.entities())
 	{
 		Material* material = nullptr;
 		Mesh* mesh = nullptr;
@@ -393,7 +397,7 @@ void RenderSystem::renderPicking()
 
 	glUseProgram(pickingShaderID);
 
-	for (Id id : m_objectFactory.entities())
+	for (Id id : m_entitySystem.entities())
 	{
 		Mesh* mesh = nullptr;
 		
@@ -539,7 +543,7 @@ void RenderSystem::render2d(double time, double delta_time)
 			nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
 			nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 
-			std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory.entityCount());
+			std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
 			nvgText(vg, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 			std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
@@ -577,6 +581,3 @@ void RenderSystem::osEventResizeWindowPixels(int width, int height)
 	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
 	m_cameraSystem.setAspectRatio(float(width) / float(height));
 }
-
-} //end namespace rae
-

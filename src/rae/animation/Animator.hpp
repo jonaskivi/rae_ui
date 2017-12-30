@@ -1,5 +1,4 @@
-#ifndef RAE_ANIMATOR_HPP
-#define RAE_ANIMATOR_HPP
+#pragma once
 
 #include <math.h>
 #include <glm/glm.hpp>
@@ -217,6 +216,3 @@ private:
 };
 
 }
-
-#endif
-

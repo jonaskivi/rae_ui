@@ -1,5 +1,4 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -49,5 +48,3 @@ bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon = 
 }
 
 } // end namespace rae
-
-#endif

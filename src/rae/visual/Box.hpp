@@ -1,10 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
-using glm::vec3;
-using glm::vec2;
-
-#include "Transform.hpp"
+#include "rae/core/Types.hpp"
+#include "rae/visual/Transform.hpp"
 
 namespace rae
 {

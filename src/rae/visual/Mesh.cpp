@@ -593,7 +593,7 @@ void Mesh::generateBox()
 */
 
 //ASSIMP
-bool Mesh::loadModel(const string& filepath)
+bool Mesh::loadModel(const String& filepath)
 {
 	Assimp::Importer importer;
 
@@ -615,9 +615,9 @@ bool Mesh::loadModel(const string& filepath)
 	}
 	else
 	{
-		cout << "Couldn't open file: " << filepath << "\n";
+		std::cout << "Couldn't open file: " << filepath << "\n";
 		//logInfo( importer.GetErrorString());
-		cout << importer.GetErrorString() << "\n";
+		std::cout << importer.GetErrorString() << "\n";
 		return false;
 	}
 
@@ -626,7 +626,7 @@ bool Mesh::loadModel(const string& filepath)
 	if( !scene )
 	{
 		//logInfo( importer.GetErrorString());
-		cout << importer.GetErrorString() << "\n";
+		std::cout << importer.GetErrorString() << "\n";
 		return false;
 	}
 
@@ -636,20 +636,20 @@ bool Mesh::loadModel(const string& filepath)
 	//computeAabb();
 	createVBOs();
 
-	cout << "Succesfully imported scene " << filepath << "\n";
+	std::cout << "Succesfully imported scene " << filepath << "\n";
 	return true;
 }
 
 void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 {
-	cout << "Node mesh count: " << node->mNumMeshes << "\n";
+	std::cout << "Node mesh count: " << node->mNumMeshes << "\n";
 
 	if (node->mNumMeshes > 0)
 	{
 
 		for (uint i = 0; i < node->mNumMeshes; ++i)
 		{
-			cout << "Node: " << i << "\n";
+			std::cout << "Node: " << i << "\n";
 
 			const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
@@ -659,7 +659,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			
 			}
 
-			cout << "Faces: " << f << "\n";
+			std::cout << "Faces: " << f << "\n";
 
 			for (uint n = 0; n < node->mNumChildren; ++n)
 			{
@@ -672,12 +672,12 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 	{
 		const aiMesh* mesh = scene->mMeshes[0]; // In this simple example code we always use the 1rst mesh (in OBJ files there is often only one anyway)
 
-		cout << "m_vertices: " << mesh->mNumVertices << "\n";
-		cout << "faces: " << mesh->mNumFaces << "\n";
+		std::cout << "m_vertices: " << mesh->mNumVertices << "\n";
+		std::cout << "faces: " << mesh->mNumFaces << "\n";
 		
 		if (mesh->HasTextureCoords(0) == false)
 		{
-			cout << "no texture coordinates in mesh.\n";
+			std::cout << "no texture coordinates in mesh.\n";
 		}
 
 		m_aabb.clear();

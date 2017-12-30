@@ -1,24 +1,19 @@
 #pragma once
 
-#include <iostream>
-
 #include <stdint.h> // uint8_t etc.
-#include <vector>
 #include <mutex>
 #include <thread>
 
 #include "nanovg.h"
 
-#include <glm/glm.hpp>
-using glm::vec3;
-
+#include "rae/core/Types.hpp"
 #include "rae/core/ISystem.hpp"
 
 #include "rae/visual/Ray.hpp"
-#include "HitRecord.hpp"
-#include "Hitable.hpp"
-#include "HitableList.hpp"
-#include "BvhNode.hpp"
+#include "rae_ray/HitRecord.hpp"
+#include "rae_ray/Hitable.hpp"
+#include "rae_ray/HitableList.hpp"
+#include "rae_ray/BvhNode.hpp"
 
 #include "rae/image/ImageBuffer.hpp"
 

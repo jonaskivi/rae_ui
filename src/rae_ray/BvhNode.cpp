@@ -9,12 +9,12 @@ using namespace rae;
 
 int g_deep = 0;
 
-BvhNode::BvhNode(std::vector<Hitable*>& hitables, float time0, float time1)
+BvhNode::BvhNode(Array<Hitable*>& hitables, float time0, float time1)
 {
 	init(hitables, time0, time1);
 }
 
-void BvhNode::init(std::vector<Hitable*>& hitables, float time0, float time1)
+void BvhNode::init(Array<Hitable*>& hitables, float time0, float time1)
 {
 	g_deep++;
 	//JONDE REMOVE std::cout << "bvh deep: " << g_deep << std::endl;
@@ -56,8 +56,8 @@ void BvhNode::init(std::vector<Hitable*>& hitables, float time0, float time1)
 	else
 	{
 		const std::size_t halfSize = hitables.size() / 2;
-		std::vector<Hitable*> splitLow(hitables.begin(), hitables.begin() + halfSize);
-		std::vector<Hitable*> splitHigh(hitables.begin() + halfSize, hitables.end());
+		Array<Hitable*> splitLow(hitables.begin(), hitables.begin() + halfSize);
+		Array<Hitable*> splitHigh(hitables.begin() + halfSize, hitables.end());
 
 		//JONDE REMOVE std::cout << "bvh more size: " << hitables.size() << " halfSize: " << halfSize << " lowSize: " << splitLow.size() << " highSize: " << splitHigh.size() << std::endl;
 

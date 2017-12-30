@@ -11,9 +11,6 @@ using namespace std;
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-using glm::vec3;
-using glm::dot;
-
 using namespace rae;
 
 // TODO move to RayTracerUtils.hpp
@@ -23,7 +20,7 @@ vec3 randomInUnitSphere()
 	do
 	{
 		p = 2.0f * vec3(getRandom(), getRandom(), getRandom()) - vec3(1,1,1);
-	} while (dot(p,p) >= 1.0f);
+	} while (glm::dot(p,p) >= 1.0f);
 	return p;
 }
 
@@ -42,7 +39,7 @@ bool Lambertian::scatter(const Ray& r_in, const HitRecord& record, vec3& attenua
 
 vec3 reflect(const vec3& v, const vec3& normal)
 {
-	return v - 2.0f * dot(v, normal) * normal;
+	return v - 2.0f * glm::dot(v, normal) * normal;
 }
 
 bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
@@ -50,13 +47,13 @@ bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation,
 	vec3 reflected = reflect( glm::normalize(r_in.direction()), record.normal );
 	scattered = Ray(record.point, reflected + roughness * randomInUnitSphere());
 	attenuation = albedo;
-	return (dot(scattered.direction(), record.normal) > 0);
+	return (glm::dot(scattered.direction(), record.normal) > 0);
 }
 
 bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
 {
 	vec3 uv = glm::normalize(v);
-	float dt = dot(uv, n);
+	float dt = glm::dot(uv, n);
 	float discriminant = 1.0f - ni_over_nt * ni_over_nt * (1.0f - dt * dt);
 	if (discriminant > 0)
 	{
@@ -82,17 +79,17 @@ bool Dielectric::scatter(const Ray& r_in, const HitRecord& record, vec3& attenua
 	vec3 refracted;
 	float reflect_probability;
 	float cosine;
-	if (dot(r_in.direction(), record.normal) > 0)
+	if (glm::dot(r_in.direction(), record.normal) > 0)
 	{
 		outward_normal = -record.normal;
 		ni_over_nt = refractive_index;
-		cosine = refractive_index * dot(r_in.direction(), record.normal) / r_in.direction().length();
+		cosine = refractive_index * glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
 	}
 	else
 	{
 		outward_normal = record.normal;
 		ni_over_nt = 1.0f / refractive_index;
-		cosine = -dot(r_in.direction(), record.normal) / r_in.direction().length();
+		cosine = -glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
 	}
 
 	if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))

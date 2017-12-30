@@ -1,10 +1,11 @@
 #pragma once
 
 #include <glm/glm.hpp>
-using glm::vec3;
 
 namespace rae
 {
+
+using vec3 = glm::vec3;
 
 class Ray
 {

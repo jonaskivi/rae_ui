@@ -2,9 +2,6 @@
 
 #include <functional>
 
-#include <glm/glm.hpp>
-using glm::vec3;
-
 #include "rae/core/Types.hpp"
 
 namespace rae

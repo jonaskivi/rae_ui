@@ -1,11 +1,12 @@
 #ifndef RAE_TRANSFORM_HPP
 #define RAE_TRANSFORM_HPP
 
-#include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-using glm::vec3;
-using glm::quat;
-using glm::mat4;
+namespace rae
+{
+	using quat = glm::quat;
+	using mat4 = glm::mat4;
+}
 
 #include "rae/core/Types.hpp"
 #include "rae/animation/Animator.hpp"

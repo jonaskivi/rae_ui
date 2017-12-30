@@ -1,12 +1,13 @@
 #pragma once
 
 #include <glm/glm.hpp>
-using glm::vec3;
 
 #include "Hitable.hpp"
 
 namespace rae
 {
+
+using vec3 = glm::vec3;
 
 class Ray;
 struct HitRecord;

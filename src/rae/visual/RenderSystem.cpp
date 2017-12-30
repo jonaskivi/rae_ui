@@ -7,9 +7,12 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
-using glm::vec3;
-using glm::quat;
-using glm::mat4;
+
+namespace rae
+{
+	using quat = glm::quat;
+	using mat4 = glm::mat4;
+}
 
 #include "nanovg.h"
 #define NANOVG_GL2_IMPLEMENTATION

@@ -1,12 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <string>
-using namespace std;
-
-#include <glm/glm.hpp>
-using glm::vec3;
-
 //ASSIMP
 #include "assimp/Importer.hpp"	//OO version Header!
 #include "assimp/postprocess.h"
@@ -14,6 +7,8 @@ using glm::vec3;
 #include "assimp/DefaultLogger.hpp"
 #include "assimp/LogStream.hpp"
 //end // ASSIMP
+
+#include "rae/core/Types.hpp"
 
 #include "rae_ray/Hitable.hpp"
 #include "rae/visual/Box.hpp"
@@ -41,7 +36,7 @@ public:
 	void generateBox();
 
 	//ASSIMP
-	bool loadModel(const string& filepath);
+	bool loadModel(const String& filepath);
 	void loadNode(const aiScene* scene, const aiNode* node);
 	//end // ASSIMP
 

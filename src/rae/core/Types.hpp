@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
 namespace rae
@@ -14,11 +15,9 @@ const Id InvalidId = 0;
 
 using Colour = glm::vec4;
 
-/*
 using vec2 = glm::vec2;
 using vec3 = glm::vec3;
 using vec4 = glm::vec4;
-*/
 
 template < class T, class Allocator = std::allocator<T> >
 using Array = std::vector<T, Allocator>;

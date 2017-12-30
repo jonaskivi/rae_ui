@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/glm.hpp>
-using glm::vec3;
 #include "nanovg.h"
 
 #include "rae/core/Types.hpp"

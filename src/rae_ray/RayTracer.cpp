@@ -1,14 +1,8 @@
 #include "RayTracer.hpp"
 
 #include <iostream>	
-#include <vector>
-#include <string>
 
-#include <glm/glm.hpp>
-using glm::vec3;
-using glm::dot;
-
-#include "core/Utils.hpp"
+#include "rae/core/Utils.hpp"
 #include "rae/core/Random.hpp"
 
 #include "rae/visual/CameraSystem.hpp"

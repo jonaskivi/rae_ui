@@ -227,188 +227,6 @@ vec3 Mesh::getFaceNormal(int idx) const
 	return glm::normalize(normal);
 }
 
-//version without initializer lists (vs2012):
-void Mesh::generateBox()
-{
-	//std::cout<<"Generating Mesh.\n";
-
-	float boxSize = 0.5f; // Actually half of the box size
-
-	m_vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 0
-	m_vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 1
-	m_vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 2
-	m_vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 3
-
-	m_vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 4
-	m_vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 5
-	m_vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 6
-	m_vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) ); // 7
-
-	m_vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 8
-	m_vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 9
-	m_vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 10
-	m_vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 11
-		
-	m_vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) ); // 12
-	m_vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 13
-	m_vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 14
-	m_vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 15
-
-	m_vertices.push_back( glm::vec3(-boxSize, -boxSize,  boxSize) ); // 16
-	m_vertices.push_back( glm::vec3(-boxSize,  boxSize,  boxSize) ); // 17
-	m_vertices.push_back( glm::vec3(-boxSize,  boxSize, -boxSize) ); // 18
-	m_vertices.push_back( glm::vec3(-boxSize, -boxSize, -boxSize) ); // 19
-		
-	m_vertices.push_back( glm::vec3( boxSize, -boxSize, -boxSize) ); // 20
-	m_vertices.push_back( glm::vec3( boxSize,  boxSize, -boxSize) ); // 21
-	m_vertices.push_back( glm::vec3( boxSize,  boxSize,  boxSize) ); // 22
-	m_vertices.push_back( glm::vec3( boxSize, -boxSize,  boxSize) );// 23
-
-	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
-		
-	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
-
-	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
-
-	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
-
-	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
-
-	m_uvs.push_back( glm::vec2( 1.0f,  0.0f) ); // 1
-	m_uvs.push_back( glm::vec2( 1.0f,  1.0f) ); // 2
-	m_uvs.push_back( glm::vec2( 0.0f,  1.0f) ); // 3
-	m_uvs.push_back( glm::vec2( 0.0f,  0.0f) ); // 0
-
-	// *--------*
-	// |\      /|
-	// | *----* |
-	// | |    | |
-	// | *----* |
-	// |/      \|
-	// *--------*
-
-	// 0--------1
-	//  \      /
-	//   3----2 
-	//       
-	//   5----6 
-	//  /      \
-	// 4--------7
-
-	// 14------13
-	// |        |
-	// | 9---10 |
-	// | |    | |
-	// | 8---11 |
-	// |        |
-	// 15------12
-
-	// 17       22
-	// |\      /|
-	// | 18   21|
-	// | |    | |
-	// | 19   20|
-	// |/      \|
-	// 16      23
-
-	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 0
-	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 1
-	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 2
-	m_normals.push_back( glm::vec3( 0.0f,  1.0f,  0.0f) ); // 3
-		
-	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 0
-	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 1
-	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 2
-	m_normals.push_back( glm::vec3( 0.0f, -1.0f,  0.0f) ); // 3
-
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 0
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 1
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 2
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f, -1.0f) ); // 3
-
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 0
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 1
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 2
-	m_normals.push_back( glm::vec3( 0.0f,  0.0f,  1.0f) ); // 3
-
-	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 0
-	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 1
-	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 2
-	m_normals.push_back( glm::vec3(-1.0f,  0.0f,  0.0f) ); // 3
-
-	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 0
-	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 1
-	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) ); // 2
-	m_normals.push_back( glm::vec3( 1.0f,  0.0f,  0.0f) );// 3
-	
-	//roof
-	m_indices.push_back( 0);
-	m_indices.push_back( 1);
-	m_indices.push_back( 2);
-	m_indices.push_back( 0);
-	m_indices.push_back( 2);
-	m_indices.push_back( 3);
-	
-	//floor
-	m_indices.push_back( 4);
-	m_indices.push_back( 5);
-	m_indices.push_back( 6); 
-	m_indices.push_back( 4);
-	m_indices.push_back( 6);
-	m_indices.push_back( 7); 
-
-	//back
-	m_indices.push_back( 8);
-	m_indices.push_back( 9);
-	m_indices.push_back(10);
-	m_indices.push_back( 8);
-	m_indices.push_back(10);
-	m_indices.push_back(11);
-
-	//front
-	m_indices.push_back(12);
-	m_indices.push_back(13);
-	m_indices.push_back(14);
-	m_indices.push_back(12);
-	m_indices.push_back(14);
-	m_indices.push_back(15);
-
-	//left
-	m_indices.push_back(16);
-	m_indices.push_back(17);
-	m_indices.push_back(18);
-	m_indices.push_back(16);
-	m_indices.push_back(18);
-	m_indices.push_back(19);
-
-	//right
-	m_indices.push_back(20);
-	m_indices.push_back(21);
-	m_indices.push_back(22);
-	m_indices.push_back(20);
-	m_indices.push_back(22);
-	m_indices.push_back(23);
-
-	computeAabb();
-
-	//std::cout << "size of: m_vertices: " << m_vertices.size() << " size of m_indices: " << m_indices.size() << "\n";
-}
-
 void Mesh::computeAabb()
 {
 	m_aabb.clear();
@@ -418,12 +236,9 @@ void Mesh::computeAabb()
 	}
 }
 
-/*
-// C++11 version. TODO fix m_UVs in this version to be the same as above
-
 void Mesh::generateBox()
 {
-	std::cout<<"Generating Mesh.\n";
+	//std::cout << "Generating Mesh.\n";
 
 	float boxSize = 0.5f; // Actually half of the box size
 
@@ -457,40 +272,40 @@ void Mesh::generateBox()
 		glm::vec3( boxSize, -boxSize, -boxSize), // 20
 		glm::vec3( boxSize,  boxSize, -boxSize), // 21
 		glm::vec3( boxSize,  boxSize,  boxSize), // 22
-		glm::vec3( boxSize, -boxSize,  boxSize) // 23
+		glm::vec3( boxSize, -boxSize,  boxSize)  // 23
 	};
 
 	m_uvs =
 	{
-		glm::vec2( 0.0f,  0.0f), // 0
 		glm::vec2( 1.0f,  0.0f), // 1
 		glm::vec2( 1.0f,  1.0f), // 2
 		glm::vec2( 0.0f,  1.0f), // 3
+		glm::vec2( 0.0f,  0.0f), // 0
 		
-		glm::vec2( 0.0f,  0.0f), // 0
 		glm::vec2( 1.0f,  0.0f), // 1
 		glm::vec2( 1.0f,  1.0f), // 2
 		glm::vec2( 0.0f,  1.0f), // 3
-
 		glm::vec2( 0.0f,  0.0f), // 0
+
 		glm::vec2( 1.0f,  0.0f), // 1
 		glm::vec2( 1.0f,  1.0f), // 2
 		glm::vec2( 0.0f,  1.0f), // 3
-
 		glm::vec2( 0.0f,  0.0f), // 0
+
 		glm::vec2( 1.0f,  0.0f), // 1
 		glm::vec2( 1.0f,  1.0f), // 2
 		glm::vec2( 0.0f,  1.0f), // 3
-
 		glm::vec2( 0.0f,  0.0f), // 0
+
 		glm::vec2( 1.0f,  0.0f), // 1
 		glm::vec2( 1.0f,  1.0f), // 2
 		glm::vec2( 0.0f,  1.0f), // 3
-
 		glm::vec2( 0.0f,  0.0f), // 0
+
 		glm::vec2( 1.0f,  0.0f), // 1
 		glm::vec2( 1.0f,  1.0f), // 2
-		glm::vec2( 0.0f,  1.0f) // 3
+		glm::vec2( 0.0f,  1.0f), // 3
+		glm::vec2( 0.0f,  0.0f)  // 0
 	};
 
 	// *--------*
@@ -585,12 +400,12 @@ void Mesh::generateBox()
 		//right
 		20, 21, 22,
 		20, 22, 23
-
 	};
 
-	std::cout<<"size of: m_vertices: "<<m_vertices.size()<<" size of m_indices: "<<m_indices.size()<<"\n";	
+	computeAabb();
+
+	//std::cout << "size of: m_vertices: " << m_vertices.size() << " size of m_indices: " << m_indices.size() << "\n";
 }
-*/
 
 //ASSIMP
 bool Mesh::loadModel(const String& filepath)

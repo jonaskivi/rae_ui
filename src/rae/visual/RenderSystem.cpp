@@ -23,6 +23,7 @@ namespace rae
 #include "rae/ui/Input.hpp"
 
 #include "rae/entity/EntitySystem.hpp"
+#include "rae/core/ScreenSystem.hpp"
 #include "rae/visual/Transform.hpp"
 #include "rae/visual/Material.hpp"
 #include "rae/visual/Mesh.hpp"
@@ -61,22 +62,24 @@ int loadFonts(NVGcontext* vg)
 RenderSystem::RenderSystem(EntitySystem& entitySystem,
 	GLFWwindow* setWindow,
 	Input& input,
+	ScreenSystem& screenSystem,
 	CameraSystem& cameraSystem,
 	TransformSystem& transformSystem,
 	UISystem& uiSystem,
-	RayTracer& rayTracer)
-: m_entitySystem(entitySystem),
-m_window(setWindow),
-m_input(input),
-m_nroFrames(0),
-m_fpsTimer(0.0),
-m_fpsString("fps:"),
-//m_pickedString("Nothing picked"),
-vg(nullptr),
-m_cameraSystem(cameraSystem),
-m_transformSystem(transformSystem),
-m_uiSystem(uiSystem),
-m_rayTracer(rayTracer)
+	RayTracer& rayTracer) :
+		m_entitySystem(entitySystem),
+		m_window(setWindow),
+		m_input(input),
+		m_screenSystem(screenSystem),
+		m_nroFrames(0),
+		m_fpsTimer(0.0),
+		m_fpsString("fps:"),
+		//m_pickedString("Nothing picked"),
+		vg(nullptr),
+		m_cameraSystem(cameraSystem),
+		m_transformSystem(transformSystem),
+		m_uiSystem(uiSystem),
+		m_rayTracer(rayTracer)
 {
 	debugTransform = new Transform(vec3(0,0,0));
 	debugTransform2 = new Transform(vec3(0,0,0));
@@ -103,14 +106,20 @@ void RenderSystem::initNanoVG()
 		assert(0);
 	}
 
-	glfwGetWindowSize(m_window, &m_windowWidth, &m_windowHeight);
-	glfwGetFramebufferSize(m_window, &m_windowPixelWidth, &m_windowPixelHeight);
-	// Calculate pixel ratio for hi-dpi screens.
-	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
+	int windowWidth;
+	int windowHeight;
+	int windowPixelWidth;
+	int windowPixelHeight;
 
-	if( loadFonts(vg) == -1 )
+	glfwGetWindowSize(m_window, &windowWidth, &windowHeight);
+	glfwGetFramebufferSize(m_window, &windowPixelWidth, &windowPixelHeight);
+
+	m_screenSystem.osEventResizeWindow(windowWidth, windowHeight);
+	m_screenSystem.osEventResizeWindowPixels(windowPixelWidth, windowPixelHeight);
+
+	if (loadFonts(vg) == -1)
 	{
-		cout << "Could not load fonts\n";
+		std::cout << "Could not load fonts\n";
 		getchar();
 		exit(0);
 		assert(0);
@@ -305,7 +314,7 @@ bool RenderSystem::update(double time, double delta_time)
 
 	render(time, delta_time);
 
-	m_uiSystem.render(time, delta_time, vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
+	m_uiSystem.render(time, delta_time, vg);
 	//JONDE TEMP RAYTRACER render2d(time, delta_time);
 
 	return false; // for now
@@ -329,7 +338,9 @@ void RenderSystem::defragmentTables()
 
 void RenderSystem::render(double time, double delta_time)
 {
-	glViewport(0, 0, m_windowPixelWidth, m_windowPixelHeight);
+	const auto& window = m_screenSystem.window();
+
+	glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 
 	// Clear the screen
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
@@ -391,9 +402,10 @@ void RenderSystem::render(double time, double delta_time)
 
 void RenderSystem::renderPicking()
 {
-	glViewport(0, 0, m_windowPixelWidth, m_windowPixelHeight);
-	//glViewport(0, 0, m_windowWidth, m_windowHeight);
-	
+	const auto& window = m_screenSystem.window();
+
+	glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
+
 	// Clear the screen
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -485,23 +497,25 @@ void RenderSystem::render2dBackground(double time, double delta_time)
 {
 	//nanovg
 
+	const auto& window = m_screenSystem.window();
+
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
+	nvgBeginFrame(vg, window.width(), window.height(), window.screenPixelRatio());
 	
 	//JONDE RAYTRACER:
-	//m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
-	//renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)m_windowWidth, (float)m_windowHeight);
+	//m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)window.width(), (float)window.height());
+	//renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)window.width(), (float)window.height());
 
 	Box rayWindow(
 		vec3(0.0f, 0.0f, 0.0f),
-		vec3(float(m_windowWidth) * 0.5f, float(m_windowHeight) * 0.5f, 0.0f));
+		vec3(float(window.width()) * 0.5f, float(window.height()) * 0.5f, 0.0f));
 	m_rayTracer.renderNanoVG(vg,
 		rayWindow.min().x, rayWindow.min().y,
 		rayWindow.dimensions().x, rayWindow.dimensions().y);
 	Box imageWindow(
-		vec3(float(m_windowWidth) * 0.5f, float(m_windowHeight) * 0.5f, 0.0f),
-		vec3((float(m_windowWidth) * 0.5f) * 2.0f, (float(m_windowHeight) * 0.5f) * 2.0f, 0.0f));
+		vec3(float(window.width()) * 0.5f, float(window.height()) * 0.5f, 0.0f),
+		vec3((float(window.width()) * 0.5f) * 2.0f, (float(window.height()) * 0.5f) * 2.0f, 0.0f));
 	renderImageBuffer(vg, m_backgroundImage,
 		imageWindow.min().x, imageWindow.min().y,
 		imageWindow.dimensions().x, imageWindow.dimensions().y);
@@ -526,12 +540,14 @@ void RenderSystem::renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
 void RenderSystem::render2d(double time, double delta_time)
 {
 	//nanovg
+	
+	const auto& window = m_screenSystem.window();
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	if (m_rayTracer.isInfoText())
 	{
-		nvgBeginFrame(vg, m_windowWidth, m_windowHeight, m_screenPixelRatio);
+		nvgBeginFrame(vg, window.width(), window.height(), window.screenPixelRatio());
 			nvgFontFace(vg, "sans");
 
 			float vertPos = 10.0f;
@@ -571,16 +587,12 @@ void RenderSystem::clearImageRenderer()
 
 void RenderSystem::osEventResizeWindow(int width, int height)
 {
-	m_windowWidth = width;
-	m_windowHeight = height;
-	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
+	m_screenSystem.osEventResizeWindow(width, height);
 	m_cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
 void RenderSystem::osEventResizeWindowPixels(int width, int height)
 {
-	m_windowPixelWidth = width;
-	m_windowPixelHeight = height;
-	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
+	m_screenSystem.osEventResizeWindowPixels(width, height);
 	m_cameraSystem.setAspectRatio(float(width) / float(height));
 }

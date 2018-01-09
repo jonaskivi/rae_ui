@@ -6,11 +6,48 @@
 namespace rae
 {
 
+class Window
+{
+public:
+	Window(){}
+
+	int   width()       const { return m_width;       }
+	int   height()      const { return m_height;      }
+	int   pixelWidth()  const { return m_pixelWidth;  }
+	int   pixelHeight() const { return m_pixelHeight; }
+	float screenPixelRatio()  const { return m_screenPixelRatio;  }
+
+	void osEventResizeWindow(int width, int height);
+	void osEventResizeWindowPixels(int width, int height);
+
+protected:
+	int m_width = 0;
+	int m_height = 0;
+	int m_pixelWidth = 0;
+	int m_pixelHeight = 0;
+	// Window pixel ratio for hi-dpi screens.
+	float m_screenPixelRatio  = 1.0f;
+};
+
 class ScreenSystem
 {
 public:
 
 	ScreenSystem();
+
+	// TODO multiwindow support
+	void osEventResizeWindow(int width, int height);
+	void osEventResizeWindowPixels(int width, int height);
+
+	const Window& window() { return m_window; }
+
+	float heightToPixels(float heightCoords) { return heightCoords * screenHeightP() * m_window.screenPixelRatio(); }
+	// TODO: micro-optimize to multiplications:
+	float pixelsToHeight(float pixels) { return pixels / screenHeightP() / m_window.screenPixelRatio(); }
+
+	float heightToAltPixels(float heightCoords) { return heightCoords * screenHeightP(); }
+	// TODO: micro-optimize to multiplications:
+	float altPixelsToHeight(float pixels) { return pixels / screenHeightP(); }
 
 	void updateScreenInfo();
 	int numberOfScreens();
@@ -43,12 +80,12 @@ public:
 	// float pixel() { return 1.0f/m_screenHeightP; }
 	
 	float pixel(int set_screen = 0);
-	float pixelsToHeight(int set_screen = 0);
+	float pixelsToHeightOLD(int set_screen = 0);
 	
-	float heightToPixels(int set_screen = 0);
+	float heightToPixelsOLD(int set_screen = 0);
 	
-	float pixelsToHeight(float in_pixels, int set_screen = 0);
-	float heightToPixels(float in_height, int set_screen = 0);
+	float pixelsToHeightOLD(float in_pixels, int set_screen = 0);
+	float heightToPixelsOLD(float in_height, int set_screen = 0);
 	
 	float percentToWidth(float in_percent, int set_screen = 0);
 
@@ -67,6 +104,7 @@ public:
 
 protected:
 	Array<ScreenInfo> screens;
+	Window m_window;
 };
 	
 }

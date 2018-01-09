@@ -16,7 +16,7 @@ Engine::Engine(GLFWwindow* set_window) :
 	m_cameraSystem(m_input),
 	m_rayTracer(m_cameraSystem),
 	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem), 
-	m_renderSystem(m_entitySystem, m_window, m_input, m_cameraSystem,
+	m_renderSystem(m_entitySystem, m_window, m_input, m_screenSystem, m_cameraSystem,
 		m_transformSystem, m_uiSystem, m_rayTracer)
 {
 	m_currentTime = glfwGetTime();
@@ -270,53 +270,61 @@ void Engine::createTestWorld2()
 
 void Engine::osEventResizeWindow(int width, int height)
 {
+	// TODO could pass it straight to screenSystem and cameraSystem.
 	m_renderSystem.osEventResizeWindow(width, height);
 }
 
 void Engine::osEventResizeWindowPixels(int width, int height)
 {
+	// TODO could pass it straight to screenSystem and cameraSystem.
 	m_renderSystem.osEventResizeWindowPixels(width, height);
 }
 
 void Engine::osMouseButtonPress(int set_button, float set_xP, float set_yP)
 {
+	const auto& window = m_screenSystem.window();
 	// Have to scale input on retina screens:
-	set_xP = set_xP * m_renderSystem.screenPixelRatio();
-	set_yP = set_yP * m_renderSystem.screenPixelRatio();
+	set_xP = set_xP * window.screenPixelRatio();
+	set_yP = set_yP * window.screenPixelRatio();
+
+	std::cout << "osMouseButtonPress after screenPixelRatio: " << window.screenPixelRatio()
+		<< " x: " << set_xP << " y: " << set_yP << "\n";
 
 	m_input.osMouseEvent(
 		EventType::MouseButtonPress,
 		set_button,
-		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
-		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
-		/*set_amount*/0.0f );
+		set_xP - (window.pixelWidth() * 0.5f),
+		set_yP - (window.pixelHeight() * 0.5f),
+		/*set_amount*/0.0f);
 }
 
 void Engine::osMouseButtonRelease(int set_button, float set_xP, float set_yP)
 {
+	const auto& window = m_screenSystem.window();
 	// Have to scale input on retina screens:
-	set_xP = set_xP * m_renderSystem.screenPixelRatio();
-	set_yP = set_yP * m_renderSystem.screenPixelRatio();
+	set_xP = set_xP * window.screenPixelRatio();
+	set_yP = set_yP * window.screenPixelRatio();
 
 	m_input.osMouseEvent(
 		EventType::MouseButtonRelease,
 		set_button,
-		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
-		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
+		set_xP - (window.pixelWidth() * 0.5f),
+		set_yP - (window.pixelHeight() * 0.5f),
 		/*set_amount*/0.0f );
 }
 
 void Engine::osMouseMotion(float set_xP, float set_yP)
 {
+	const auto& window = m_screenSystem.window();
 	// Have to scale input on retina screens:
-	set_xP = set_xP * m_renderSystem.screenPixelRatio();
-	set_yP = set_yP * m_renderSystem.screenPixelRatio();
+	set_xP = set_xP * window.screenPixelRatio();
+	set_yP = set_yP * window.screenPixelRatio();
 
 	m_input.osMouseEvent(
 		EventType::MouseMotion,
 		(int)MouseButton::Undefined,
-		set_xP - (m_renderSystem.windowPixelWidth()*0.5f),
-		set_yP - (m_renderSystem.windowPixelHeight()*0.5f),
+		set_xP - (window.pixelWidth() * 0.5f),
+		set_yP - (window.pixelHeight() * 0.5f),
 		/*set_amount*/0.0f );
 }
 
@@ -343,6 +351,8 @@ void Engine::onMouseEvent(const Input& input)
 	{
 		if (input.mouse.eventButton == MouseButton::First)
 		{
+			const auto& window = m_screenSystem.window();
+
 			//cout << "mouse press: x: "<< input.mouse.x << " y: " << input.mouse.y << endl;
 			//cout << "mouse press: xP: "<< (int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2)
 			//	<< " yP: " << m_renderSystem.windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem.windowPixelHeight() / 2) << endl;
@@ -353,8 +363,8 @@ void Engine::onMouseEvent(const Input& input)
 
 			//glGetIntegerv(GL_VIEWPORT, viewport);
 			glReadPixels(
-				(int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2),
-				m_renderSystem.windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem.windowPixelHeight() / 2),
+				(int)m_screenSystem.heightToPixels(input.mouse.x) + (window.pixelWidth() / 2),
+				window.pixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (window.pixelHeight() / 2),
 				1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &res);
 
 			// Decode entity ID from red and green channels!

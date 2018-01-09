@@ -1,11 +1,37 @@
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/core/version.hpp"
 
+#include <iostream>
+
 #ifdef version_glfw
 	#include <GLFW/glfw3.h>
 #endif
 
 using namespace rae;
+
+void Window::osEventResizeWindow(int width, int height)
+{
+	m_width = width;
+	m_height = height;
+	m_screenPixelRatio = (float)m_pixelWidth / (float)m_width;
+}
+
+void Window::osEventResizeWindowPixels(int width, int height)
+{
+	m_pixelWidth = width;
+	m_pixelHeight = height;
+	m_screenPixelRatio = (float)m_pixelWidth / (float)m_width;
+}
+
+void ScreenSystem::osEventResizeWindow(int width, int height)
+{
+	m_window.osEventResizeWindow(width, height);
+}
+
+void ScreenSystem::osEventResizeWindowPixels(int width, int height)
+{
+	m_window.osEventResizeWindowPixels(width, height);
+}
 
 ScreenSystem::ScreenSystem()
 {
@@ -63,7 +89,7 @@ void ScreenSystem::updateScreenInfo()
 void ScreenSystem::updateScreenInfo()
 {
 	#ifdef DebugRae
-		RaeLog << "ScreenSystem::updateScreenInfo() START.\n";
+		std::cout << "ScreenSystem::updateScreenInfo() START.\n";
 	#endif
 
 	//If we happen to have some screens there already, we'll clear them first.
@@ -73,7 +99,7 @@ void ScreenSystem::updateScreenInfo()
 	GLFWmonitor** monitors = glfwGetMonitors(&screenCount);
 
 	#ifdef DebugScreenInfo
-		RaeLog << "ScreenSystem::updateScreenInfo() found " << screenCount << " screens.\n";
+		std::cout << "ScreenSystem::updateScreenInfo() found " << screenCount << " screens.\n";
 	#endif
 	
 	for (int i = 0; i < screenCount; ++i)
@@ -84,14 +110,14 @@ void ScreenSystem::updateScreenInfo()
 		screens.emplace_back(i, videoMode->width, videoMode->height, videoMode->width, videoMode->height);
 		
 		#ifdef DebugScreenInfo
-			RaeLog << "Screen [" << i << "]: " << videoMode->width << "x"
+			std::cout << "Screen [" << i << "]: " << videoMode->width << "x"
 				<< videoMode->height << " : no visibleArea info available with GLFW.\n";
 		#endif
 		
 	}
 		
 	#ifdef DebugRae
-		RaeLog << "ScreenSystem::updateScreenInfo() END.\n";
+		std::cout << "ScreenSystem::updateScreenInfo() END.\n";
 	#endif
 }
 
@@ -150,24 +176,24 @@ float ScreenSystem::pixel(int set_screen)
 	return screens[set_screen].pixel();
 }
 
-float ScreenSystem::pixelsToHeight(int set_screen)
+float ScreenSystem::pixelsToHeightOLD(int set_screen)
 {
 	return screens[set_screen].pixelsToHeight();
 }
 
-float ScreenSystem::pixelsToHeight(float in_pixels, int set_screen)
+float ScreenSystem::pixelsToHeightOLD(float in_pixels, int set_screen)
 {
 	//return in_pixels * m_pixelsToHeight;
 	return screens[set_screen].pixelsToHeight(in_pixels);
 }
 
-float ScreenSystem::heightToPixels(float in_height, int set_screen)
+float ScreenSystem::heightToPixelsOLD(float in_height, int set_screen)
 {
 	//return in_height * m_heightToPixels;
 	return screens[set_screen].heightToPixels(in_height);
 }
 
-float ScreenSystem::heightToPixels(int set_screen)
+float ScreenSystem::heightToPixelsOLD(int set_screen)
 {
 	return screens[set_screen].heightToPixels();
 }

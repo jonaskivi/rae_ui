@@ -97,14 +97,14 @@ SCENARIO("ScreenInfo unittest", "[Rae][ScreenInfo]")
 
 using namespace rae;
 
-ScreenInfo::ScreenInfo()
-: m_screenNumber(-1),
-m_screenWidthP(1280),
-m_screenHeightP(800),
-m_pixelsToHeight(0.00125f),
-m_heightToPixels(800),
-m_visibleAreaWidthP(-1),
-m_visibleAreaHeightP(-1)
+ScreenInfo::ScreenInfo() :
+	m_screenNumber(-1),
+	m_screenWidthP(1280),
+	m_screenHeightP(800),
+	m_pixelsToHeight(0.00125f),
+	m_heightToPixels(800),
+	m_visibleAreaWidthP(-1),
+	m_visibleAreaHeightP(-1)
 {
 	calculateScreenAspect();
 	calculateHalfScreens();
@@ -112,7 +112,7 @@ m_visibleAreaHeightP(-1)
 	m_curveSideSize = 0.3f;
 	dpi(96.0f);
 
-	cout<<"created ScreenInfo: ";
+	cout << "Created ScreenInfo: ";
 	printInfo();
 }
 

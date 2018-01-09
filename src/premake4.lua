@@ -55,24 +55,6 @@ solution "pihlaja"
       links
       {
          "glfw3", "glew", "nanovg", "assimp",
-         --"opencv_calib3d",
-         --NOT_ON_WINDOWS: "opencv_core",
-         --NOT_ON_WINDOWS: "opencv_imgcodecs",
-         --NOT_ON_WINDOWS: "opencv_highgui",
-         --NOT_ON_WINDOWS: "opencv_imgproc",
-         --"opencv_flann",
-         --NOT_ON_WINDOWS: "opencv_features2d",
-         --NOT_ON_WINDOWS: "opencv_video",
-         --"opencv_nonfree",
-         --"opencv_ml",
-         ---- "opencv_cudaarithm",
-         ---- "opencv_cudaoptflow",
-         -- opencv contrib stuff:
-         --NOT_ON_WINDOWS: "opencv_optflow",
-         -- ffmpeg stuff:
-         --NOT_ON_WINDOWS: "avcodec",
-         --NOT_ON_WINDOWS: "avformat",
-         --NOT_ON_WINDOWS: "swscale",
       }
       defines { "GLEW_STATIC", "NANOVG_GLEW" }
 
@@ -89,6 +71,28 @@ solution "pihlaja"
                         "/usr/local/opt/opencv3/include/",
                         "/usr/local/opt/ffmpeg/include/",
                      }
+         defines { "USE_RAE_AV" }
+         links
+         {
+            --"opencv_calib3d",
+            "opencv_core",
+            "opencv_imgcodecs",
+            "opencv_highgui",
+            "opencv_imgproc",
+            --"opencv_flann",
+            "opencv_features2d",
+            "opencv_video",
+            --"opencv_nonfree",
+            --"opencv_ml",
+            ---- "opencv_cudaarithm",
+            ---- "opencv_cudaoptflow",
+            -- opencv contrib stuff:
+            "opencv_optflow",
+            -- ffmpeg stuff:
+            "avcodec",
+            "avformat",
+            "swscale",
+         }
          libdirs
          {
              --"@loader_path/../Libraries",

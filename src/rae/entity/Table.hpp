@@ -36,7 +36,7 @@ public:
 		{
 			m_items[m_idMap[id]] = std::move(comp);
 
-			std::cout << "Table: Entity already exists, replacing: " << id << "\n";
+			//std::cout << "Table: Entity already exists, replacing: " << id << "\n";
 			return;
 		}
 
@@ -58,7 +58,7 @@ public:
 			m_idMap[id] = freeIndex;
 			m_items[freeIndex] = std::move(comp);
 
-			std::cout << "Table: Re-used existing entity: id: " << id << " at freeindex: " << freeIndex << "\n";
+			//std::cout << "Table: Re-used existing entity: id: " << id << " at freeindex: " << freeIndex << "\n";
 			return;
 		}
 
@@ -67,7 +67,7 @@ public:
 
 		m_items.emplace_back(std::move(comp));
 
-		std::cout << "Table: Created a completely new object: " << id << " idMap.size: " << m_idMap.size() << "\n";
+		//std::cout << "Table: Created a completely new object: " << id << " idMap.size: " << m_idMap.size() << "\n";
 	}
 
 	void remove(Id id)
@@ -133,8 +133,8 @@ public:
 	{
 		if (check(id))
 			return m_items[m_idMap[id]];
-		std::cout << "Table: invalid get: " << id << "\n";
-		assert(false);
+		//std::cout << "Table: invalid get: " << id << "\n";
+		//assert(false);
 		return m_empty;
 	}
 
@@ -142,8 +142,8 @@ public:
 	{
 		if (check(id))
 			return m_items[m_idMap[id]];
-		std::cout << "Table: invalid get: " << id << "\n";
-		assert(false);
+		//std::cout << "Table: invalid get: " << id << "\n";
+		//assert(false);
 		return m_empty;
 	}
 

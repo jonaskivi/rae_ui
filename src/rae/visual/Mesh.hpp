@@ -33,7 +33,8 @@ public:
 	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
 	virtual Box getAabb(float t0, float t1) const { return m_aabb; }
 
-	void generateBox();
+	void generateBox2();
+	void generateBox(float radius = 0.5f, uint rings = 32, uint sectors = 32);
 
 	//ASSIMP
 	bool loadModel(const String& filepath);
@@ -43,6 +44,7 @@ public:
 	void render(uint shaderProgramId) const;
 	int triangleCount() const { return int(m_indices.size()) / 3; }
 	void computeAabb();
+	void computeFaceNormals();
 
 protected:
 

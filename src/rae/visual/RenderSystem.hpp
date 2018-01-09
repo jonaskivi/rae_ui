@@ -8,7 +8,8 @@
 
 #include "rae/core/Types.hpp"
 #include "rae/core/ISystem.hpp"
-#include "TransformSystem.hpp"
+#include "rae/core/ScreenSystem.hpp"
+#include "rae/visual/TransformSystem.hpp"
 #include "rae_ray/RayTracer.hpp"
 #include "rae/ui/UISystem.hpp"
 
@@ -24,6 +25,7 @@ namespace rae
 {
 
 class EntitySystem;
+class ScreenSystem;
 class CameraSystem;
 class TransformSystem;
 struct Transform;
@@ -38,6 +40,7 @@ public:
 	RenderSystem(EntitySystem& entitySystem,
 		GLFWwindow* setWindow,
 		Input& input,
+		ScreenSystem& screenSystem,
 		CameraSystem& cameraSystem,
 		TransformSystem& transformSystem,
 		UISystem& uiSystem,
@@ -73,15 +76,6 @@ public:
 	void renderMesh(const Transform& transform, const Material& material, const Mesh& mesh);
 	void renderMeshPicking(const Transform& transform, const Mesh& mesh, Id id);
 
-	void osEventResizeWindow(int width, int height);
-	void osEventResizeWindowPixels(int width, int height);
-
-	int   windowPixelHeight() { return m_windowPixelHeight; }
-	int   windowPixelWidth()  { return m_windowPixelWidth;  }
-	int   windowHeight()      { return m_windowHeight;      }
-	int   windowWidth()       { return m_windowWidth;       }
-	float screenPixelRatio()  { return m_screenPixelRatio;  }
-
 	// Temp before we get keyboard Input class
 	void clearImageRenderer();
 	void toggleGlRenderer()
@@ -101,6 +95,11 @@ public:
 
 	int meshCount() { return m_meshes.size(); }
 	int materialCount() { return m_materials.size(); }
+
+	String fpsString() { return m_fpsString; }
+
+	void osEventResizeWindow(int width, int height);
+	void osEventResizeWindowPixels(int width, int height);
 
 protected:
 
@@ -132,21 +131,16 @@ protected:
 	Input& m_input;
 	UISystem& m_uiSystem;
 
-	int m_windowWidth;
-	int m_windowHeight;
-	int m_windowPixelWidth;
-	int m_windowPixelHeight;
-	float m_screenPixelRatio;
-
 	Transform* debugTransform = nullptr;
 	Transform* debugTransform2 = nullptr;
 
 	int m_nroFrames;
 	double m_fpsTimer;
-	std::string m_fpsString;
+	String m_fpsString;
 
 	bool m_glRendererOn = false;
 
+	ScreenSystem&			m_screenSystem;
 	CameraSystem&			m_cameraSystem;
 	TransformSystem&		m_transformSystem;
 	RayTracer&				m_rayTracer;

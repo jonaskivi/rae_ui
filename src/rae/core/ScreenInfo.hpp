@@ -11,10 +11,12 @@ class ScreenInfo
 public:
 
 	ScreenInfo();
-	ScreenInfo( int set_screenNumber, int set_screenWidthP, int set_screenHeightP, int set_visibleAreaWidthP = -1, int set_visibleAreaHeightP = -1 );
+	ScreenInfo(int set_screenNumber,
+		int set_screenWidthP, int set_screenHeightP,
+		int set_visibleAreaWidthP = -1, int set_visibleAreaHeightP = -1);
 	~ScreenInfo(){}
-	
-	public: void printInfo()
+
+	void printInfo()
 	{
 		cout << "Screen number: " << screenNumber()
 			<< " width: " << screenWidthP()
@@ -79,8 +81,8 @@ public:
 	// occupied by the top main menu, the dock 
 	// (or if it is hidden the activation area of the dock) etc.
 	// So, if you would create a window with these sizes, it would not overlap the dock or menu.
-	
-	//With these, we'll use -1 as UNDEFINED
+
+	// With these, we'll use -1 as UNDEFINED
 	public: int visibleAreaWidthP() { return m_visibleAreaWidthP; }
 	public: void visibleAreaWidthP(int set) { m_visibleAreaWidthP = set; }
 	protected: int m_visibleAreaWidthP;

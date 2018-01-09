@@ -227,7 +227,7 @@ void RayTracer::autoFocus()
 	}
 }
 
-vec3 RayTracer::rayTrace(const Ray& ray, Hitable& world, int depth)
+vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 {
 	Camera& camera = m_cameraSystem.getCurrentCamera();
 	HitRecord record;
@@ -252,7 +252,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, Hitable& world, int depth)
 
 			if (depth < m_bouncesLimit && record.material->scatter(ray, record, attenuation, scattered))
 			{
-				return emitted + attenuation * rayTrace(scattered, world, depth + 1);
+				return emitted + attenuation * rayTrace(scattered, depth + 1);
 			}
 			else
 			{
@@ -269,7 +269,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, Hitable& world, int depth)
 
 vec3 RayTracer::sky(const Ray& ray)
 {
-	vec3 unitDirection = glm::normalize( ray.direction() );
+	vec3 unitDirection = glm::normalize(ray.direction());
 	float t = 0.5f * (unitDirection.y + 1.0f);
 	//return (1.0f - t) * vec3(0.3f, 0.4f, 1.0f) + t * vec3(0.7f, 0.8f, 1.0f);
 	return (1.0f - t) * vec3(0.0f, 0.0f, 0.0f) + t * vec3(0.05f, 0.05f, 0.05f);
@@ -376,7 +376,7 @@ void RayTracer::renderAllAtOnce(double time)
 					float v = float(j + drand48()) / float(m_buffer->height);
 					
 					Ray ray = camera.getRay(u, v);
-					color += rayTrace(ray, m_world, 0);
+					color += rayTrace(ray);
 				}
 
 				color /= float(m_samplesLimit);
@@ -418,7 +418,7 @@ void RayTracer::renderSamples(double time, double deltaTime)
 				float v = float(j + drand48()) / float(m_buffer->height);
 
 				Ray ray = camera.getRay(u, v);
-				vec3 color = rayTrace(ray, m_world, 0);
+				vec3 color = rayTrace(ray);
 
 				//http://stackoverflow.com/questions/22999487/update-the-average-of-a-continuous-sequence-of-numbers-in-constant-time
 				// add to average

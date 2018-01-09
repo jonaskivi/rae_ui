@@ -15,32 +15,33 @@ using namespace rae;
 
 static const int ReserveBoxes = 1000;
 
+const float VirtualPixelsBase = 1080.0f;
+const float VirtualPixelsFactor = 1.0f / VirtualPixelsBase;
+
 vec3 rae::virxels(float virtX, float virtY, float virtZ)
 {
-	static float pixelsToHeight = 1.0f / 1080.0f;
-	return vec3(virtX, virtY, virtZ) * pixelsToHeight;
+	//static float pixelsToHeight = 1.0f / VirtualPixelsBase;
+	return vec3(virtX, virtY, virtZ) * VirtualPixelsFactor;
 }
 
 vec3 rae::virxels(const vec3& virtualPixels)
 {
-	static float pixelsToHeight = 1.0f / 1080.0f;
-	return virtualPixels * pixelsToHeight;
+	return virtualPixels * VirtualPixelsFactor;
 }
 
 float rae::virxels(float virtualPixels)
 {
-	static float pixelsToHeight = 1.0f / 1080.0f;
-	return virtualPixels * pixelsToHeight;
+	return virtualPixels * VirtualPixelsFactor;
 }
 
 UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
-	EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem)
-: m_input(input),
-m_screenSystem(screenSystem),
-m_entitySystem(entitySystem),
-m_transformSystem(transformSystem),
-m_renderSystem(renderSystem),
-m_boxes(ReserveBoxes)
+	EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem) :
+		m_input(input),
+		m_screenSystem(screenSystem),
+		m_entitySystem(entitySystem),
+		m_transformSystem(transformSystem),
+		m_renderSystem(renderSystem),
+		m_boxes(ReserveBoxes)
 {
 	createDefaultTheme();
 
@@ -117,6 +118,9 @@ bool UISystem::update(double time, double deltaTime)
 		auto& transform = m_transformSystem.getTransform(m_infoButtonId);
 		if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
 		{
+			std::cout << "UISystem::render settings stuff mouse.x: "
+				<< m_input.mouse.x << " mouse.y: " << m_input.mouse.y << "\n";
+
 			transform.setTarget(vec3(m_input.mouse.x, m_input.mouse.y, 0.0f), 1.0f);
 			std::cout << "Click " << frameCount << "\n";
 		}
@@ -149,9 +153,13 @@ void UISystem::defragmentTables()
 	m_hovers.defragment();
 }
 
-void UISystem::render(double time, double deltaTime, NVGcontext* vg,
-	int windowWidth, int windowHeight, float screenPixelRatio)
+void UISystem::render(double time, double deltaTime, NVGcontext* vg)
 {
+	const auto& window = m_screenSystem.window();
+	int windowWidth = window.width();
+	int windowHeight = window.height();
+	float screenPixelRatio = window.screenPixelRatio();
+
 	m_vg = vg;
 
 	const Colour& buttonBackgroundColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::Background];
@@ -212,7 +220,7 @@ void UISystem::render(double time, double deltaTime, NVGcontext* vg,
 		nvgFontSize(vg, 18.0f);
 		nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
 		nvgFillColor(vg, nvgRGBA(128, 128, 128, 192));
-		nvgText(vg, 10.0f, vertPos, "fps_here", nullptr); vertPos += 20.0f;
+		nvgText(vg, 10.0f, vertPos, m_renderSystem.fpsString().c_str(), nullptr); vertPos += 20.0f;
 
 		nvgText(vg, 10.0f, vertPos, "HELLO WORLD. Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
 			" NM aperture, KL bounces, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
@@ -242,34 +250,44 @@ void UISystem::renderButton(const String& text, const Transform& transform, cons
 	float halfWidth = dimensions.x * 0.5f;
 	float halfHeight = dimensions.y * 0.5f;
 
+	const auto& window = m_screenSystem.window();
+
 	renderButtonNano(m_vg, text,
-		m_screenSystem.heightToPixels(transform.position.x - halfWidth) + (m_renderSystem.windowPixelWidth() * 0.5f),
-		m_screenSystem.heightToPixels(transform.position.y - halfHeight) + (m_renderSystem.windowPixelHeight() * 0.5f),
-		m_screenSystem.heightToPixels(dimensions.x),
-		m_screenSystem.heightToPixels(dimensions.y),
-		m_screenSystem.heightToPixels(virxels(2.0f)), // cornerRadius
+		m_screenSystem.heightToAltPixels(transform.position.x - halfWidth) + (window.width() * 0.5f),
+		m_screenSystem.heightToAltPixels(transform.position.y - halfHeight) + (window.height() * 0.5f),
+		m_screenSystem.heightToAltPixels(dimensions.x),
+		m_screenSystem.heightToAltPixels(dimensions.y),
+		m_screenSystem.heightToAltPixels(virxels(2.0f)), // cornerRadius
 		colour
 		);
 }
 
 void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, float y, float w, float h,
-							float cornerRadius)
+							float cornerRadius, const Colour& colour)
 {
 	//float cornerRadius = 30.0f;
 	NVGpaint shadowPaint;
 	NVGpaint headerPaint;
 
 	// no negative windows please:
-	if(w < 30.0f) w = 30.0f;
-	if(h < 30.0f) h = 30.0f;
+	if (w < 30.0f)
+	{
+		w = 30.0f;
+	}
+
+	if (h < 30.0f)
+	{
+		h = 30.0f;
+	}
 
 	nvgSave(vg);
 //	nvgClearState(vg);
 
 	// Window
 
-	headerPaint = nvgLinearGradient(vg, x,y,x,y+15, nvgRGBA(255,255,255,135), nvgRGBA(0,0,0,135));
-	//JONDE headerPaint = nvgLinearGradient(vg, x,y,x,y+15, nvgRGBAf(1.0f,1.0f,1.0f, a()), nvgRGBAf(r(),g(),b(),a()));
+	headerPaint = nvgLinearGradient(vg, x,y,x,y+15,
+		nvgRGBAf(colour.r + 0.5f, colour.g + 0.5f, colour.b + 0.5f, colour.a - 0.3f),
+		nvgRGBAf(colour.r, colour.g, colour.b, colour.a));
 
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, x,y, w,h, cornerRadius);

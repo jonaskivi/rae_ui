@@ -190,7 +190,7 @@ bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) cons
 			isHit = true;
 			record.t = hitDistance;
 			record.point = ray.point_at_parameter(record.t);
-			record.normal = getFaceNormal(i); // currently just face m_normals
+			record.normal = getFaceNormal(i); // currently just face normals
 			record.material = m_material;
 		}
 	}
@@ -236,7 +236,7 @@ void Mesh::computeAabb()
 	}
 }
 
-void Mesh::generateBox()
+void Mesh::generateBox2()
 {
 	//std::cout << "Generating Mesh.\n";
 
@@ -277,35 +277,35 @@ void Mesh::generateBox()
 
 	m_uvs =
 	{
-		glm::vec2( 1.0f,  0.0f), // 1
-		glm::vec2( 1.0f,  1.0f), // 2
-		glm::vec2( 0.0f,  1.0f), // 3
-		glm::vec2( 0.0f,  0.0f), // 0
-		
-		glm::vec2( 1.0f,  0.0f), // 1
-		glm::vec2( 1.0f,  1.0f), // 2
-		glm::vec2( 0.0f,  1.0f), // 3
-		glm::vec2( 0.0f,  0.0f), // 0
+		glm::vec2(1.0f,  0.0f), // 1
+		glm::vec2(1.0f,  1.0f), // 2
+		glm::vec2(0.0f,  1.0f), // 3
+		glm::vec2(0.0f,  0.0f), // 0
 
-		glm::vec2( 1.0f,  0.0f), // 1
-		glm::vec2( 1.0f,  1.0f), // 2
-		glm::vec2( 0.0f,  1.0f), // 3
-		glm::vec2( 0.0f,  0.0f), // 0
+		glm::vec2(1.0f,  0.0f), // 1
+		glm::vec2(1.0f,  1.0f), // 2
+		glm::vec2(0.0f,  1.0f), // 3
+		glm::vec2(0.0f,  0.0f), // 0
 
-		glm::vec2( 1.0f,  0.0f), // 1
-		glm::vec2( 1.0f,  1.0f), // 2
-		glm::vec2( 0.0f,  1.0f), // 3
-		glm::vec2( 0.0f,  0.0f), // 0
+		glm::vec2(1.0f,  0.0f), // 1
+		glm::vec2(1.0f,  1.0f), // 2
+		glm::vec2(0.0f,  1.0f), // 3
+		glm::vec2(0.0f,  0.0f), // 0
 
-		glm::vec2( 1.0f,  0.0f), // 1
-		glm::vec2( 1.0f,  1.0f), // 2
-		glm::vec2( 0.0f,  1.0f), // 3
-		glm::vec2( 0.0f,  0.0f), // 0
+		glm::vec2(1.0f,  0.0f), // 1
+		glm::vec2(1.0f,  1.0f), // 2
+		glm::vec2(0.0f,  1.0f), // 3
+		glm::vec2(0.0f,  0.0f), // 0
 
-		glm::vec2( 1.0f,  0.0f), // 1
-		glm::vec2( 1.0f,  1.0f), // 2
-		glm::vec2( 0.0f,  1.0f), // 3
-		glm::vec2( 0.0f,  0.0f)  // 0
+		glm::vec2(1.0f,  0.0f), // 1
+		glm::vec2(1.0f,  1.0f), // 2
+		glm::vec2(0.0f,  1.0f), // 3
+		glm::vec2(0.0f,  0.0f), // 0
+
+		glm::vec2(1.0f,  0.0f), // 1
+		glm::vec2(1.0f,  1.0f), // 2
+		glm::vec2(0.0f,  1.0f), // 3
+		glm::vec2(0.0f,  0.0f)  // 0
 	};
 
 	// *--------*
@@ -346,31 +346,31 @@ void Mesh::generateBox()
 		glm::vec3( 0.0f,  1.0f,  0.0f), // 1
 		glm::vec3( 0.0f,  1.0f,  0.0f), // 2
 		glm::vec3( 0.0f,  1.0f,  0.0f), // 3
-		
-		glm::vec3( 0.0f,  -1.0f,  0.0f), // 0
-		glm::vec3( 0.0f,  -1.0f,  0.0f), // 1
-		glm::vec3( 0.0f,  -1.0f,  0.0f), // 2
-		glm::vec3( 0.0f,  -1.0f,  0.0f), // 3
 
-		glm::vec3( 0.0f,  0.0f,  -1.0f), // 0
-		glm::vec3( 0.0f,  0.0f,  -1.0f), // 1
-		glm::vec3( 0.0f,  0.0f,  -1.0f), // 2
-		glm::vec3( 0.0f,  0.0f,  -1.0f), // 3
+		glm::vec3( 0.0f, -1.0f,  0.0f), // 0
+		glm::vec3( 0.0f, -1.0f,  0.0f), // 1
+		glm::vec3( 0.0f, -1.0f,  0.0f), // 2
+		glm::vec3( 0.0f, -1.0f,  0.0f), // 3
+
+		glm::vec3( 0.0f,  0.0f, -1.0f), // 0
+		glm::vec3( 0.0f,  0.0f, -1.0f), // 1
+		glm::vec3( 0.0f,  0.0f, -1.0f), // 2
+		glm::vec3( 0.0f,  0.0f, -1.0f), // 3
 
 		glm::vec3( 0.0f,  0.0f,  1.0f), // 0
 		glm::vec3( 0.0f,  0.0f,  1.0f), // 1
 		glm::vec3( 0.0f,  0.0f,  1.0f), // 2
 		glm::vec3( 0.0f,  0.0f,  1.0f), // 3
 
-		glm::vec3( -1.0f,  0.0f,  0.0f), // 0
-		glm::vec3( -1.0f,  0.0f,  0.0f), // 1
-		glm::vec3( -1.0f,  0.0f,  0.0f), // 2
-		glm::vec3( -1.0f,  0.0f,  0.0f), // 3
+		glm::vec3(-1.0f,  0.0f,  0.0f), // 0
+		glm::vec3(-1.0f,  0.0f,  0.0f), // 1
+		glm::vec3(-1.0f,  0.0f,  0.0f), // 2
+		glm::vec3(-1.0f,  0.0f,  0.0f), // 3
 
 		glm::vec3( 1.0f,  0.0f,  0.0f), // 0
 		glm::vec3( 1.0f,  0.0f,  0.0f), // 1
 		glm::vec3( 1.0f,  0.0f,  0.0f), // 2
-		glm::vec3( 1.0f,  0.0f,  0.0f) // 3
+		glm::vec3( 1.0f,  0.0f,  0.0f)  // 3
 	};
 
 	
@@ -403,8 +403,137 @@ void Mesh::generateBox()
 	};
 
 	computeAabb();
+	computeFaceNormals();
 
 	//std::cout << "size of: m_vertices: " << m_vertices.size() << " size of m_indices: " << m_indices.size() << "\n";
+}
+
+//void Mesh::generateSphere(float radius, uint rings, uint sectors)
+void Mesh::generateBox(float radius, uint rings, uint sectors)
+{
+	auto pushIndices = [this](int sectors, int r, int s)
+	{
+		int curRow = r * sectors;
+		int nextRow = (r+1) * sectors;
+		int nextS = (s+1) % sectors;
+
+		m_indices.push_back(curRow + s);
+		m_indices.push_back(nextRow + s);
+		m_indices.push_back(nextRow + nextS);
+
+		m_indices.push_back(curRow + s);
+		m_indices.push_back(nextRow + nextS);
+		m_indices.push_back(curRow + nextS);
+	};
+
+	const float R = 1.0f/(float)(rings-1);
+	const float S = 1.0f/(float)(sectors-1);
+
+	for (int r = 0; r < rings; ++r)
+	{
+		for (int s = 0; s < sectors; ++s)
+		{
+			float y = sin( -M_PI_2 + M_PI * r * R );
+			float x = cos(2*M_PI * s * S) * sin( M_PI * r * R );
+			float z = sin(2*M_PI * s * S) * sin( M_PI * r * R );
+
+			m_uvs.push_back(vec2(s*S, r*R));
+			m_vertices.push_back(vec3(x,y,z) * radius);
+			if (r < rings-1)
+			{
+				pushIndices(sectors, r, s);
+			}
+		}
+	}
+
+	computeFaceNormals();
+	computeAabb();
+}
+
+void Mesh::computeFaceNormals()
+{
+	// TEMP just enough normals to get by:
+	m_normals.clear();
+	for (int i = 0; i < (int)m_vertices.size(); ++i)
+	{
+		m_normals.emplace_back(0.0f, 1.0f, 0.0f);
+	}
+
+	vec3 a;
+	vec3 b;
+	vec3 c;
+
+	vec3 v1;
+	vec3 v2;
+
+	vec3 u;
+	vec3 v;
+	vec3 result;
+
+	for (uint i = 0; i < (int)m_indices.size(); i = i + 3)
+	{
+		/*a = m_vertices[m_indices[i]];
+		b = m_vertices[m_indices[i+1]];
+		c = m_vertices[m_indices[i+2]];
+
+		u = b - a;
+		v = c - a;
+
+		result.x = (u.y * v.z) - (u.z * v.y);
+		result.y = (u.z * v.x) - (u.x * v.z);
+		result.z =	(	u.x * v.y) - (u.y * v.x);
+
+		result = glm::normalize(result);
+		m_normals[i] = result;
+	}*/
+
+		a = m_vertices[m_indices[i]];
+		b = m_vertices[m_indices[i+1]];
+		c = m_vertices[m_indices[i+2]];
+
+		v1[0] = a[0] - b[0];
+		v1[1] = a[1] - b[1];
+		v1[2] = a[2] - b[2];
+		
+		v2[0] = b[0] - c[0];
+		v2[1] = b[1] - c[1];
+		v2[2] = b[2] - c[2];
+
+		// Cross product:
+		result[0] = v1[1] * v2[2] - v1[2] * v2[1];
+		result[1] = v1[2] * v2[0] - v1[0] * v2[2];
+		result[2] = v1[0] * v2[1] - v1[1] * v2[0];
+
+		result = glm::normalize(result);
+
+		m_normals[m_indices[i]] = result;
+		m_normals[m_indices[i+1]] = result;
+		m_normals[m_indices[i+2]] = result;
+	}
+
+
+		/* Copy face normals into vertex normals:
+		if ((f1[0]*3)+2 < m_vertexNormals.length)
+		{
+			m_vertexNormals[(f1[0]*3)+0] = result[0];
+			m_vertexNormals[(f1[0]*3)+1] = result[1];
+			m_vertexNormals[(f1[0]*3)+2] = result[2];
+		}
+		
+		if ((f1[1]*3)+2 < m_vertexNormals.length)
+		{
+			m_vertexNormals[(f1[1]*3)+0] = result[0];
+			m_vertexNormals[(f1[1]*3)+1] = result[1];
+			m_vertexNormals[(f1[1]*3)+2] = result[2];
+		}
+		
+		if ((f1[2]*3)+2 < m_vertexNormals.length)
+		{	
+			m_vertexNormals[(f1[2]*3)+0] = result[0];
+			m_vertexNormals[(f1[2]*3)+1] = result[1];
+			m_vertexNormals[(f1[2]*3)+2] = result[2];
+		}
+		*/
 }
 
 //ASSIMP

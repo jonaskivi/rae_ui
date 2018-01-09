@@ -49,7 +49,7 @@ public:
 
 	void autoFocus();
 
-	vec3 rayTrace(const Ray& ray, Hitable& world, int depth);
+	vec3 rayTrace(const Ray& ray, int depth = 0);
 	vec3 sky(const Ray& ray);
 
 	void clear();

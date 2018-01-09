@@ -46,7 +46,7 @@ void glfwOnMouseButton(GLFWwindow* set_window, int set_button, int set_action, i
 	double mx, my;
 	glfwGetCursorPos(set_window, &mx, &my);
 
-	//cout << "GLFWMouseButtonPress. x: " << mx << " y: " << my << "\n";
+	std::cout << "glfwOnMouseButtonPress. x: " << mx << " y: " << my << "\n";
 	if(set_action == GLFW_PRESS)
 	{
 		g_engine->osMouseButtonPress(set_button, (float)mx, (float)my);
@@ -106,7 +106,7 @@ int main()
 	GLFWmonitor* screen     = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(screen);
 
-	window = glfwCreateWindow( mode->width - 200, mode->height - 200, "Pihlaja HDR Flow", nullptr, nullptr);
+	window = glfwCreateWindow(mode->width - 200, mode->height - 200, "Pihlaja", nullptr, nullptr);
 	
 	if( window == nullptr )
 	{

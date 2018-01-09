@@ -80,8 +80,7 @@ public:
 	bool update(double time, double deltaTime) override;
 	void destroyEntities(const Array<Id>& entities) override;
 	void defragmentTables() override;
-	void render(double time, double deltaTime, NVGcontext* vg,
-				int windowWidth, int windowHeight, float screenPixelRatio);
+	void render(double time, double deltaTime, NVGcontext* vg);
 
 	Id createButton(const String& text, vec3 position, vec3 extents, std::function<void()> handler);
 	Id createTextBox(const String& text, vec3 position, vec3 extents);
@@ -116,7 +115,7 @@ private:
 
 	// NanoVG takes input in pixels, and so do these helper functions:
 	void renderWindowNano(NVGcontext* vg, const String& title, float x, float y, float w, float h,
-					  float cornerRadius);
+					  float cornerRadius, const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderButtonNano(NVGcontext* vg, const String& text, float x, float y, float w, float h,
 					  float cornerRadius, const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f));
 

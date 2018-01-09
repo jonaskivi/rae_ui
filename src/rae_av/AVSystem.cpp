@@ -41,6 +41,10 @@ void AVSystem::destroyEntities(const Array<Id>& entities)
 {
 }
 
+void AVSystem::defragmentTables()
+{
+}
+
 void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 {
 	if (image.width != frameRGB->width or image.height != frameRGB->height)

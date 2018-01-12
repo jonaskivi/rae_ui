@@ -1,6 +1,7 @@
 #ifdef USE_RAE_AV
 #include <iostream>
 
+#include "rae/core/Utils.hpp"
 #include "rae/visual/RenderSystem.hpp"
 
 #include "fx/HdrFlow.hpp"
@@ -48,9 +49,11 @@ void AVSystem::defragmentTables()
 void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 {
 	if (image.width != frameRGB->width or image.height != frameRGB->height)
+	{
 		image.init(frameRGB->width, frameRGB->height);
+	}
 
-	for (int y = 0; y < frameRGB->height; ++y)
+	parallel_for(0, frameRGB->height, [&](int y)
 	{
 		for (int x = 0; x < frameRGB->width; ++x)
 		{
@@ -62,7 +65,7 @@ void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 			image.data[(y*image.width*image.channels) + (x*image.channels) + 1] = g;
 			image.data[(y*image.width*image.channels) + (x*image.channels) + 2] = b;
 		}
-	}
+	});
 
 	image.needsUpdate = true;
 }

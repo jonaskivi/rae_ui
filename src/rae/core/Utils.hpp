@@ -4,6 +4,8 @@
 #include <math.h>
 #include <string>
 
+#include <thread>
+
 #include <glm/glm.hpp>
 
 #include "rae/core/Types.hpp"
@@ -45,6 +47,42 @@ float randFloat(float a_min, float a_max);
 bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);
 bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon = 0.0001f);
 
+}
+
+/* A simple parallel for loop.
+// Usage example:
+parallel_for(0, array.size(), [&](int i)
+{
+	array[i] = computeSomeResult();
+}
+*/
+template<typename Callable>
+static void parallel_for(int start, int end, Callable func)
+{
+	const static size_t threadCountHint = std::thread::hardware_concurrency();
+	const static size_t threadCount = (threadCountHint == 0 ? 8 : threadCountHint);
+
+	std::vector<std::thread> threads(threadCount);
+
+	for (int t = 0; t < threadCount; ++t)
+	{
+		threads[t] = std::thread(std::bind(
+		[&](const int beginIndex, const int endIndex, const int t)
+		{
+			for (int i = beginIndex; i < endIndex; ++i)
+			{
+				func(i);
+			}
+		},
+		t * end / threadCount,
+		(t+1) == threadCount ? end : (t+1) * end / threadCount,
+		t));
+	}
+
+	std::for_each(threads.begin(),threads.end(), [](std::thread& x)
+	{
+		x.join();
+	});
 }
 
 } // end namespace rae

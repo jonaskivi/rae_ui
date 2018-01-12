@@ -7,7 +7,7 @@
 
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/Material.hpp"
-#include "Sphere.hpp"
+#include "rae_ray/Sphere.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/image/ImageBuffer.hpp"
 
@@ -364,7 +364,8 @@ void RayTracer::renderAllAtOnce(double time)
 		Camera& camera = m_cameraSystem.getCurrentCamera();
 		m_startTime = time;
 
-		for (int j = 0; j < m_buffer->height; ++j)
+		// Parallel was about 3.6 times faster here. From 48 seconds to 13 seconds with a very low resolution and sample count.
+		parallel_for(0, m_buffer->height, [&](int j)
 		{
 			for (int i = 0; i < m_buffer->width; ++i)
 			{
@@ -383,8 +384,8 @@ void RayTracer::renderAllAtOnce(double time)
 
 				m_buffer->colorData[(j * m_buffer->width) + i] = color;
 			}
-		}
-		
+		});
+
 		m_currentSample = m_samplesLimit;
 	}
 	else if (m_currentSample == m_samplesLimit)
@@ -410,7 +411,10 @@ void RayTracer::renderSamples(double time, double deltaTime)
 		Camera& camera = m_cameraSystem.getCurrentCamera();
 		m_totalRayTracingTime = time - m_startTime;
 
-		for (int j = 0; j < m_buffer->height; ++j)
+		// Single threaded
+		//for (int j = 0; j < m_buffer->height; ++j)
+		// Parallel, about twice the performance
+		parallel_for(0, m_buffer->height, [&](int j)
 		{
 			for (int i = 0; i < m_buffer->width; ++i)
 			{
@@ -425,7 +429,7 @@ void RayTracer::renderSamples(double time, double deltaTime)
 				m_buffer->colorData[(j * m_buffer->width) + i]
 					= (float(m_currentSample) * m_buffer->colorData[(j * m_buffer->width) + i] + color) / float(m_currentSample + 1);
 			}
-		}
+		});
 		
 		m_currentSample++;
 	}

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ciso646>
 
+#include "rae/core/Utils.hpp"
 #include "rae/image/ImageBuffer.hpp"
 
 using namespace rae;
@@ -122,7 +123,7 @@ void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 {
 	// update 8 bit image buffer
 	{
-		for (int j = 0; j < height; ++j)
+		parallel_for(0, height, [&](int j)
 		{
 			for (int i = 0; i < width; ++i)
 			{
@@ -134,7 +135,7 @@ void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 				data[(j*width*channels) + (i*channels) + 1] = int8_t(color.g);
 				data[(j*width*channels) + (i*channels) + 2] = int8_t(color.b);
 			}
-		}
+		});
 
 		nvgUpdateImage(vg, imageId, &data[0]);
 	}

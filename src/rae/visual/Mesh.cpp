@@ -236,7 +236,7 @@ void Mesh::computeAabb()
 	}
 }
 
-void Mesh::generateBox2()
+void Mesh::generateBox()
 {
 	//std::cout << "Generating Mesh.\n";
 
@@ -408,8 +408,7 @@ void Mesh::generateBox2()
 	//std::cout << "size of: m_vertices: " << m_vertices.size() << " size of m_indices: " << m_indices.size() << "\n";
 }
 
-//void Mesh::generateSphere(float radius, uint rings, uint sectors)
-void Mesh::generateBox(float radius, uint rings, uint sectors)
+void Mesh::generateSphere(float radius, uint rings, uint sectors)
 {
 	auto pushIndices = [this](int sectors, int r, int s)
 	{

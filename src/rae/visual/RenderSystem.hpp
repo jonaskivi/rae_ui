@@ -55,6 +55,7 @@ public:
 	void checkErrors(const char *file, int line);
 
 	Id createBox();
+	Id createSphere();
 	Id createMesh(const String& filename);
 	Id createMaterial(const Colour& color);
 	Id createAnimatingMaterial(const Colour& color);

@@ -179,6 +179,19 @@ Id RenderSystem::createBox()
 	return id;
 }
 
+Id RenderSystem::createSphere()
+{
+	Id id = m_entitySystem.createEntity();
+	std::cout << "createSphere entity: " << id << "\n";
+	Mesh mesh;
+	addMesh(id, std::move(mesh));
+
+	Mesh& mesh2 = getMesh(id);
+	mesh2.generateSphere();
+	mesh2.createVBOs();
+	return id;
+}
+
 Id RenderSystem::createMesh(const String& filename)
 {
 	Id id = m_entitySystem.createEntity();

@@ -34,7 +34,7 @@ public:
 	virtual Box getAabb(float t0, float t1) const { return m_aabb; }
 
 	void generateBox();
-	void generateSphere(float radius = 0.5f, uint rings = 32, uint sectors = 32);
+	void generateSphere(float radius = 0.5f, int rings = 32, int sectors = 32);
 
 	//ASSIMP
 	bool loadModel(const String& filepath);

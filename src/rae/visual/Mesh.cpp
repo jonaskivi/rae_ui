@@ -408,7 +408,7 @@ void Mesh::generateBox()
 	//std::cout << "size of: m_vertices: " << m_vertices.size() << " size of m_indices: " << m_indices.size() << "\n";
 }
 
-void Mesh::generateSphere(float radius, uint rings, uint sectors)
+void Mesh::generateSphere(float radius, int rings, int sectors)
 {
 	auto pushIndices = [this](int sectors, int r, int s)
 	{
@@ -432,9 +432,9 @@ void Mesh::generateSphere(float radius, uint rings, uint sectors)
 	{
 		for (int s = 0; s < sectors; ++s)
 		{
-			float y = sin( -M_PI_2 + M_PI * r * R );
-			float x = cos(2*M_PI * s * S) * sin( M_PI * r * R );
-			float z = sin(2*M_PI * s * S) * sin( M_PI * r * R );
+			float y = sinf(float(-M_PI_2) + float(M_PI) * r * R );
+			float x = cosf(2 * float(M_PI) * s * S) * sinf(float(M_PI) * r * R );
+			float z = sinf(2 * float(M_PI) * s * S) * sinf(float(M_PI) * r * R );
 
 			m_uvs.push_back(vec2(s*S, r*R));
 			m_vertices.push_back(vec3(x,y,z) * radius);

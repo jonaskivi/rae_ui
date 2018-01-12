@@ -3,7 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <string>
-
+#include <algorithm>
 #include <thread>
 
 #include <glm/glm.hpp>
@@ -59,8 +59,8 @@ parallel_for(0, array.size(), [&](int i)
 template<typename Callable>
 static void parallel_for(int start, int end, Callable func)
 {
-	const static size_t threadCountHint = std::thread::hardware_concurrency();
-	const static size_t threadCount = (threadCountHint == 0 ? 8 : threadCountHint);
+	const static int threadCountHint = (int)std::thread::hardware_concurrency();
+	const static int threadCount = (threadCountHint == 0 ? 8 : threadCountHint);
 
 	std::vector<std::thread> threads(threadCount);
 

@@ -7,6 +7,8 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
+using uint = unsigned int;
+
 namespace rae
 {
 

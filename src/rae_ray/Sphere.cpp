@@ -2,6 +2,7 @@
 #include "rae/visual/Ray.hpp"
 #include "HitRecord.hpp"
 #include "rae/visual/Box.hpp"
+#include "rae/visual/Material.hpp"
 
 using namespace rae;
 

@@ -55,6 +55,7 @@ void CameraSystem::onMouseEvent(const Input& input)
 
 void CameraSystem::onKeyEvent(const Input& input)
 {
+	/*
 	if (input.eventType == EventType::KeyPress)
 	{
 		switch (input.key.value)
@@ -64,6 +65,7 @@ void CameraSystem::onKeyEvent(const Input& input)
 			break;
 		}
 	}
+	*/
 }
 
 void CameraSystem::connectCameraChangedEventHandler(std::function<void(const Camera&)> handler)

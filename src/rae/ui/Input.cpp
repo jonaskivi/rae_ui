@@ -1,5 +1,6 @@
 #include "rae/ui/Input.hpp"
 
+#include "rae/core/Log.hpp"
 #include "rae/core/ScreenSystem.hpp"
 
 using namespace rae;
@@ -130,25 +131,23 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 	
 	if (setEventType == EventType::KeyPress)
 	{
-		//cout << "KEY_PRESS: " << hex << setKey << dec << " unicode: " << setUnicode <<"\n";
+		//rae_log("KEY_PRESS: ", hex, setKey, dec, " unicode: ", setUnicode, "\n");
 		if (key.value < key.keyStatesSize)
 		{
 			key.keyStates[key.value] = true;
 			key.pressedThisFrame[key.value] = true;
 		}
-		else std::cout << "ERROR: key.value: " << key.value << " is bigger than keyStatesSize: " << key.keyStatesSize << "\n";
-		//Trace.formatln("PRESS. {}", key.keyStates[setKey]);
+		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.\n");
 	}
 	else if (setEventType == EventType::KeyRelease)
 	{
-		//cout << "KEY_RELEASE: " << hex << setKey << dec << " unicode: " << setUnicode <<"\n";
+		//rae_log("KEY_RELEASE: ", hex, setKey, dec, " unicode: ", setUnicode, "\n");
 		if (key.value < key.keyStatesSize)
 		{
 			key.keyStates[key.value] = false;
 			key.releasedThisFrame[key.value] = true;
 		}
-		else std::cout << "ERROR: key.value: " << key.value << " is bigger than keyStatesSize: " << key.keyStatesSize << "\n";
-		//Trace.formatln("RELEASE. {}", key.keyStates[setKey]);
+		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.\n");
 	}
 
 	emitKeyEvent();
@@ -164,8 +163,8 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	float xHeight = m_screenSystem.pixelsToHeight(xPixels);
 	float yHeight = m_screenSystem.pixelsToHeight(yPixels);
 
-	std::cout << "Input::osMouseEvent: xPixels: " << xPixels << " yPixels: " << yPixels
-		<< " xHeight: " << xHeight << " yHeight: " << yHeight << "\n";
+	//rae_log("Input::osMouseEvent: xPixels: ", xPixels, " yPixels: ", yPixels,
+	// " xHeight: ", xHeight, " yHeight: ", yHeight, "\n");
 
 	m_changed = true;
 	isHandled = false;
@@ -180,28 +179,6 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	mouse.doubleClickButton = 0; // Zero this, we can only emit one double click button per event...
 	// Is that bad? Propably ok,
 	// as there can only be one eventButton per event as well.
-
-	/*JONDE REMOVE
-	for (int i = 0; i < 6; ++i)
-	{
-		MouseButton iButton = intToMouseButton(i);
-		if (setButton == i)
-		{
-			if (eventType == EventType::MouseButtonPress)
-			{	
-				mouse.setButtonEvent(iButton, eventType);
-				mouse.xOnButtonPressP[i] = xPixels;
-				mouse.yOnButtonPressP[i] = yPixels;
-				mouse.xOnButtonPress[i] = xHeight;
-				mouse.yOnButtonPress[i] = yHeight;
-			}
-			else if (eventType == EventType::MouseButtonRelease)
-			{
-				mouse.setButtonEvent(iButton, eventType);
-			}
-		}
-	}
-	*/
 
 	if (eventType == EventType::MouseMotion)
 	{
@@ -252,7 +229,7 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	}
 	//else
 	//{
-		//Trace.formatln("Input NO PRESS.");
+		//rae_log("Input NO PRESS.\n");
 	//}
 	
 	mouse.xRelP = xPixels - mouse.xP;

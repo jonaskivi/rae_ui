@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+#include "rae/core/Log.hpp"
 #include "rae/core/ISystem.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Transform.hpp"
@@ -29,9 +30,9 @@ Engine::Engine(GLFWwindow* set_window) :
 	addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
 
-	// JONDE CHECK THIS:
+	// JONDE CHECK THIS: TODO need to get rid of OpenGL picking hack button at id 0.
 	Id emptyEntityId = m_entitySystem.createEntity(); // hack at index 0
-	std::cout << "Create empty hack entity at 0: " << emptyEntityId << "\n";
+	rae_log("Create empty hack entity at 0: ", emptyEntityId, "\n");
 
 	// Load model
 	Id meshID = m_renderSystem.createMesh("./data/models/bunny.obj");
@@ -76,7 +77,6 @@ void Engine::run()
 			// Swap buffers
 			glfwSwapBuffers(m_window);
 
-			////JONDE REMOVE m_input.clearFrame();
 			glfwPollEvents();
 
 			if (glfwWindowShouldClose(m_window) != 0)
@@ -119,7 +119,7 @@ bool Engine::update()
 
 	bool changed = false;
 
-	//std::cout << "FRAME START.\n";
+	//rae_log("FRAME START.\n");
 
 	for (auto system : m_systems)
 	{
@@ -127,11 +127,11 @@ bool Engine::update()
 		{
 			bool systemChanged = system->update(m_currentTime, deltaTime);
 			changed = systemChanged ? true : changed;
-			//std::cout << system->name() << " update: " << systemChanged << "\n";
+			//rae_log(system->name(), " update: ", systemChanged, "\n");
 		}
 	}
 
-	//std::cout << "FRAME END.\n";
+	//rae_log("FRAME END.\n");
 
 	for (auto system : m_systems)
 	{
@@ -152,15 +152,9 @@ void Engine::askForFrameUpdate()
 Id Engine::createAddObjectButton()
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createAddObjectButton id: " << id << "\n";
+	//rae_log("createAddObjectButton id: ", id, "\n");
 	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
 	m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
-
-	//JONDE REMOVE Transform& transform = m_entitySystem.createTransform(0.0f, 0.0f, 5.0f);
-	//JONDE REMOVE transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, transform.id() );
-	//entity.addComponent( (int)ComponentType::MATERIAL, m_buttonMaterialID );
-	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
 
 	m_renderSystem.addMaterialLink(id, m_buttonMaterialID);
 	m_renderSystem.addMeshLink(id, m_meshID);
@@ -171,11 +165,8 @@ Id Engine::createAddObjectButton()
 Id Engine::createRandomBunnyEntity()
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createRandomBunnyEntity id: " << id << "\n";
+	//rae_log("createRandomBunnyEntity id: ", id, "\n");
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
-	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
-	//entity.addComponent( (int)ComponentType::MESH, m_modelID );
 
 	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
 	m_renderSystem.addMeshLink(id, m_modelID);
@@ -186,11 +177,8 @@ Id Engine::createRandomBunnyEntity()
 Id Engine::createRandomCubeEntity()
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createRandomCubeEntity id: " << id << "\n";
+	//rae_log("createRandomCubeEntity id: ", id, "\n");
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f)).id() );
-	//entity.addComponent( (int)ComponentType::MATERIAL, m_materialID );
-	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
 
 	m_renderSystem.addMaterialLink(id, m_materialID);
 	m_renderSystem.addMeshLink(id, m_meshID);
@@ -201,16 +189,11 @@ Id Engine::createRandomCubeEntity()
 Id Engine::createCube(const vec3& position, const Colour& color)
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createCube id: " << id << "\n";
+	//rae_log("createCube id: ", id, "\n");
 	// The desired API:
 	m_transformSystem.addTransform(id, Transform(position));
 	//m_geometrySystem.setMesh(entity, m_meshID);
 	//m_materialSystem.setMaterial(entity, color);
-
-	// The old API:
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(position).id() );
-	//entity.addComponent( (int)ComponentType::MATERIAL, m_renderSystem.createMaterial(0, color).id() );
-	//entity.addComponent( (int)ComponentType::MESH, m_meshID );
 
 	m_renderSystem.addMaterial(id, Material(color));
 	m_renderSystem.addMeshLink(id, m_meshID);
@@ -221,11 +204,8 @@ Id Engine::createCube(const vec3& position, const Colour& color)
 Id Engine::createBunny(const vec3& position, const Colour& color)
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createBunny id: " << id << "\n";
+	//rae_log("createBunny id: ", id, "\n");
 	m_transformSystem.addTransform(id, Transform(position));
-	//JONDE REMOVE entity.addComponent( (int)ComponentType::TRANSFORM, m_entitySystem.createTransform(position).id() );
-	//entity.addComponent( (int)ComponentType::MATERIAL, m_bunnyMaterialID );
-	//entity.addComponent( (int)ComponentType::MESH, m_modelID );
 
 	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
 	m_renderSystem.addMeshLink(id, m_modelID);
@@ -240,7 +220,7 @@ void Engine::createTestWorld()
 
 void Engine::createTestWorld2()
 {
-	std::cout << "createTestWorld2\n";
+	//rae_log("createTestWorld2\n");
 
 	//createAddObjectButton(); // at index 1
 
@@ -287,15 +267,16 @@ void Engine::osMouseButtonPress(int set_button, float set_xP, float set_yP)
 	set_xP = set_xP * window.screenPixelRatio();
 	set_yP = set_yP * window.screenPixelRatio();
 
-	std::cout << "osMouseButtonPress after screenPixelRatio: " << window.screenPixelRatio()
-		<< " x: " << set_xP << " y: " << set_yP << "\n";
+	//rae_log("osMouseButtonPress after screenPixelRatio: ", window.screenPixelRatio(),
+	//	" x: ", set_xP, " y: ", set_yP, "\n");
 
+	float setAmount = 0.0f;
 	m_input.osMouseEvent(
 		EventType::MouseButtonPress,
 		set_button,
 		set_xP - (window.pixelWidth() * 0.5f),
 		set_yP - (window.pixelHeight() * 0.5f),
-		/*set_amount*/0.0f);
+		setAmount);
 }
 
 void Engine::osMouseButtonRelease(int set_button, float set_xP, float set_yP)
@@ -305,12 +286,13 @@ void Engine::osMouseButtonRelease(int set_button, float set_xP, float set_yP)
 	set_xP = set_xP * window.screenPixelRatio();
 	set_yP = set_yP * window.screenPixelRatio();
 
+	float setAmount = 0.0f;
 	m_input.osMouseEvent(
 		EventType::MouseButtonRelease,
 		set_button,
 		set_xP - (window.pixelWidth() * 0.5f),
 		set_yP - (window.pixelHeight() * 0.5f),
-		/*set_amount*/0.0f );
+		setAmount);
 }
 
 void Engine::osMouseMotion(float set_xP, float set_yP)
@@ -320,12 +302,13 @@ void Engine::osMouseMotion(float set_xP, float set_yP)
 	set_xP = set_xP * window.screenPixelRatio();
 	set_yP = set_yP * window.screenPixelRatio();
 
+	float setAmount = 0.0f;
 	m_input.osMouseEvent(
 		EventType::MouseMotion,
 		(int)MouseButton::Undefined,
 		set_xP - (window.pixelWidth() * 0.5f),
 		set_yP - (window.pixelHeight() * 0.5f),
-		/*set_amount*/0.0f );
+		setAmount);
 }
 
 void Engine::osScrollEvent(float scrollX, float scrollY)
@@ -383,7 +366,7 @@ void Engine::onMouseEvent(const Input& input)
 			}
 			else
 			{
-				std::cout << "Picked entity: " << pickedID << "\n";
+				rae_log("Picked entity: ", pickedID, "\n");
 				destroyEntity(pickedID);
 			}
 		}
@@ -425,7 +408,7 @@ void Engine::reactToInput(const Input& input)
 
 	if (input.getKeyState(KeySym::O))
 	{
-		std::cout << "biggestId: " << m_entitySystem.biggestId() << "\n";
+		rae_log("Destroy biggestId: ", m_entitySystem.biggestId(), "\n");
 		destroyEntity((Id)getRandomInt(20, m_entitySystem.biggestId()));
 	}
 

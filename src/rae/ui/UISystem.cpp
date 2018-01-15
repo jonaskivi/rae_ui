@@ -6,6 +6,7 @@
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
+#include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
@@ -50,7 +51,7 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 		virxels(300.0f, 25.0f, 0.1f),
 		[](){});
 
-	std::cout << "UISystem creating Info button: " << m_infoButtonId << "\n";
+	//rae_log("UISystem creating Info button: ", m_infoButtonId, "\n");
 }
 
 void UISystem::createDefaultTheme()
@@ -118,11 +119,11 @@ bool UISystem::update(double time, double deltaTime)
 		auto& transform = m_transformSystem.getTransform(m_infoButtonId);
 		if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
 		{
-			std::cout << "UISystem::render settings stuff mouse.x: "
-				<< m_input.mouse.x << " mouse.y: " << m_input.mouse.y << "\n";
+			//rae_log("UISystem::render settings stuff mouse.x: ",
+			//	m_input.mouse.x, " mouse.y: ", m_input.mouse.y, "\n");
 
 			transform.setTarget(vec3(m_input.mouse.x, m_input.mouse.y, 0.0f), 1.0f);
-			std::cout << "Click " << frameCount << "\n";
+			//rae_log("Click ", frameCount, "\n");
 		}
 	}
 
@@ -412,6 +413,42 @@ Id UISystem::createButton(const String& text, vec3 position, vec3 extents, std::
 	addButton(id, Button(text));
 	addCommand(id, Command(handler));
 	return id;
+}
+
+Id UISystem::createToggleButton(const String& text, vec3 position, vec3 extents, Bool& property)
+{
+	Id id = m_entitySystem.createEntity();
+	m_transformSystem.addTransform(id, Transform(position));
+	//m_transformSystem.setPosition(id, position);
+
+	vec3 halfExtents = extents / 2.0f;
+	addBox(id, Box(-(halfExtents), halfExtents));
+	addButton(id, Button(text));
+
+	// When button gets clicked, change property
+	addCommand(id, Command([this, &property]()
+	{
+		property = !property;
+		//rae_log("Set property to: ", Utils::toString(property), "\n");
+	}));
+
+	bindActive(id, property);
+
+	return id;
+}
+
+void UISystem::bindActive(Id id, Bool& property)
+{
+	// Set current active
+	setActive(id, property);
+
+	// When property changes, change active
+	property.onChanged.connect(
+	[this, id](bool isEnabled)
+	{
+		//rae_log("Changed to ", Utils::toString(isEnabled), " on: ", id, " : ", getText(id).text, "\n");
+		setActive(id, isEnabled);
+	});
 }
 
 Id UISystem::createTextBox(const String& text, vec3 position, vec3 extents)

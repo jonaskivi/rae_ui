@@ -20,6 +20,8 @@ GLFWwindow* window;
 #include "rae/Engine.hpp"
 #include "pihlaja/Pihlaja.hpp"
 
+#include "rae/core/Log.hpp"
+
 //----------------------------------------
 
 Engine* g_engine = nullptr;
@@ -46,7 +48,7 @@ void glfwOnMouseButton(GLFWwindow* set_window, int set_button, int set_action, i
 	double mx, my;
 	glfwGetCursorPos(set_window, &mx, &my);
 
-	std::cout << "glfwOnMouseButtonPress. x: " << mx << " y: " << my << "\n";
+	//rae_log("glfwOnMouseButtonPress. x: ", mx, " y: ", my, "\n");
 	if(set_action == GLFW_PRESS)
 	{
 		g_engine->osMouseButtonPress(set_button, (float)mx, (float)my);
@@ -86,7 +88,7 @@ int main()
 	// Initialise GLFW
 	if( !glfwInit() )
 	{
-		fprintf( stderr, "Failed to initialize GLFW\n" );
+		rae_log_error("Failed to initialize GLFW\n");
 		return -1;
 	}
 
@@ -110,7 +112,7 @@ int main()
 	
 	if( window == nullptr )
 	{
-		fprintf( stderr, "Failed to open GLFW window.\n" );
+		rae_log_error("Failed to open GLFW window.\n");
 		glfwTerminate();
 		return -1;
 	}
@@ -121,7 +123,7 @@ int main()
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 	{
-		fprintf(stderr, "Failed to initialize GLEW\n");
+		rae_log_error("Failed to initialize GLEW\n");
 		return -1;
 	}
 	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.

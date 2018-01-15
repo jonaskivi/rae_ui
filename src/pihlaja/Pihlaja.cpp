@@ -6,7 +6,8 @@ Pihlaja::Pihlaja(GLFWwindow* glfwWindow) :
 	m_avSystem(m_engine.getRenderSystem()),
 	#endif
 	m_screenImage(m_engine.getRenderSystem().getBackgroundImage()),
-	m_input(m_engine.getInput())
+	m_input(m_engine.getInput()),
+	m_uiSystem(m_engine.getUISystem())
 {
 	#ifdef USE_RAE_AV
 	m_engine.addSystem(m_avSystem);
@@ -29,33 +30,34 @@ Pihlaja::Pihlaja(GLFWwindow* glfwWindow) :
 
 void Pihlaja::initUI()
 {
-	auto& uiSystem = m_engine.getUISystem();
+	auto& ui = m_uiSystem;
 
-	m_playButtonId = uiSystem.createButton("Play",
+	m_playButtonId = ui.createToggleButton("Play",
 		virxels(0.0f, 350.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f),
-		std::bind(&Pihlaja::togglePlay, this));
-	uiSystem.setActive(m_playButtonId, m_play);
-	//TODO IDEA: uiSystem.bindActive(m_playButtonId, std::bind(&Pihlaja::isPlay, this));
+		m_play);
 
-	uiSystem.createButton("Rewind",
+	ui.createButton("Rewind",
 		virxels(-100.0f, 350.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f),
 		std::bind(&Pihlaja::rewind, this));
 
-	m_debugNeedsFrameUpdateButtonId = uiSystem.createTextBox("NeedsFrameUpdate",
+	m_debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
 		virxels(-100.0f, 380.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f));
-	uiSystem.setActive(m_debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
+	ui.bindActive(m_debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
+
+	// Raytracer
+
+	m_rayTracerButtonId = ui.createToggleButton("Render",
+		virxels(0.0f, 150.0f, 0.0f),
+		virxels(98.0f, 25.0f, 0.1f),
+		m_engine.getRayTracerSystem().isEnabled());
 }
 
 void Pihlaja::togglePlay()
 {
 	m_play = !m_play;
-
-	// TODO would be nice if all UI state could be defined in one place, and not sprinkled all around other code.
-	auto& uiSystem = m_engine.getUISystem();
-	uiSystem.setActive(m_playButtonId, m_play);
 }
 
 void Pihlaja::rewind()
@@ -83,8 +85,6 @@ void Pihlaja::rewind()
 void Pihlaja::setNeedsFrameUpdate(bool value)
 {
 	m_needsFrameUpdate = value;
-	auto& uiSystem = m_engine.getUISystem();
-	uiSystem.setActive(m_debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
 
 	m_engine.askForFrameUpdate();
 }

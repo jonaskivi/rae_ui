@@ -29,11 +29,11 @@ position(position)
 }
 */
 
-Transform::Transform(const vec3& setPosition)
-: position(0.0f, 0.0f, 0.0f),
-localPosition(0.0f, 0.0f, 0.0f)
+Transform::Transform(const vec3& setPosition) :
+	position(setPosition),
+	localPosition(setPosition)
 {
-	setTarget(setPosition, 5.0f);
+	//JONDE REMOVE setTarget(setPosition, 5.0f);
 }
 
 String Transform::toString() const
@@ -60,6 +60,7 @@ void Transform::setTarget(glm::vec3 setTarget, float duration)
 
 void Transform::update(double time, double deltaTime)
 {
+	// JONDE TODO move the animator outside of this class to its own system.
 	if (m_positionAnimator.update((float)time) )
 	{
 		position = m_positionAnimator.value();

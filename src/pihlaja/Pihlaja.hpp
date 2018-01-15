@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rae/core/Log.hpp"
 #include "rae/animation/Animator.hpp"
 #include "rae/visual/Shader.hpp"
 #include "rae/visual/Transform.hpp"
@@ -54,12 +55,13 @@ protected:
 
 	void setVideoRenderingState(VideoRenderingState state)
 	{
-		std::cout << "Video rendering state: " << (int)state << "\n";
+		rae_log("Video rendering state: ", (int)state, "\n");
 		m_videoRenderingState = state;
 		m_needsFrameUpdate = true;
 	}
 
 	Engine m_engine;
+	UISystem& m_uiSystem;
 	#ifdef USE_RAE_AV
 	AVSystem m_avSystem;
 	#endif
@@ -80,7 +82,9 @@ protected:
 	Id		m_playButtonId;
 	Id		m_debugNeedsFrameUpdateButtonId;
 
+	Id		m_rayTracerButtonId;
+
 	int		m_frameCount = 0;
-	bool	m_play = true;
-	bool	m_needsFrameUpdate = true; //false for hdrflow?
+	Bool	m_play = true;
+	Bool	m_needsFrameUpdate = true; //false for hdrflow?
 };

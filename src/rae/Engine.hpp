@@ -49,6 +49,8 @@ public:
 	RenderSystem& getRenderSystem() { return m_renderSystem; }
 	Input& getInput() { return m_input; }
 
+	RayTracer& getRayTracerSystem() { return m_rayTracer; }
+
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
 

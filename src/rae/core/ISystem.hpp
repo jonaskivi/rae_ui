@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rae/core/Property.hpp"
 #include "rae/core/Types.hpp"
 
 namespace rae
@@ -20,12 +21,12 @@ public:
 	virtual void destroyEntities(const Array<Id>& entities) {}
 	virtual void defragmentTables() {}
 
-	virtual void toggleIsEnabled() { m_isEnabled = !m_isEnabled; }
-	virtual bool isEnabled() { return m_isEnabled; }
+	virtual bool toggleIsEnabled() { m_isEnabled = !m_isEnabled; return m_isEnabled; }
+	virtual Bool& isEnabled() { return m_isEnabled; }
 	virtual void setIsEnabled(bool set) { m_isEnabled = set; }
 
 protected:
-	bool m_isEnabled = true;
+	Bool m_isEnabled = true;
 };
 
 }

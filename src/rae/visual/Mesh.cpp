@@ -2,9 +2,9 @@
 #include "GL/glew.h"
 #include "Mesh.hpp"
 
-#include <iostream>
 #include <fstream>
 
+#include "rae/core/Log.hpp"
 #include "rae/visual/Material.hpp"
 
 using namespace rae;
@@ -17,7 +17,7 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-	std::cout << "Mesh destructor.\n";
+	//rae_log("Mesh destructor.\n");
 	freeVBOs();
 	delete m_material;
 }
@@ -61,7 +61,7 @@ Mesh& Mesh::operator=(Mesh&& other)
 
 void Mesh::createVBOs()
 {
-	std::cout << "Mesh::createVBOs.\n";
+	//rae_log("Mesh::createVBOs.\n");
 
 	glGenBuffers(1, &m_vertexBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
@@ -87,11 +87,11 @@ void Mesh::freeVBOs()
 		m_normalBufferId == 0 &&
 		m_indexBufferId == 0)
 	{
-		std::cout << "Mesh::freeVBOs, but no resources created.\n";
+		rae_log_error("Mesh::freeVBOs, but no resources created.\n");
 		return;
 	}
 
-	std::cout << "Mesh::freeVBOs.\n";
+	//rae_log("Mesh::freeVBOs.\n");
 	glDeleteBuffers(1, &m_vertexBufferId);
 	glDeleteBuffers(1, &m_uvBufferId);
 	glDeleteBuffers(1, &m_normalBufferId);
@@ -238,7 +238,7 @@ void Mesh::computeAabb()
 
 void Mesh::generateBox()
 {
-	//std::cout << "Generating Mesh.\n";
+	//rae_log("Generating Mesh.\n");
 
 	float boxSize = 0.5f; // Actually half of the box size
 
@@ -405,7 +405,7 @@ void Mesh::generateBox()
 	computeAabb();
 	computeFaceNormals();
 
-	//std::cout << "size of: m_vertices: " << m_vertices.size() << " size of m_indices: " << m_indices.size() << "\n";
+	//rae_log("size of: m_vertices: ", m_vertices.size(), " size of m_indices: ", m_indices.size(), "\n");
 }
 
 void Mesh::generateSphere(float radius, int rings, int sectors)
@@ -558,9 +558,8 @@ bool Mesh::loadModel(const String& filepath)
 	}
 	else
 	{
-		std::cout << "Couldn't open file: " << filepath << "\n";
-		//logInfo( importer.GetErrorString());
-		std::cout << importer.GetErrorString() << "\n";
+		rae_log_error("Couldn't open file: ", filepath, "\n");
+		rae_log_error(importer.GetErrorString(), "\n");
 		return false;
 	}
 
@@ -568,8 +567,7 @@ bool Mesh::loadModel(const String& filepath)
 
 	if( !scene )
 	{
-		//logInfo( importer.GetErrorString());
-		std::cout << importer.GetErrorString() << "\n";
+		rae_log_error(importer.GetErrorString(), "\n");
 		return false;
 	}
 
@@ -579,20 +577,20 @@ bool Mesh::loadModel(const String& filepath)
 	//computeAabb();
 	createVBOs();
 
-	std::cout << "Succesfully imported scene " << filepath << "\n";
+	rae_log("Succesfully imported scene ", filepath, "\n");
 	return true;
 }
 
 void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 {
-	std::cout << "Node mesh count: " << node->mNumMeshes << "\n";
+	//rae_log("Node mesh count: ", node->mNumMeshes, "\n");
 
 	if (node->mNumMeshes > 0)
 	{
 
 		for (uint i = 0; i < node->mNumMeshes; ++i)
 		{
-			std::cout << "Node: " << i << "\n";
+			//rae_log("Node: ", i, "\n");
 
 			const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
@@ -602,7 +600,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			
 			}
 
-			std::cout << "Faces: " << f << "\n";
+			//rae_log("Faces: ", f, "\n");
 
 			for (uint n = 0; n < node->mNumChildren; ++n)
 			{
@@ -615,12 +613,12 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 	{
 		const aiMesh* mesh = scene->mMeshes[0]; // In this simple example code we always use the 1rst mesh (in OBJ files there is often only one anyway)
 
-		std::cout << "m_vertices: " << mesh->mNumVertices << "\n";
-		std::cout << "faces: " << mesh->mNumFaces << "\n";
+		//rae_log("m_vertices: ", mesh->mNumVertices, "\n");
+		//rae_log("faces: ", mesh->mNumFaces, "\n");
 		
 		if (mesh->HasTextureCoords(0) == false)
 		{
-			std::cout << "no texture coordinates in mesh.\n";
+			//rae_log("no texture coordinates in mesh.\n");
 		}
 
 		m_aabb.clear();

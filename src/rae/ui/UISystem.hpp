@@ -83,6 +83,7 @@ public:
 	void render(double time, double deltaTime, NVGcontext* vg);
 
 	Id createButton(const String& text, vec3 position, vec3 extents, std::function<void()> handler);
+	Id createToggleButton(const String& text, vec3 position, vec3 extents, Bool& property);
 	Id createTextBox(const String& text, vec3 position, vec3 extents);
 
 	void addBox(Id id, Box&& box);
@@ -106,6 +107,8 @@ public:
 
 	void setActive(Id id, bool active);
 	bool isActive(Id id);
+	// Make active follow property state with a two-way binding
+	void bindActive(Id id, Bool& property);
 
 private:
 

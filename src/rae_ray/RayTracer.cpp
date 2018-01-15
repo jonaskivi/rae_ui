@@ -279,6 +279,9 @@ vec3 RayTracer::sky(const Ray& ray)
 
 bool RayTracer::update(double time, double deltaTime)
 {
+	if (!m_isEnabled)
+		return false; // JONDE RENAME to enum SystemState::Disabled
+
 	/*
 	Old time based switch buffers system:
 
@@ -314,7 +317,7 @@ bool RayTracer::update(double time, double deltaTime)
 		}
 	#endif
 
-	return false; // for now
+	return true; // JONDE RENAME to enum SystemState::NeedsUpdate
 }
 
 void RayTracer::destroyEntities(const Array<Id>& entities)

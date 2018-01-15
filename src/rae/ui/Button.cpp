@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+//#include "rae/core/Log.hpp"
+
 using namespace rae;
 
 Command::Command(std::function<void()> handler)
@@ -11,7 +13,7 @@ Command::Command(std::function<void()> handler)
 
 void Command::execute() const
 {
-	std::cout << "Going to execute command... " << std::endl;
+	//log("Going to execute command...\n");
 	emitExecuteEvent();
 }
 
@@ -22,7 +24,7 @@ void Command::connectExecuteEventHandler(std::function<void()> handler)
 
 void Button::execute() const
 {
-	std::cout << "Going to execute button: " << m_text << std::endl;
+	//log("Going to execute button: ", m_text, "\n");
 	emitExecuteEvent();
 }
 

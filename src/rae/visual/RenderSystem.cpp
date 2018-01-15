@@ -1,8 +1,5 @@
 #include "RenderSystem.hpp"
 
-#include <iostream>
-	using namespace std;
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -19,6 +16,7 @@ namespace rae
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
+#include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/ui/Input.hpp"
 
@@ -167,7 +165,7 @@ void RenderSystem::init()
 Id RenderSystem::createBox()
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createBox entity: " << id << "\n";
+	//rae_log("createBox entity: ", id, "\n");
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
@@ -182,7 +180,7 @@ Id RenderSystem::createBox()
 Id RenderSystem::createSphere()
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createSphere entity: " << id << "\n";
+	//rae_log("createSphere entity: ", id, "\n");
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
@@ -195,7 +193,7 @@ Id RenderSystem::createSphere()
 Id RenderSystem::createMesh(const String& filename)
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createMesh entity: " << id << "\n";
+	//rae_log("createMesh entity: ", id, "\n");
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
@@ -207,7 +205,7 @@ Id RenderSystem::createMesh(const String& filename)
 Id RenderSystem::createMaterial(const Colour& color)
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createMaterial entity: " << id << "\n";
+	//rae_log("createMaterial entity: ", id, "\n");
 	Material material(color);
 	addMaterial(id, std::move(material));
 
@@ -219,7 +217,7 @@ Id RenderSystem::createMaterial(const Colour& color)
 Id RenderSystem::createAnimatingMaterial(const Colour& color)
 {
 	Id id = m_entitySystem.createEntity();
-	std::cout << "createAnimatingMaterial entity: " << id << "\n";
+	//rae_log("createAnimatingMaterial entity: ", id, "\n");
 	Material material(color);
 	addMaterial(id, std::move(material));
 
@@ -231,7 +229,7 @@ Id RenderSystem::createAnimatingMaterial(const Colour& color)
 
 void RenderSystem::addMesh(Id id, Mesh&& comp)
 {
-	std::cout << "addMesh to entity: " << id << "\n";
+	//rae_log("addMesh to entity: ", id, "\n");
 	m_meshes.assign(id, std::move(comp));
 }
 
@@ -247,7 +245,6 @@ Mesh& RenderSystem::getMesh(Id id)
 
 void RenderSystem::addMeshLink(Id id, Id linkId)
 {
-	std::cout << "addMeshLink: to id: " << id << " linkId: " << linkId << "\n";
 	m_meshLinks.assign(id, std::move(linkId));
 }
 
@@ -268,7 +265,6 @@ Material& RenderSystem::getMaterial(Id id)
 
 void RenderSystem::addMaterialLink(Id id, Id linkId)
 {
-	std::cout << "addMaterialLink: to id: " << id << " linkId: " << linkId << "\n";
 	m_materialLinks.assign(id, std::move(linkId));
 }
 
@@ -290,9 +286,8 @@ void RenderSystem::checkErrors(const char *file, int line)
 			default:                                error = "Unknown error: " + std::to_string((int)err); break;
 		}
 
-		#ifdef RAE_DEBUG
-			cerr << "OpenGL error: " << error << " - Received error in " << file << ":" << line << "\n";
-		#endif
+		rae_log_error("OpenGL error: ", error, " - Received error in ", file, ":", line, "\n");
+
 		err = glGetError();
 	}
 }

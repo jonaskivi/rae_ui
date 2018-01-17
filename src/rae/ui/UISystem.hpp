@@ -59,6 +59,10 @@ struct Text
 	String text;
 };
 
+struct Panel
+{
+};
+
 //JONDE TODO Move to ButtonSubsystem
 enum class ButtonThemeColourKey
 {
@@ -66,6 +70,17 @@ enum class ButtonThemeColourKey
 	Hover,
 	Active,
 	ActiveHover,
+	Text,
+	HoverText,
+	ActiveText,
+	ActiveHoverText,
+	Count
+};
+
+enum class PanelThemeColourKey
+{
+	Background,
+	Hover,
 	Count
 };
 
@@ -82,9 +97,13 @@ public:
 	void defragmentTables() override;
 	void render(double time, double deltaTime, NVGcontext* vg);
 
-	Id createButton(const String& text, vec3 position, vec3 extents, std::function<void()> handler);
-	Id createToggleButton(const String& text, vec3 position, vec3 extents, Bool& property);
-	Id createTextBox(const String& text, vec3 position, vec3 extents);
+	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);
+	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
+	Id createTextBox(const String& text, const vec3& position, const vec3& extents);
+
+	Id createPanel(const vec3& position, const vec3& extents);
+	void addPanel(Id id, Panel&& panel);
+	const Panel& getPanel(Id id);
 
 	void addBox(Id id, Box&& box);
 	const Box& getBox(Id id);
@@ -114,13 +133,20 @@ private:
 
 	void createDefaultTheme();
 
-	void renderButton(const String& text, const Transform& transform, const Box& box, const Colour& colour);
+	void renderRectangle(const Transform& transform, const Box& box, const Colour& colour);
+	void renderButton(const String& text, const Transform& transform, const Box& box,
+		const Colour& colour, const Colour& textColour);
 
 	// NanoVG takes input in pixels, and so do these helper functions:
+	void renderRectangleNano(NVGcontext* vg, float x, float y, float w, float h,
+					  float cornerRadius,
+					  const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderWindowNano(NVGcontext* vg, const String& title, float x, float y, float w, float h,
 					  float cornerRadius, const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderButtonNano(NVGcontext* vg, const String& text, float x, float y, float w, float h,
-					  float cornerRadius, const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f));
+					  float cornerRadius,
+					  const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f),
+					  const Colour& textColour = Colour(1.0f, 1.0f, 1.0f, 1.0f));
 
 	Input& m_input;
 	/*TODO const*/ ScreenSystem& m_screenSystem;
@@ -139,6 +165,9 @@ private:
 	Table<Colour> m_colours;
 	Table<Active> m_actives;
 	Table<Hover> m_hovers;
+
+	Table<Panel> m_panels;
+	Array<Colour> m_panelThemeColours;
 };
 
 }

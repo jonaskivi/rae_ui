@@ -32,6 +32,10 @@ void Pihlaja::initUI()
 {
 	auto& ui = m_uiSystem;
 
+	ui.createPanel(
+		virxels(-50.0f, 250.0f, 0.0f),
+		virxels(250.0f, 325.0f, 0.1f));
+
 	m_playButtonId = ui.createToggleButton("Play",
 		virxels(0.0f, 350.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f),

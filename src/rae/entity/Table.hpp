@@ -9,8 +9,16 @@ namespace rae
 
 const int InvalidIndex = -1;
 
+class ITable
+{
+public:
+	virtual void removeEntities(const Array<Id>& entities) = 0;
+	virtual void defragment() = 0;
+	virtual void onFrameEnd() = 0;
+};
+
 template <typename Comp>
-class Table
+class Table : public ITable
 {
 public:
 	Table(int reserveSize = 10)
@@ -35,6 +43,7 @@ public:
 		if (check(id))
 		{
 			m_items[m_idMap[id]] = std::move(comp);
+			m_updated[m_idMap[id]] = true;
 
 			//std::cout << "Table: Entity already exists, replacing: " << id << "\n";
 			return;
@@ -45,7 +54,7 @@ public:
 		int index = (int)id;
 		while ((int)m_idMap.size() <= index)
 		{
-			m_idMap.push_back(InvalidIndex);
+			m_idMap.emplace_back(InvalidIndex);
 			//std::cout << "Created: " << m_idMap.size() << "\n";
 		}
 		//std::cout << "Size after: " << m_idMap.size() <<"\n";
@@ -57,6 +66,7 @@ public:
 			m_freeItems.pop_back();
 			m_idMap[id] = freeIndex;
 			m_items[freeIndex] = std::move(comp);
+			m_updated[freeIndex] = true;
 
 			//std::cout << "Table: Re-used existing entity: id: " << id << " at freeindex: " << freeIndex << "\n";
 			return;
@@ -66,6 +76,7 @@ public:
 		m_idMap[index] = (int)m_items.size();
 
 		m_items.emplace_back(std::move(comp));
+		m_updated.emplace_back(true);
 
 		//std::cout << "Table: Created a completely new object: " << id << " idMap.size: " << m_idMap.size() << "\n";
 	}
@@ -79,7 +90,7 @@ public:
 		}
 	}
 
-	void removeEntities(const Array<Id>& entities)
+	void removeEntities(const Array<Id>& entities) override
 	{
 		for (auto&& id : entities)
 		{
@@ -87,7 +98,7 @@ public:
 		}
 	}
 
-	void defragment()
+	void defragment() override
 	{
 		m_freeItems.clear();
 
@@ -118,6 +129,7 @@ public:
 	const Array<Comp>& items() const { return m_items; }
 	Array<Comp>& items() { return m_items; }
 
+	// Check for existance of the component for the given Id
 	bool check(Id id) const
 	{
 		int index = (int)id;
@@ -147,13 +159,51 @@ public:
 		return m_empty;
 	}
 
+	const Comp& getF(Id id) const
+	{
+		return m_items[m_idMap[id]];
+	}
+
+	Comp& getF(Id id)
+	{
+		return m_items[m_idMap[id]];
+	}
+
+	// To be called on every frame
+	void onFrameEnd() override
+	{
+		clearUpdated();
+	}
+
+	// The updated flags should be cleared at the end of each frame
+	void clearUpdated()
+	{
+		for (auto&& value : m_updated)
+		{
+			value = false;
+		}
+	}
+
+	bool isUpdated(Id id) const
+	{
+		if (check(id))
+			return m_updated[m_idMap[id]];
+		return false;
+	}
+
+	bool isUpdatedF(Id id) const
+	{
+		return m_updated[m_idMap[id]];
+	}
+
 protected:
 
 	Comp m_empty;
-	Array<Comp> m_items;
-	Array<int> m_idMap;
+	Array<Comp> m_items; // Size is only the size of required number of components
+	Array<int> m_idMap; // Size is the required size of Ids, so it will contain all the Ids in the World.
 	Array<int> m_freeItems;
-	
+
+	Array<bool_t> m_updated; // Size is the same as m_items, so only required number of components.
 };
 
 };

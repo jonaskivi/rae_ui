@@ -79,6 +79,11 @@ RenderSystem::RenderSystem(EntitySystem& entitySystem,
 		m_uiSystem(uiSystem),
 		m_rayTracer(rayTracer)
 {
+	addTable(m_meshes);
+	addTable(m_meshLinks);
+	addTable(m_materials);
+	addTable(m_materialLinks);
+
 	debugTransform = new Transform(vec3(0,0,0));
 	debugTransform2 = new Transform(vec3(0,0,0));
 
@@ -311,37 +316,21 @@ bool RenderSystem::update(double time, double delta_time)
 		m_fpsTimer = 0.0;
 	}
 
-	// TODO move to material system
+	// RAE_TODO move to material system
 	for (auto&& material : m_materials.items())
 	{
 		material.update(vg, time);
 	}
 
-	//JONDE TEMP:
+	// RAE_TODO TEMP:
 	m_backgroundImage.update(vg);
 
 	render(time, delta_time);
 
 	m_uiSystem.render(time, delta_time, vg);
-	//JONDE TEMP RAYTRACER render2d(time, delta_time);
+	// RAE_TODO TEMP RAYTRACER render2d(time, delta_time);
 
 	return false; // for now
-}
-
-void RenderSystem::destroyEntities(const Array<Id>& entities)
-{
-	m_meshes.removeEntities(entities);
-	m_meshLinks.removeEntities(entities);
-	m_materials.removeEntities(entities);
-	m_materialLinks.removeEntities(entities);
-}
-
-void RenderSystem::defragmentTables()
-{
-	m_meshes.defragment();
-	m_meshLinks.defragment();
-	m_materials.defragment();
-	m_materialLinks.defragment();
 }
 
 void RenderSystem::render(double time, double delta_time)
@@ -448,8 +437,6 @@ void RenderSystem::renderMesh(const Transform& transform, const Material& materi
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
-	//JONDE REMOVE glm::mat4& modelMatrix = transform->modelMatrix();
-
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
 	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
@@ -470,7 +457,7 @@ void RenderSystem::renderMesh(const Transform& transform, const Material& materi
 	glBindTexture(GL_TEXTURE_2D, material.textureID());
 	// Set textureSampler to use Texture Unit 0
 	glUniform1i(textureUni, 0);
-	//JONDE REMOVE else glBindTexture(GL_TEXTURE_2D, 0);
+	// RAE_TODO REMOVE else glBindTexture(GL_TEXTURE_2D, 0);
 
 	#ifdef RAE_DEBUG
 	std::cout << "Going to renderMesh with shaderID: " << shaderID << "\n";
@@ -511,7 +498,7 @@ void RenderSystem::render2dBackground(double time, double delta_time)
 
 	nvgBeginFrame(vg, window.width(), window.height(), window.screenPixelRatio());
 	
-	//JONDE RAYTRACER:
+	// RAE_TODO RAYTRACER:
 	//m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)window.width(), (float)window.height());
 	//renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)window.width(), (float)window.height());
 

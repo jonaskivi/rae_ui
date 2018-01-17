@@ -39,8 +39,6 @@ public:
 	void createSceneFromBook(HitableList& list);
 
 	bool update(double time, double delta_time) override;
-	void destroyEntities(const Array<Id>& entities) override;
-	void defragmentTables() override {}
 	void renderAllAtOnce(double time);
 	void renderSamples(double time, double deltaTime);
 	void updateImageBuffer();

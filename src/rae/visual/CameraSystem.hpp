@@ -3,8 +3,12 @@
 #include <vector>
 #include <functional>
 
-#include "Camera.hpp"
+#include "rae/visual/Camera.hpp"
 #include "rae/core/ISystem.hpp"
+#include "rae/entity/Table.hpp"
+
+#include "rae/entity/EntitySystem.hpp"
+#include "rae/visual/TransformSystem.hpp"
 
 namespace rae
 {
@@ -14,29 +18,35 @@ class Input;
 class CameraSystem : public ISystem
 {
 public:
-	CameraSystem(Input& input);
+	CameraSystem(EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input);
 
 	String name() override { return "CameraSystem"; }
 
 	bool update(double time, double delta_time) override;
-	void destroyEntities(const Array<Id>& entities) override;
-	void defragmentTables() override {}
 
 	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);
 
-	void setNeedsUpdate() { m_camera.setNeedsUpdate(); }
-	void setAspectRatio(float aspect) { m_camera.setAspectRatio(aspect); }
+	void setNeedsUpdate() { getCurrentCamera().setNeedsUpdate(); }
+	void setAspectRatio(float aspect) { getCurrentCamera().setAspectRatio(aspect); }
 
-	const Camera& getCurrentCamera() const { return m_camera; }
-	//JONDE TODO use only const version 
-	Camera& getCurrentCamera() { return m_camera; }
+	const Camera& getCurrentCamera() const { return getCamera(m_currentCamera); }
+	Camera& getCurrentCamera() { return getCamera(m_currentCamera); }
+
+	Id createCamera();
+	void addCamera(Id id, Camera&& comp);
+	const Camera& getCamera(Id id) const;
+	Camera& getCamera(Id id);
 
 	void connectCameraChangedEventHandler(std::function<void(const Camera&)> handler);
 
 private:
+	EntitySystem& m_entitySystem;
+	TransformSystem& m_transformSystem;
 	Input& m_input;
-	Camera m_camera; // TODO Table of cameras
+
+	Id m_currentCamera;
+	Table<Camera> m_cameras;
 
 	void emitCameraChangedEvent();
 	std::vector<std::function<void(const Camera&)>> cameraChangedEvent;

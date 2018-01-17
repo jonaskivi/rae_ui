@@ -153,10 +153,10 @@ AVFrame* MediaAsset::pullFrame()
 				m_frameRGB->height = m_codecContext->height;
 
 				// Save the frame to disk
-				/* JONDE REMOVE:
+				/* RAE_TODO REMOVE:
 				if (frameCount <= 2)
 				{
-					//JONDE: SaveFrame(m_frameRGB, m_codecContext->width, m_codecContext->height, frameCount);
+					// RAE_TODO: SaveFrame(m_frameRGB, m_codecContext->width, m_codecContext->height, frameCount);
 					if (frameCount % 2 != 0)
 					{
 						std::cout << "pushFrame1.\n";

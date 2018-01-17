@@ -202,8 +202,8 @@ void OpticalFlow::update(double time, double deltaTime)
 			remapWithFLow(m_frame1, output1, m_flowForward, inverseLerpValue);
 
 			cv::addWeighted(output0, inverseLerpValue, output1, lerpValue, 0.0f, m_output);
-			//START JONDE OpticalFlow version
-			//JONDE THINK MORE Screen output: copyMatToImage(m_output, image);
+			// START RAE_TODO OpticalFlow version
+			// RAE_TODO THINK MORE Screen output: copyMatToImage(m_output, image);
 
 			// To debug flows individually:
 			//copyMatToImage(output0, image);
@@ -214,7 +214,7 @@ void OpticalFlow::update(double time, double deltaTime)
 			String outFile = String(numberOfZeroes - tempString.length(), '0') + tempString;
 			writeMatToPng(outFolder + outFile + ".png", m_output);
 			*/
-			//END JONDE OpticalFlow version
+			// END RAE_TODO OpticalFlow version
 
 			frameCount++;
 

@@ -5,10 +5,13 @@
 
 using namespace rae;
 
-CameraSystem::CameraSystem(Input& input)
-: m_input(input),
-m_camera(/*fieldOfView*/Math::toRadians(20.0f), /*aspect*/16.0f / 9.0f, /*aperture*/0.1f, /*focusDistance*/10.0f)
+CameraSystem::CameraSystem(EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input) :
+	m_entitySystem(entitySystem),
+	m_transformSystem(transformSystem),
+	m_input(input)
 {
+	createCamera();
+
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&CameraSystem::onMouseEvent, this, _1));
 	m_input.connectMouseButtonReleaseEventHandler(std::bind(&CameraSystem::onMouseEvent, this, _1));
@@ -19,6 +22,8 @@ m_camera(/*fieldOfView*/Math::toRadians(20.0f), /*aspect*/16.0f / 9.0f, /*apertu
 
 void CameraSystem::onMouseEvent(const Input& input)
 {
+	auto& camera = getCurrentCamera();
+
 	if (input.eventType == EventType::MouseMotion)
 	{
 		if (input.mouse.button(MouseButton::Second))
@@ -28,8 +33,8 @@ void CameraSystem::onMouseEvent(const Input& input)
 
 			const float rotateSpeedMul = 5.0f;
 
-			m_camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
-			m_camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
+			camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
+			camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
 		}
 	}
 	else if (input.eventType == EventType::MouseButtonPress)
@@ -49,7 +54,7 @@ void CameraSystem::onMouseEvent(const Input& input)
 	if (input.eventType == EventType::Scroll)
 	{
 		const float scrollSpeedMul = -0.1f;
-		m_camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
+		camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
 	}
 }
 
@@ -68,6 +73,37 @@ void CameraSystem::onKeyEvent(const Input& input)
 	*/
 }
 
+Id CameraSystem::createCamera()
+{
+	vec3 position = vec3(0.0f, 0.0f, 0.0f);
+	Id id = m_entitySystem.createEntity();
+	m_transformSystem.addTransform(id, Transform(position));
+
+	float fieldOfView = Math::toRadians(20.0f);
+	float aspect = 16.0f / 9.0f;
+	float aperture = 0.1f;
+	float focusDistance = 10.0f;
+	Camera camera(fieldOfView, aspect, aperture, focusDistance);
+	addCamera(id, std::move(camera));
+
+	return id;
+}
+
+void CameraSystem::addCamera(Id id, Camera&& comp)
+{
+	m_cameras.assign(id, std::move(comp));
+}
+
+const Camera& CameraSystem::getCamera(Id id) const
+{
+	return m_cameras.get(id);
+}
+
+Camera& CameraSystem::getCamera(Id id)
+{
+	return m_cameras.get(id);
+}
+
 void CameraSystem::connectCameraChangedEventHandler(std::function<void(const Camera&)> handler)
 {
 	cameraChangedEvent.push_back(handler);
@@ -75,59 +111,63 @@ void CameraSystem::connectCameraChangedEventHandler(std::function<void(const Cam
 
 void CameraSystem::emitCameraChangedEvent()
 {
+	auto& camera = getCurrentCamera();
+
 	for (auto&& handler : cameraChangedEvent)
 	{
-		handler(m_camera);
+		handler(camera);
 	}
 }
 
 bool CameraSystem::update(double time, double delta_time)
 {
-	//JONDE TODO: m_screenInfo??? from ScreenSystem???
-	//JONDE m_camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
+	// RAE_TODO: m_screenInfo??? from ScreenSystem???
+	// RAE_TODO camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
+
+	auto& camera = getCurrentCamera();
 
 	if (m_input.getKeyState(KeySym::Control_L))
-		m_camera.setCameraSpeedDown(true);
-	else m_camera.setCameraSpeedDown(false);
+		camera.setCameraSpeedDown(true);
+	else camera.setCameraSpeedDown(false);
 
 	if (m_input.getKeyState(KeySym::Shift_L))
-		m_camera.setCameraSpeedUp(true);
-	else m_camera.setCameraSpeedUp(false);
+		camera.setCameraSpeedUp(true);
+	else camera.setCameraSpeedUp(false);
 
 	// Rotation with arrow keys
 	if (m_input.getKeyState(KeySym::Left))
-		m_camera.rotateYaw(float(delta_time), +1);
+		camera.rotateYaw(float(delta_time), +1);
 	else if (m_input.getKeyState(KeySym::Right))
-		m_camera.rotateYaw(float(delta_time), -1);
+		camera.rotateYaw(float(delta_time), -1);
 
 	if (m_input.getKeyState(KeySym::Up))
-		m_camera.rotatePitch(float(delta_time), +1);
+		camera.rotatePitch(float(delta_time), +1);
 	else if (m_input.getKeyState(KeySym::Down))
-		m_camera.rotatePitch(float(delta_time), -1);
+		camera.rotatePitch(float(delta_time), -1);
 
 	// Camera movement
-	if (m_input.getKeyState(KeySym::W)) { m_camera.moveForward(float(delta_time));  }
-	if (m_input.getKeyState(KeySym::S)) { m_camera.moveBackward(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::D)) { m_camera.moveRight(float(delta_time));    }
-	if (m_input.getKeyState(KeySym::A)) { m_camera.moveLeft(float(delta_time));     }
-	if (m_input.getKeyState(KeySym::E)) { m_camera.moveUp(float(delta_time));       }
-	if (m_input.getKeyState(KeySym::Q)) { m_camera.moveDown(float(delta_time));     }
+	if (m_input.getKeyState(KeySym::W)) { camera.moveForward(float(delta_time));  }
+	if (m_input.getKeyState(KeySym::S)) { camera.moveBackward(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::D)) { camera.moveRight(float(delta_time));    }
+	if (m_input.getKeyState(KeySym::A)) { camera.moveLeft(float(delta_time));     }
+	if (m_input.getKeyState(KeySym::E)) { camera.moveUp(float(delta_time));       }
+	if (m_input.getKeyState(KeySym::Q)) { camera.moveDown(float(delta_time));     }
 
-	if (m_input.getKeyState(KeySym::N)) { m_camera.minusAperture(); }
-	if (m_input.getKeyState(KeySym::M)) { m_camera.plusAperture();  }
+	if (m_input.getKeyState(KeySym::N)) { camera.minusAperture(); }
+	if (m_input.getKeyState(KeySym::M)) { camera.plusAperture();  }
 
-	if (m_input.getKeyState(KeySym::V)) { m_camera.minusFocusDistance(); }
-	if (m_input.getKeyState(KeySym::B)) { m_camera.plusFocusDistance();  }
+	if (m_input.getKeyState(KeySym::V)) { camera.minusFocusDistance(); }
+	if (m_input.getKeyState(KeySym::B)) { camera.plusFocusDistance();  }
 
 	bool cameraChanged = false;
 
 	if (m_input.getKeyPressed(KeySym::F))
 	{
-		m_camera.toggleContinuousAutoFocus();
+		camera.toggleContinuousAutoFocus();
 		cameraChanged = true;
 	}
 
-	if (m_camera.update(time, delta_time))
+	if (camera.update(time, delta_time))
 	{
 		cameraChanged = true;
 	}
@@ -136,8 +176,4 @@ bool CameraSystem::update(double time, double delta_time)
 		emitCameraChangedEvent();
 
 	return cameraChanged;
-}
-
-void CameraSystem::destroyEntities(const Array<Id>& entities)
-{
 }

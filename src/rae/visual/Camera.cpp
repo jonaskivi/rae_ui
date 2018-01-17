@@ -21,15 +21,21 @@ vec3 randomInUnitDisk()
 	return point;
 }
 
-Camera::Camera(float fieldOfViewRadians, float setAspectRatio, float aperture, float focusDistance)
-	: m_fieldOfView(fieldOfViewRadians),
+Camera::Camera()
+{
+	m_fieldOfView = Math::toRadians(20.0f);
+	m_aspectRatio = 16.0f / 9.0f;
+	m_aperture = 0.1f;
+	m_focusDistance = 10.0f;
+
+	calculateFrustum();
+}
+
+Camera::Camera(float fieldOfViewRadians, float setAspectRatio, float aperture, float focusDistance) :
+	m_fieldOfView(fieldOfViewRadians),
 	m_aspectRatio(setAspectRatio),
 	m_aperture(aperture),
-	m_focusDistance(focusDistance),
-	m_yawAngle(0.0f),
-	m_pitchAngle(0.0f),
-	m_cameraSpeed(2.0f),
-	m_rotateSpeed(1.0f)
+	m_focusDistance(focusDistance)
 {
 	calculateFrustum();
 }

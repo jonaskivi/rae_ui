@@ -34,7 +34,7 @@ public:
 	
 	bool metal(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
 
-	//JONDE REALLY NOW: Combine albedo with m_color...
+	// RAE_TODO REALLY NOW: Combine albedo with m_color...
 	vec3 albedo;
 
 	void generateFBO(NVGcontext* vg);
@@ -42,7 +42,7 @@ public:
 
 	GLuint textureID() const;
 
-	// JONDE UMM, DECIDE THE SPELLING ALREADY:
+	// RAE_TODO UMM, DECIDE THE SPELLING ALREADY:
 	void setColor(Colour set);
 	const Colour& color() { return m_color; }
 
@@ -53,12 +53,12 @@ protected:
 	int m_width = 512;
 	int m_height = 512;
 
-	// JONDE DECIDE SPELLING, REALLY:
+	// RAE_TODO DECIDE SPELLING, REALLY:
 	Colour m_color;
 
 	bool m_initialized = false;
 	bool m_animate = false;
-	//JONDE REMOVE?
+	// RAE_TODO REMOVE?
 	int m_type = 1; // TODO enum. Currently 0 and 1 supported!
 };
 

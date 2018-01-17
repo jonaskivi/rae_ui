@@ -7,6 +7,8 @@ using namespace rae;
 
 void Input::onFrameEnd()
 {
+	ISystem::onFrameEnd();
+
 	m_changed = false;
 	key.clearFrame();
 

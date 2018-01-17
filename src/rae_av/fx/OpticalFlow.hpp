@@ -60,7 +60,7 @@ public:
 	void writeFrameToImage(ImageBuffer& image);
 	void writeFrameToDiskAndImage(String filepath, ImageBuffer& image);
 
-	//JONDE MOVE TO UTILS OR OTHER CLASS:
+	// RAE_TODO MOVE TO UTILS OR OTHER CLASS:
 	void copyMatToImage(const cv::Mat& mat, ImageBuffer& image);
 	void copyAVFrameToMat(AVFrame* frameRGB, cv::Mat& mat);
 	void writeMatToPng(String filepath, const cv::Mat& mat);

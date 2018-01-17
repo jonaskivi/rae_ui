@@ -21,8 +21,6 @@ public:
 	String name() override { return "TransformSystem"; }
 
 	bool update(double time, double deltaTime) override;
-	void destroyEntities(const Array<Id>& entities) override;
-	void defragmentTables() override;
 
 	void addTransform(Id id, Transform&& transform);
 	bool hasTransform(Id id) const;
@@ -37,9 +35,6 @@ public:
 private:
 
 	Table<Transform> m_transforms;
-
-	//Array<Id> m_changed; // JONDE Could be worth to test something like this. But then again, we probably need more
-	// fine grained changed events. And maybe encapsulate them inside events anyway.
 };
 
 }

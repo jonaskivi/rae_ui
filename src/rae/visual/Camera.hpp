@@ -14,9 +14,12 @@ namespace rae
 
 vec3 randomInUnitDisk();
 
+const float MinFocusDistance = 0.01f;
+
 class Camera
 {
 public:
+	Camera();
 	Camera(float fieldOfViewRadians, float setAspectRatio, float aperture, float focusDistance);
 
 	Ray getRay(float s, float t);
@@ -72,7 +75,6 @@ public:
 
 	float focusDistance() { return m_focusDistance; }
 	void plusFocusDistance(float delta = 0.01f);
-	const float MinFocusDistance = 0.01f;
 	void minusFocusDistance(float delta = 0.01f);
 	void setFocusDistance(float distance);
 	vec3 getFocusPosition();
@@ -101,21 +103,21 @@ protected:
 
 	float m_fieldOfView; // in radians
 	float m_aspectRatio;
-	float m_aperture;
-	float m_focusDistance;
+	float m_aperture = 0.1f;
+	float m_focusDistance = 10.0f;
 	Animator<float> m_focusDistanceAnimator;
 	float m_lensRadius;
 
-	float m_yawAngle;
-	float m_pitchAngle;
+	float m_yawAngle = 0.0f;
+	float m_pitchAngle = 0.0f;
 
 	glm::mat4 m_viewMatrix;
 	glm::mat4 m_projectionMatrix;
 
 	bool m_cameraSpeedUp = false;
 	bool m_cameraSpeedDown = false;
-	float m_cameraSpeed;
-	float m_rotateSpeed;
+	float m_cameraSpeed = 2.0f;
+	float m_rotateSpeed = 1.0f;
 	float m_focusSpeed = 0.5f;
 	// Continuous auto focus when camera moves
 	bool m_isContinuousAutoFocus = true;

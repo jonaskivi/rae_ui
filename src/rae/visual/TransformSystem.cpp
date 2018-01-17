@@ -5,39 +5,19 @@ using namespace rae;
 
 static const int ReserveTransforms = 1000;
 
-TransformSystem::TransformSystem()
-: m_transforms(ReserveTransforms)
+TransformSystem::TransformSystem() :
+	m_transforms(ReserveTransforms)
 {
-
+	addTable(m_transforms);
 }
 
 bool TransformSystem::update(double time, double deltaTime)
 {
-	/* JONDE REMOVE
-	std::cout << "Printing out TransformSystem:\n";
-	int i = 0;
-	for (auto&& transform : m_transforms.items())
-	{
-		std::cout << "i: " << i << " transform: " << transform.toString() << "\n";
-		++i;
-	}
-	*/
-
 	for (auto&& transform : m_transforms.items())
 	{
 		transform.update(time, deltaTime);
 	}
 	return false;
-}
-
-void TransformSystem::destroyEntities(const Array<Id>& entities)
-{
-	m_transforms.removeEntities(entities);
-}
-
-void TransformSystem::defragmentTables()
-{
-	m_transforms.defragment();
 }
 
 void TransformSystem::addTransform(Id id, Transform&& transform)

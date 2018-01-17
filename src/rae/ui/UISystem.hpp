@@ -63,7 +63,7 @@ struct Panel
 {
 };
 
-//JONDE TODO Move to ButtonSubsystem
+// RAE_TODO Move to ButtonSubsystem
 enum class ButtonThemeColourKey
 {
 	Background,
@@ -93,8 +93,6 @@ public:
 	String name() override { return "UISystem"; }
 
 	bool update(double time, double deltaTime) override;
-	void destroyEntities(const Array<Id>& entities) override;
-	void defragmentTables() override;
 	void render(double time, double deltaTime, NVGcontext* vg);
 
 	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);

@@ -44,6 +44,14 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 		m_renderSystem(renderSystem),
 		m_boxes(ReserveBoxes)
 {
+	addTable(m_boxes);
+	addTable(m_texts);
+	addTable(m_buttons);
+	addTable(m_commands);
+	addTable(m_colours);
+	addTable(m_actives);
+	addTable(m_hovers);
+
 	createDefaultTheme();
 
 	m_infoButtonId = createButton("Info",
@@ -139,28 +147,6 @@ bool UISystem::update(double time, double deltaTime)
 	frameCount++;
 
 	return false;
-}
-
-void UISystem::destroyEntities(const Array<Id>& entities)
-{
-	m_boxes.removeEntities(entities);
-	m_texts.removeEntities(entities);
-	m_buttons.removeEntities(entities);
-	m_commands.removeEntities(entities);
-	m_colours.removeEntities(entities);
-	m_actives.removeEntities(entities);
-	m_hovers.removeEntities(entities);
-}
-
-void UISystem::defragmentTables()
-{
-	m_boxes.defragment();
-	m_texts.defragment();
-	m_buttons.defragment();
-	m_commands.defragment();
-	m_colours.defragment();
-	m_actives.defragment();
-	m_hovers.defragment();
 }
 
 void UISystem::render(double time, double deltaTime, NVGcontext* vg)
@@ -394,13 +380,13 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 	//nvgFillColor(vg, nvgRGBA(155,155,155,255));
 	nvgFillPaint(vg, headerPaint);
 	nvgFill(vg);
-	//JONDE nvgStrokeColor(vg, nvgRGBAf(0.2f,0.2f,0.2f,0.75f * a()));
+	// RAE_TODO nvgStrokeColor(vg, nvgRGBAf(0.2f,0.2f,0.2f,0.75f * a()));
 	nvgStrokeColor(vg, nvgRGBAf(0.2f,0.2f,0.2f,0.75f));
 	nvgStrokeWidth(vg, 1.0f);
 	nvgStroke(vg);
 
 	// Drop shadow
-	//JONDE shadowPaint = nvgBoxGradient(vg, x,y+5, w,h, cornerRadius, 20, nvgRGBAf(0.0f,0.0f,0.0f,0.5f*a()), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
+	// RAE_TODO shadowPaint = nvgBoxGradient(vg, x,y+5, w,h, cornerRadius, 20, nvgRGBAf(0.0f,0.0f,0.0f,0.5f*a()), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
 	shadowPaint = nvgBoxGradient(vg, x,y+5, w,h, cornerRadius, 20, nvgRGBAf(0.0f,0.0f,0.0f,0.5f), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
 	nvgBeginPath(vg);
 	nvgRect(vg, x-60,y-60, w+120,h+120);
@@ -427,7 +413,7 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 
 	// Shadow
 	nvgFontBlur(vg,2);
-	//JONDE nvgFillColor(vg, nvgRGBAf(0.0f,0.0f,0.0f,0.5f*a()));
+	// RAE_TODO nvgFillColor(vg, nvgRGBAf(0.0f,0.0f,0.0f,0.5f*a()));
 	nvgFillColor(vg, nvgRGBAf(0.0f,0.0f,0.0f,0.5f));
 	nvgText(vg, x+w/2,y+16+1, title.c_str(), nullptr);
 
@@ -435,7 +421,7 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 	nvgFontBlur(vg,0);
 	//textcolor:
 	//nvgFillColor(vg, nvgRGBA(220,220,220,160));
-	//JONDE nvgFillColor(vg, nvgRGBAf(1.0f,1.0f,1.0f,a()));
+	// RAE_TODO nvgFillColor(vg, nvgRGBAf(1.0f,1.0f,1.0f,a()));
 	nvgFillColor(vg, nvgRGBAf(1.0f,1.0f,1.0f,1.0f));
 	nvgText(vg, x+w/2,y+16, title.c_str(), nullptr);
 
@@ -500,9 +486,7 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, flo
 Id UISystem::createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler)
 {
 	Id id = m_entitySystem.createEntity();
-	//m_transformSystem.addTransform(entity.id(), Transform(vec3(0.0f, 0.0f, 0.0f)));
 	m_transformSystem.addTransform(id, Transform(position));
-	//m_transformSystem.setPosition(entity.id(), position); //JONDE TEMP animation
 
 	vec3 halfExtents = extents / 2.0f;
 	addBox(id, Box(-(halfExtents), halfExtents));
@@ -515,7 +499,6 @@ Id UISystem::createToggleButton(const String& text, const vec3& position, const 
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
-	//m_transformSystem.setPosition(id, position);
 
 	vec3 halfExtents = extents / 2.0f;
 	addBox(id, Box(-(halfExtents), halfExtents));

@@ -21,6 +21,22 @@ using vec2 = glm::vec2;
 using vec3 = glm::vec3;
 using vec4 = glm::vec4;
 
+// A boolean type only to be used to counter problems with std::vector<bool>.
+// So always use rae::Array<bool_t> instead.
+struct bool_t
+{
+	bool_t(){}
+	bool_t(bool value) :
+		value(value)
+	{
+	}
+
+	operator bool&() { return value; }
+	operator bool() const { return value; }
+
+	bool value = false;
+};
+
 template < class T, class Allocator = std::allocator<T> >
 using Array = std::vector<T, Allocator>;
 using String = std::string;

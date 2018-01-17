@@ -92,19 +92,6 @@ enum class EventType
 	Scroll
 };
 
-/*JONDE REMOVE
-struct MouseButtonState
-{
-	MouseButtonState(MouseButton set)
-	: button(set)
-	{
-	}
-
-	MouseButton button;
-	EventType event;
-};
-*/
-
 class ScreenSystem;
 
 class Input : public ISystem
@@ -124,9 +111,6 @@ public:
 		return m_changed;
 	}
 
-	void destroyEntities(const Array<Id>& entities) override {}
-	void defragmentTables() override {}
-
 	// Must be called every frame to clear key up and down states
 	void onFrameEnd() override;
 
@@ -139,27 +123,6 @@ public:
 	{
 		Mouse()
 		{
-			/* JONDE REMOVE
-			for (uint i = 0; i < 6; i++)
-				m_button[i] = false;
-
-			for (uint i = 0; i < 6; i++)
-				xOnButtonPress[i] = 0.0f;
-			for (uint i = 0; i < 6; i++)
-				yOnButtonPress[i] = 0.0f;
-			for (uint i = 0; i < 6; i++)
-				xRelOnButtonPress[i] = 0.0f;
-			for (uint i = 0; i < 6; i++)
-				yRelOnButtonPress[i] = 0.0f;
-			for (uint i = 0; i < 6; i++)
-				xOnButtonPressP[i] = 0.0f;
-			for (uint i = 0; i < 6; i++)
-				yOnButtonPressP[i] = 0.0f;
-			for (uint i = 0; i < 6; i++)
-				xRelOnButtonPressP[i] = 0.0f;
-			for (uint i = 0; i < 6; i++)
-				yRelOnButtonPressP[i] = 0.0f;
-			*/
 		}
 	
 		bool button(MouseButton but) const

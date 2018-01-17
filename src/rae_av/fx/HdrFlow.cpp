@@ -40,7 +40,7 @@ void HdrFlow::pushFrame(AVFrame* frameRGB)
 		setState(EffectNodeState::Processing);
 	*/
 
-	/* JONDE REMOVE:
+	/* RAE_TODO REMOVE:
 	if (m_frameCount % 2 == 0)
 	{
 		
@@ -84,7 +84,7 @@ void HdrFlow::writeFrameToImage(ImageBuffer& image)
 
 	cv::addWeighted(frameTwo0, 0.5f, frameTwo1, 0.5f, 0.0f, m_output);
 
-	// JONDE MOVE METHOD TO SOME OTHER CLASS:
+	// RAE_TODO MOVE METHOD TO SOME OTHER CLASS:
 	m_flows[0].copyMatToImage(m_output, image);
 }
 
@@ -96,7 +96,7 @@ void HdrFlow::writeFrameToDiskAndImage(String filepath, ImageBuffer& image)
 
 	cv::addWeighted(frameTwo0, 1.0f - m_exposureWeight, frameTwo1, m_exposureWeight, 0.0f, m_output);
 
-	// JONDE MOVE METHOD TO SOME OTHER CLASS:
+	// RAE_TODO MOVE METHOD TO SOME OTHER CLASS:
 	m_flows[0].copyMatToImage(m_output, image);
 
 	String outFolder = filepath;

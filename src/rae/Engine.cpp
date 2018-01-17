@@ -14,7 +14,7 @@ using namespace rae;
 Engine::Engine(GLFWwindow* set_window) :
 	m_window(set_window),
 	m_input(m_screenSystem),
-	m_cameraSystem(m_input),
+	m_cameraSystem(m_entitySystem, m_transformSystem, m_input),
 	m_rayTracer(m_cameraSystem),
 	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem), 
 	m_renderSystem(m_entitySystem, m_window, m_input, m_screenSystem, m_cameraSystem,
@@ -30,7 +30,7 @@ Engine::Engine(GLFWwindow* set_window) :
 	addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
 
-	// JONDE CHECK THIS: TODO need to get rid of OpenGL picking hack button at id 0.
+	// RAE_TODO need to get rid of OpenGL picking hack button at id 0.
 	Id emptyEntityId = m_entitySystem.createEntity(); // hack at index 0
 	rae_log("Create empty hack entity at 0: ", emptyEntityId, "\n");
 
@@ -135,6 +135,8 @@ bool Engine::update()
 
 	for (auto system : m_systems)
 	{
+		// A potential issue where isEnabled is changed to false earlier in the update,
+		// and then onFrameEnd doesn't get called for the system.
 		if (system->isEnabled())
 		{
 			system->onFrameEnd();

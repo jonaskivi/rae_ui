@@ -61,15 +61,12 @@ public:
 	Id createAnimatingMaterial(const Colour& color);
 
 	bool update(double time, double delta_time) override;
-	void destroyEntities(const Array<Id>& entities) override;
-	void defragmentTables() override;
-
 	void render(double time, double delta_time);
 	void renderPicking();
 	void render2dBackground(double time, double delta_time);
 	void render2d(double time, double delta_time);
 
-	//JONDE TEMP:
+	// RAE_TODO TEMP:
 	void renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
 		float x, float y, float w, float h);
 	ImageBuffer& getBackgroundImage() { return m_backgroundImage; }

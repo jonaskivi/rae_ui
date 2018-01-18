@@ -15,7 +15,7 @@
 #define rae_log_error(...) do_log_error(__VA_ARGS__)
 #endif
 
-#if __cplusplus >= 201103L // C++11
+#if (_MSC_VER >= 1900) || (__cplusplus >= 201103L) // C++11
 #include <mutex>
 
 #include <stdarg.h>

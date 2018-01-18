@@ -308,10 +308,13 @@ bool RayTracer::update(double time, double deltaTime)
 
 	#ifdef RENDER_ALL_AT_ONCE
 		renderAllAtOnce(time);
+		if (m_currentSample <= m_allAtOnceSamplesLimit) // do once more than render
+		{
+			updateImageBuffer();
+		}
 	#else
-
 		renderSamples(time, deltaTime);
-		if (m_currentSample <= m_samplesLimit) // do once more than render
+		if (m_samplesLimit == 0 || m_currentSample <= m_samplesLimit) // do once more than render
 		{
 			updateImageBuffer();
 		}
@@ -358,7 +361,7 @@ void RayTracer::renderAllAtOnce(double time)
 	// 14.715808 s
 	// 14.710577 s
 
-	if (m_currentSample < m_samplesLimit)
+	if (m_currentSample < m_allAtOnceSamplesLimit)
 	{
 		Camera& camera = m_cameraSystem.getCurrentCamera();
 		m_startTime = time;
@@ -370,7 +373,7 @@ void RayTracer::renderAllAtOnce(double time)
 			{
 				vec3 color;
 
-				for (int sample = 0; sample < m_samplesLimit; sample++)
+				for (int sample = 0; sample < m_allAtOnceSamplesLimit; sample++)
 				{
 					float u = float(i + drand48()) / float(m_buffer->width);
 					float v = float(j + drand48()) / float(m_buffer->height);
@@ -379,15 +382,15 @@ void RayTracer::renderAllAtOnce(double time)
 					color += rayTrace(ray);
 				}
 
-				color /= float(m_samplesLimit);
+				color /= float(m_allAtOnceSamplesLimit);
 
 				m_buffer->colorData[(j * m_buffer->width) + i] = color;
 			}
 		});
 
-		m_currentSample = m_samplesLimit;
+		m_currentSample = m_allAtOnceSamplesLimit;
 	}
-	else if (m_currentSample == m_samplesLimit)
+	else if (m_currentSample == m_allAtOnceSamplesLimit)
 	{
 		updateImageBuffer();
 
@@ -405,7 +408,7 @@ void RayTracer::renderSamples(double time, double deltaTime)
 	// 15.402015 s
 	// 15.347182 s
 
-	if (m_currentSample < m_samplesLimit)
+	if (m_samplesLimit == 0 || m_currentSample < m_samplesLimit)
 	{
 		Camera& camera = m_cameraSystem.getCurrentCamera();
 		m_totalRayTracingTime = time - m_startTime;

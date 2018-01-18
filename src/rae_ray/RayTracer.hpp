@@ -81,7 +81,8 @@ protected:
 	ImageBuffer m_bigBuffer;
 	ImageBuffer* m_buffer;
 
-	int m_samplesLimit = 2000;
+	int m_allAtOnceSamplesLimit = 2000;
+	int m_samplesLimit = 0;
 	int m_bouncesLimit = 50;
 	
 	int m_currentSample = 0;

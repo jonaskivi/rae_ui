@@ -387,7 +387,7 @@ void Engine::onKeyEvent(const Input& input)
 				m_renderSystem.toggleGlRenderer(); // more like debug view currently
 				m_rayTracer.toggleIsEnabled();
 				break;
-			case KeySym::T: m_rayTracer.toggleInfoText(); break;
+			case KeySym::Tab: m_rayTracer.toggleInfoText(); break;
 			case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
 			case KeySym::U: m_rayTracer.toggleFastMode(); break;
 			case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;

@@ -108,7 +108,7 @@ void Input::osScrollEvent(float deltaX, float deltaY)
 
 void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 {
-	//std::cout << "Input.keyEvent() setKey: " << setKey << "\n";
+	rae_log_ln("Input.keyEvent() setKey:", setKey);
 
 	m_changed = true;
 	isHandled = false;

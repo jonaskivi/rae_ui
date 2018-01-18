@@ -1,6 +1,6 @@
 #include "RayTracer.hpp"
 
-#include <iostream>	
+#include <iostream>
 
 #include "rae/core/Utils.hpp"
 #include "rae/core/Random.hpp"
@@ -435,6 +435,11 @@ void RayTracer::renderSamples(double time, double deltaTime)
 		
 		m_currentSample++;
 	}
+}
+
+void RayTracer::writeToPng(String filename)
+{
+	//RAE_TODO stbi_write_png(filename.c_str(), m_buffer->width(), m_buffer->height(), 4, m_buffer, m_buffer->width() * 4);
 }
 
 void RayTracer::updateImageBuffer()

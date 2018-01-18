@@ -66,7 +66,7 @@ void UISystem::createDefaultTheme()
 {
 	m_buttonThemeColours.resize((size_t)ButtonThemeColourKey::Count);
 	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Background]	= Colour(0.1f, 0.1f, 0.1f, 1.0f);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Hover]		= Colour(0.0f, 1.0f, 1.0f, 1.0f);
+	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Hover]		= Colour(0.3f, 0.4f, 0.45f, 1.0f);
 	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Active]		= Colour(0.0f, 0.921f, 0.862f, 1.0f);
 	m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveHover]	= Colour(0.619f, 1.0f, 0.976f, 1.0f);
 
@@ -76,8 +76,8 @@ void UISystem::createDefaultTheme()
 	m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveHoverText]	= Colour(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_panelThemeColours.resize((size_t)PanelThemeColourKey::Count);
-	m_panelThemeColours[(size_t)PanelThemeColourKey::Background]	= Colour(0.5f, 0.5f, 0.5f, 1.0f);
-	m_panelThemeColours[(size_t)PanelThemeColourKey::Hover]			= Colour(0.5f, 0.5f, 0.5f, 1.0f);
+	m_panelThemeColours[(size_t)PanelThemeColourKey::Background]	= Utils::createColor8bit(52, 61, 70, 255);
+	m_panelThemeColours[(size_t)PanelThemeColourKey::Hover]			= Utils::createColor8bit(52, 61, 70, 255);
 }
 
 bool UISystem::update(double time, double deltaTime)
@@ -253,7 +253,7 @@ void UISystem::render(double time, double deltaTime, NVGcontext* vg)
 		nvgText(vg, 10.0f, vertPos, m_renderSystem.fpsString().c_str(), nullptr); vertPos += 20.0f;
 
 		nvgText(vg, 10.0f, vertPos, "HELLO WORLD. Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
-			" NM aperture, KL bounces, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
+			" NM aperture, KL bounces, G debug view, Tab UI, U fastmode", nullptr); vertPos += 20.0f;
 		nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
 		nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 

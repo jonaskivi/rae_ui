@@ -116,6 +116,11 @@ float backwardsLerp(float val1, float val2, float the_val)
 	return (the_val - val1) / (val2 - val1);
 }
 
+Colour createColor8bit(float r, float g, float b, float a)
+{
+	return Colour(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+}
+
 String toString(bool set)
 {
 	return set ? "true" : "false";

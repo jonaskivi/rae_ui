@@ -70,10 +70,11 @@ enum e //enum KeySym
 
 #ifdef version_glfw
 	BackSpace = 259,
+	Tab = 258,
 #else
 	BackSpace = 0xff08,  /* Back space, back char */
-#endif
 	Tab = 0xff09,
+#endif
 	Linefeed = 0xff0a,  /* Linefeed, LF */
 	Clear = 0xff0b,
 	Return = 0xff0d,  /* Return, enter */

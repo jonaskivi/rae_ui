@@ -105,6 +105,9 @@ void Pihlaja::onKeyEvent(const Input& input)
 			case KeySym::Home:
 				rewind();
 			break;
+			case KeySym::Tab:
+				m_uiSystem.toggleIsEnabled();
+				break;
 			case KeySym::_1:
 				m_evenFrames = true;
 				break;

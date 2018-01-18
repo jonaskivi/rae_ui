@@ -64,6 +64,7 @@ public:
 	void toggleVisualizeFocusDistance() { m_isVisualizeFocusDistance = !m_isVisualizeFocusDistance; }
 
 	ImageBuffer& imageBuffer() { return *m_buffer; }
+	void writeToPng(String filename);
 
 	void plusBounces(int delta = 1);
 	void minusBounces(int delta = 1);

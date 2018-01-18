@@ -11,6 +11,12 @@
 //#define rae_log(...)
 #endif
 
+#ifndef rae_log_ln
+#define rae_log_ln(...) do_log(__VA_ARGS__, "\n")
+// To disable log output on compile time:
+//#define rae_log_ln(...)
+#endif
+
 #ifndef rae_log_error
 #define rae_log_error(...) do_log_error(__VA_ARGS__)
 #endif

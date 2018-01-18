@@ -327,7 +327,10 @@ bool RenderSystem::update(double time, double delta_time)
 
 	render(time, delta_time);
 
-	m_uiSystem.render(time, delta_time, vg);
+	if (m_uiSystem.isEnabled())
+	{
+		m_uiSystem.render(time, delta_time, vg);
+	}
 	// RAE_TODO TEMP RAYTRACER render2d(time, delta_time);
 
 	return false; // for now
@@ -504,17 +507,19 @@ void RenderSystem::render2dBackground(double time, double delta_time)
 
 	Box rayWindow(
 		vec3(0.0f, 0.0f, 0.0f),
-		vec3(float(window.width()) * 0.5f, float(window.height()) * 0.5f, 0.0f));
+		vec3(float(window.width()), float(window.height()), 0.0f));
 	m_rayTracer.renderNanoVG(vg,
 		rayWindow.min().x, rayWindow.min().y,
 		rayWindow.dimensions().x, rayWindow.dimensions().y);
+	/*
+	// Video window:
 	Box imageWindow(
 		vec3(float(window.width()) * 0.5f, float(window.height()) * 0.5f, 0.0f),
 		vec3((float(window.width()) * 0.5f) * 2.0f, (float(window.height()) * 0.5f) * 2.0f, 0.0f));
 	renderImageBuffer(vg, m_backgroundImage,
 		imageWindow.min().x, imageWindow.min().y,
 		imageWindow.dimensions().x, imageWindow.dimensions().y);
-		
+	*/
 	nvgEndFrame(vg);
 }
 

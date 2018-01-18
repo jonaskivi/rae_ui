@@ -29,6 +29,9 @@ namespace Utils
 {
 	
 int randomInt(int low, int high);
+float randFloat(float a_min, float a_max);
+bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);
+bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon = 0.0001f);
 
 // 2D versions of distance:
 float getManhattanDistance(float rx, float ry);
@@ -38,14 +41,12 @@ float lerpClip(float val1, float val2, float set_position);
 float lerp(float val1, float val2, float set_position);
 float backwardsLerp(float val1, float val2, float the_val);
 
+Colour createColor8bit(float r, float g, float b, float a);
+
 String toString(bool set);
 String toString(float value); // A string with four decimal places
 String toString(int value);
 String toString(glm::vec3 position);
-
-float randFloat(float a_min, float a_max);
-bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);
-bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon = 0.0001f);
 
 }
 

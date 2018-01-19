@@ -170,7 +170,7 @@ void RenderSystem::init()
 Id RenderSystem::createBox()
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createBox entity: ", id, "\n");
+	//rae_log("createBox entity: ", id);
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
@@ -185,7 +185,7 @@ Id RenderSystem::createBox()
 Id RenderSystem::createSphere()
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createSphere entity: ", id, "\n");
+	//rae_log("createSphere entity: ", id);
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
@@ -198,7 +198,7 @@ Id RenderSystem::createSphere()
 Id RenderSystem::createMesh(const String& filename)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createMesh entity: ", id, "\n");
+	//rae_log("createMesh entity: ", id);
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
@@ -210,7 +210,7 @@ Id RenderSystem::createMesh(const String& filename)
 Id RenderSystem::createMaterial(const Colour& color)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createMaterial entity: ", id, "\n");
+	//rae_log("createMaterial entity: ", id);
 	Material material(color);
 	addMaterial(id, std::move(material));
 
@@ -222,7 +222,7 @@ Id RenderSystem::createMaterial(const Colour& color)
 Id RenderSystem::createAnimatingMaterial(const Colour& color)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createAnimatingMaterial entity: ", id, "\n");
+	//rae_log("createAnimatingMaterial entity: ", id);
 	Material material(color);
 	addMaterial(id, std::move(material));
 
@@ -234,7 +234,7 @@ Id RenderSystem::createAnimatingMaterial(const Colour& color)
 
 void RenderSystem::addMesh(Id id, Mesh&& comp)
 {
-	//rae_log("addMesh to entity: ", id, "\n");
+	//rae_log("addMesh to entity: ", id);
 	m_meshes.assign(id, std::move(comp));
 }
 
@@ -275,7 +275,7 @@ void RenderSystem::addMaterialLink(Id id, Id linkId)
 
 void RenderSystem::checkErrors(const char *file, int line)
 {
-	GLenum err (glGetError());
+	GLenum err(glGetError());
 
 	while(err != GL_NO_ERROR)
 	{
@@ -291,7 +291,7 @@ void RenderSystem::checkErrors(const char *file, int line)
 			default:                                error = "Unknown error: " + std::to_string((int)err); break;
 		}
 
-		rae_log_error("OpenGL error: ", error, " - Received error in ", file, ":", line, "\n");
+		rae_log_error("OpenGL error: ", error, " - Received error in ", file, ":", line);
 
 		err = glGetError();
 	}

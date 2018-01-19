@@ -10,7 +10,7 @@ CameraSystem::CameraSystem(EntitySystem& entitySystem, TransformSystem& transfor
 	m_transformSystem(transformSystem),
 	m_input(input)
 {
-	createCamera();
+	m_currentCamera = createCamera();
 
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&CameraSystem::onMouseEvent, this, _1));

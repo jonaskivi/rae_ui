@@ -108,7 +108,7 @@ void Input::osScrollEvent(float deltaX, float deltaY)
 
 void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 {
-	rae_log_ln("Input.keyEvent() setKey:", setKey);
+	rae_log("Input.keyEvent() setKey:", setKey);
 
 	m_changed = true;
 	isHandled = false;
@@ -133,23 +133,23 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 	
 	if (setEventType == EventType::KeyPress)
 	{
-		//rae_log("KEY_PRESS: ", hex, setKey, dec, " unicode: ", setUnicode, "\n");
+		//rae_log("KEY_PRESS: ", hex, setKey, dec, " unicode: ", setUnicode);
 		if (key.value < key.keyStatesSize)
 		{
 			key.keyStates[key.value] = true;
 			key.pressedThisFrame[key.value] = true;
 		}
-		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.\n");
+		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.");
 	}
 	else if (setEventType == EventType::KeyRelease)
 	{
-		//rae_log("KEY_RELEASE: ", hex, setKey, dec, " unicode: ", setUnicode, "\n");
+		//rae_log("KEY_RELEASE: ", hex, setKey, dec, " unicode: ", setUnicode);
 		if (key.value < key.keyStatesSize)
 		{
 			key.keyStates[key.value] = false;
 			key.releasedThisFrame[key.value] = true;
 		}
-		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.\n");
+		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.");
 	}
 
 	emitKeyEvent();
@@ -166,7 +166,7 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	float yHeight = m_screenSystem.pixelsToHeight(yPixels);
 
 	//rae_log("Input::osMouseEvent: xPixels: ", xPixels, " yPixels: ", yPixels,
-	// " xHeight: ", xHeight, " yHeight: ", yHeight, "\n");
+	// " xHeight: ", xHeight, " yHeight: ", yHeight);
 
 	m_changed = true;
 	isHandled = false;
@@ -231,7 +231,7 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	}
 	//else
 	//{
-		//rae_log("Input NO PRESS.\n");
+		//rae_log("Input NO PRESS.");
 	//}
 	
 	mouse.xRelP = xPixels - mouse.xP;

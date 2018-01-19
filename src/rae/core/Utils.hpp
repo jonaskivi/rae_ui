@@ -55,7 +55,7 @@ String toString(glm::vec3 position);
 parallel_for(0, array.size(), [&](int i)
 {
 	array[i] = computeSomeResult();
-}
+});
 */
 template<typename Callable>
 static void parallel_for(int start, int end, Callable func)

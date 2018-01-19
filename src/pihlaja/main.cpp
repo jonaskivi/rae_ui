@@ -22,6 +22,11 @@ GLFWwindow* window;
 
 #include "rae/core/Log.hpp"
 
+#define CATCH_CONFIG_RUNNER
+#include "rae/core/catch.hpp"
+#include <iostream>
+#include <exception>
+
 //----------------------------------------
 
 Engine* g_engine = nullptr;
@@ -48,7 +53,7 @@ void glfwOnMouseButton(GLFWwindow* set_window, int set_button, int set_action, i
 	double mx, my;
 	glfwGetCursorPos(set_window, &mx, &my);
 
-	//rae_log("glfwOnMouseButtonPress. x: ", mx, " y: ", my, "\n");
+	//rae_log("glfwOnMouseButtonPress. x: ", mx, " y: ", my);
 	if(set_action == GLFW_PRESS)
 	{
 		g_engine->osMouseButtonPress(set_button, (float)mx, (float)my);
@@ -83,12 +88,36 @@ void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 	g_engine->osScrollEvent((float)xoffset, (float)yoffset);	
 }
 
-int main()
+int main(int argCount, char** ppArgs)
 {
+	try
+	{
+		// Run all unit tests.
+		auto result = Catch::Session().run(argCount, ppArgs);
+		if (result != 0)
+		{
+			std::cout << "Unit test(s) failed. Result: " << result << "\n";
+			std::cout << "Press Return to Quit.\n";
+			std::cin.get(); // Keep console window open.
+			return -1;
+		}
+	}
+	catch (const std::exception& ex)
+	{
+		auto pMessage = ex.what();
+		if (pMessage)
+		{
+			std::cout << "An unhandled exception was thrown:\n" << pMessage << "\n";
+		}
+		std::cout << "Press Return to Quit.\n";
+		std::cin.get(); // Keep console window open.
+		return -1;
+	}
+
 	// Initialise GLFW
 	if( !glfwInit() )
 	{
-		rae_log_error("Failed to initialize GLFW\n");
+		rae_log_error("Failed to initialize GLFW");
 		return -1;
 	}
 
@@ -112,7 +141,7 @@ int main()
 	
 	if( window == nullptr )
 	{
-		rae_log_error("Failed to open GLFW window.\n");
+		rae_log_error("Failed to open GLFW window.");
 		glfwTerminate();
 		return -1;
 	}
@@ -123,7 +152,7 @@ int main()
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 	{
-		rae_log_error("Failed to initialize GLEW\n");
+		rae_log_error("Failed to initialize GLEW");
 		return -1;
 	}
 	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.

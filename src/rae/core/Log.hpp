@@ -6,19 +6,23 @@
 #define RAE_LOG_ERROR_TARGET std::cerr
 
 #ifndef rae_log
-#define rae_log(...) do_log(__VA_ARGS__)
+#define rae_log(...) rae::do_log(__VA_ARGS__, "\n")
 // To disable log output on compile time:
 //#define rae_log(...)
 #endif
 
-#ifndef rae_log_ln
-#define rae_log_ln(...) do_log(__VA_ARGS__, "\n")
+#ifndef rae_log_s
+#define rae_log_s(...) rae::do_log(__VA_ARGS__)
 // To disable log output on compile time:
-//#define rae_log_ln(...)
+//#define rae_log_s(...)
 #endif
 
 #ifndef rae_log_error
-#define rae_log_error(...) do_log_error(__VA_ARGS__)
+#define rae_log_error(...) rae::do_log_error(__VA_ARGS__, "\n")
+#endif
+
+#ifndef rae_log_error_s
+#define rae_log_error_s(...) rae::do_log_error(__VA_ARGS__)
 #endif
 
 #if (_MSC_VER >= 1900) || (__cplusplus >= 201103L) // C++11

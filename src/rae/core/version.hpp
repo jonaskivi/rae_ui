@@ -1,5 +1,7 @@
 #pragma once
 
+#define version_catch
+
 #define version_glfw
 //#define version_cocoa
 

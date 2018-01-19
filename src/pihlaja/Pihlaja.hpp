@@ -55,7 +55,7 @@ protected:
 
 	void setVideoRenderingState(VideoRenderingState state)
 	{
-		rae_log("Video rendering state: ", (int)state, "\n");
+		rae_log("Video rendering state: ", (int)state);
 		m_videoRenderingState = state;
 		m_needsFrameUpdate = true;
 	}

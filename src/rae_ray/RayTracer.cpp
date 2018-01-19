@@ -483,8 +483,11 @@ void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 		std::string samplesStr = "Samples: " + std::to_string(m_currentSample);
 		nvgText(vg, 10.0f, vertPos, samplesStr.c_str(), nullptr); vertPos += 20.0f;
 
-		std::string samplesLimitStr = "/" + std::to_string(m_samplesLimit);
-		nvgText(vg, 10.0f, vertPos, samplesLimitStr.c_str(), nullptr); vertPos += 20.0f;
+		if (m_samplesLimit > 0)
+		{
+			std::string samplesLimitStr = "/" + std::to_string(m_samplesLimit);
+			nvgText(vg, 10.0f, vertPos, samplesLimitStr.c_str(), nullptr); vertPos += 20.0f;
+		}
 
 		std::string totalTimeStr = "Time: " + std::to_string(m_totalRayTracingTime) + " s";
 		nvgText(vg, 10.0f, vertPos, totalTimeStr.c_str(), nullptr); vertPos += 20.0f;

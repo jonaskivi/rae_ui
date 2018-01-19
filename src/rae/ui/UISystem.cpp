@@ -59,7 +59,7 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 		virxels(300.0f, 25.0f, 0.1f),
 		[](){});
 
-	//rae_log("UISystem creating Info button: ", m_infoButtonId, "\n");
+	//rae_log("UISystem creating Info button: ", m_infoButtonId);
 }
 
 void UISystem::createDefaultTheme()
@@ -137,10 +137,10 @@ bool UISystem::update(double time, double deltaTime)
 		if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
 		{
 			//rae_log("UISystem::render settings stuff mouse.x: ",
-			//	m_input.mouse.x, " mouse.y: ", m_input.mouse.y, "\n");
+			//	m_input.mouse.x, " mouse.y: ", m_input.mouse.y);
 
 			transform.setTarget(vec3(m_input.mouse.x, m_input.mouse.y, 0.0f), 1.0f);
-			//rae_log("Click ", frameCount, "\n");
+			//rae_log("Click ", frameCount);
 		}
 	}
 
@@ -508,7 +508,7 @@ Id UISystem::createToggleButton(const String& text, const vec3& position, const 
 	addCommand(id, Command([this, &property]()
 	{
 		property = !property;
-		//rae_log("Set property to: ", Utils::toString(property), "\n");
+		//rae_log("Set property to: ", Utils::toString(property));
 	}));
 
 	bindActive(id, property);
@@ -525,7 +525,7 @@ void UISystem::bindActive(Id id, Bool& property)
 	property.onChanged.connect(
 	[this, id](bool isEnabled)
 	{
-		//rae_log("Changed to ", Utils::toString(isEnabled), " on: ", id, " : ", getText(id).text, "\n");
+		//rae_log("Changed to ", Utils::toString(isEnabled), " on: ", id, " : ", getText(id).text);
 		setActive(id, isEnabled);
 	});
 }

@@ -4,6 +4,9 @@
 #include "rae/core/Utils.hpp"
 #include "rae/image/ImageBuffer.hpp"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb/stb_image_write.h"
+
 using namespace rae;
 
 vec3 pow(const vec3& color, float power)
@@ -23,17 +26,17 @@ vec3 gammaCorrectionAnd255(const vec3& linear)
 
 //------------------------------------------------------------------------------------------------------------
 
-ImageBuffer::ImageBuffer()
-: width(0),
-height(0),
-imageId(-1) // init to invalid value.
+ImageBuffer::ImageBuffer() :
+	width(0),
+	height(0),
+	imageId(-1) // init to invalid value.
 {
 }
 
-ImageBuffer::ImageBuffer(int setWidth, int setHeight)
-: width(setWidth),
-height(setHeight),
-imageId(-1) // init to invalid value.
+ImageBuffer::ImageBuffer(int setWidth, int setHeight) :
+	width(setWidth),
+	height(setHeight),
+	imageId(-1) // init to invalid value.
 {
 	init();
 }
@@ -80,6 +83,11 @@ void ImageBuffer::load(NVGcontext* vg, String file)
 	{
 		imageId = nvgCreateImage(vg, file.c_str(), 0);
 	}
+}
+
+void ImageBuffer::writeToPng(String filename)
+{
+	stbi_write_png(filename.c_str(), width, height, 4, &data[0], int(width) * 4);
 }
 
 void ImageBuffer::createImage(NVGcontext* vg)

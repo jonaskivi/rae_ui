@@ -439,7 +439,7 @@ void RayTracer::renderSamples(double time, double deltaTime)
 
 void RayTracer::writeToPng(String filename)
 {
-	//RAE_TODO stbi_write_png(filename.c_str(), m_buffer->width(), m_buffer->height(), 4, m_buffer, m_buffer->width() * 4);
+	m_buffer->writeToPng(filename);
 }
 
 void RayTracer::updateImageBuffer()

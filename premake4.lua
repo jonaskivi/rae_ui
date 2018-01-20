@@ -51,7 +51,8 @@ solution "pihlaja"
          "src/rae",
          "src/rae_av",
          "src/rae_ray",
-         "external/" }
+         "external/"
+         "external/stb" }
       links
       {
          "glfw3", "glew", "nanovg", "assimp",

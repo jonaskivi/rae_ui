@@ -46,6 +46,14 @@ void Pihlaja::initUI()
 		virxels(98.0f, 25.0f, 0.1f),
 		std::bind(&Pihlaja::rewind, this));
 
+	ui.createButton("Save Image",
+		virxels(-200.0f, 350.0f, 0.0f),
+		virxels(98.0f, 25.0f, 0.1f),
+		[&]()
+		{
+			m_engine.getRayTracerSystem().writeToPng("./rae_ray_render.png");
+		});
+
 	m_debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
 		virxels(-100.0f, 380.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f));

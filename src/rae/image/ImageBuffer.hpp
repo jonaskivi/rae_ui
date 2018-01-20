@@ -16,6 +16,8 @@ struct ImageBuffer
 	void init();
 
 	void load(NVGcontext* vg, String file);
+	void writeToPng(String filename);
+
 	void createImage(NVGcontext* vg);
 	void update8BitImageBuffer(NVGcontext* vg);
 	void clear();

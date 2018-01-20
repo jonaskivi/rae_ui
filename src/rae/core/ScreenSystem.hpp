@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/Types.hpp"
-#include "core/ScreenInfo.hpp"
+#include "rae/core/Types.hpp"
+#include "rae/core/ScreenInfo.hpp"
 
 namespace rae
 {

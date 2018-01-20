@@ -28,5 +28,6 @@ Source code is found under "src/rae".
     # on Windows:
     premake4 vs2012
     # Open the project file and build it.
-    # You may need to retarget it to vs2013 or vs2015 after opening it
+    # You may need to retarget it to vs2013 or vs2015 after opening it and sometimes need to restore (checkout)
+    # the libs as they are built wrong.
 

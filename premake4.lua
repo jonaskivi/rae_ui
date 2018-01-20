@@ -28,17 +28,17 @@ solution "pihlaja"
    project "pihlaja"
       kind "ConsoleApp"
       language "C++"
-      targetdir "../bin/"
+      targetdir "bin/"
       files
       {
-         "pihlaja/**.hpp",
-         "pihlaja/**.cpp",
-         "rae/**.hpp",
-         "rae/**.cpp",
-         "rae_av/**.hpp",
-         "rae_av/**.cpp",
-         "rae_ray/**.hpp",
-         "rae_ray/**.cpp"
+         "src/pihlaja/**.hpp",
+         "src/pihlaja/**.cpp",
+         "src/rae/**.hpp",
+         "src/rae/**.cpp",
+         "src/rae_av/**.hpp",
+         "src/rae_av/**.cpp",
+         "src/rae_ray/**.hpp",
+         "src/rae_ray/**.cpp"
       }
       includedirs
       {
@@ -47,10 +47,10 @@ solution "pihlaja"
          "external/nanovg/src",
          "external/glm",
          "external/glm/glm",
-         "./",
-         "rae",
-         "rae_av",
-         "rae_ray",
+         "src/",
+         "src/rae",
+         "src/rae_av",
+         "src/rae_ray",
          "external/" }
       links
       {
@@ -119,14 +119,14 @@ solution "pihlaja"
    project "glfw3"
       kind "StaticLib"
       language "C"
-      targetdir "../lib"
+      targetdir "lib"
       files { "external/glfw/lib/*.h", "external/glfw/lib/*.c", "external/glfw/include/GL/glfw.h" }
       includedirs { "external/glfw/lib", "external/glfw/include"}
 
       configuration {"linux"}
          files { "external/glfw/lib/x11/*.c", "external/glfw/x11/*.h" }
          includedirs { "external/glfw/lib/x11" }
-         targetdir "../lib"
+         targetdir "lib"
          defines { "_GLFW_X11", "_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS" }
          buildoptions { "-pthread" }
        
@@ -138,7 +138,7 @@ solution "pihlaja"
       configuration {"Macosx"}
          files { "external/glfw/lib/cocoa/*.c", "external/glfw/lib/cocoa/*.h", "external/glfw/lib/cocoa/*.m" }
          includedirs { "external/glfw/lib/cocoa" }
-         targetdir "../Libraries"
+         targetdir "Libraries"
          defines { "_GLFW_COCOA" }
          buildoptions { " -fno-common" }
          linkoptions { "-framework OpenGL", "-framework Cocoa", "-framework IOKit" }
@@ -155,15 +155,15 @@ solution "pihlaja"
    project "glew"
       kind "StaticLib"
       language "C"
-      targetdir "../lib"
+      targetdir "lib"
       files {"external/glew/*.c", "external/glew/*.h"}
       defines { "GLEW_STATIC" }
 
       configuration {"linux"}
-         targetdir "../lib"
+         targetdir "lib"
 
       configuration {"Macosx"}
-         targetdir "../Libraries"
+         targetdir "Libraries"
 
       configuration "Debug"
          defines { "DEBUG" }
@@ -179,14 +179,14 @@ solution "pihlaja"
       kind "StaticLib"
       includedirs { "external/nanovg/src" }
       files { "external/nanovg/src/*.c" }
-      targetdir("../lib")
+      targetdir("lib")
       defines { "_CRT_SECURE_NO_WARNINGS", "GLEW_STATIC" } --,"FONS_USE_FREETYPE" } Uncomment to compile with FreeType support
 
       configuration {"linux"}
-         targetdir "../lib"
+         targetdir "lib"
 
       configuration {"Macosx"}
-         targetdir "../Libraries"
+         targetdir "Libraries"
 
       configuration "Debug"
          defines { "DEBUG" }
@@ -200,14 +200,14 @@ solution "pihlaja"
    project "assimp"
       kind "SharedLib"
       language "C"
-      targetdir "../lib"
+      targetdir "lib"
       files {"external/assimp/*.c", "external/assimp/*.h"}
       
       configuration {"linux"}
-         targetdir "../lib"
+         targetdir "lib"
 
       configuration {"Macosx"}
-         targetdir "../Libraries"
+         targetdir "Libraries"
 
       configuration "Debug"
          defines { "DEBUG" }

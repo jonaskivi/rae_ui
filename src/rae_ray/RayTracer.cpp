@@ -13,9 +13,9 @@
 
 using namespace rae;
 
-RayTracer::RayTracer(CameraSystem& cameraSystem)
-: m_world(4),
-m_cameraSystem(cameraSystem)
+RayTracer::RayTracer(CameraSystem& cameraSystem) :
+	m_world(4),
+	m_cameraSystem(cameraSystem)
 {
 	m_smallBuffer.init(300, 150);
 	m_bigBuffer.init(1920, 1080);

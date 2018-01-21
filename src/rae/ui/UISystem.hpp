@@ -27,6 +27,11 @@ vec3 virxels(float virtX, float virtY, float virtZ);
 vec3 virxels(const vec3& virtualPixels);
 float virxels(float virtualPixels);
 
+struct Layout
+{
+	Array<Id> children;
+};
+
 struct Hover
 {
 };
@@ -95,6 +100,9 @@ public:
 	bool update(double time, double deltaTime) override;
 	void render(double time, double deltaTime, NVGcontext* vg);
 
+	void doLayout();
+	void hover();
+
 	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
 	Id createTextBox(const String& text, const vec3& position, const vec3& extents);
@@ -103,6 +111,11 @@ public:
 	void addPanel(Id id, Panel&& panel);
 	const Panel& getPanel(Id id);
 
+	void addLayout(Id id);
+	void addToLayout(Id layoutId, Id childId);
+
+	// RAE_TODO These functions just repeat each other. Possibly all of these should just be functions of the Table
+	// and possibly then rename the Table to be a Component class.
 	void addBox(Id id, Box&& box);
 	const Box& getBox(Id id);
 
@@ -155,17 +168,18 @@ private:
 
 	Id m_infoButtonId;
 
-	Table<Box> m_boxes;
-	Table<Text> m_texts;
-	Table<Button> m_buttons;
-	Array<Colour> m_buttonThemeColours;
-	Table<Command> m_commands;
-	Table<Colour> m_colours;
-	Table<Active> m_actives;
-	Table<Hover> m_hovers;
+	Table<Box>			m_boxes;
+	Table<Text>			m_texts;
+	Table<Button>		m_buttons;
+	Array<Colour>		m_buttonThemeColours;
+	Table<Command>		m_commands;
+	Table<Colour>		m_colours;
+	Table<Active>		m_actives;
+	Table<Hover>		m_hovers;
 
-	Table<Panel> m_panels;
-	Array<Colour> m_panelThemeColours;
+	Table<Panel>		m_panels;
+	Array<Colour>		m_panelThemeColours;
+	Table<Layout>		m_layouts;
 };
 
 }

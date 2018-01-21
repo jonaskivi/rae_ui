@@ -79,11 +79,6 @@ protected:
 	VideoRenderingState		m_videoRenderingState = VideoRenderingState::Player;
 	bool					m_evenFrames = true;
 
-	Id		m_playButtonId;
-	Id		m_debugNeedsFrameUpdateButtonId;
-
-	Id		m_rayTracerButtonId;
-
 	int		m_frameCount = 0;
 	Bool	m_play = true;
 	Bool	m_needsFrameUpdate = true; //false for hdrflow?

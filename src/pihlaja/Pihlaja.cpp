@@ -32,39 +32,54 @@ void Pihlaja::initUI()
 {
 	auto& ui = m_uiSystem;
 
-	ui.createPanel(
-		virxels(-50.0f, 250.0f, 0.0f),
+	Id panel = ui.createPanel(
+		virxels(-600.0f, 250.0f, 0.0f),
 		virxels(250.0f, 325.0f, 0.1f));
 
-	m_playButtonId = ui.createToggleButton("Play",
+	ui.addLayout(panel);
+
+	Id playButtonId = ui.createToggleButton("Play",
 		virxels(0.0f, 350.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f),
 		m_play);
+	ui.addToLayout(panel, playButtonId);
 
-	ui.createButton("Rewind",
+	Id rewindButton = ui.createButton("Rewind",
 		virxels(-100.0f, 350.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f),
 		std::bind(&Pihlaja::rewind, this));
+	ui.addToLayout(panel, rewindButton);
 
-	ui.createButton("Save Image",
+	Id debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
+		virxels(-100.0f, 380.0f, 0.0f),
+		virxels(98.0f, 25.0f, 0.1f));
+	ui.bindActive(debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
+
+	// Raytracer
+
+	Id rayTracerButtonId = ui.createToggleButton("Render",
+		virxels(0.0f, 150.0f, 0.0f),
+		virxels(98.0f, 25.0f, 0.1f),
+		m_engine.getRayTracerSystem().isEnabled());
+	ui.addToLayout(panel, rayTracerButtonId);
+
+	Id qualityButton = ui.createButton("Quality",
+		virxels(-100.0f, 350.0f, 0.0f),
+		virxels(98.0f, 25.0f, 0.1f),
+		[&]()
+		{
+			m_engine.getRayTracerSystem().toggleBufferQuality();
+		});
+	ui.addToLayout(panel, qualityButton);
+
+	Id saveImageButton = ui.createButton("Save Image",
 		virxels(-200.0f, 350.0f, 0.0f),
 		virxels(98.0f, 25.0f, 0.1f),
 		[&]()
 		{
 			m_engine.getRayTracerSystem().writeToPng("./rae_ray_render.png");
 		});
-
-	m_debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
-		virxels(-100.0f, 380.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f));
-	ui.bindActive(m_debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
-
-	// Raytracer
-
-	m_rayTracerButtonId = ui.createToggleButton("Render",
-		virxels(0.0f, 150.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
-		m_engine.getRayTracerSystem().isEnabled());
+	ui.addToLayout(panel, saveImageButton);
 }
 
 void Pihlaja::togglePlay()

@@ -51,6 +51,8 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 	addTable(m_colours);
 	addTable(m_actives);
 	addTable(m_hovers);
+	addTable(m_panels);
+	addTable(m_layouts);
 
 	createDefaultTheme();
 
@@ -84,35 +86,9 @@ bool UISystem::update(double time, double deltaTime)
 {
 	static int frameCount = 0;
 
-	// hover boxes
-	for (Id id : m_entitySystem.entities())
-	{
-		if (m_transformSystem.hasTransform(id)
-			&& m_boxes.check(id))
-		{
-			const Transform& transform = m_transformSystem.getTransform(id);
-			Box tbox = m_boxes.get(id);
-			tbox.transform(transform);
+	doLayout();
 
-			if (tbox.hit(vec2(m_input.mouse.x, m_input.mouse.y)))
-			{
-				setHovered(id, true);
-
-				if (m_commands.check(id))
-				{
-					if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonRelease)
-					{
-						auto& command = getCommand(id);
-						command.execute();
-					}
-				}
-			}
-			else
-			{
-				setHovered(id, false);
-			}
-		}
-	}
+	hover();
 
 	// debug rendering
 	if (m_buttons.check(m_infoButtonId))
@@ -147,6 +123,62 @@ bool UISystem::update(double time, double deltaTime)
 	frameCount++;
 
 	return false;
+}
+
+void UISystem::doLayout()
+{
+	query<Layout>(m_layouts, [&](Id layoutId, Layout& layout)
+	{
+		const vec3& parentPos = m_transformSystem.getPosition(layoutId);
+		const auto& parentBox = m_boxes.get(layoutId);
+
+		float margin = virxels(24.0f);
+		float someValue = virxels(30.0f);
+		float someIter = parentPos.y + parentBox.min().y;
+		for (auto&& childId : layout.children)
+		{
+			vec3 pos = m_transformSystem.getPosition(childId);
+			const auto& box = m_boxes.get(childId);
+
+			pos.x = (parentPos.x + parentBox.min().x) - box.min().x + margin;
+			pos.y = someIter - box.min().y + margin;
+			m_transformSystem.setPosition(childId, pos);
+			someIter = someIter + someValue;
+		}
+	});
+}
+
+void UISystem::hover()
+{
+	// hover boxes
+	for (Id id : m_entitySystem.entities())
+	{
+		if (m_transformSystem.hasTransform(id)
+			&& m_boxes.check(id))
+		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			Box tbox = m_boxes.get(id);
+			tbox.transform(transform);
+
+			if (tbox.hit(vec2(m_input.mouse.x, m_input.mouse.y)))
+			{
+				setHovered(id, true);
+
+				if (m_commands.check(id))
+				{
+					if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonRelease)
+					{
+						auto& command = getCommand(id);
+						command.execute();
+					}
+				}
+			}
+			else
+			{
+				setHovered(id, false);
+			}
+		}
+	}
 }
 
 void UISystem::render(double time, double deltaTime, NVGcontext* vg)
@@ -561,6 +593,23 @@ void UISystem::addPanel(Id id, Panel&& panel)
 const Panel& UISystem::getPanel(Id id)
 {
 	return m_panels.get(id);
+}
+
+void UISystem::addLayout(Id id)
+{
+	m_layouts.assign(id, Layout());
+}
+
+void UISystem::addToLayout(Id layoutId, Id childId)
+{
+	if (m_layouts.check(layoutId))
+	{
+		auto& layout = m_layouts.getF(layoutId);
+		if (std::find(layout.children.begin(), layout.children.end(), childId) == layout.children.end())
+		{
+			layout.children.emplace_back(childId);
+		}
+	}
 }
 
 void UISystem::addBox(Id id, Box&& box)

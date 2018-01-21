@@ -18,6 +18,12 @@ public:
 };
 
 template <typename Comp>
+class Table;
+
+template <typename Comp>
+void query(Table<Comp>& table, std::function<void(Id, Comp&)> process);
+
+template <typename Comp>
 class Table : public ITable
 {
 public:
@@ -192,9 +198,11 @@ public:
 	}
 
 	bool isUpdatedF(Id id) const
-	{
+	{	
 		return m_updated[m_idMap[id]];
 	}
+
+	friend void query<Comp>(Table<Comp>& table, std::function<void(Id, Comp&)> process);
 
 protected:
 
@@ -205,5 +213,17 @@ protected:
 
 	Array<bool_t> m_updated; // Size is the same as m_items, so only required number of components.
 };
+
+template <typename Comp>
+void query(Table<Comp>& table, std::function<void(Id, Comp&)> process)
+{
+	for (int i = 0; i < (int)table.m_idMap.size(); ++i)
+	{
+		if (table.m_idMap[i] != InvalidIndex)
+		{
+			process((Id)i, table.getF((Id)i));
+		}
+	}
+}
 
 };

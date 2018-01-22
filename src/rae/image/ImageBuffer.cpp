@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ciso646>
 
+#include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/image/ImageBuffer.hpp"
 
@@ -79,7 +80,7 @@ void ImageBuffer::init()
 
 void ImageBuffer::load(NVGcontext* vg, String file)
 {
-	if(imageId == -1)
+	if (imageId == -1)
 	{
 		imageId = nvgCreateImage(vg, file.c_str(), 0);
 	}
@@ -124,7 +125,7 @@ void ImageBuffer::update(NVGcontext* vg)
 		createImage(vg);
 
 	needsUpdate = false;
-	nvgUpdateImage(vg, imageId, &data[0]);	
+	nvgUpdateImage(vg, imageId, &data[0]);
 }
 
 void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
@@ -139,9 +140,9 @@ void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 
 				vec3 color = gammaCorrectionAnd255(linear);
 
-				data[(j*width*channels) + (i*channels) + 0] = int8_t(color.r);
-				data[(j*width*channels) + (i*channels) + 1] = int8_t(color.g);
-				data[(j*width*channels) + (i*channels) + 2] = int8_t(color.b);
+				data[(j*width*channels) + (i*channels) + 0] = uint8_t(color.r);
+				data[(j*width*channels) + (i*channels) + 1] = uint8_t(color.g);
+				data[(j*width*channels) + (i*channels) + 2] = uint8_t(color.b);
 			}
 		});
 

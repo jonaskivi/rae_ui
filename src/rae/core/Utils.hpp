@@ -27,7 +27,9 @@ namespace Math
 
 namespace Utils
 {
-	
+
+void sleep(int durationMilliSeconds);
+
 int randomInt(int low, int high);
 float randFloat(float a_min, float a_max);
 bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);

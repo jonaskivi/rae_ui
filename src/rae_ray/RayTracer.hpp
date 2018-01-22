@@ -39,8 +39,11 @@ public:
 	void createSceneFromBook(HitableList& list);
 
 	bool update(double time, double delta_time) override;
-	void renderAllAtOnce(double time);
-	void renderSamples(double time, double deltaTime);
+
+	void updateRenderThread();
+
+	void renderAllAtOnce();
+	void renderSamples();
 	void updateImageBuffer();
 	void renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h);
 	void setNanovgContext(NVGcontext* setVg);
@@ -50,6 +53,7 @@ public:
 	vec3 rayTrace(const Ray& ray, int depth = 0);
 	vec3 sky(const Ray& ray);
 
+	void requestClear(); // Ask for buffer and rendering state to be cleared on start of next update.
 	void clear();
 	void toggleBufferQuality();
 	bool isFastMode() { return m_isFastMode; }
@@ -78,9 +82,14 @@ protected:
 	bool m_isVisualizeFocusDistance = true;
 
 	double m_switchTime = 5.0f; // time to switch to big buffer rendering in seconds
+
 	ImageBuffer m_smallBuffer;
 	ImageBuffer m_bigBuffer;
-	ImageBuffer* m_buffer;
+	ImageBuffer* m_buffer = nullptr;
+	std::mutex m_bufferMutex;
+	std::atomic<bool> m_frameReady;
+
+	bool m_requestClear;
 
 	int m_allAtOnceSamplesLimit = 2000;
 	int m_samplesLimit = 0;
@@ -98,6 +107,9 @@ protected:
 
 	NVGcontext* m_vg = nullptr;
 	NVGpaint m_imgPaint;
+
+	bool m_renderThreadActive = true;
+	std::thread m_renderThread;
 };
 
 } // end namespace rae

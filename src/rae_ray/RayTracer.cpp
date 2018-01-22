@@ -1,7 +1,9 @@
 #include "RayTracer.hpp"
 
 #include <iostream>
+#include <thread>
 
+#include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/core/Random.hpp"
 
@@ -15,7 +17,8 @@ using namespace rae;
 
 RayTracer::RayTracer(CameraSystem& cameraSystem) :
 	m_world(4),
-	m_cameraSystem(cameraSystem)
+	m_cameraSystem(cameraSystem),
+	m_renderThread(&RayTracer::updateRenderThread, this)
 {
 	m_smallBuffer.init(300, 150);
 	m_bigBuffer.init(1920, 1080);
@@ -31,6 +34,8 @@ RayTracer::RayTracer(CameraSystem& cameraSystem) :
 
 RayTracer::~RayTracer()
 {
+	m_renderThreadActive = false;
+	m_renderThread.join();
 }
 
 void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
@@ -185,11 +190,18 @@ void RayTracer::onCameraChanged(const Camera& camera)
 	if (camera.shouldWeAutoFocus())
 		autoFocus();
 
-	clear();
+	requestClear();
+}
+
+void RayTracer::requestClear()
+{
+	m_requestClear = true;
 }
 
 void RayTracer::clear()
 {
+	std::lock_guard<std::mutex> lock(m_bufferMutex);
+	m_frameReady = false;
 	m_buffer->clear();
 	m_currentSample = 0;
 	m_totalRayTracingTime = -1.0;
@@ -307,29 +319,59 @@ bool RayTracer::update(double time, double deltaTime)
 		m_totalRayTracingTime = time;
 
 	#ifdef RENDER_ALL_AT_ONCE
-		renderAllAtOnce(time);
+		renderAllAtOnce();
 		if (m_currentSample <= m_allAtOnceSamplesLimit) // do once more than render
 		{
 			updateImageBuffer();
 		}
 	#else
-		renderSamples(time, deltaTime);
-		if (m_samplesLimit == 0 || m_currentSample <= m_samplesLimit) // do once more than render
+
+		// Hopefully temporary: Render first frame always on main thread.
+		if (m_currentSample == 0)
+		{
+			renderSamples();
+		}
+
+		if (m_frameReady == true)
 		{
 			updateImageBuffer();
+			m_frameReady = false;
 		}
 	#endif
+
+	if (m_requestClear)
+	{
+		clear();
+		m_requestClear = false;
+	}
+
+	m_totalRayTracingTime = time - m_startTime;
 
 	return true; // RAE_TODO RENAME to enum SystemState::NeedsUpdate
 }
 
+void RayTracer::updateRenderThread()
+{
+	while (m_renderThreadActive)
+	{
+		if (m_buffer && m_frameReady == false && m_currentSample > 0)
+		{
+			std::lock_guard<std::mutex> lock(m_bufferMutex);
+			renderSamples();
+		}
+	}
+}
+
 void RayTracer::toggleBufferQuality()
 {
-	if (m_buffer == &m_smallBuffer)
 	{
-		m_buffer = &m_bigBuffer;
+		std::lock_guard<std::mutex> lock(m_bufferMutex);
+		if (m_buffer == &m_smallBuffer)
+		{
+			m_buffer = &m_bigBuffer;
+		}
+		else m_buffer = &m_smallBuffer;
 	}
-	else m_buffer = &m_smallBuffer;
 	clear();
 }
 
@@ -354,7 +396,7 @@ void RayTracer::minusBounces(int delta)
 	m_bouncesLimit = std::min(5000, m_bouncesLimit);
 }
 
-void RayTracer::renderAllAtOnce(double time)
+void RayTracer::renderAllAtOnce()
 {
 	// timings for 100 samples at 500x250:
 	// 14.791584 s
@@ -364,7 +406,6 @@ void RayTracer::renderAllAtOnce(double time)
 	if (m_currentSample < m_allAtOnceSamplesLimit)
 	{
 		Camera& camera = m_cameraSystem.getCurrentCamera();
-		m_startTime = time;
 
 		// Parallel was about 3.6 times faster here. From 48 seconds to 13 seconds with a very low resolution and sample count.
 		parallel_for(0, m_buffer->height, [&](int j)
@@ -393,15 +434,11 @@ void RayTracer::renderAllAtOnce(double time)
 	else if (m_currentSample == m_allAtOnceSamplesLimit)
 	{
 		updateImageBuffer();
-
-		// do only once:
-		m_totalRayTracingTime = time - m_startTime;
-
 		m_currentSample++;
 	}
 }
 
-void RayTracer::renderSamples(double time, double deltaTime)
+void RayTracer::renderSamples()
 {
 	// timings for 100 samples at 500x250:
 	// 15.426324 s
@@ -411,7 +448,6 @@ void RayTracer::renderSamples(double time, double deltaTime)
 	if (m_samplesLimit == 0 || m_currentSample < m_samplesLimit)
 	{
 		Camera& camera = m_cameraSystem.getCurrentCamera();
-		m_totalRayTracingTime = time - m_startTime;
 
 		// Single threaded
 		//for (int j = 0; j < m_buffer->height; ++j)
@@ -434,16 +470,19 @@ void RayTracer::renderSamples(double time, double deltaTime)
 		});
 		
 		m_currentSample++;
+		m_frameReady = true;
 	}
 }
 
 void RayTracer::writeToPng(String filename)
 {
+	std::lock_guard<std::mutex> lock(m_bufferMutex);
 	m_buffer->writeToPng(filename);
 }
 
 void RayTracer::updateImageBuffer()
 {
+	std::lock_guard<std::mutex> lock(m_bufferMutex);
 	m_buffer->update8BitImageBuffer(m_vg);
 }
 

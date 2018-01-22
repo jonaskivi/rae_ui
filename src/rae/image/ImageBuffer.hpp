@@ -33,7 +33,7 @@ struct ImageBuffer
 	Array<uint8_t> data;
 
 	int imageId;
-	bool needsUpdate = false;
+	bool needsUpdate = false; // When set to true, the image will be created (if needed) and updated to nanovg.
 };
 
 }

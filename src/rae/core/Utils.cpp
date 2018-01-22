@@ -3,6 +3,13 @@
 #include <cstdlib> // for rand. TODO remove deprecated rand stuff.
 #include <assert.h>
 
+// For sleeping:
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace rae
 {
 namespace Math
@@ -22,6 +29,15 @@ float toDegrees(float set_radians)
 
 namespace Utils
 {
+
+void sleep(int durationMilliSeconds)
+{
+	#ifdef _WIN32
+	Sleep(durationMilliSeconds);
+	#else
+	usleep(durationMilliSeconds*1000);
+	#endif
+}
 
 int randomInt(int low, int high)
 {

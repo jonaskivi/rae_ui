@@ -10,13 +10,14 @@ varying vec3 lightDirection_cameraspace;
 // Constant data
 uniform sampler2D textureSampler;
 uniform vec3 lightPosition_worldspace;
+uniform vec3 tempBlendColor;
 
 void main()
 {
 	vec3 lightColor = vec3(1.0, 1.0, 1.0);
 	float lightPower = 45.0f;
 	
-	vec3 materialDiffuseColor = texture2D( textureSampler, UV ).rgb;
+	vec3 materialDiffuseColor = texture2D( textureSampler, UV ).rgb * tempBlendColor;
 	vec3 materialAmbientColor = vec3(0.5, 0.5, 0.5) * materialDiffuseColor;
 	vec3 materialSpecularColor = vec3(0.3, 0.3, 0.3);
 
@@ -30,7 +31,7 @@ void main()
 	vec3 reflectionDirection = reflect(-lightDirection, normalFragment);
 	
 	float cosAlpha = clamp( dot(eyeDirection, reflectionDirection), 0.0, 1.0 );
-	
+
 	gl_FragColor.rgb = 
 		// Ambient
 		materialAmbientColor +
@@ -38,5 +39,4 @@ void main()
 		materialDiffuseColor * lightColor * lightPower * cosTheta / (distanceToLight * distanceToLight) +
 		// Specular
 		materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distanceToLight * distanceToLight);
-
 }

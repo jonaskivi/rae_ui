@@ -88,6 +88,14 @@ public:
 		//std::cout << "Table: Created a completely new object: " << id << " idMap.size: " << m_idMap.size() << "\n";
 	}
 
+	void clear()
+	{
+		m_items.clear();
+		m_idMap.clear();
+		m_freeItems.clear();
+		m_updated.clear(); // It is a bit wrong to clear the updated here, but we can't do anything else either.
+	}
+
 	void remove(Id id)
 	{
 		if (check(id))

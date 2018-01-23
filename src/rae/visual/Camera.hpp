@@ -37,7 +37,7 @@ public:
 	bool needsUpdate() const { return m_needsUpdate; }
 	void setNeedsUpdate() { m_needsUpdate = true; }
 
-	const vec3& position() { return m_position; }
+	const vec3& position() const { return m_position; }
 	void setPosition(vec3 pos);
 	void moveForward(float delta);
 	void moveBackward(float delta);
@@ -50,38 +50,38 @@ public:
 	void rotateYaw(float delta);
 	void rotatePitch(float delta);
 
-	float yaw() { return m_yawAngle; }
+	float yaw() const { return m_yawAngle; }
 	void setYaw(float set) { m_yawAngle = set; m_needsUpdate = true; }
-	float pitch() { return m_pitchAngle; }
+	float pitch() const { return m_pitchAngle; }
 	void setPitch(float set) { m_pitchAngle = set; m_needsUpdate = true; }
 
-	float cameraSpeed();
+	float cameraSpeed() const;
 	void setCameraSpeedUp(bool set) { m_cameraSpeedUp = set; }
 	void setCameraSpeedDown(bool set) { m_cameraSpeedDown = set; }
 
 	void setAspectRatio(float aspect) { m_aspectRatio = aspect; m_needsUpdate = true; }
 
-	float fieldOfView() { return m_fieldOfView; } // in radians
+	float fieldOfView() const { return m_fieldOfView; } // in radians
 	// also handles negative input unlike other similar funcs
 	void setFieldOfView(float radians) { m_fieldOfView = radians; }
 	void setFieldOfViewDeg(float degrees) { m_fieldOfView = Math::toRadians(degrees); }
 	void plusFieldOfView(float delta = 0.1f);
 	void minusFieldOfView(float delta = 0.1f);
 
-	float aperture() { return m_aperture; }
+	float aperture() const { return m_aperture; }
 	void setAperture(float set) { m_aperture = set; m_needsUpdate = true; }
 	void plusAperture(float delta = 0.01f);
 	void minusAperture(float delta = 0.01f);
 
-	float focusDistance() { return m_focusDistance; }
+	float focusDistance() const { return m_focusDistance; }
 	void plusFocusDistance(float delta = 0.01f);
 	void minusFocusDistance(float delta = 0.01f);
 	void setFocusDistance(float distance);
-	vec3 getFocusPosition();
+	vec3 getFocusPosition() const;
 	void setFocusPosition(const vec3& pos);
 	void animateFocusPosition(const vec3& pos, float duration);
 
-	float focusSpeed() { return m_focusSpeed; }
+	float focusSpeed() const { return m_focusSpeed; }
 
 	void toggleContinuousAutoFocus() { m_isContinuousAutoFocus = !m_isContinuousAutoFocus; }
 	bool isContinuousAutoFocus() const { return m_isContinuousAutoFocus; }

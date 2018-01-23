@@ -11,14 +11,17 @@
 
 using namespace rae;
 
+//RAE_TODO: Split this into Engine & Viewport classes:
+// Engine just handles all the systems and their updates.
+// Viewport handles 3D picking etc... ?
 Engine::Engine(GLFWwindow* set_window) :
 	m_window(set_window),
 	m_input(m_screenSystem),
 	m_cameraSystem(m_entitySystem, m_transformSystem, m_input),
 	m_rayTracer(m_cameraSystem),
-	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem), 
-	m_renderSystem(m_entitySystem, m_window, m_input, m_screenSystem, m_cameraSystem,
-		m_transformSystem, m_uiSystem, m_rayTracer)
+	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem),
+	m_renderSystem(m_entitySystem, m_window, m_input, m_screenSystem,
+		m_transformSystem, m_cameraSystem, m_selectionSystem, m_uiSystem, m_rayTracer)
 {
 	m_currentTime = glfwGetTime();
 	m_previousTime = m_currentTime;
@@ -26,6 +29,7 @@ Engine::Engine(GLFWwindow* set_window) :
 	addSystem(m_input);
 	addSystem(m_transformSystem);
 	addSystem(m_cameraSystem);
+	addSystem(m_selectionSystem);
 	addSystem(m_uiSystem);
 	addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
@@ -38,10 +42,10 @@ Engine::Engine(GLFWwindow* set_window) :
 	Id meshID = m_renderSystem.createMesh("./data/models/bunny.obj");
 	m_modelID = meshID;
 
-	m_meshID     = m_renderSystem.createBox();
-	m_materialID = m_renderSystem.createMaterial(Colour(0.2f, 0.5f, 0.7f, 0.0f));
-	m_bunnyMaterialID = m_renderSystem.createMaterial(Colour(0.7f, 0.3f, 0.1f, 0.0f));
-	m_buttonMaterialID = m_renderSystem.createAnimatingMaterial(Colour(0.0f, 0.0f, 0.1f, 0.0f));
+	m_meshID			= m_renderSystem.createBox();
+	m_materialID		= m_renderSystem.createMaterial(Colour(0.2f, 0.5f, 0.7f, 0.0f));
+	m_bunnyMaterialID	= m_renderSystem.createMaterial(Colour(0.7f, 0.3f, 0.1f, 0.0f));
+	m_buttonMaterialID	= m_renderSystem.createAnimatingMaterial(Colour(0.0f, 0.0f, 0.1f, 0.0f));
 
 	createTestWorld2();
 
@@ -359,7 +363,8 @@ void Engine::onMouseEvent(const Input& input)
 
 			if (pickedID == 0)
 			{
-				// do nothing, it's the background.
+				// Hit the background.
+				m_selectionSystem.clearSelection();
 			}
 			else if (pickedID == 13)
 			{
@@ -369,7 +374,19 @@ void Engine::onMouseEvent(const Input& input)
 			else
 			{
 				rae_log("Picked entity: ", pickedID);
-				destroyEntity(pickedID);
+
+				// RAE_TODO: Needs to have a higher level function in Input where we can ask for modifier states for Control.
+				if (m_input.getKeyState(KeySym::Control_L) ||
+					m_input.getKeyState(KeySym::Control_R) ||
+					m_input.getKeyState(KeySym::Super_L) ||
+					m_input.getKeyState(KeySym::Super_R))
+				{
+					m_selectionSystem.toggleSelected(pickedID);
+				}
+				else
+				{
+					m_selectionSystem.setSelection({ pickedID });
+				}
 			}
 		}
 	}

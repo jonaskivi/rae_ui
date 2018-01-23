@@ -107,6 +107,7 @@ bool UISystem::update(double time, double deltaTime)
 	}
 
 	// TEMP DEBUG
+	/*
 	if (m_transformSystem.hasTransform(m_infoButtonId))
 	{
 		auto& transform = m_transformSystem.getTransform(m_infoButtonId);
@@ -119,6 +120,7 @@ bool UISystem::update(double time, double deltaTime)
 			//rae_log("Click ", frameCount);
 		}
 	}
+	*/
 
 	frameCount++;
 

@@ -8,10 +8,9 @@
 #include "rae/core/Random.hpp"
 #include "rae/visual/Camera.hpp"
 
-namespace rae
-{
+using namespace rae;
 
-vec3 randomInUnitDisk()
+vec3 rae::randomInUnitDisk()
 {
 	vec3 point;
 	do
@@ -214,7 +213,7 @@ void Camera::rotatePitch(float delta)
 	m_pitchAngle += delta;
 }
 
-float Camera::cameraSpeed()
+float Camera::cameraSpeed() const
 {
 	if (m_cameraSpeedUp)
 		return m_cameraSpeed * 10.0f;
@@ -284,9 +283,9 @@ void Camera::setFocusDistance(float distance)
 {
 	m_focusDistance = distance;
 	m_needsUpdate = true;
-}	
+}
 
-vec3 Camera::getFocusPosition()
+vec3 Camera::getFocusPosition() const
 {
 	return m_position + (m_direction * m_focusDistance);
 }
@@ -314,6 +313,3 @@ bool Camera::shouldWeAutoFocus() const
 {
 	return m_isContinuousAutoFocus;
 }
-
-} // end namespace rae
-

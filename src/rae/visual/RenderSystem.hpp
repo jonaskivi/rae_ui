@@ -26,8 +26,9 @@ namespace rae
 
 class EntitySystem;
 class ScreenSystem;
-class CameraSystem;
 class TransformSystem;
+class CameraSystem;
+class SelectionSystem;
 struct Transform;
 class Material;
 class Mesh;
@@ -41,8 +42,9 @@ public:
 		GLFWwindow* setWindow,
 		Input& input,
 		ScreenSystem& screenSystem,
-		CameraSystem& cameraSystem,
 		TransformSystem& transformSystem,
+		CameraSystem& cameraSystem,
+		SelectionSystem& selectionSystem,
 		UISystem& uiSystem,
 		RayTracer& rayTracer);
 	~RenderSystem();
@@ -71,7 +73,7 @@ public:
 		float x, float y, float w, float h);
 	ImageBuffer& getBackgroundImage() { return m_backgroundImage; }
 
-	void renderMesh(const Transform& transform, const Material& material, const Mesh& mesh);
+	void renderMesh(const Transform& transform, const Material& material, const Mesh& mesh, bool isSelected);
 	void renderMeshPicking(const Transform& transform, const Mesh& mesh, Id id);
 
 	// Temp before we get keyboard Input class
@@ -109,6 +111,7 @@ protected:
 	GLuint viewMatrixUni;
 	GLuint modelMatrixUni;
 	GLuint lightPositionUni;
+	GLuint tempBlendColorUni;
 	GLuint textureUni;
 
 	// picking shader
@@ -139,8 +142,9 @@ protected:
 	bool m_glRendererOn = false;
 
 	ScreenSystem&			m_screenSystem;
-	CameraSystem&			m_cameraSystem;
 	TransformSystem&		m_transformSystem;
+	CameraSystem&			m_cameraSystem;
+	SelectionSystem&		m_selectionSystem;
 	RayTracer&				m_rayTracer;
 
 	ImageBuffer m_backgroundImage;

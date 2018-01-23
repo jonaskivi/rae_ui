@@ -7,25 +7,25 @@
 namespace rae
 {
 
-template<typename T>
+template<typename ...Args>
 class Event
 {
 public:
-	void connect(std::function<void(const T&)> handler)
+	void connect(std::function<void(const Args& ...)> handler)
 	{
 		m_handlers.emplace_back(handler);
 	}
 
-	void emit(const T& value)
+	void emit(const Args& ...args)
 	{
 		for (auto&& handler : m_handlers)
 		{
-			handler(value);
+			handler(args...);
 		}
 	}
 
 protected:
-	Array<std::function<void(const T&)>> m_handlers;
+	Array<std::function<void(const Args& ...)>> m_handlers;
 };
 
 }

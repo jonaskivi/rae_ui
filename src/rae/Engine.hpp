@@ -10,6 +10,7 @@
 #include "rae/ui/Input.hpp"
 #include "rae/visual/TransformSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
+#include "rae/editor/SelectionSystem.hpp"
 #include "rae/ui/UISystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
 #include "rae_ray/RayTracer.hpp"
@@ -81,6 +82,7 @@ protected:
 
 	TransformSystem		m_transformSystem;
 	CameraSystem		m_cameraSystem;
+	SelectionSystem		m_selectionSystem;
 	RayTracer			m_rayTracer;
 	UISystem			m_uiSystem;
 	RenderSystem		m_renderSystem;

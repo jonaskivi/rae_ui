@@ -20,13 +20,15 @@ namespace rae
 #include "rae/core/Utils.hpp"
 #include "rae/ui/Input.hpp"
 
-#include "rae/entity/EntitySystem.hpp"
-#include "rae/core/ScreenSystem.hpp"
 #include "rae/visual/Transform.hpp"
 #include "rae/visual/Material.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Shader.hpp"
+
+#include "rae/entity/EntitySystem.hpp"
+#include "rae/core/ScreenSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
+#include "rae/editor/SelectionSystem.hpp"
 
 using namespace rae;
 
@@ -61,8 +63,9 @@ RenderSystem::RenderSystem(EntitySystem& entitySystem,
 	GLFWwindow* setWindow,
 	Input& input,
 	ScreenSystem& screenSystem,
-	CameraSystem& cameraSystem,
 	TransformSystem& transformSystem,
+	CameraSystem& cameraSystem,
+	SelectionSystem& selectionSystem,
 	UISystem& uiSystem,
 	RayTracer& rayTracer) :
 		m_entitySystem(entitySystem),
@@ -74,8 +77,9 @@ RenderSystem::RenderSystem(EntitySystem& entitySystem,
 		m_fpsString("fps:"),
 		//m_pickedString("Nothing picked"),
 		vg(nullptr),
-		m_cameraSystem(cameraSystem),
 		m_transformSystem(transformSystem),
+		m_cameraSystem(cameraSystem),
+		m_selectionSystem(selectionSystem),
 		m_uiSystem(uiSystem),
 		m_rayTracer(rayTracer)
 {
@@ -155,6 +159,7 @@ void RenderSystem::init()
 
 	glUseProgram(shaderID);
 	lightPositionUni = glGetUniformLocation(shaderID, "lightPosition_worldspace");
+	tempBlendColorUni = glGetUniformLocation(shaderID, "tempBlendColor");
 
 	textureUni  = glGetUniformLocation(shaderID, "textureSampler");
 
@@ -385,7 +390,8 @@ void RenderSystem::render(double time, double delta_time)
 				cout << "Going to render Mesh. id: " << id << "\n";
 				cout << "MeshLink is: " << m_meshLinks.get(id) << "\n";
 			#endif
-			renderMesh(transform, *material, *mesh);
+
+			renderMesh(transform, *material, *mesh, m_selectionSystem.isSelected(id));
 		}
 	}
 
@@ -435,7 +441,7 @@ void RenderSystem::renderPicking()
 	}
 }
 
-void RenderSystem::renderMesh(const Transform& transform, const Material& material, const Mesh& mesh)
+void RenderSystem::renderMesh(const Transform& transform, const Material& material, const Mesh& mesh, bool isSelected)
 {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
@@ -454,6 +460,10 @@ void RenderSystem::renderMesh(const Transform& transform, const Material& materi
 
 	glm::vec3 lightPos = glm::vec3(5.0f, 4.0f, 5.0f);
 	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
+
+	if (isSelected)
+		glUniform3f(tempBlendColorUni, 0.0f, 2.0f, 2.0f);
+	else glUniform3f(tempBlendColorUni, 1.0f, 1.0f, 1.0f);
 
 	// Bind texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);

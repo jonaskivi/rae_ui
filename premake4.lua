@@ -51,8 +51,9 @@ solution "pihlaja"
          "src/rae",
          "src/rae_av",
          "src/rae_ray",
-         "external/"
-         "external/stb" }
+         "external/",
+         "external/stb"
+      }
       links
       {
          "glfw3", "glew", "nanovg", "assimp",
@@ -109,12 +110,12 @@ solution "pihlaja"
       configuration "Debug"
          defines { "DEBUG" }
          flags { "Symbols" }
-         debugdir "../bin/"
+         debugdir "bin/"
 
       configuration "Release"
          defines { "NDEBUG" }
          flags { "Optimize" }
-         debugdir "../bin/"
+         debugdir "bin/"
 
    -- GLFW Library
    project "glfw3"

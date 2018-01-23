@@ -3,6 +3,7 @@
 #include <stdint.h> // uint8_t etc.
 #include <mutex>
 #include <thread>
+#include <atomic>
 
 #include "nanovg.h"
 

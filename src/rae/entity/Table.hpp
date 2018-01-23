@@ -3,6 +3,7 @@
 #include "rae/core/Types.hpp"
 
 #include <iostream>
+#include <functional>
 
 namespace rae
 {

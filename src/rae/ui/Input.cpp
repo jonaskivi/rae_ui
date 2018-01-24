@@ -9,7 +9,7 @@ void Input::onFrameEnd()
 {
 	ISystem::onFrameEnd();
 
-	m_changed = false;
+	m_changed = UpdateStatus::NotChanged;
 	key.clearFrame();
 
 	// Clear button events
@@ -96,7 +96,7 @@ void Input::addTouchPoint(TouchPointState setState, int setId, float xPixels, fl
 
 void Input::osScrollEvent(float deltaX, float deltaY)
 {
-	m_changed = true;
+	m_changed = UpdateStatus::Changed;
 	isHandled = false;
 	eventType = EventType::Scroll;
 	
@@ -110,7 +110,7 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 {
 	rae_log("Input.keyEvent() setKey:", setKey);
 
-	m_changed = true;
+	m_changed = UpdateStatus::Changed;
 	isHandled = false;
 	//window = set_window;
 	eventType = setEventType;
@@ -168,7 +168,7 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	//rae_log("Input::osMouseEvent: xPixels: ", xPixels, " yPixels: ", yPixels,
 	// " xHeight: ", xHeight, " yHeight: ", yHeight);
 
-	m_changed = true;
+	m_changed = UpdateStatus::Changed;
 	isHandled = false;
 	//eventWindow = setWindow;
 	eventType = setEventType;

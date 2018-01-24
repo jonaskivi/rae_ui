@@ -17,14 +17,14 @@ using namespace rae;
 Engine::Engine(GLFWwindow* set_window) :
 	m_window(set_window),
 	m_input(m_screenSystem),
-	m_cameraSystem(m_entitySystem, m_transformSystem, m_input),
-	m_rayTracer(m_cameraSystem),
+	m_transformSystem(m_time),
+	m_cameraSystem(m_time, m_entitySystem, m_transformSystem, m_input),
+	m_rayTracer(m_time, m_cameraSystem),
 	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem),
-	m_renderSystem(m_entitySystem, m_window, m_input, m_screenSystem,
+	m_renderSystem(m_time, m_entitySystem, m_window, m_input, m_screenSystem,
 		m_transformSystem, m_cameraSystem, m_selectionSystem, m_uiSystem, m_rayTracer)
 {
-	m_currentTime = glfwGetTime();
-	m_previousTime = m_currentTime;
+	m_time.initTime(glfwGetTime());
 
 	addSystem(m_input);
 	addSystem(m_transformSystem);
@@ -76,7 +76,7 @@ void Engine::run()
 		// It will take up too much CPU all the time, even when nothing is happening.
 		glfwWaitEvents(); //use this instead. It will sleep when no events are being received.
 
-		while (m_running == true && update() == true)
+		while (m_running == true && update() == UpdateStatus::Changed)
 		{
 			// Swap buffers
 			glfwSwapBuffers(m_window);
@@ -86,7 +86,7 @@ void Engine::run()
 			if (glfwWindowShouldClose(m_window) != 0)
 				m_running = false;
 
-			m_previousTime = m_currentTime;
+			m_time.setPreviousTime();
 		}
 
 	} // Check if the ESC key was pressed or the window was closed
@@ -94,11 +94,10 @@ void Engine::run()
 		   && glfwWindowShouldClose(m_window) == 0);
 }
 
-bool Engine::update()
+UpdateStatus Engine::update()
 {
 	// Measure speed
-	m_currentTime = glfwGetTime();
-	double deltaTime = m_currentTime - m_previousTime;
+	m_time.setTime(glfwGetTime());
 
 	if (!m_destroyEntities.empty())
 	{
@@ -121,7 +120,7 @@ bool Engine::update()
 
 	reactToInput(m_input);
 
-	bool changed = false;
+	UpdateStatus engineUpdateStatus = UpdateStatus::NotChanged;
 
 	//rae_log("FRAME START.");
 
@@ -129,9 +128,9 @@ bool Engine::update()
 	{
 		if (system->isEnabled())
 		{
-			bool systemChanged = system->update(m_currentTime, deltaTime);
-			changed = systemChanged ? true : changed;
-			//rae_log(system->name(), " update: ", systemChanged);
+			UpdateStatus updateStatus = system->update();
+			engineUpdateStatus = (updateStatus == UpdateStatus::Changed) ? UpdateStatus::Changed : engineUpdateStatus;
+			//rae_log(system->name(), " update: ", bool(updateStatus == UpdateStatus::Changed));
 		}
 	}
 
@@ -147,7 +146,7 @@ bool Engine::update()
 		}
 	}
 
-	return changed;
+	return engineUpdateStatus;
 }
 
 void Engine::askForFrameUpdate()

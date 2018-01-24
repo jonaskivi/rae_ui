@@ -41,7 +41,7 @@ public:
 	void onKeyEvent(const Input& input);
 
 	void run();
-	bool update(double time, double deltaTime) override;
+	UpdateStatus update() override;
 	void destroyEntities(const Array<Id>& entities) override {}
 	void defragmentTables() override {}
 

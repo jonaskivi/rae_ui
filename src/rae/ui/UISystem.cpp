@@ -82,7 +82,7 @@ void UISystem::createDefaultTheme()
 	m_panelThemeColours[(size_t)PanelThemeColourKey::Hover]			= Utils::createColor8bit(52, 61, 70, 255);
 }
 
-bool UISystem::update(double time, double deltaTime)
+UpdateStatus UISystem::update()
 {
 	static int frameCount = 0;
 
@@ -124,7 +124,7 @@ bool UISystem::update(double time, double deltaTime)
 
 	frameCount++;
 
-	return false;
+	return UpdateStatus::NotChanged;
 }
 
 void UISystem::doLayout()
@@ -183,7 +183,7 @@ void UISystem::hover()
 	}
 }
 
-void UISystem::render(double time, double deltaTime, NVGcontext* vg)
+void UISystem::render(NVGcontext* vg)
 {
 	const auto& window = m_screenSystem.window();
 	int windowWidth = window.width();

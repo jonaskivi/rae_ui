@@ -21,6 +21,7 @@
 namespace rae
 {
 
+class Time;
 class CameraSystem;
 class Camera;
 class Material;
@@ -28,7 +29,7 @@ class Material;
 class RayTracer : public ISystem
 {
 public:
-	RayTracer(CameraSystem& cameraSystem);
+	RayTracer(const Time& time, CameraSystem& cameraSystem);
 	~RayTracer();
 
 	String name() override { return "RayTracer"; }
@@ -39,7 +40,7 @@ public:
 	void createSceneOne(HitableList& world, bool loadBunny = false);
 	void createSceneFromBook(HitableList& list);
 
-	bool update(double time, double delta_time) override;
+	UpdateStatus update() override;
 
 	void updateRenderThread();
 
@@ -102,6 +103,7 @@ protected:
 	// for renderAllAtOnce:
 	double m_startTime = -1.0;
 
+	const Time& m_time;
 	CameraSystem& m_cameraSystem;
 	HitableList m_world;
 	BvhNode m_tree;

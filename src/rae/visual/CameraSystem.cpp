@@ -1,11 +1,13 @@
-#include "CameraSystem.hpp"
+#include "rae/visual/CameraSystem.hpp"
 
-#include "core/Utils.hpp"
-#include "ui/Input.hpp"
+#include "rae/core/Utils.hpp"
+#include "rae/core/Time.hpp"
+#include "rae/ui/Input.hpp"
 
 using namespace rae;
 
-CameraSystem::CameraSystem(EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input) :
+CameraSystem::CameraSystem(const Time& time, EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input) :
+	m_time(time),
 	m_entitySystem(entitySystem),
 	m_transformSystem(transformSystem),
 	m_input(input)
@@ -119,7 +121,7 @@ void CameraSystem::emitCameraChangedEvent()
 	}
 }
 
-bool CameraSystem::update(double time, double delta_time)
+UpdateStatus CameraSystem::update()
 {
 	// RAE_TODO: m_screenInfo??? from ScreenSystem???
 	// RAE_TODO camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
@@ -136,22 +138,22 @@ bool CameraSystem::update(double time, double delta_time)
 
 	// Rotation with arrow keys
 	if (m_input.getKeyState(KeySym::Left))
-		camera.rotateYaw(float(delta_time), +1);
+		camera.rotateYaw(float(m_time.deltaTime()), +1);
 	else if (m_input.getKeyState(KeySym::Right))
-		camera.rotateYaw(float(delta_time), -1);
+		camera.rotateYaw(float(m_time.deltaTime()), -1);
 
 	if (m_input.getKeyState(KeySym::Up))
-		camera.rotatePitch(float(delta_time), +1);
+		camera.rotatePitch(float(m_time.deltaTime()), +1);
 	else if (m_input.getKeyState(KeySym::Down))
-		camera.rotatePitch(float(delta_time), -1);
+		camera.rotatePitch(float(m_time.deltaTime()), -1);
 
 	// Camera movement
-	if (m_input.getKeyState(KeySym::W)) { camera.moveForward(float(delta_time));  }
-	if (m_input.getKeyState(KeySym::S)) { camera.moveBackward(float(delta_time)); }
-	if (m_input.getKeyState(KeySym::D)) { camera.moveRight(float(delta_time));    }
-	if (m_input.getKeyState(KeySym::A)) { camera.moveLeft(float(delta_time));     }
-	if (m_input.getKeyState(KeySym::E)) { camera.moveUp(float(delta_time));       }
-	if (m_input.getKeyState(KeySym::Q)) { camera.moveDown(float(delta_time));     }
+	if (m_input.getKeyState(KeySym::W)) { camera.moveForward(	float(m_time.deltaTime())	); }
+	if (m_input.getKeyState(KeySym::S)) { camera.moveBackward(	float(m_time.deltaTime())	); }
+	if (m_input.getKeyState(KeySym::D)) { camera.moveRight(		float(m_time.deltaTime())	); }
+	if (m_input.getKeyState(KeySym::A)) { camera.moveLeft(		float(m_time.deltaTime())	); }
+	if (m_input.getKeyState(KeySym::E)) { camera.moveUp(		float(m_time.deltaTime())	); }
+	if (m_input.getKeyState(KeySym::Q)) { camera.moveDown(		float(m_time.deltaTime())	); }
 
 	if (m_input.getKeyState(KeySym::N)) { camera.minusAperture(); }
 	if (m_input.getKeyState(KeySym::M)) { camera.plusAperture();  }
@@ -159,21 +161,23 @@ bool CameraSystem::update(double time, double delta_time)
 	if (m_input.getKeyState(KeySym::V)) { camera.minusFocusDistance(); }
 	if (m_input.getKeyState(KeySym::B)) { camera.plusFocusDistance();  }
 
-	bool cameraChanged = false;
+	UpdateStatus cameraChanged = UpdateStatus::NotChanged;
 
 	if (m_input.getKeyPressed(KeySym::F))
 	{
 		camera.toggleContinuousAutoFocus();
-		cameraChanged = true;
+		cameraChanged = UpdateStatus::Changed;
 	}
 
-	if (camera.update(time, delta_time))
+	if (camera.update(m_time.time()))
 	{
-		cameraChanged = true;
+		cameraChanged = UpdateStatus::Changed;
 	}
 
-	if (cameraChanged)
+	if (cameraChanged == UpdateStatus::Changed)
+	{
 		emitCameraChangedEvent();
+	}
 
 	return cameraChanged;
 }

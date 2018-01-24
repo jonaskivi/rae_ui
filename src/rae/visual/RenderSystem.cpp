@@ -18,6 +18,7 @@ namespace rae
 
 #include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
+#include "rae/core/Time.hpp"
 #include "rae/ui/Input.hpp"
 
 #include "rae/visual/Transform.hpp"
@@ -59,7 +60,9 @@ int loadFonts(NVGcontext* vg)
 	return 0;
 }
 
-RenderSystem::RenderSystem(EntitySystem& entitySystem,
+RenderSystem::RenderSystem(
+	const Time& time,
+	EntitySystem& entitySystem,
 	GLFWwindow* setWindow,
 	Input& input,
 	ScreenSystem& screenSystem,
@@ -68,6 +71,7 @@ RenderSystem::RenderSystem(EntitySystem& entitySystem,
 	SelectionSystem& selectionSystem,
 	UISystem& uiSystem,
 	RayTracer& rayTracer) :
+		m_time(time),
 		m_entitySystem(entitySystem),
 		m_window(setWindow),
 		m_input(input),
@@ -302,7 +306,7 @@ void RenderSystem::checkErrors(const char *file, int line)
 	}
 }
 
-bool RenderSystem::update(double time, double delta_time)
+UpdateStatus RenderSystem::update()
 {
 	#ifdef RAE_DEBUG
 		cout<<"RenderSystem::update().\n";
@@ -311,7 +315,7 @@ bool RenderSystem::update(double time, double delta_time)
 	checkErrors(__FILE__, __LINE__);
 
 	m_nroFrames++;
-	m_fpsTimer += delta_time;
+	m_fpsTimer += m_time.deltaTime();
 
 	if (m_fpsTimer >= 5.0)
 	{
@@ -324,24 +328,24 @@ bool RenderSystem::update(double time, double delta_time)
 	// RAE_TODO move to material system
 	for (auto&& material : m_materials.items())
 	{
-		material.update(vg, time);
+		material.update(vg, m_time.time());
 	}
 
 	// RAE_TODO TEMP:
 	m_backgroundImage.update(vg);
 
-	render(time, delta_time);
+	render();
 
 	if (m_uiSystem.isEnabled())
 	{
-		m_uiSystem.render(time, delta_time, vg);
+		m_uiSystem.render(vg);
 	}
-	// RAE_TODO TEMP RAYTRACER render2d(time, delta_time);
+	// RAE_TODO TEMP RAYTRACER render2d();
 
-	return false; // for now
+	return UpdateStatus::NotChanged; // for now
 }
 
-void RenderSystem::render(double time, double delta_time)
+void RenderSystem::render()
 {
 	const auto& window = m_screenSystem.window();
 
@@ -351,7 +355,7 @@ void RenderSystem::render(double time, double delta_time)
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	render2dBackground(time, delta_time);
+	render2dBackground();
 
 	if (m_glRendererOn == false)
 		return;
@@ -501,16 +505,16 @@ void RenderSystem::renderMeshPicking(const Transform& transform, const Mesh& mes
 	mesh.render(pickingShaderID);
 }
 
-void RenderSystem::render2dBackground(double time, double delta_time)
+void RenderSystem::render2dBackground()
 {
-	//nanovg
+	// Nanovg
 
 	const auto& window = m_screenSystem.window();
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(vg, window.width(), window.height(), window.screenPixelRatio());
-	
+
 	// RAE_TODO RAYTRACER:
 	//m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)window.width(), (float)window.height());
 	//renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)window.width(), (float)window.height());
@@ -547,7 +551,7 @@ void RenderSystem::renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
 	nvgRestore(vg);
 }
 
-void RenderSystem::render2d(double time, double delta_time)
+void RenderSystem::render2d()
 {
 	//nanovg
 	

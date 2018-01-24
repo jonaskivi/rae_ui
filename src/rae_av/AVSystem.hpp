@@ -40,7 +40,7 @@ public:
 	bool hasAsset(AssetId id);
 	MediaAsset& getAsset(AssetId id); // Could return Optional instead.
 
-	bool update(double time, double delta_time) override;
+	UpdateStatus update() override;
 	void destroyEntities(const Array<Id>& entities) override;
 	void defragmentTables() override;
 

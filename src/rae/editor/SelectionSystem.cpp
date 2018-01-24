@@ -7,7 +7,7 @@ using namespace rae;
 void SelectionSystem::clearSelection()
 {
 	clearSelectionInternal();
-	onSelectionChanged.emit(512);
+	onSelectionChanged.emit();
 }
 
 void SelectionSystem::clearSelectionInternal()
@@ -24,7 +24,7 @@ void SelectionSystem::setSelection(const Array<Id>& ids)
 		m_selected.assign(id, std::move(Selected()));
 	}
 
-	onSelectionChanged.emit(512);
+	onSelectionChanged.emit();
 }
 
 void SelectionSystem::toggleSelected(Id id)
@@ -40,7 +40,7 @@ void SelectionSystem::toggleSelected(Id id)
 		rae_log("Selected id: ", id);
 	}
 
-	onSelectionChanged.emit(512);
+	onSelectionChanged.emit();
 }
 
 void SelectionSystem::setSelected(Id id, bool selected)
@@ -57,7 +57,7 @@ void SelectionSystem::setSelected(Id id, bool selected)
 
 	}
 
-	onSelectionChanged.emit(512);
+	onSelectionChanged.emit();
 }
 
 bool SelectionSystem::isSelected(Id id) const

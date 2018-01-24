@@ -97,8 +97,8 @@ public:
 
 	String name() override { return "UISystem"; }
 
-	bool update(double time, double deltaTime) override;
-	void render(double time, double deltaTime, NVGcontext* vg);
+	UpdateStatus update() override;
+	void render(NVGcontext* vg);
 
 	void doLayout();
 	void hover();

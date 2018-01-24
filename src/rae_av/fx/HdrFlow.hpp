@@ -16,7 +16,7 @@ public:
 
 	void pushFrame(AVFrame* frameRGB);
 
-	void update(double time, double deltaTime);
+	void update();
 	void writeFrameToImage(ImageBuffer& image);
 	void writeFrameToDiskAndImage(String filepath, ImageBuffer& image);
 	void waitForData();

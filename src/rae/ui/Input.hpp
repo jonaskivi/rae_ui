@@ -106,7 +106,7 @@ public:
 
 	String name() override { return "InputSystem"; }
 
-	bool update(double time, double deltaTime) override
+	UpdateStatus update() override
 	{
 		return m_changed;
 	}
@@ -117,7 +117,7 @@ public:
 	EventType eventType;
 	//IRectangle* eventWindow;
 	bool isHandled;
-	bool m_changed = false;
+	UpdateStatus m_changed = UpdateStatus::NotChanged;
 
 	struct Mouse
 	{

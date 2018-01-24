@@ -110,7 +110,7 @@ void Camera::calculateFrustum()
 	m_needsUpdate = false;
 }
 
-bool Camera::update(double time, double deltaTime)
+bool Camera::update(double time)
 {
 	if( m_focusDistanceAnimator.update((float)time) )
 	{

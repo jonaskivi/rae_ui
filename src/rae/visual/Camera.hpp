@@ -32,7 +32,7 @@ public:
 	const glm::mat4& projectionMatrix() const { return m_projectionMatrix; }
 
 	// return true if frustum was updated
-	bool update(double time, double deltaTime);
+	bool update(double time);
 
 	bool needsUpdate() const { return m_needsUpdate; }
 	void setNeedsUpdate() { m_needsUpdate = true; }

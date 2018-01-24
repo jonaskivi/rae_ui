@@ -22,7 +22,7 @@ public:
 	String toString() const;
 
 	void setTarget(glm::vec3 setTarget, float duration);
-	void update(double time, double deltaTime);
+	void update(double time);
 
 	vec3 position;
 	quat rotation;

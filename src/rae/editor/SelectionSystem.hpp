@@ -20,7 +20,7 @@ public:
 	void setSelected(Id id, bool selected);
 	bool isSelected(Id id) const;
 
-	Event<int> onSelectionChanged;
+	Event<> onSelectionChanged;
 
 protected:
 	void clearSelectionInternal();

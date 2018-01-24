@@ -162,12 +162,12 @@ void Pihlaja::run()
 }
 
 // OpticalFlow version
-bool Pihlaja::update(double time, double deltaTime)
+UpdateStatus Pihlaja::update()
 {
 #ifdef USE_RAE_AV
 	if (not m_play and not m_needsFrameUpdate)
 	{
-		return false;
+		return UpdateStatus::NotChanged;
 	}
 
 	if (m_opticalFlow.getState() == EffectNodeState::Nothing ||
@@ -176,14 +176,14 @@ bool Pihlaja::update(double time, double deltaTime)
 		if (not m_avSystem.hasAsset(m_videoAssetId))
 		{
 			std::cout << "No asset found in AVSystem.\n";
-			return false;
+			return UpdateStatus::NotChanged;
 		}
 
 		auto& asset = m_avSystem.getAsset(m_videoAssetId);
 		if (not asset.isLoaded())
 		{
 			std::cout << "Asset is not loaded.\n";
-			return false;
+			return UpdateStatus::NotChanged;
 		}
 
 		AVFrame* frameRGB = asset.pullFrame();
@@ -210,13 +210,13 @@ bool Pihlaja::update(double time, double deltaTime)
 		if (m_videoRenderingState == VideoRenderingState::RenderToScreen or
 			m_videoRenderingState == VideoRenderingState::RenderToDisk)
 		{
-			//m_opticalFlow.update(time, deltaTime, m_screenImage);
-			m_opticalFlow.update(time, deltaTime);
+			//m_opticalFlow.update(m_screenImage);
+			m_opticalFlow.update();
 		}
 	}
 	else if (m_opticalFlow.getState() == EffectNodeState::Done)
 	{
-		m_opticalFlow.update(time, deltaTime);
+		m_opticalFlow.update();
 		if (m_videoRenderingState == VideoRenderingState::RenderToScreen)
 		{
 			m_opticalFlow.writeFrameToImage(m_screenImage);
@@ -236,17 +236,16 @@ bool Pihlaja::update(double time, double deltaTime)
 	//	m_opticalFlow.process();
 	//}
 
-	//m_opticalFlow.update(time, deltaTime, m_screenImage);
+	//m_opticalFlow.update(m_screenImage);
 #endif
-	return m_needsFrameUpdate || m_play;
-	//return false;
+	return (m_needsFrameUpdate || m_play) ? UpdateStatus::Changed : UpdateStatus::NotChanged;
 }
 
 /* HdrFlow version:
-bool Pihlaja::update(double time, double deltaTime, std::vector<Entity>&)
+UpdateStatus Pihlaja::update()
 {
 	if (not m_play and not m_needsFrameUpdate)
-		return false;
+		return UpdateStatus::NotChanged;
 
 	if (m_hdrFlow.getState() == EffectNodeState::Nothing ||
 		m_hdrFlow.getState() == EffectNodeState::WaitingForData)
@@ -254,14 +253,14 @@ bool Pihlaja::update(double time, double deltaTime, std::vector<Entity>&)
 		if (not m_avSystem.hasAsset(m_videoAssetId))
 		{
 			std::cout << "No asset found in AVSystem.\n";
-			return false;
+			return UpdateStatus::NotChanged;
 		}
 
 		auto& asset = m_avSystem.getAsset(m_videoAssetId);
 		if (not asset.isLoaded())
 		{
 			std::cout << "Asset is not loaded.\n";
-			return false;
+			return UpdateStatus::NotChanged;
 		}
 
 		AVFrame* frameRGB = asset.pullFrame();
@@ -291,8 +290,8 @@ bool Pihlaja::update(double time, double deltaTime, std::vector<Entity>&)
 		if (m_videoRenderingState == VideoRenderingState::RenderToScreen or
 			m_videoRenderingState == VideoRenderingState::RenderToDisk)
 		{
-			//m_opticalFlow.update(time, deltaTime, m_screenImage);
-			m_hdrFlow.update(time, deltaTime);
+			//m_opticalFlow.update(m_screenImage);
+			m_hdrFlow.update();
 		}
 	}
 	else if (m_hdrFlow.getState() == EffectNodeState::Done)
@@ -314,10 +313,9 @@ bool Pihlaja::update(double time, double deltaTime, std::vector<Entity>&)
 	//	m_opticalFlow.process();
 	//}
 
-	//m_opticalFlow.update(time, deltaTime, m_screenImage);
-	
-	return m_needsFrameUpdate || m_play;
-	//return false;
+	//m_opticalFlow.update(m_screenImage);
+
+	return (m_needsFrameUpdate || m_play) ? UpdateStatus::Changed : UpdateStatus::NotChanged;
 }
 */
 

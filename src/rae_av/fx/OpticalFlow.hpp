@@ -45,7 +45,7 @@ class OpticalFlow
 public:
 	OpticalFlow(OpticalFlowMethod method = OpticalFlowMethod::DeepFlow);
 
-	void update(double time, double deltaTime);
+	void update();
 
 	void setMethod(OpticalFlowMethod method) { m_opticalFlowMethod = method; }
 

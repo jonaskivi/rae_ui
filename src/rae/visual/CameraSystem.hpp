@@ -13,16 +13,17 @@
 namespace rae
 {
 
+class Time;
 class Input;
 
 class CameraSystem : public ISystem
 {
 public:
-	CameraSystem(EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input);
+	CameraSystem(const Time& time, EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input);
 
 	String name() override { return "CameraSystem"; }
 
-	bool update(double time, double delta_time) override;
+	UpdateStatus update() override;
 
 	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);
@@ -41,6 +42,7 @@ public:
 	void connectCameraChangedEventHandler(std::function<void(const Camera&)> handler);
 
 private:
+	const Time& m_time;
 	EntitySystem& m_entitySystem;
 	TransformSystem& m_transformSystem;
 	Input& m_input;

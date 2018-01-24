@@ -7,6 +7,13 @@
 namespace rae
 {
 
+enum class UpdateStatus
+{
+	NotChanged,
+	Changed,
+	Disabled,
+};
+
 class ISystem
 {
 public:
@@ -16,9 +23,7 @@ public:
 
 	virtual String name() { return "System name"; }
 
-	// Returns changed == true if we need to render again because of changes in the system.
-	// RAE_TODO Remove return value. That is just horrible.
-	virtual bool update(double time, double delta_time) { return false; }
+	virtual UpdateStatus update() { return UpdateStatus::NotChanged; }
 	virtual void onFrameEnd()
 	{
 		for (auto&& table : m_tables)

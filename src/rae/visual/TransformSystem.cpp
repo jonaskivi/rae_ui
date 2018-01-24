@@ -1,23 +1,25 @@
-#include "TransformSystem.hpp"
-#include <iostream>
+#include "rae/visual/TransformSystem.hpp"
+
+#include "rae/core/Time.hpp"
 
 using namespace rae;
 
 static const int ReserveTransforms = 1000;
 
-TransformSystem::TransformSystem() :
+TransformSystem::TransformSystem(const Time& time) :
+	m_time(time),
 	m_transforms(ReserveTransforms)
 {
 	addTable(m_transforms);
 }
 
-bool TransformSystem::update(double time, double deltaTime)
+UpdateStatus TransformSystem::update()
 {
 	for (auto&& transform : m_transforms.items())
 	{
-		transform.update(time, deltaTime);
+		transform.update(m_time.time());
 	}
-	return false;
+	return UpdateStatus::NotChanged;
 }
 
 void TransformSystem::addTransform(Id id, Transform&& transform)

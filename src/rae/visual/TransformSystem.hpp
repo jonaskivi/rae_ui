@@ -5,22 +5,23 @@
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
 
-#include "Transform.hpp"
+#include "rae/visual/Transform.hpp"
 #include "rae/core/ISystem.hpp"
 
 namespace rae
 {
 
+class Time;
 class Input;
 
 class TransformSystem : public ISystem
 {
 public:
-	TransformSystem();
+	TransformSystem(const Time& time);
 
 	String name() override { return "TransformSystem"; }
 
-	bool update(double time, double deltaTime) override;
+	UpdateStatus update() override;
 
 	void addTransform(Id id, Transform&& transform);
 	bool hasTransform(Id id) const;
@@ -33,6 +34,7 @@ public:
 	int transformCount() { return m_transforms.size(); }
 
 private:
+	const Time& m_time;
 
 	Table<Transform> m_transforms;
 };

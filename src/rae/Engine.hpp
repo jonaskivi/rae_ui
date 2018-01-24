@@ -4,9 +4,9 @@
 #include <GLFW/glfw3.h>
 
 #include "rae/core/Types.hpp"
-
+#include "rae/core/Time.hpp"
 #include "rae/entity/EntitySystem.hpp"
-#include "core/ScreenSystem.hpp"
+#include "rae/core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
 #include "rae/visual/TransformSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
@@ -30,7 +30,7 @@ public:
 	UISystem& getUISystem() { return m_uiSystem; }
 
 	void run();
-	bool update();
+	UpdateStatus update();
 
 	void askForFrameUpdate();
 
@@ -69,13 +69,11 @@ protected:
 
 	GLFWwindow* m_window;
 
-	double m_previousTime;
-	double m_currentTime;
 	bool m_running = true;
 
+	Time m_time;
 	ScreenSystem m_screenSystem;
 	Input m_input;
-	
 	EntitySystem m_entitySystem;
 
 	Array<ISystem*> m_systems;

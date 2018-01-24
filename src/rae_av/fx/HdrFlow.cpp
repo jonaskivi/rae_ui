@@ -53,9 +53,9 @@ void HdrFlow::pushFrame(AVFrame* frameRGB)
 	m_frameCount++;
 }
 
-void HdrFlow::update(double time, double deltaTime)
+void HdrFlow::update()
 {
-	m_flows[1].update(time, deltaTime);
+	m_flows[1].update();
 	if (m_flows[1].getState() == EffectNodeState::Done)
 		setState(EffectNodeState::Done);
 

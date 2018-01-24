@@ -24,6 +24,7 @@ struct NVGcontext;
 namespace rae
 {
 
+class Time;
 class EntitySystem;
 class ScreenSystem;
 class TransformSystem;
@@ -38,7 +39,9 @@ class Input;
 class RenderSystem : public ISystem
 {
 public:
-	RenderSystem(EntitySystem& entitySystem,
+	RenderSystem(
+		const Time& time,
+		EntitySystem& entitySystem,
 		GLFWwindow* setWindow,
 		Input& input,
 		ScreenSystem& screenSystem,
@@ -62,11 +65,11 @@ public:
 	Id createMaterial(const Colour& color);
 	Id createAnimatingMaterial(const Colour& color);
 
-	bool update(double time, double delta_time) override;
-	void render(double time, double delta_time);
+	UpdateStatus update() override;
+	void render();
 	void renderPicking();
-	void render2dBackground(double time, double delta_time);
-	void render2d(double time, double delta_time);
+	void render2dBackground();
+	void render2d();
 
 	// RAE_TODO TEMP:
 	void renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
@@ -119,7 +122,6 @@ protected:
 	GLuint pickingShaderID;
 	GLuint pickingModelViewMatrixUni;
 	GLuint entityUni;
-//public:	std::string m_pickedString;
 
 protected:
 	GLFWwindow* m_window;
@@ -128,26 +130,26 @@ protected:
 	NVGcontext* vg;
 	
 	// dependencies
-	EntitySystem& m_entitySystem;
-	Input& m_input;
-	UISystem& m_uiSystem;
+	const Time&			m_time;
+	EntitySystem&		m_entitySystem;
+	Input&				m_input;
+	UISystem&			m_uiSystem;
+	ScreenSystem&		m_screenSystem;
+	TransformSystem&	m_transformSystem;
+	CameraSystem&		m_cameraSystem;
+	SelectionSystem&	m_selectionSystem;
+	RayTracer&			m_rayTracer;
 
-	Transform* debugTransform = nullptr;
-	Transform* debugTransform2 = nullptr;
+	Transform*		debugTransform = nullptr;
+	Transform*		debugTransform2 = nullptr;
 
-	int m_nroFrames;
-	double m_fpsTimer;
-	String m_fpsString;
+	int		m_nroFrames;
+	double	m_fpsTimer;
+	String	m_fpsString;
 
-	bool m_glRendererOn = false;
+	bool	m_glRendererOn = false;
 
-	ScreenSystem&			m_screenSystem;
-	TransformSystem&		m_transformSystem;
-	CameraSystem&			m_cameraSystem;
-	SelectionSystem&		m_selectionSystem;
-	RayTracer&				m_rayTracer;
-
-	ImageBuffer m_backgroundImage;
+	ImageBuffer			m_backgroundImage;
 
 	Table<Mesh>			m_meshes;
 	Table<Id>			m_meshLinks;

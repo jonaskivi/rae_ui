@@ -142,7 +142,7 @@ inline bool isFlowCorrect(Point2f u)
 	return !cvIsNaN(u.x) && !cvIsNaN(u.y) && fabs(u.x) < 1e9 && fabs(u.y) < 1e9;
 }
 
-void OpticalFlow::update(double time, double deltaTime)
+void OpticalFlow::update()
 {
 	if (m_error)
 	{
@@ -170,7 +170,7 @@ void OpticalFlow::update(double time, double deltaTime)
 
 			int writeFrames = 4;
 			float lerpValue = (float)doneCounter / (float)writeFrames;
-			std::cout << "time: " << time << " lerpValue: " << lerpValue << "\n";
+			std::cout << "lerpValue: " << lerpValue << "\n";
 			std::cout << "doneCounter: " << doneCounter << " frameCount: " << frameCount << "\n";
 
 			if (m_frame0.size() != m_frame1.size() ||

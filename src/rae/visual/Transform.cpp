@@ -30,7 +30,7 @@ void Transform::setTarget(glm::vec3 setTarget, float duration)
 	m_positionAnimator.init(position, setTarget, duration);
 }
 
-void Transform::update(double time, double deltaTime)
+void Transform::update(double time)
 {
 	// RAE_TODO Move the animator outside of this class to its own system.
 	if (m_positionAnimator.update((float)time) )

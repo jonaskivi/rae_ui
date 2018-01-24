@@ -33,9 +33,9 @@ MediaAsset& AVSystem::getAsset(AssetId id)
 	return m_mediaAssets[id];
 }
 
-bool AVSystem::update(double time, double deltaTime)
+rae::UpdateStatus AVSystem::update()
 {
-	return false; // for now
+	return rae::UpdateStatus::NotChanged; // for now
 }
 
 void AVSystem::destroyEntities(const Array<Id>& entities)

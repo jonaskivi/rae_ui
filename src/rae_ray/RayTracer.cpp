@@ -6,6 +6,7 @@
 #include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/core/Random.hpp"
+#include "rae/core/Time.hpp"
 
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/Material.hpp"
@@ -15,8 +16,9 @@
 
 using namespace rae;
 
-RayTracer::RayTracer(CameraSystem& cameraSystem) :
+RayTracer::RayTracer(const Time& time, CameraSystem& cameraSystem) :
 	m_world(4),
+	m_time(time),
 	m_cameraSystem(cameraSystem),
 	m_renderThread(&RayTracer::updateRenderThread, this)
 {
@@ -289,10 +291,10 @@ vec3 RayTracer::sky(const Ray& ray)
 
 //#define RENDER_ALL_AT_ONCE
 
-bool RayTracer::update(double time, double deltaTime)
+UpdateStatus RayTracer::update()
 {
 	if (!m_isEnabled)
-		return false; // RAE_TODO RENAME to enum SystemState::Disabled
+		return UpdateStatus::Disabled;
 
 	/*
 	Old time based switch buffers system:
@@ -313,10 +315,10 @@ bool RayTracer::update(double time, double deltaTime)
 	*/
 
 	if (m_startTime == -1.0f)
-		m_startTime = time;
+		m_startTime = m_time.time();
 
 	if (m_totalRayTracingTime == -1.0f)
-		m_totalRayTracingTime = time;
+		m_totalRayTracingTime = m_time.time();
 
 	#ifdef RENDER_ALL_AT_ONCE
 		renderAllAtOnce();
@@ -345,9 +347,9 @@ bool RayTracer::update(double time, double deltaTime)
 		m_requestClear = false;
 	}
 
-	m_totalRayTracingTime = time - m_startTime;
+	m_totalRayTracingTime = m_time.time() - m_startTime;
 
-	return true; // RAE_TODO RENAME to enum SystemState::NeedsUpdate
+	return UpdateStatus::Changed;
 }
 
 void RayTracer::updateRenderThread()

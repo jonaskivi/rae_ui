@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <chrono>
+#include <array>
 
 #include "rae/core/Utils.hpp"
 #include "rae/core/Types.hpp"
@@ -282,7 +283,7 @@ void OpticalFlow::writeMatToPng(String filepath, const cv::Mat& mat)
 
 void OpticalFlow::copyMatToImage(const Mat& mat, ImageBuffer& image)
 {
-	if (image.width != mat.cols or image.height != mat.rows)
+	if (image.width() != mat.cols or image.height() != mat.rows)
 		image.init(mat.cols, mat.rows);
 
 	for (int y = 0; y < mat.rows; ++y)
@@ -290,19 +291,17 @@ void OpticalFlow::copyMatToImage(const Mat& mat, ImageBuffer& image)
 		for (int x = 0; x < mat.cols; ++x)
 		{
 			const Vec3b& pix = mat.at<Vec3b>(y, x);
-			image.data[(y*image.width*image.channels) + (x*image.channels) + 0] = int8_t(pix[2]);
-			image.data[(y*image.width*image.channels) + (x*image.channels) + 1] = int8_t(pix[1]);
-			image.data[(y*image.width*image.channels) + (x*image.channels) + 2] = int8_t(pix[0]);
+			image.setPixel(x, y, {uint8_t(pix[2]), uint8_t(pix[1]), uint8_t(pix[0]), 255} );
 
 			// Grayscale version
 			//uchar pix = mat.at<uchar>(y, x);
-			//image.data[(y*image.width*image.channels) + (x*image.channels) + 0] = int8_t(pix);
-			//image.data[(y*image.width*image.channels) + (x*image.channels) + 1] = int8_t(pix);
-			//image.data[(y*image.width*image.channels) + (x*image.channels) + 2] = int8_t(pix);
+			//image.data[(y*image.width*image.channels) + (x*image.channels) + 0] = uint8_t(pix);
+			//image.data[(y*image.width*image.channels) + (x*image.channels) + 1] = uint8_t(pix);
+			//image.data[(y*image.width*image.channels) + (x*image.channels) + 2] = uint8_t(pix);
 		}
 	}
 
-	image.needsUpdate = true;
+	image.requestUpdate();
 }
 
 void OpticalFlow::pushFrame(AVFrame* frameRGB)

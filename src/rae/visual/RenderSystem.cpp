@@ -465,7 +465,7 @@ void RenderSystem::renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
 {
 	nvgSave(vg);
 
-	NVGpaint imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId, 1.0f);
+	NVGpaint imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId(), 1.0f);
 	nvgBeginPath(vg);
 	nvgRect(vg, x, y, w, h);
 	nvgFillPaint(vg, imgPaint);

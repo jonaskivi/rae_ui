@@ -410,16 +410,16 @@ void RayTracer::renderAllAtOnce()
 		Camera& camera = m_cameraSystem.getCurrentCamera();
 
 		// Parallel was about 3.6 times faster here. From 48 seconds to 13 seconds with a very low resolution and sample count.
-		parallel_for(0, m_buffer->height, [&](int j)
+		parallel_for(0, m_buffer->height(), [&](int y)
 		{
-			for (int i = 0; i < m_buffer->width; ++i)
+			for (int x = 0; x < m_buffer->width(); ++x)
 			{
 				vec3 color;
 
 				for (int sample = 0; sample < m_allAtOnceSamplesLimit; sample++)
 				{
-					float u = float(i + drand48()) / float(m_buffer->width);
-					float v = float(j + drand48()) / float(m_buffer->height);
+					float u = float(x + drand48()) / float(m_buffer->width());
+					float v = float(y + drand48()) / float(m_buffer->height());
 					
 					Ray ray = camera.getRay(u, v);
 					color += rayTrace(ray);
@@ -427,7 +427,7 @@ void RayTracer::renderAllAtOnce()
 
 				color /= float(m_allAtOnceSamplesLimit);
 
-				m_buffer->colorData[(j * m_buffer->width) + i] = color;
+				m_buffer->setPixel(x, y, color);
 			}
 		});
 
@@ -454,20 +454,20 @@ void RayTracer::renderSamples()
 		// Single threaded
 		//for (int j = 0; j < m_buffer->height; ++j)
 		// Parallel, about twice the performance
-		parallel_for(0, m_buffer->height, [&](int j)
+		parallel_for(0, m_buffer->height(), [&](int y)
 		{
-			for (int i = 0; i < m_buffer->width; ++i)
+			for (int x = 0; x < m_buffer->width(); ++x)
 			{
-				float u = float(i + drand48()) / float(m_buffer->width);
-				float v = float(j + drand48()) / float(m_buffer->height);
+				float u = float(x + drand48()) / float(m_buffer->width());
+				float v = float(y + drand48()) / float(m_buffer->height());
 
 				Ray ray = camera.getRay(u, v);
 				vec3 color = rayTrace(ray);
 
 				//http://stackoverflow.com/questions/22999487/update-the-average-of-a-continuous-sequence-of-numbers-in-constant-time
 				// add to average
-				m_buffer->colorData[(j * m_buffer->width) + i]
-					= (float(m_currentSample) * m_buffer->colorData[(j * m_buffer->width) + i] + color) / float(m_currentSample + 1);
+				m_buffer->setPixel(x, y,
+					(float(m_currentSample) * m_buffer->getPixel(x, y) + color) / float(m_currentSample + 1));
 			}
 		});
 		
@@ -502,7 +502,7 @@ void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 	h = g_rae->screenHeightP();
 	*/
 
-	m_imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId, 1.0f);
+	m_imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId(), 1.0f);
 	nvgBeginPath(vg);
 	nvgRect(vg, x, y, w, h);
 	nvgFillPaint(vg, m_imgPaint);

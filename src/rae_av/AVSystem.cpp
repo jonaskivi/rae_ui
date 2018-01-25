@@ -1,5 +1,6 @@
 #ifdef USE_RAE_AV
 #include <iostream>
+#include <array>
 
 #include "rae/core/Utils.hpp"
 #include "rae/visual/RenderSystem.hpp"
@@ -48,7 +49,7 @@ void AVSystem::defragmentTables()
 
 void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 {
-	if (image.width != frameRGB->width or image.height != frameRGB->height)
+	if (image.width() != frameRGB->width or image.height() != frameRGB->height)
 	{
 		image.init(frameRGB->width, frameRGB->height);
 	}
@@ -61,12 +62,10 @@ void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 			uint8_t r = frameRGB->data[0][p];
 			uint8_t g = frameRGB->data[0][p+1];
 			uint8_t b = frameRGB->data[0][p+2];
-			image.data[(y*image.width*image.channels) + (x*image.channels) + 0] = r;
-			image.data[(y*image.width*image.channels) + (x*image.channels) + 1] = g;
-			image.data[(y*image.width*image.channels) + (x*image.channels) + 2] = b;
+			image.setPixel(x, y, {r, g, b});
 		}
 	});
 
-	image.needsUpdate = true;
+	image.requestUpdate();
 }
 #endif

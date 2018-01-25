@@ -1,5 +1,6 @@
 #include <iostream>
 #include <ciso646>
+#include <array>
 
 #include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
@@ -27,125 +28,148 @@ vec3 gammaCorrectionAnd255(const vec3& linear)
 
 //------------------------------------------------------------------------------------------------------------
 
-ImageBuffer::ImageBuffer() :
-	width(0),
-	height(0),
-	imageId(-1) // init to invalid value.
+ImageBuffer::ImageBuffer()
 {
 }
 
-ImageBuffer::ImageBuffer(int setWidth, int setHeight) :
-	width(setWidth),
-	height(setHeight),
-	imageId(-1) // init to invalid value.
+ImageBuffer::ImageBuffer(int width, int height) :
+	m_width(width),
+	m_height(height)
 {
 	init();
 }
 
-void ImageBuffer::init(int setWidth, int setHeight)
+void ImageBuffer::init(int width, int height)
 {
-	width = setWidth;
-	height = setHeight;
+	m_width = width;
+	m_height = height;
 
 	init();
 }
 
 void ImageBuffer::init()
 {
-	if (width == 0 || height == 0)
+	if (m_width == 0 || m_height == 0)
 	{
 		assert(0);
 		return;
 	}
 
-	if (colorData.size() > 0)
-		colorData.clear();
-	if (data.size() > 0)
-		data.clear();
+	if (m_colorData.size() > 0)
+		m_colorData.clear();
+	if (m_data.size() > 0)
+		m_data.clear();
 
-	colorData.reserve(width * height);
-	for (int i = 0; i < width * height; ++i)
+	m_colorData.reserve(m_width * m_height);
+	for (int i = 0; i < m_width * m_height; ++i)
 	{
-		colorData.push_back(vec3(0.5f, 0.5f, 0.5f));
-	}	
-	data.reserve(width * height * channels);
-	for (int i = 0; i < width * height; ++i)
+		m_colorData.push_back(vec3(0.5f, 0.5f, 0.5f));
+	}
+	m_data.reserve(m_width * m_height * m_channels);
+	for (int i = 0; i < m_width * m_height; ++i)
 	{
-		data.push_back(0);
-		data.push_back(0);
-		data.push_back(0);
-		data.push_back(255);
+		m_data.push_back(0);
+		m_data.push_back(0);
+		m_data.push_back(0);
+		m_data.push_back(255);
 	}
 }
 
-void ImageBuffer::load(NVGcontext* vg, String file)
+void ImageBuffer::load(NVGcontext* vg, String filename)
 {
-	if (imageId == -1)
+	if (m_imageId == -1)
 	{
-		imageId = nvgCreateImage(vg, file.c_str(), 0);
+		m_filename = filename;
+		m_imageId = nvgCreateImage(vg, filename.c_str(), 0);
 	}
 }
 
 void ImageBuffer::writeToPng(String filename)
 {
-	stbi_write_png(filename.c_str(), width, height, 4, &data[0], int(width) * 4);
+	stbi_write_png(filename.c_str(), m_width, m_height, 4, &m_data[0], int(m_width) * 4);
 }
 
 void ImageBuffer::createImage(NVGcontext* vg)
 {
-	if (imageId == -1 && vg != nullptr)
+	if (m_imageId == -1 && vg != nullptr)
 	{
-		//std::cout << "Creating image " << width << "x" << height << "\n";
-		imageId = nvgCreateImageRGBA(vg, width, height, /*imageFlags*/0, &data[0]);
+		//std::cout << "Creating image " << m_width << "x" << m_height << "\n";
+		m_imageId = nvgCreateImageRGBA(vg, m_width, m_height, /*imageFlags*/0, &m_data[0]);
 	}
 	else
 	{
-		std::cout << "Failed to create an image " << width << "x" << height << "\n";
-		if (imageId != -1)
-			std::cout << "imageId was not -1. It was " << imageId << "\n";
+		rae_log("Failed to create an image ", m_width, "x", m_height);
+		if (m_imageId != -1)
+			rae_log("imageId was not -1. It was ", m_imageId);
 		if (vg == nullptr)
-			std::cout << "vg was null.\n";
-		assert(imageId == -1);
+			rae_log("NanoVG context was null.");
+		assert(m_imageId == -1);
 		assert(vg != nullptr);
 	}
 }
 
 void ImageBuffer::clear()
 {
-	std::fill(colorData.begin(), colorData.end(), vec3(0,0,0));
-	//std::fill(data.begin(), data.end(), 0);
+	std::fill(m_colorData.begin(), m_colorData.end(), vec3(0,0,0));
+	//std::fill(m_data.begin(), m_data.end(), 0);
 }
 
 void ImageBuffer::update(NVGcontext* vg)
 {
-	if (not needsUpdate)
+	if (not m_needsUpdate)
 		return;
 
-	if (imageId == -1)
+	if (m_imageId == -1)
 		createImage(vg);
 
-	needsUpdate = false;
-	nvgUpdateImage(vg, imageId, &data[0]);
+	m_needsUpdate = false;
+	nvgUpdateImage(vg, m_imageId, &m_data[0]);
 }
 
 void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
 {
 	// update 8 bit image buffer
 	{
-		parallel_for(0, height, [&](int j)
+		parallel_for(0, m_height, [&](int j)
 		{
-			for (int i = 0; i < width; ++i)
+			for (int i = 0; i < m_width; ++i)
 			{
-				const vec3& linear = colorData[(j*width)+i];
+				const vec3& linear = m_colorData[(j*m_width)+i];
 
 				vec3 color = gammaCorrectionAnd255(linear);
 
-				data[(j*width*channels) + (i*channels) + 0] = uint8_t(color.r);
-				data[(j*width*channels) + (i*channels) + 1] = uint8_t(color.g);
-				data[(j*width*channels) + (i*channels) + 2] = uint8_t(color.b);
+				m_data[(j*m_width*m_channels) + (i*m_channels) + 0] = uint8_t(color.r);
+				m_data[(j*m_width*m_channels) + (i*m_channels) + 1] = uint8_t(color.g);
+				m_data[(j*m_width*m_channels) + (i*m_channels) + 2] = uint8_t(color.b);
 			}
 		});
 
-		nvgUpdateImage(vg, imageId, &data[0]);
+		nvgUpdateImage(vg, m_imageId, &m_data[0]);
 	}
+}
+
+vec3 ImageBuffer::getPixel(int x, int y) const
+{
+	return m_colorData[(y * m_width) + x];
+}
+
+void ImageBuffer::setPixel(int x, int y, const vec3& color)
+{
+	m_colorData[(y * m_width) + x] = color;
+}
+
+std::array<uint8_t, 4> ImageBuffer::getPixelData(int x, int y) const
+{
+	std::array<uint8_t, 4> pixel;
+	pixel[Channel::R] = m_data[(y*m_width*m_channels) + (x*m_channels) + 0];
+	pixel[Channel::G] = m_data[(y*m_width*m_channels) + (x*m_channels) + 1];
+	pixel[Channel::B] = m_data[(y*m_width*m_channels) + (x*m_channels) + 2];
+	return pixel;
+}
+
+void ImageBuffer::setPixel(int x, int y, std::array<uint8_t, 4> color)
+{
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 0] = color[Channel::R];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 1] = color[Channel::G];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 2] = color[Channel::B];
 }

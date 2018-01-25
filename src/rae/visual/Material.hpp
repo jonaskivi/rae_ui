@@ -1,14 +1,14 @@
 #pragma once
 
-#include <GL/glew.h>
 #include <glm/glm.hpp>
 
 #include "rae/core/Types.hpp"
 #include "rae/visual/Ray.hpp"
 #include "rae_ray/HitRecord.hpp"
 
+#include "rae/image/ImageBuffer.hpp"
+
 struct NVGcontext;
-struct NVGLUframebuffer;
 
 namespace rae
 {
@@ -35,7 +35,7 @@ public:
 	void generateFBO(NVGcontext* vg);
 	void update(NVGcontext* vg, double time);
 
-	GLuint textureID() const;
+	GLuint textureId() const;
 
 	void setColor(Color set);
 	const Color& color() { return m_color; }
@@ -44,9 +44,7 @@ public:
 	void animate(bool set) { m_animate = set; }
 
 protected:
-	NVGLUframebuffer* m_framebufferObject = nullptr;
-	int m_width = 512;
-	int m_height = 512;
+	FrameBufferImage m_frameBufferImage;
 
 	Color m_color;
 

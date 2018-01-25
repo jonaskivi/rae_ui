@@ -1,10 +1,13 @@
 #pragma once
 
-#include "nanovg.h"
+#include <GL/glew.h>
 
 #include <array>
 
 #include "rae/core/Types.hpp"
+
+struct NVGcontext;
+struct NVGLUframebuffer;
 
 namespace rae
 {
@@ -41,6 +44,7 @@ public:
 	int width() const { return m_width; }
 	int height() const { return m_height; }
 	int channels() const { return m_channels; }
+	// NanoVG image ID
 	int imageId() const { return m_imageId; }
 
 	Color3 getPixel(int x, int y) const;
@@ -66,6 +70,27 @@ protected:
 
 	int m_imageId = -1; // NanoVG imageId
 	bool m_needsUpdate = false; // When set to true, the image will be created (if needed) and updated to nanovg.
+};
+
+class FrameBufferImage : public ImageBuffer
+{
+public:
+	FrameBufferImage(int width = 512, int height = 512) :
+		ImageBuffer(width, height)
+	{
+	}
+
+	void generateFBO(NVGcontext* vg);
+	bool isValid() { return m_framebufferObject != nullptr; }
+
+	void beginRenderFBO();
+	void endRenderFBO();
+
+	// RAE_TODO Find out if this is the same OpenGL id as imageId given by NanoVG in ImageBuffer class
+	GLuint textureId() const;
+
+protected:
+	NVGLUframebuffer* m_framebufferObject = nullptr;
 };
 
 }

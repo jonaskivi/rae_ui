@@ -394,7 +394,7 @@ void RenderSystem::renderMesh(const Transform& transform, const Material& materi
 
 	// Bind texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, material.textureID());
+	glBindTexture(GL_TEXTURE_2D, material.textureId());
 	// Set textureSampler to use Texture Unit 0
 	glUniform1i(textureUni, 0);
 	// RAE_TODO REMOVE else glBindTexture(GL_TEXTURE_2D, 0);

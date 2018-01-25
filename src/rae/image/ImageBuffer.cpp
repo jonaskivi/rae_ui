@@ -1,13 +1,17 @@
+#include "rae/image/ImageBuffer.hpp"
 #include <iostream>
 #include <ciso646>
 #include <array>
 
-#include "rae/core/Log.hpp"
-#include "rae/core/Utils.hpp"
-#include "rae/image/ImageBuffer.hpp"
+#include "nanovg.h"
+#include "nanovg_gl.h"
+#include "nanovg_gl_utils.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
+
+#include "rae/core/Log.hpp"
+#include "rae/core/Utils.hpp"
 
 using namespace rae;
 
@@ -172,4 +176,33 @@ void ImageBuffer::setPixel(int x, int y, std::array<uint8_t, 4> color)
 	m_data[(y*m_width*m_channels) + (x*m_channels) + 0] = color[Channel::R];
 	m_data[(y*m_width*m_channels) + (x*m_channels) + 1] = color[Channel::G];
 	m_data[(y*m_width*m_channels) + (x*m_channels) + 2] = color[Channel::B];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void FrameBufferImage::generateFBO(NVGcontext* vg)
+{
+	m_framebufferObject = nvgluCreateFramebuffer(vg, m_width, m_height, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
+	if (m_framebufferObject == nullptr)
+	{
+		rae_log("Could not create FBO.");
+		assert(0);
+	}
+}
+
+void FrameBufferImage::beginRenderFBO()
+{
+	nvgluBindFramebuffer(m_framebufferObject);
+}
+
+void FrameBufferImage::endRenderFBO()
+{
+	nvgluBindFramebuffer(NULL);
+}
+
+GLuint FrameBufferImage::textureId() const
+{
+	if (m_framebufferObject == nullptr)
+		return 0;
+	return m_framebufferObject->texture;
 }

@@ -114,17 +114,12 @@ bool Dielectric::scatter(const Ray& r_in, const HitRecord& record, vec3& attenua
 
 void Material::generateFBO(NVGcontext* vg)
 {
-	m_framebufferObject = nvgluCreateFramebuffer(vg, m_width, m_height, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
-	if (m_framebufferObject == nullptr)
-	{
-		cout << "Could not create FBO.\n";
-		assert(0);
-	}
+	m_frameBufferImage.generateFBO(vg);
 }
 
 void Material::update(NVGcontext* vg, double time)
 {
-	if (m_framebufferObject == nullptr)
+	if (not m_frameBufferImage.isValid())
 		return;
 
 	if (m_initialized == true && m_animate == false)
@@ -132,19 +127,21 @@ void Material::update(NVGcontext* vg, double time)
 
 	float circle_size = float((cos(time) + 1.0) * 128.0);
 
-	nvgluBindFramebuffer(m_framebufferObject);
-	glViewport(0, 0, m_width, m_height);
+	m_frameBufferImage.beginRenderFBO();
+	glViewport(0, 0, m_frameBufferImage.width(), m_frameBufferImage.height());
 
 	// Any alpha other than zero will fail for some FBO reason
 	glClearColor(m_color.r, m_color.g, m_color.b, 0.0f);
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	nvgBeginFrame(vg, m_width, m_height, /*pixelRatio*/1.0f);
+	nvgBeginFrame(vg, m_frameBufferImage.width(), m_frameBufferImage.height(), /*pixelRatio*/1.0f);
 
 		nvgBeginPath(vg);
 
 		if (m_animate)
-			nvgCircle(vg, float(m_width) * 0.5f, float(m_height) * 0.5f, circle_size);
+			nvgCircle(vg,
+				float(m_frameBufferImage.width()) * 0.5f,
+				float(m_frameBufferImage.height()) * 0.5f, circle_size);
 		
 		if(m_type == 2)
 			nvgFillColor(vg, nvgRGBA(220, 45, 0, 200));
@@ -161,20 +158,20 @@ void Material::update(NVGcontext* vg, double time)
 			nvgFontSize(vg, 80.0f);
 			nvgTextAlign(vg, NVG_ALIGN_CENTER);
 			nvgFillColor(vg, nvgRGBA(255, 255, 255, 255));
-			nvgText(vg, float(m_width) * 0.5f, (float(m_height) * 0.5f) + 20.0f, "Add Object", nullptr);
+			nvgText(vg,
+				float(m_frameBufferImage.width()) * 0.5f,
+				(float(m_frameBufferImage.height()) * 0.5f) + 20.0f, "Add Object", nullptr);
 		}
 
 	nvgEndFrame(vg);
-	nvgluBindFramebuffer(NULL);
+	m_frameBufferImage.endRenderFBO();
 
 	m_initialized = true;
 }
 
-GLuint Material::textureID() const
+GLuint Material::textureId() const
 {
-	if( m_framebufferObject == nullptr )
-		return 0;
-	return m_framebufferObject->texture;
+	return m_frameBufferImage.textureId();
 }
 
 void Material::setColor(Color set)

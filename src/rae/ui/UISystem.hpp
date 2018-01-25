@@ -69,7 +69,7 @@ struct Panel
 };
 
 // RAE_TODO Move to ButtonSubsystem
-enum class ButtonThemeColourKey
+enum class ButtonThemeColorKey
 {
 	Background,
 	Hover,
@@ -82,7 +82,7 @@ enum class ButtonThemeColourKey
 	Count
 };
 
-enum class PanelThemeColourKey
+enum class PanelThemeColorKey
 {
 	Background,
 	Hover,
@@ -126,8 +126,8 @@ public:
 	void addButton(Id id, Button&& element);
 	const Button& getButton(Id id);
 
-	void addColour(Id id, Colour&& element);
-	const Colour& getColour(Id id);
+	void addColor(Id id, Color&& element);
+	const Color& getColor(Id id);
 
 	void addCommand(Id id, Command&& element);
 	const Command& getCommand(Id id);
@@ -144,20 +144,20 @@ private:
 
 	void createDefaultTheme();
 
-	void renderRectangle(const Transform& transform, const Box& box, const Colour& colour);
+	void renderRectangle(const Transform& transform, const Box& box, const Color& color);
 	void renderButton(const String& text, const Transform& transform, const Box& box,
-		const Colour& colour, const Colour& textColour);
+		const Color& color, const Color& textColor);
 
 	// NanoVG takes input in pixels, and so do these helper functions:
 	void renderRectangleNano(NVGcontext* vg, float x, float y, float w, float h,
 					  float cornerRadius,
-					  const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f));
+					  const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderWindowNano(NVGcontext* vg, const String& title, float x, float y, float w, float h,
-					  float cornerRadius, const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f));
+					  float cornerRadius, const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderButtonNano(NVGcontext* vg, const String& text, float x, float y, float w, float h,
 					  float cornerRadius,
-					  const Colour& colour = Colour(0.1f, 0.1f, 0.1f, 1.0f),
-					  const Colour& textColour = Colour(1.0f, 1.0f, 1.0f, 1.0f));
+					  const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f),
+					  const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 
 	Input& m_input;
 	/*TODO const*/ ScreenSystem& m_screenSystem;
@@ -171,14 +171,14 @@ private:
 	Table<Box>			m_boxes;
 	Table<Text>			m_texts;
 	Table<Button>		m_buttons;
-	Array<Colour>		m_buttonThemeColours;
+	Array<Color>		m_buttonThemeColors;
 	Table<Command>		m_commands;
-	Table<Colour>		m_colours;
+	Table<Color>		m_colors;
 	Table<Active>		m_actives;
 	Table<Hover>		m_hovers;
 
 	Table<Panel>		m_panels;
-	Array<Colour>		m_panelThemeColours;
+	Array<Color>		m_panelThemeColors;
 	Table<Layout>		m_layouts;
 };
 

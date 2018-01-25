@@ -132,9 +132,9 @@ protected:
 	Transform*		debugTransform = nullptr;
 	Transform*		debugTransform2 = nullptr;
 
-	int		m_nroFrames;
-	double	m_fpsTimer;
-	String	m_fpsString;
+	int		m_nroFrames = 0;
+	double	m_fpsTimer = 0.0;
+	String	m_fpsString = "fps:";
 
 	bool	m_glRendererOn = false;
 

@@ -17,15 +17,13 @@ class Material
 {
 public:
 	Material() {}
-	Material(vec3 albedo) :
-		albedo(albedo),
+	Material(Color3 albedo) :
 		m_color(albedo.r, albedo.g, albedo.b, 1.0f)
 	{
 	}
 
-	Material(Colour albedo) :
-		m_color(albedo),
-		albedo(albedo.r, albedo.g, albedo.b)
+	Material(Color albedo) :
+		m_color(albedo)
 	{
 	}
 
@@ -34,17 +32,14 @@ public:
 	
 	bool metal(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
 
-	// RAE_TODO REALLY NOW: Combine albedo with m_color...
-	vec3 albedo;
-
 	void generateFBO(NVGcontext* vg);
 	void update(NVGcontext* vg, double time);
 
 	GLuint textureID() const;
 
-	// RAE_TODO UMM, DECIDE THE SPELLING ALREADY:
-	void setColor(Colour set);
-	const Colour& color() { return m_color; }
+	void setColor(Color set);
+	const Color& color() { return m_color; }
+	Color3 color3() { return Color3(m_color); }
 
 	void animate(bool set) { m_animate = set; }
 
@@ -53,8 +48,7 @@ protected:
 	int m_width = 512;
 	int m_height = 512;
 
-	// RAE_TODO DECIDE SPELLING, REALLY:
-	Colour m_color;
+	Color m_color;
 
 	bool m_initialized = false;
 	bool m_animate = false;
@@ -65,8 +59,8 @@ protected:
 class Lambertian : public Material
 {
 public:
-	Lambertian(vec3 set_albedo)
-		: Material(set_albedo)
+	Lambertian(Color3 albedo) :
+		Material(albedo)
 	{}
 
 	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
@@ -75,9 +69,9 @@ public:
 class Metal : public Material
 {
 public:
-	Metal(vec3 set_albedo, float set_roughness)
-		: Material(set_albedo),
-		roughness(set_roughness)
+	Metal(Color3 albedo, float roughness) :
+		Material(albedo),
+		roughness(roughness)
 	{}
 
 	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
@@ -88,26 +82,26 @@ public:
 class Dielectric : public Material
 {
 public:
-	Dielectric(vec3 set_albedo, float set_refractive_index)
-		: Material(set_albedo),
-		refractive_index(set_refractive_index)
+	Dielectric(Color3 albedo, float refractiveIndex) :
+		Material(albedo),
+		refractiveIndex(refractiveIndex)
 	{}
 
 	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
 
-	float refractive_index = 0.0f;
+	float refractiveIndex = 0.0f;
 };
 
 class Light : public Material
 {
 public:
-	Light(vec3 setAlbedo)
-		: Material(setAlbedo)
+	Light(Color3 albedo) :
+		Material(albedo)
 	{
 	}
 
 	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override { return false; }
-	vec3 emitted(const vec3& p) const override { return albedo; }
+	Color3 emitted(const vec3& p) const override { return Color3(m_color); }
 };
 
 }

@@ -43,7 +43,7 @@ float lerpClip(float val1, float val2, float set_position);
 float lerp(float val1, float val2, float set_position);
 float backwardsLerp(float val1, float val2, float the_val);
 
-Colour createColor8bit(float r, float g, float b, float a);
+Color createColor8bit(float r, float g, float b, float a);
 
 String toString(bool set);
 String toString(float value); // A string with four decimal places

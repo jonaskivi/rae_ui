@@ -46,9 +46,9 @@ Engine::Engine(GLFWwindow* set_window) :
 	m_modelID = meshID;
 
 	m_meshID			= m_renderSystem.createBox();
-	m_materialID		= m_assetSystem.createMaterial(Colour(0.2f, 0.5f, 0.7f, 0.0f));
-	m_bunnyMaterialID	= m_assetSystem.createMaterial(Colour(0.7f, 0.3f, 0.1f, 0.0f));
-	m_buttonMaterialID	= m_assetSystem.createAnimatingMaterial(Colour(0.0f, 0.0f, 0.1f, 0.0f));
+	m_materialID		= m_assetSystem.createMaterial(Color(0.2f, 0.5f, 0.7f, 0.0f));
+	m_bunnyMaterialID	= m_assetSystem.createMaterial(Color(0.7f, 0.3f, 0.1f, 0.0f));
+	m_buttonMaterialID	= m_assetSystem.createAnimatingMaterial(Color(0.0f, 0.0f, 0.1f, 0.0f));
 
 	createTestWorld2();
 
@@ -194,7 +194,7 @@ Id Engine::createRandomCubeEntity()
 	return id;
 }
 
-Id Engine::createCube(const vec3& position, const Colour& color)
+Id Engine::createCube(const vec3& position, const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
 	//rae_log("createCube id: ", id);
@@ -209,7 +209,7 @@ Id Engine::createCube(const vec3& position, const Colour& color)
 	return id;
 }
 
-Id Engine::createBunny(const vec3& position, const Colour& color)
+Id Engine::createBunny(const vec3& position, const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
 	//rae_log("createBunny id: ", id);

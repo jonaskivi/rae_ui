@@ -2,6 +2,8 @@
 
 #include "nanovg.h"
 
+#include <array>
+
 #include "rae/core/Types.hpp"
 
 namespace rae
@@ -14,6 +16,8 @@ enum Channel
 	B,
 	A
 };
+
+using Pixel8_t = std::array<uint8_t, 4>;
 
 class ImageBuffer
 {
@@ -39,11 +43,11 @@ public:
 	int channels() const { return m_channels; }
 	int imageId() const { return m_imageId; }
 
-	vec3 getPixel(int x, int y) const;
-	void setPixel(int x, int y, const vec3& color);
+	Color3 getPixel(int x, int y) const;
+	void setPixel(int x, int y, const Color3& color);
 
-	std::array<uint8_t, 4> getPixelData(int x, int y) const;
-	void setPixel(int x, int y, std::array<uint8_t, 4> color);
+	Pixel8_t getPixelData(int x, int y) const;
+	void setPixel(int x, int y, Pixel8_t color);
 
 	void requestUpdate() { m_needsUpdate = true; }
 
@@ -56,7 +60,7 @@ protected:
 	int m_height = 0;
 
 	// float per channel image data, hopefully linear space. size = m_width * m_height
-	Array<vec3> m_colorData;
+	Array<Color3> m_colorData;
 	// 8-bit per channel image data, hopefully in sRGB space. size = m_width * m_height * m_channels
 	Array<uint8_t> m_data;
 

@@ -275,7 +275,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 		}
 		else // FastMode returns just the material color
 		{
-			return record.material->albedo;
+			return record.material->color3();
 		}
 	}
 	return sky(ray);

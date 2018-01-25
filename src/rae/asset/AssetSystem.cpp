@@ -43,7 +43,7 @@ Id AssetSystem::createMesh(const String& filename)
 	return id;
 }
 
-Id AssetSystem::createMaterial(const Colour& color)
+Id AssetSystem::createMaterial(const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
 	//rae_log("createMaterial entity: ", id);
@@ -55,7 +55,7 @@ Id AssetSystem::createMaterial(const Colour& color)
 	return id;
 }
 
-Id AssetSystem::createAnimatingMaterial(const Colour& color)
+Id AssetSystem::createAnimatingMaterial(const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
 	//rae_log("createAnimatingMaterial entity: ", id);

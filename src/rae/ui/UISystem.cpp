@@ -48,7 +48,7 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 	addTable(m_texts);
 	addTable(m_buttons);
 	addTable(m_commands);
-	addTable(m_colours);
+	addTable(m_colors);
 	addTable(m_actives);
 	addTable(m_hovers);
 	addTable(m_panels);
@@ -66,20 +66,20 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 
 void UISystem::createDefaultTheme()
 {
-	m_buttonThemeColours.resize((size_t)ButtonThemeColourKey::Count);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Background]	= Colour(0.1f, 0.1f, 0.1f, 1.0f);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Hover]		= Colour(0.3f, 0.4f, 0.45f, 1.0f);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Active]		= Colour(0.0f, 0.921f, 0.862f, 1.0f);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveHover]	= Colour(0.619f, 1.0f, 0.976f, 1.0f);
+	m_buttonThemeColors.resize((size_t)ButtonThemeColorKey::Count);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background]		= Color(0.1f, 0.1f, 0.1f, 1.0f);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::Hover]				= Color(0.3f, 0.4f, 0.45f, 1.0f);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::Active]			= Color(0.0f, 0.921f, 0.862f, 1.0f);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHover]		= Color(0.619f, 1.0f, 0.976f, 1.0f);
 
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::Text]			= Colour(1.0f, 1.0f, 1.0f, 1.0f);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::HoverText]		= Colour(0.0f, 0.0f, 0.0f, 1.0f);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveText]		= Colour(0.0f, 0.0f, 0.0f, 1.0f);
-	m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveHoverText]	= Colour(0.0f, 0.0f, 0.0f, 1.0f);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::Text]				= Color(1.0f, 1.0f, 1.0f, 1.0f);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::HoverText]			= Color(0.0f, 0.0f, 0.0f, 1.0f);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveText]		= Color(0.0f, 0.0f, 0.0f, 1.0f);
+	m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHoverText]	= Color(0.0f, 0.0f, 0.0f, 1.0f);
 
-	m_panelThemeColours.resize((size_t)PanelThemeColourKey::Count);
-	m_panelThemeColours[(size_t)PanelThemeColourKey::Background]	= Utils::createColor8bit(52, 61, 70, 255);
-	m_panelThemeColours[(size_t)PanelThemeColourKey::Hover]			= Utils::createColor8bit(52, 61, 70, 255);
+	m_panelThemeColors.resize((size_t)PanelThemeColorKey::Count);
+	m_panelThemeColors[(size_t)PanelThemeColorKey::Background]	= Utils::createColor8bit(52, 61, 70, 255);
+	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]			= Utils::createColor8bit(52, 61, 70, 255);
 }
 
 UpdateStatus UISystem::update()
@@ -192,18 +192,18 @@ void UISystem::render(NVGcontext* vg)
 
 	m_vg = vg;
 
-	const Colour& buttonBackgroundColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::Background];
-	const Colour& buttonHoverColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::Hover];
-	const Colour& buttonActiveColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::Active];
-	const Colour& buttonActiveHoverColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveHover];
+	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
+	const Color& buttonHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Hover];
+	const Color& buttonActiveColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Active];
+	const Color& buttonActiveHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHover];
 
-	const Colour& buttonTextColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::Text];
-	const Colour& buttonHoverTextColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::HoverText];
-	const Colour& buttonActiveTextColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveText];
-	const Colour& buttonActiveHoverTextColour = m_buttonThemeColours[(size_t)ButtonThemeColourKey::ActiveHoverText];
+	const Color& buttonTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Text];
+	const Color& buttonHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::HoverText];
+	const Color& buttonActiveTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveText];
+	const Color& buttonActiveHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHoverText];
 
-	const Colour& panelBackgroundColour = m_panelThemeColours[(size_t)PanelThemeColourKey::Background];
-	const Colour& panelHoverColour = m_panelThemeColours[(size_t)PanelThemeColourKey::Hover];
+	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
+	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -220,20 +220,20 @@ void UISystem::render(NVGcontext* vg)
 				const Transform& transform = m_transformSystem.getTransform(id);
 				const Box& box = getBox(id);
 				const Button& button = getButton(id);
-				bool hasColour = m_colours.check(id);
+				bool hasColor = m_colors.check(id);
 				bool active = isActive(id);
 				bool hovered = m_hovers.check(id);
 
 				renderButton(button.text(), transform, box,
-					(hovered and active ? buttonActiveHoverColour :
-						hovered ? buttonHoverColour :
-						active ? buttonActiveColour :
-						hasColour ? getColour(id) :
-						buttonBackgroundColour),
-					(hovered and active ? buttonActiveHoverTextColour :
-						hovered ? buttonHoverTextColour :
-						active ? buttonActiveTextColour :
-						buttonTextColour));
+					(hovered and active ? buttonActiveHoverColor :
+						hovered ? buttonHoverColor :
+						active ? buttonActiveColor :
+						hasColor ? getColor(id) :
+						buttonBackgroundColor),
+					(hovered and active ? buttonActiveHoverTextColor :
+						hovered ? buttonHoverTextColor :
+						active ? buttonActiveTextColor :
+						buttonTextColor));
 			}
 			else if (m_panels.check(id) and
 					 m_transformSystem.hasTransform(id) and
@@ -242,14 +242,14 @@ void UISystem::render(NVGcontext* vg)
 				i++;
 				const Transform& transform = m_transformSystem.getTransform(id);
 				const Box& box = getBox(id);
-				bool hasColour = m_colours.check(id);
+				bool hasColor = m_colors.check(id);
 
 				bool hovered = m_hovers.check(id);
 
 				renderRectangle(transform, box,
-						hovered ? panelHoverColour :
-						hasColour ? getColour(id) :
-						panelBackgroundColour);
+						hovered ? panelHoverColor :
+						hasColor ? getColor(id) :
+						panelBackgroundColor);
 			}
 			// TODO this last case is strange
 			else if (m_transformSystem.hasTransform(id) and
@@ -258,20 +258,20 @@ void UISystem::render(NVGcontext* vg)
 				i++;
 				const Transform& transform = m_transformSystem.getTransform(id);
 				const Box& box = getBox(id);
-				bool hasColour = m_colours.check(id);
+				bool hasColor = m_colors.check(id);
 				bool active = isActive(id);
 				bool hovered = m_hovers.check(id);
 
 				renderButton(getText(id), transform, box,
-					(hovered and active ? buttonActiveHoverColour :
-						hovered ? buttonHoverColour :
-						active ? buttonActiveColour :
-						hasColour ? getColour(id) :
-						buttonBackgroundColour),
-					(hovered and active ? buttonActiveHoverTextColour :
-						hovered ? buttonHoverTextColour :
-						active ? buttonActiveTextColour :
-						buttonTextColour));
+					(hovered and active ? buttonActiveHoverColor :
+						hovered ? buttonHoverColor :
+						active ? buttonActiveColor :
+						hasColor ? getColor(id) :
+						buttonBackgroundColor),
+					(hovered and active ? buttonActiveHoverTextColor :
+						hovered ? buttonHoverTextColor :
+						active ? buttonActiveTextColor :
+						buttonTextColor));
 			}
 
 		}
@@ -308,7 +308,7 @@ void UISystem::render(NVGcontext* vg)
 	nvgEndFrame(vg);
 }
 
-void UISystem::renderRectangle(const Transform& transform, const Box& box, const Colour& colour)
+void UISystem::renderRectangle(const Transform& transform, const Box& box, const Color& color)
 {
 	vec3 dimensions = box.dimensions();
 	float halfWidth = dimensions.x * 0.5f;
@@ -322,11 +322,11 @@ void UISystem::renderRectangle(const Transform& transform, const Box& box, const
 		m_screenSystem.heightToAltPixels(dimensions.x),
 		m_screenSystem.heightToAltPixels(dimensions.y),
 		0.0f, // cornerRadius
-		colour);
+		color);
 }
 
 void UISystem::renderButton(const String& text, const Transform& transform, const Box& box,
-	const Colour& colour, const Colour& textColour)
+	const Color& color, const Color& textColor)
 {
 	vec3 dimensions = box.dimensions();
 	float halfWidth = dimensions.x * 0.5f;
@@ -340,12 +340,12 @@ void UISystem::renderButton(const String& text, const Transform& transform, cons
 		m_screenSystem.heightToAltPixels(dimensions.x),
 		m_screenSystem.heightToAltPixels(dimensions.y),
 		m_screenSystem.heightToAltPixels(virxels(2.0f)), // cornerRadius
-		colour,
-		textColour);
+		color,
+		textColor);
 }
 
 void UISystem::renderRectangleNano(NVGcontext* vg, float x, float y, float w, float h,
-	float cornerRadius, const Colour& colour)
+	float cornerRadius, const Color& color)
 {
 	NVGpaint shadowPaint;
 	NVGpaint headerPaint;
@@ -357,8 +357,8 @@ void UISystem::renderRectangleNano(NVGcontext* vg, float x, float y, float w, fl
 	nvgSave(vg);
 
 	headerPaint = nvgLinearGradient(vg, x, y, x, y + 15,
-		nvgRGBAf(colour.r, colour.g, colour.b, colour.a),
-		nvgRGBAf(colour.r, colour.g, colour.b, colour.a));
+		nvgRGBAf(color.r, color.g, color.b, color.a),
+		nvgRGBAf(color.r, color.g, color.b, color.a));
 
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
@@ -379,7 +379,7 @@ void UISystem::renderRectangleNano(NVGcontext* vg, float x, float y, float w, fl
 }
 
 void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, float y, float w, float h,
-							float cornerRadius, const Colour& colour)
+							float cornerRadius, const Color& color)
 {
 	//float cornerRadius = 30.0f;
 	NVGpaint shadowPaint;
@@ -402,8 +402,8 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 	// Window
 
 	headerPaint = nvgLinearGradient(vg, x,y,x,y+15,
-		nvgRGBAf(colour.r + 0.5f, colour.g + 0.5f, colour.b + 0.5f, colour.a - 0.3f),
-		nvgRGBAf(colour.r, colour.g, colour.b, colour.a));
+		nvgRGBAf(color.r + 0.5f, color.g + 0.5f, color.b + 0.5f, color.a - 0.3f),
+		nvgRGBAf(color.r, color.g, color.b, color.a));
 
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
@@ -463,7 +463,7 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 }
 
 void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, float y, float w, float h,
-							float cornerRadius, const Colour& colour, const Colour& textColour)
+							float cornerRadius, const Color& color, const Color& textColor)
 {
 	NVGpaint shadowPaint;
 	NVGpaint headerPaint;
@@ -475,8 +475,8 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, flo
 	nvgSave(vg);
 
 	headerPaint = nvgLinearGradient(vg, x, y, x, y + 15,
-		nvgRGBAf(colour.r, colour.g, colour.b, colour.a),
-		nvgRGBAf(colour.r, colour.g, colour.b, colour.a));
+		nvgRGBAf(color.r, color.g, color.b, color.a),
+		nvgRGBAf(color.r, color.g, color.b, color.a));
 
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
@@ -511,7 +511,7 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, flo
 
 	// Actual text
 	nvgFontBlur(vg,0);
-	nvgFillColor(vg, nvgRGBAf(textColour.r, textColour.g, textColour.b, textColour.a));
+	nvgFillColor(vg, nvgRGBAf(textColor.r, textColor.g, textColor.b, textColor.a));
 	nvgText(vg, x + w / 2, y + 16, text.c_str(), nullptr);
 
 	nvgRestore(vg);
@@ -649,14 +649,14 @@ const Button& UISystem::getButton(Id id)
 	return m_buttons.get(id);
 }
 
-void UISystem::addColour(Id id, Colour&& element)
+void UISystem::addColor(Id id, Color&& element)
 {
-	m_colours.assign(id, std::move(element));
+	m_colors.assign(id, std::move(element));
 }
 
-const Colour& UISystem::getColour(Id id)
+const Color& UISystem::getColor(Id id)
 {
-	return m_colours.get(id);
+	return m_colors.get(id);
 }
 
 void UISystem::addCommand(Id id, Command&& element)

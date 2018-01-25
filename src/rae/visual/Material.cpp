@@ -33,7 +33,7 @@ bool Lambertian::scatter(const Ray& r_in, const HitRecord& record, vec3& attenua
 {
 	vec3 target = record.point + record.normal + randomInUnitSphere();
 	scattered = Ray(record.point, target - record.point);
-	attenuation = albedo;
+	attenuation = Color3(m_color);
 	return true;
 }
 
@@ -46,7 +46,7 @@ bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation,
 {
 	vec3 reflected = reflect( glm::normalize(r_in.direction()), record.normal );
 	scattered = Ray(record.point, reflected + roughness * randomInUnitSphere());
-	attenuation = albedo;
+	attenuation = Color3(m_color);
 	return (glm::dot(scattered.direction(), record.normal) > 0);
 }
 
@@ -82,19 +82,19 @@ bool Dielectric::scatter(const Ray& r_in, const HitRecord& record, vec3& attenua
 	if (glm::dot(r_in.direction(), record.normal) > 0)
 	{
 		outward_normal = -record.normal;
-		ni_over_nt = refractive_index;
-		cosine = refractive_index * glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
+		ni_over_nt = refractiveIndex;
+		cosine = refractiveIndex * glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
 	}
 	else
 	{
 		outward_normal = record.normal;
-		ni_over_nt = 1.0f / refractive_index;
+		ni_over_nt = 1.0f / refractiveIndex;
 		cosine = -glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
 	}
 
 	if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))
 	{
-		reflect_probability = schlick(cosine, refractive_index);
+		reflect_probability = schlick(cosine, refractiveIndex);
 	}
 	else
 	{
@@ -177,7 +177,7 @@ GLuint Material::textureID() const
 	return m_framebufferObject->texture;
 }
 
-void Material::setColor(Colour set)
+void Material::setColor(Color set)
 {
 	m_color = set;
 }

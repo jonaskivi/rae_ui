@@ -23,8 +23,8 @@ public:
 	UpdateStatus update() override;
 
 	Id createMesh(const String& filename);
-	Id createMaterial(const Colour& color);
-	Id createAnimatingMaterial(const Colour& color);
+	Id createMaterial(const Color& color);
+	Id createAnimatingMaterial(const Color& color);
 
 	void addMesh(Id id, Mesh&& comp);
 	const Mesh& getMesh(Id id) const;

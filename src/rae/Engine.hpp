@@ -38,8 +38,8 @@ public:
 	Id createAddObjectButton();
 	Id createRandomBunnyEntity();
 	Id createRandomCubeEntity();
-	Id createCube(const vec3& position, const Colour& color);
-	Id createBunny(const vec3& position, const Colour& color);
+	Id createCube(const vec3& position, const Color& color);
+	Id createBunny(const vec3& position, const Color& color);
 
 	void createTestWorld();
 	void createTestWorld2();

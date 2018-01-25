@@ -15,7 +15,8 @@ namespace rae
 using Id = int;
 const Id InvalidId = 0;
 
-using Colour = glm::vec4;
+using Color = glm::vec4;
+using Color3 = glm::vec3;
 
 using vec2 = glm::vec2;
 using vec3 = glm::vec3;

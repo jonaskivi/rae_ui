@@ -18,17 +18,20 @@ Engine::Engine(GLFWwindow* set_window) :
 	m_window(set_window),
 	m_input(m_screenSystem),
 	m_transformSystem(m_time),
+	m_assetSystem(m_time, m_entitySystem),
 	m_cameraSystem(m_time, m_entitySystem, m_transformSystem, m_input),
 	m_rayTracer(m_time, m_cameraSystem),
 	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem),
 	m_renderSystem(m_time, m_entitySystem, m_window, m_input, m_screenSystem,
-		m_transformSystem, m_cameraSystem, m_selectionSystem, m_uiSystem, m_rayTracer)
+		m_transformSystem, m_cameraSystem, m_assetSystem,
+		m_selectionSystem, m_uiSystem, m_rayTracer)
 {
 	m_time.initTime(glfwGetTime());
 
 	addSystem(m_input);
 	addSystem(m_transformSystem);
 	addSystem(m_cameraSystem);
+	addSystem(m_assetSystem);
 	addSystem(m_selectionSystem);
 	addSystem(m_uiSystem);
 	addSystem(m_rayTracer);
@@ -39,13 +42,13 @@ Engine::Engine(GLFWwindow* set_window) :
 	rae_log("Create empty hack entity at 0: ", emptyEntityId);
 
 	// Load model
-	Id meshID = m_renderSystem.createMesh("./data/models/bunny.obj");
+	Id meshID = m_assetSystem.createMesh("./data/models/bunny.obj");
 	m_modelID = meshID;
 
 	m_meshID			= m_renderSystem.createBox();
-	m_materialID		= m_renderSystem.createMaterial(Colour(0.2f, 0.5f, 0.7f, 0.0f));
-	m_bunnyMaterialID	= m_renderSystem.createMaterial(Colour(0.7f, 0.3f, 0.1f, 0.0f));
-	m_buttonMaterialID	= m_renderSystem.createAnimatingMaterial(Colour(0.0f, 0.0f, 0.1f, 0.0f));
+	m_materialID		= m_assetSystem.createMaterial(Colour(0.2f, 0.5f, 0.7f, 0.0f));
+	m_bunnyMaterialID	= m_assetSystem.createMaterial(Colour(0.7f, 0.3f, 0.1f, 0.0f));
+	m_buttonMaterialID	= m_assetSystem.createAnimatingMaterial(Colour(0.0f, 0.0f, 0.1f, 0.0f));
 
 	createTestWorld2();
 
@@ -200,7 +203,7 @@ Id Engine::createCube(const vec3& position, const Colour& color)
 	//m_geometrySystem.setMesh(entity, m_meshID);
 	//m_materialSystem.setMaterial(entity, color);
 
-	m_renderSystem.addMaterial(id, Material(color));
+	m_assetSystem.addMaterial(id, Material(color));
 	m_renderSystem.addMeshLink(id, m_meshID);
 
 	return id;

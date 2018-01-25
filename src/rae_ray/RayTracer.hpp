@@ -48,7 +48,7 @@ public:
 	void renderSamples();
 	void updateImageBuffer();
 	void renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h);
-	void setNanovgContext(NVGcontext* setVg);
+	void setNanoVG(NVGcontext* nanoVG);
 
 	void autoFocus();
 
@@ -108,7 +108,7 @@ protected:
 	HitableList m_world;
 	BvhNode m_tree;
 
-	NVGcontext* m_vg = nullptr;
+	NVGcontext* m_nanoVG = nullptr;
 	NVGpaint m_imgPaint;
 
 	bool m_renderThreadActive = true;

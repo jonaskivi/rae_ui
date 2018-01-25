@@ -210,14 +210,14 @@ void RayTracer::clear()
 	m_startTime = -1.0f;
 }
 
-void RayTracer::setNanovgContext(NVGcontext* setVg)
+void RayTracer::setNanoVG(NVGcontext* nanoVG)
 {
-	assert(setVg != NULL);
+	assert(nanoVG != nullptr);
 
-	m_vg = setVg;
+	m_nanoVG = nanoVG;
 
-	m_smallBuffer.createImage(m_vg);
-	m_bigBuffer.createImage(m_vg);
+	m_smallBuffer.createImage(m_nanoVG);
+	m_bigBuffer.createImage(m_nanoVG);
 }
 
 std::string toString(const HitRecord& record)
@@ -485,7 +485,7 @@ void RayTracer::writeToPng(String filename)
 void RayTracer::updateImageBuffer()
 {
 	std::lock_guard<std::mutex> lock(m_bufferMutex);
-	m_buffer->update8BitImageBuffer(m_vg);
+	m_buffer->update8BitImageBuffer(m_nanoVG);
 }
 
 void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)

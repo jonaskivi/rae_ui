@@ -1,5 +1,8 @@
 #pragma once
 
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+
 //ASSIMP
 #include "assimp/Importer.hpp"	//OO version Header!
 #include "assimp/postprocess.h"

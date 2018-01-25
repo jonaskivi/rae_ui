@@ -28,6 +28,7 @@ namespace rae
 
 #include "rae/entity/EntitySystem.hpp"
 #include "rae/core/ScreenSystem.hpp"
+#include "rae/asset/AssetSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/editor/SelectionSystem.hpp"
 
@@ -68,6 +69,7 @@ RenderSystem::RenderSystem(
 	ScreenSystem& screenSystem,
 	TransformSystem& transformSystem,
 	CameraSystem& cameraSystem,
+	AssetSystem& assetSystem,
 	SelectionSystem& selectionSystem,
 	UISystem& uiSystem,
 	RayTracer& rayTracer) :
@@ -76,20 +78,14 @@ RenderSystem::RenderSystem(
 		m_window(setWindow),
 		m_input(input),
 		m_screenSystem(screenSystem),
-		m_nroFrames(0),
-		m_fpsTimer(0.0),
-		m_fpsString("fps:"),
-		//m_pickedString("Nothing picked"),
-		vg(nullptr),
 		m_transformSystem(transformSystem),
 		m_cameraSystem(cameraSystem),
+		m_assetSystem(assetSystem),
 		m_selectionSystem(selectionSystem),
 		m_uiSystem(uiSystem),
 		m_rayTracer(rayTracer)
 {
-	addTable(m_meshes);
 	addTable(m_meshLinks);
-	addTable(m_materials);
 	addTable(m_materialLinks);
 
 	debugTransform = new Transform(vec3(0,0,0));
@@ -108,10 +104,10 @@ RenderSystem::~RenderSystem()
 
 void RenderSystem::initNanoVG()
 {
-	vg = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-	if (vg == nullptr)
+	m_nanoVG = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+	if (m_nanoVG == nullptr)
 	{
-		cout << "Could not init nanovg.\n";
+		rae_log("Could not init nanovg.");
 		getchar();
 		exit(0);
 		assert(0);
@@ -128,18 +124,19 @@ void RenderSystem::initNanoVG()
 	m_screenSystem.osEventResizeWindow(windowWidth, windowHeight);
 	m_screenSystem.osEventResizeWindowPixels(windowPixelWidth, windowPixelHeight);
 
-	if (loadFonts(vg) == -1)
+	if (loadFonts(m_nanoVG) == -1)
 	{
-		std::cout << "Could not load fonts\n";
+		rae_log("Could not load fonts");
 		getchar();
 		exit(0);
 		assert(0);
 	}
 
-	m_rayTracer.setNanovgContext(vg);
+	m_rayTracer.setNanoVG(m_nanoVG);
+	m_assetSystem.setNanoVG(m_nanoVG);
 
-	//m_backgroundImage.load(vg, "/Users/joonaz/Documents/jonas/opencv-3.2.0/samples/data/basketball1.png");
-	//m_backgroundImage.load(vg, "/Users/joonaz/Dropbox/taustakuvat/apple_galaxy.jpg");
+	//m_backgroundImage.load(m_nanoVG, "/Users/joonaz/Documents/jonas/opencv-3.2.0/samples/data/basketball1.png");
+	//m_backgroundImage.load(m_nanoVG, "/Users/joonaz/Dropbox/taustakuvat/apple_galaxy.jpg");
 }
 
 void RenderSystem::init()
@@ -181,11 +178,11 @@ Id RenderSystem::createBox()
 	Id id = m_entitySystem.createEntity();
 	//rae_log("createBox entity: ", id);
 	Mesh mesh;
-	addMesh(id, std::move(mesh));
+	m_assetSystem.addMesh(id, std::move(mesh));
 
 	// Got into nasty crashes when I first created the VBOs and then moved the mesh to the table.
 	// Apparently you can't do that. Must first move mesh into table, and only create VBOs at the final memory pointers.
-	Mesh& mesh2 = getMesh(id);
+	Mesh& mesh2 = m_assetSystem.getMesh(id);
 	mesh2.generateBox();
 	mesh2.createVBOs();
 	return id;
@@ -196,85 +193,17 @@ Id RenderSystem::createSphere()
 	Id id = m_entitySystem.createEntity();
 	//rae_log("createSphere entity: ", id);
 	Mesh mesh;
-	addMesh(id, std::move(mesh));
+	m_assetSystem.addMesh(id, std::move(mesh));
 
-	Mesh& mesh2 = getMesh(id);
+	Mesh& mesh2 = m_assetSystem.getMesh(id);
 	mesh2.generateSphere();
 	mesh2.createVBOs();
 	return id;
 }
 
-Id RenderSystem::createMesh(const String& filename)
-{
-	Id id = m_entitySystem.createEntity();
-	//rae_log("createMesh entity: ", id);
-	Mesh mesh;
-	addMesh(id, std::move(mesh));
-
-	Mesh& mesh2 = getMesh(id);
-	mesh2.loadModel(filename);
-	return id;
-}
-
-Id RenderSystem::createMaterial(const Colour& color)
-{
-	Id id = m_entitySystem.createEntity();
-	//rae_log("createMaterial entity: ", id);
-	Material material(color);
-	addMaterial(id, std::move(material));
-
-	Material& material2 = getMaterial(id);
-	material2.generateFBO(vg);
-	return id;
-}
-
-Id RenderSystem::createAnimatingMaterial(const Colour& color)
-{
-	Id id = m_entitySystem.createEntity();
-	//rae_log("createAnimatingMaterial entity: ", id);
-	Material material(color);
-	addMaterial(id, std::move(material));
-
-	Material& material2 = getMaterial(id);
-	material2.animate(true);
-	material2.generateFBO(vg);
-	return id;
-}
-
-void RenderSystem::addMesh(Id id, Mesh&& comp)
-{
-	//rae_log("addMesh to entity: ", id);
-	m_meshes.assign(id, std::move(comp));
-}
-
-const Mesh& RenderSystem::getMesh(Id id) const
-{
-	return m_meshes.get(id);
-}
-
-Mesh& RenderSystem::getMesh(Id id)
-{
-	return m_meshes.get(id);
-}
-
 void RenderSystem::addMeshLink(Id id, Id linkId)
 {
 	m_meshLinks.assign(id, std::move(linkId));
-}
-
-void RenderSystem::addMaterial(Id id, Material&& comp)
-{
-	m_materials.assign(id, std::move(comp));
-}
-
-const Material& RenderSystem::getMaterial(Id id) const
-{
-	return m_materials.get(id);
-}
-
-Material& RenderSystem::getMaterial(Id id)
-{
-	return m_materials.get(id);
 }
 
 void RenderSystem::addMaterialLink(Id id, Id linkId)
@@ -325,20 +254,14 @@ UpdateStatus RenderSystem::update()
 		m_fpsTimer = 0.0;
 	}
 
-	// RAE_TODO move to material system
-	for (auto&& material : m_materials.items())
-	{
-		material.update(vg, m_time.time());
-	}
-
 	// RAE_TODO TEMP:
-	m_backgroundImage.update(vg);
+	m_backgroundImage.update(m_nanoVG);
 
 	render();
 
 	if (m_uiSystem.isEnabled())
 	{
-		m_uiSystem.render(vg);
+		m_uiSystem.render(m_nanoVG);
 	}
 	// RAE_TODO TEMP RAYTRACER render2d();
 
@@ -371,15 +294,15 @@ void RenderSystem::render()
 		Material* material = nullptr;
 		Mesh* mesh = nullptr;
 
-		if (m_meshes.check(id))
-			mesh = &getMesh(id);
+		if (m_assetSystem.isMesh(id))
+			mesh = &m_assetSystem.getMesh(id);
 		else if (m_meshLinks.check(id))
-			mesh = &getMesh(m_meshLinks.get(id));
+			mesh = &m_assetSystem.getMesh(m_meshLinks.get(id));
 
-		if (m_materials.check(id))
-			material = &getMaterial(id);
+		if (m_assetSystem.isMaterial(id))
+			material = &m_assetSystem.getMaterial(id);
 		else if (m_materialLinks.check(id))
-			material = &getMaterial(m_materialLinks.get(id));
+			material = &m_assetSystem.getMaterial(m_materialLinks.get(id));
 
 		if (m_transformSystem.hasTransform(id) &&
 			mesh &&
@@ -426,10 +349,10 @@ void RenderSystem::renderPicking()
 	{
 		Mesh* mesh = nullptr;
 		
-		if (m_meshes.check(id))
-			mesh = &getMesh(id);
+		if (m_assetSystem.isMesh(id))
+			mesh = &m_assetSystem.getMesh(id);
 		else if (m_meshLinks.check(id))
-			mesh = &getMesh(m_meshLinks.get(id));
+			mesh = &m_assetSystem.getMesh(m_meshLinks.get(id));
 
 		if (m_transformSystem.hasTransform(id) &&
 			mesh)
@@ -513,16 +436,16 @@ void RenderSystem::render2dBackground()
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	nvgBeginFrame(vg, window.width(), window.height(), window.screenPixelRatio());
+	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
 
 	// RAE_TODO RAYTRACER:
-	//m_rayTracer.renderNanoVG(vg, 0.0f, 0.0f, (float)window.width(), (float)window.height());
-	//renderImageBuffer(vg, m_backgroundImage, 0.0f, 0.0f, (float)window.width(), (float)window.height());
+	//m_rayTracer.renderNanoVG(m_nanoVG, 0.0f, 0.0f, (float)window.width(), (float)window.height());
+	//renderImageBuffer(m_nanoVG, m_backgroundImage, 0.0f, 0.0f, (float)window.width(), (float)window.height());
 
 	Box rayWindow(
 		vec3(0.0f, 0.0f, 0.0f),
 		vec3(float(window.width()), float(window.height()), 0.0f));
-	m_rayTracer.renderNanoVG(vg,
+	m_rayTracer.renderNanoVG(m_nanoVG,
 		rayWindow.min().x, rayWindow.min().y,
 		rayWindow.dimensions().x, rayWindow.dimensions().y);
 	/*
@@ -530,11 +453,11 @@ void RenderSystem::render2dBackground()
 	Box imageWindow(
 		vec3(float(window.width()) * 0.5f, float(window.height()) * 0.5f, 0.0f),
 		vec3((float(window.width()) * 0.5f) * 2.0f, (float(window.height()) * 0.5f) * 2.0f, 0.0f));
-	renderImageBuffer(vg, m_backgroundImage,
+	renderImageBuffer(m_nanoVG, m_backgroundImage,
 		imageWindow.min().x, imageWindow.min().y,
 		imageWindow.dimensions().x, imageWindow.dimensions().y);
 	*/
-	nvgEndFrame(vg);
+	nvgEndFrame(m_nanoVG);
 }
 
 void RenderSystem::renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
@@ -561,36 +484,36 @@ void RenderSystem::render2d()
 
 	if (m_rayTracer.isInfoText())
 	{
-		nvgBeginFrame(vg, window.width(), window.height(), window.screenPixelRatio());
-			nvgFontFace(vg, "sans");
+		nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
+			nvgFontFace(m_nanoVG, "sans");
 
 			float vertPos = 10.0f;
 
-			nvgFontSize(vg, 18.0f);
-			nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-			nvgFillColor(vg, nvgRGBA(128, 128, 128, 192));
-			nvgText(vg, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
+			nvgFontSize(m_nanoVG, 18.0f);
+			nvgTextAlign(m_nanoVG, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+			nvgFillColor(m_nanoVG, nvgRGBA(128, 128, 128, 192));
+			nvgText(m_nanoVG, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
 
-			nvgText(vg, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
+			nvgText(m_nanoVG, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
 				" NM aperture, KL bounces, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
-			nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
-			nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
+			nvgText(m_nanoVG, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
+			nvgText(m_nanoVG, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 
 			std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
-			nvgText(vg, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
+			nvgText(m_nanoVG, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 			std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
-			nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
+			nvgText(m_nanoVG, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string mesh_count_str = "Meshes: " + std::to_string(meshCount());
-			nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
+			std::string mesh_count_str = "Meshes: " + std::to_string(m_assetSystem.meshCount());
+			nvgText(m_nanoVG, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string material_count_str = "Materials: " + std::to_string(materialCount());
-			nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
+			std::string material_count_str = "Materials: " + std::to_string(m_assetSystem.materialCount());
+			nvgText(m_nanoVG, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			//nvgText(vg, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
+			//nvgText(m_nanoVG, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
 
-		nvgEndFrame(vg);
+		nvgEndFrame(m_nanoVG);
 	}
 }
 

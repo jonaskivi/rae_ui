@@ -29,6 +29,7 @@ class EntitySystem;
 class ScreenSystem;
 class TransformSystem;
 class CameraSystem;
+class AssetSystem;
 class SelectionSystem;
 struct Transform;
 class Material;
@@ -47,6 +48,7 @@ public:
 		ScreenSystem& screenSystem,
 		TransformSystem& transformSystem,
 		CameraSystem& cameraSystem,
+		AssetSystem& assetSystem,
 		SelectionSystem& selectionSystem,
 		UISystem& uiSystem,
 		RayTracer& rayTracer);
@@ -61,9 +63,6 @@ public:
 
 	Id createBox();
 	Id createSphere();
-	Id createMesh(const String& filename);
-	Id createMaterial(const Colour& color);
-	Id createAnimatingMaterial(const Colour& color);
 
 	UpdateStatus update() override;
 	void render();
@@ -86,18 +85,8 @@ public:
 		m_glRendererOn = !m_glRendererOn;
 	}
 
-	void addMesh(Id id, Mesh&& comp);
-	const Mesh& getMesh(Id id) const;
-	Mesh& getMesh(Id id);
 	void addMeshLink(Id id, Id linkId);
-
-	void addMaterial(Id id, Material&& comp);
-	const Material& getMaterial(Id id) const;
-	Material& getMaterial(Id id);
 	void addMaterialLink(Id id, Id linkId);
-
-	int meshCount() { return m_meshes.size(); }
-	int materialCount() { return m_materials.size(); }
 
 	String fpsString() { return m_fpsString; }
 
@@ -126,8 +115,7 @@ protected:
 protected:
 	GLFWwindow* m_window;
 
-	// nanovg context
-	NVGcontext* vg;
+	NVGcontext* m_nanoVG = nullptr;
 	
 	// dependencies
 	const Time&			m_time;
@@ -137,6 +125,7 @@ protected:
 	ScreenSystem&		m_screenSystem;
 	TransformSystem&	m_transformSystem;
 	CameraSystem&		m_cameraSystem;
+	AssetSystem&		m_assetSystem;
 	SelectionSystem&	m_selectionSystem;
 	RayTracer&			m_rayTracer;
 
@@ -151,9 +140,7 @@ protected:
 
 	ImageBuffer			m_backgroundImage;
 
-	Table<Mesh>			m_meshes;
 	Table<Id>			m_meshLinks;
-	Table<Material>		m_materials;
 	Table<Id>			m_materialLinks;
 };
 

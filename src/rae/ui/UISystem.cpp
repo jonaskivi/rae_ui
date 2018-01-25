@@ -297,11 +297,11 @@ void UISystem::render(NVGcontext* vg)
 		std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
 		nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-		std::string mesh_count_str = "Meshes: " + std::to_string(m_renderSystem.meshCount());
-		nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
+		//std::string mesh_count_str = "Meshes: " + std::to_string(m_assetSystem.meshCount());
+		//nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-		std::string material_count_str = "Materials: " + std::to_string(m_renderSystem.materialCount());
-		nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
+		//std::string material_count_str = "Materials: " + std::to_string(m_assetSystem.materialCount());
+		//nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 		//nvgText(vg, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
 

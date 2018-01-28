@@ -38,8 +38,8 @@ public:
 	GLuint textureId() const;
 
 	void setColor(Color set);
-	const Color& color() { return m_color; }
-	Color3 color3() { return Color3(m_color); }
+	const Color& color() const { return m_color; }
+	Color3 color3() const { return Color3(m_color); }
 
 	void animate(bool set) { m_animate = set; }
 

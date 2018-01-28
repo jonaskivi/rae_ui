@@ -10,9 +10,13 @@ struct Selected
 {
 };
 
+class TransformSystem;
+
 class SelectionSystem : public ISystem
 {
 public:
+	SelectionSystem(TransformSystem& transformSystem);
+
 	void clearSelection();
 	void setSelection(const Array<Id>& ids);
 
@@ -20,9 +24,14 @@ public:
 	void setSelected(Id id, bool selected);
 	bool isSelected(Id id) const;
 
-	Event<> onSelectionChanged;
+	Event<SelectionSystem&> onSelectionChanged;
+
+	// The average position of all selected entities
+	vec3 selectionPosition() const;
 
 protected:
+	TransformSystem& m_transformSystem;
+
 	void clearSelectionInternal();
 
 	Table<Selected> m_selected;

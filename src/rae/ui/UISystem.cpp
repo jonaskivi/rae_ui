@@ -183,14 +183,14 @@ void UISystem::hover()
 	}
 }
 
-void UISystem::render(NVGcontext* vg)
+void UISystem::render2D(NVGcontext* nanoVG)
 {
 	const auto& window = m_screenSystem.window();
 	int windowWidth = window.width();
 	int windowHeight = window.height();
 	float screenPixelRatio = window.screenPixelRatio();
 
-	m_vg = vg;
+	m_nanoVG = nanoVG;
 
 	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
 	const Color& buttonHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Hover];
@@ -207,7 +207,7 @@ void UISystem::render(NVGcontext* vg)
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	nvgBeginFrame(vg, windowWidth, windowHeight, screenPixelRatio);
+	nvgBeginFrame(nanoVG, windowWidth, windowHeight, screenPixelRatio);
 
 		int i = 0;
 		for (Id id : m_entitySystem.entities())
@@ -276,36 +276,36 @@ void UISystem::render(NVGcontext* vg)
 
 		}
 
-		nvgFontFace(vg, "sans");
-		//nvgFontFace(vg, "logo");
+		nvgFontFace(nanoVG, "sans");
+		//nvgFontFace(nanoVG, "logo");
 
 		float vertPos = 10.0f;
 
-		nvgFontSize(vg, 18.0f);
-		nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-		nvgFillColor(vg, nvgRGBA(128, 128, 128, 192));
-		nvgText(vg, 10.0f, vertPos, m_renderSystem.fpsString().c_str(), nullptr); vertPos += 20.0f;
+		nvgFontSize(nanoVG, 18.0f);
+		nvgTextAlign(nanoVG, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+		nvgFillColor(nanoVG, nvgRGBA(128, 128, 128, 192));
+		nvgText(nanoVG, 10.0f, vertPos, m_renderSystem.fpsString().c_str(), nullptr); vertPos += 20.0f;
 
-		nvgText(vg, 10.0f, vertPos, "HELLO WORLD. Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
+		nvgText(nanoVG, 10.0f, vertPos, "HELLO WORLD. Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
 			" NM aperture, KL bounces, G debug view, Tab UI, U fastmode", nullptr); vertPos += 20.0f;
-		nvgText(vg, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
-		nvgText(vg, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
+		nvgText(nanoVG, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
+		nvgText(nanoVG, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 
 		std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
-		nvgText(vg, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
+		nvgText(nanoVG, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 		std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
-		nvgText(vg, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
+		nvgText(nanoVG, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 		//std::string mesh_count_str = "Meshes: " + std::to_string(m_assetSystem.meshCount());
-		//nvgText(vg, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
+		//nvgText(nanoVG, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
 
 		//std::string material_count_str = "Materials: " + std::to_string(m_assetSystem.materialCount());
-		//nvgText(vg, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
+		//nvgText(nanoVG, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-		//nvgText(vg, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
+		//nvgText(nanoVG, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
 
-	nvgEndFrame(vg);
+	nvgEndFrame(nanoVG);
 }
 
 void UISystem::renderRectangle(const Transform& transform, const Box& box, const Color& color)
@@ -316,7 +316,7 @@ void UISystem::renderRectangle(const Transform& transform, const Box& box, const
 
 	const auto& window = m_screenSystem.window();
 
-	renderRectangleNano(m_vg,
+	renderRectangleNano(m_nanoVG,
 		m_screenSystem.heightToAltPixels(transform.position.x - halfWidth) + (window.width() * 0.5f),
 		m_screenSystem.heightToAltPixels(transform.position.y - halfHeight) + (window.height() * 0.5f),
 		m_screenSystem.heightToAltPixels(dimensions.x),
@@ -334,7 +334,7 @@ void UISystem::renderButton(const String& text, const Transform& transform, cons
 
 	const auto& window = m_screenSystem.window();
 
-	renderButtonNano(m_vg, text,
+	renderButtonNano(m_nanoVG, text,
 		m_screenSystem.heightToAltPixels(transform.position.x - halfWidth) + (window.width() * 0.5f),
 		m_screenSystem.heightToAltPixels(transform.position.y - halfHeight) + (window.height() * 0.5f),
 		m_screenSystem.heightToAltPixels(dimensions.x),

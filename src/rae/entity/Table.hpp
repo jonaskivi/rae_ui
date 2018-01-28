@@ -25,6 +25,12 @@ template <typename Comp>
 void query(Table<Comp>& table, std::function<void(Id, Comp&)> process);
 
 template <typename Comp>
+void query(Table<Comp>& table, std::function<void(Id)> process);
+
+template <typename Comp>
+void query(const Table<Comp>& table, std::function<void(Id)> process);
+
+template <typename Comp>
 class Table : public ITable
 {
 public:
@@ -144,6 +150,8 @@ public:
 	const Array<Comp>& items() const { return m_items; }
 	Array<Comp>& items() { return m_items; }
 
+	int count() const { return m_items.size(); }
+
 	// Check for existance of the component for the given Id
 	bool check(Id id) const
 	{
@@ -212,6 +220,8 @@ public:
 	}
 
 	friend void query<Comp>(Table<Comp>& table, std::function<void(Id, Comp&)> process);
+	friend void query<Comp>(Table<Comp>& table, std::function<void(Id)> process);
+	friend void query<Comp>(const Table<Comp>& table, std::function<void(Id)> process);
 
 protected:
 
@@ -231,6 +241,30 @@ void query(Table<Comp>& table, std::function<void(Id, Comp&)> process)
 		if (table.m_idMap[i] != InvalidIndex)
 		{
 			process((Id)i, table.getF((Id)i));
+		}
+	}
+}
+
+template <typename Comp>
+void query(Table<Comp>& table, std::function<void(Id)> process)
+{
+	for (int i = 0; i < (int)table.m_idMap.size(); ++i)
+	{
+		if (table.m_idMap[i] != InvalidIndex)
+		{
+			process((Id)i);
+		}
+	}
+}
+
+template <typename Comp>
+void query(const Table<Comp>& table, std::function<void(Id)> process)
+{
+	for (int i = 0; i < (int)table.m_idMap.size(); ++i)
+	{
+		if (table.m_idMap[i] != InvalidIndex)
+		{
+			process((Id)i);
 		}
 	}
 }

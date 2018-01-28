@@ -68,7 +68,7 @@ protected:
 	GLuint m_indexBufferId	= 0;
 
 	Box m_aabb;
-	Material* m_material; // TODO make better, don't use pointer. Use component ID.
+	Material* m_material; // RAE_TODO make better, don't use pointer. Use component ID.
 };
 
 } // end namespace rae

@@ -11,7 +11,6 @@
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/visual/TransformSystem.hpp"
 #include "rae_ray/RayTracer.hpp"
-#include "rae/ui/UISystem.hpp"
 
 #include "rae/entity/Table.hpp"
 #include "rae/visual/Mesh.hpp"
@@ -37,6 +36,8 @@ class Mesh;
 struct Entity;
 class Input;
 
+using MeshLink = Id;
+
 class RenderSystem : public ISystem
 {
 public:
@@ -50,7 +51,6 @@ public:
 		CameraSystem& cameraSystem,
 		AssetSystem& assetSystem,
 		SelectionSystem& selectionSystem,
-		UISystem& uiSystem,
 		RayTracer& rayTracer);
 	~RenderSystem();
 
@@ -65,18 +65,36 @@ public:
 	Id createSphere();
 
 	UpdateStatus update() override;
-	void render();
+
+	void beginFrame3D();
+	void render3D() override;
+	void endFrame3D();
+
 	void renderPicking();
 	void render2dBackground();
-	void render2d();
+
+	void beginFrame2D();
+	void render2D(NVGcontext* nanoVG) override;
+	void endFrame2D();
 
 	// RAE_TODO TEMP:
 	void renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
 		float x, float y, float w, float h);
 	ImageBuffer& getBackgroundImage() { return m_backgroundImage; }
 
-	void renderMesh(const Transform& transform, const Material& material, const Mesh& mesh, bool isSelected);
-	void renderMeshPicking(const Transform& transform, const Mesh& mesh, Id id);
+	void renderMesh(
+		const Camera& camera,
+		const Transform& transform,
+		const Color& color,
+		const Material& material,
+		const Mesh& mesh,
+		bool isSelected);
+
+	void renderMeshPicking(
+		const Camera& camera,
+		const Transform& transform,
+		const Mesh& mesh,
+		Id id);
 
 	// Temp before we get keyboard Input class
 	void clearImageRenderer();
@@ -92,6 +110,8 @@ public:
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
+
+	NVGcontext* nanoVG() { return m_nanoVG; }
 
 protected:
 
@@ -121,7 +141,6 @@ protected:
 	const Time&			m_time;
 	EntitySystem&		m_entitySystem;
 	Input&				m_input;
-	UISystem&			m_uiSystem;
 	ScreenSystem&		m_screenSystem;
 	TransformSystem&	m_transformSystem;
 	CameraSystem&		m_cameraSystem;
@@ -140,7 +159,7 @@ protected:
 
 	ImageBuffer			m_backgroundImage;
 
-	Table<Id>			m_meshLinks;
+	Table<MeshLink>		m_meshLinks;
 	Table<Id>			m_materialLinks;
 };
 

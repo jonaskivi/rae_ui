@@ -98,7 +98,7 @@ public:
 	String name() override { return "UISystem"; }
 
 	UpdateStatus update() override;
-	void render(NVGcontext* vg);
+	virtual void render2D(NVGcontext* nanoVG) override;
 
 	void doLayout();
 	void hover();
@@ -164,7 +164,7 @@ private:
 	EntitySystem& m_entitySystem;
 	TransformSystem& m_transformSystem;
 	RenderSystem& m_renderSystem;
-	NVGcontext* m_vg;
+	NVGcontext* m_nanoVG;
 
 	Id m_infoButtonId;
 

@@ -4,6 +4,8 @@
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
 
+struct NVGcontext;
+
 namespace rae
 {
 
@@ -24,6 +26,8 @@ public:
 	virtual String name() { return "System name"; }
 
 	virtual UpdateStatus update() { return UpdateStatus::NotChanged; }
+	virtual void render3D() {};
+	virtual void render2D(NVGcontext* nanoVG) {};
 	virtual void onFrameEnd()
 	{
 		for (auto&& table : m_tables)
@@ -31,6 +35,7 @@ public:
 			table->onFrameEnd();
 		}
 	}
+
 	virtual void destroyEntities(const Array<Id>& entities)
 	{
 		for (auto&& table : m_tables)

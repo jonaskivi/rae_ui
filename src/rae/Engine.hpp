@@ -14,6 +14,7 @@
 #include "rae/editor/SelectionSystem.hpp"
 #include "rae/ui/UISystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
+#include "rae/editor/EditorSystem.hpp"
 #include "rae_ray/RayTracer.hpp"
 
 namespace rae
@@ -47,7 +48,9 @@ public:
 	void destroyEntity(Id id);
 	void defragmentTablesAsync();
 
-	void addSystem(ISystem& ownSystem);
+	void addSystem(ISystem& system);
+	void addRenderer3D(ISystem& system);
+	void addRenderer2D(ISystem& system);
 	RenderSystem& getRenderSystem() { return m_renderSystem; }
 	Input& getInput() { return m_input; }
 
@@ -78,6 +81,8 @@ protected:
 	EntitySystem m_entitySystem;
 
 	Array<ISystem*> m_systems;
+	Array<ISystem*> m_renderers3D;
+	Array<ISystem*> m_renderers2D;
 
 	TransformSystem		m_transformSystem;
 	CameraSystem		m_cameraSystem;
@@ -86,6 +91,7 @@ protected:
 	RayTracer			m_rayTracer;
 	UISystem			m_uiSystem;
 	RenderSystem		m_renderSystem;
+	EditorSystem		m_editorSystem;
 
 	Array<Id>			m_destroyEntities;
 	bool				m_defragmentTables = false;

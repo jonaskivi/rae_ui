@@ -71,7 +71,6 @@ RenderSystem::RenderSystem(
 	CameraSystem& cameraSystem,
 	AssetSystem& assetSystem,
 	SelectionSystem& selectionSystem,
-	UISystem& uiSystem,
 	RayTracer& rayTracer) :
 		m_time(time),
 		m_entitySystem(entitySystem),
@@ -82,7 +81,6 @@ RenderSystem::RenderSystem(
 		m_cameraSystem(cameraSystem),
 		m_assetSystem(assetSystem),
 		m_selectionSystem(selectionSystem),
-		m_uiSystem(uiSystem),
 		m_rayTracer(rayTracer)
 {
 	addTable(m_meshLinks);
@@ -241,35 +239,30 @@ UpdateStatus RenderSystem::update()
 		cout<<"RenderSystem::update().\n";
 	#endif
 
-	checkErrors(__FILE__, __LINE__);
-
-	m_nroFrames++;
-	m_fpsTimer += m_time.deltaTime();
-
-	if (m_fpsTimer >= 5.0)
-	{
-		m_fpsString = std::string("fps: ") + std::to_string(m_nroFrames / 5.0)
-			+ " / " + std::to_string(5000.0f / m_nroFrames) + " ms";
-		m_nroFrames = 0;
-		m_fpsTimer = 0.0;
-	}
-
 	// RAE_TODO TEMP:
 	m_backgroundImage.update(m_nanoVG);
-
-	render();
-
-	if (m_uiSystem.isEnabled())
-	{
-		m_uiSystem.render(m_nanoVG);
-	}
-	// RAE_TODO TEMP RAYTRACER render2d();
 
 	return UpdateStatus::NotChanged; // for now
 }
 
-void RenderSystem::render()
+void RenderSystem::beginFrame3D()
 {
+	checkErrors(__FILE__, __LINE__);
+
+	// Frame timing
+	{
+		m_nroFrames++;
+		m_fpsTimer += m_time.deltaTime();
+
+		if (m_fpsTimer >= 5.0)
+		{
+			m_fpsString = std::string("fps: ") + std::to_string(m_nroFrames / 5.0)
+				+ " / " + std::to_string(5000.0f / m_nroFrames) + " ms";
+			m_nroFrames = 0;
+			m_fpsTimer = 0.0;
+		}
+	}
+
 	const auto& window = m_screenSystem.window();
 
 	glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
@@ -277,7 +270,10 @@ void RenderSystem::render()
 	// Clear the screen
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
 
+void RenderSystem::render3D()
+{
 	render2dBackground();
 
 	if (m_glRendererOn == false)
@@ -285,19 +281,20 @@ void RenderSystem::render()
 
 	glUseProgram(shaderID);
 
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+
+	const Camera& camera = m_cameraSystem.getCurrentCamera();
+	const Color white(1.0f, 1.0f, 1.0f, 1.0f);
+
 	//debug
 	Mesh* debugMesh = nullptr;
 	Material* debugMaterial = nullptr;
 
-	for (Id id : m_entitySystem.entities())
+	query<MeshLink>(m_meshLinks, [&](Id id, MeshLink& meshLink)
 	{
 		Material* material = nullptr;
-		Mesh* mesh = nullptr;
-
-		if (m_assetSystem.isMesh(id))
-			mesh = &m_assetSystem.getMesh(id);
-		else if (m_meshLinks.check(id))
-			mesh = &m_assetSystem.getMesh(m_meshLinks.get(id));
+		Mesh& mesh = m_assetSystem.getMesh(m_meshLinks.get(id));
 
 		if (m_assetSystem.isMaterial(id))
 			material = &m_assetSystem.getMaterial(id);
@@ -305,7 +302,6 @@ void RenderSystem::render()
 			material = &m_assetSystem.getMaterial(m_materialLinks.get(id));
 
 		if (m_transformSystem.hasTransform(id) &&
-			mesh &&
 			material)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
@@ -318,9 +314,9 @@ void RenderSystem::render()
 				cout << "MeshLink is: " << m_meshLinks.get(id) << "\n";
 			#endif
 
-			renderMesh(transform, *material, *mesh, m_selectionSystem.isSelected(id));
+			renderMesh(camera, transform, white, *material, mesh, m_selectionSystem.isSelected(id));
 		}
-	}
+	});
 
 	/*
 	if (debugTransform && debugMesh && debugMaterial)
@@ -331,6 +327,10 @@ void RenderSystem::render()
 		renderMesh(debugTransform2, nullptr, debugMesh);
 	}
 	*/
+}
+
+void RenderSystem::endFrame3D()
+{
 }
 
 void RenderSystem::renderPicking()
@@ -345,39 +345,42 @@ void RenderSystem::renderPicking()
 
 	glUseProgram(pickingShaderID);
 
-	for (Id id : m_entitySystem.entities())
-	{
-		Mesh* mesh = nullptr;
-		
-		if (m_assetSystem.isMesh(id))
-			mesh = &m_assetSystem.getMesh(id);
-		else if (m_meshLinks.check(id))
-			mesh = &m_assetSystem.getMesh(m_meshLinks.get(id));
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 
-		if (m_transformSystem.hasTransform(id) &&
-			mesh)
+	const Camera& camera = m_cameraSystem.getCurrentCamera();
+
+	query<MeshLink>(m_meshLinks, [&](Id id, MeshLink& meshLink)
+	{
+		Mesh& mesh = m_assetSystem.getMesh(m_meshLinks.get(id));
+
+		if (m_transformSystem.hasTransform(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 
 			#ifdef RAE_DEBUG
-				cout << "Going to render Mesh. id: " << id << "\n";
+				rae_log("Going to render Mesh. id: ", id);
 			#endif
 
-			renderMeshPicking(transform, *mesh, id);
+			renderMeshPicking(camera, transform, mesh, id);
 		}
-	}
+	});
 }
 
-void RenderSystem::renderMesh(const Transform& transform, const Material& material, const Mesh& mesh, bool isSelected)
+void RenderSystem::renderMesh(
+	const Camera& camera,
+	const Transform& transform,
+	const Color& color,
+	const Material& material,
+	const Mesh& mesh,
+	bool isSelected)
 {
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
-	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
+	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+	mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
-	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	// The model-view-projection matrix
 	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
 
@@ -389,34 +392,50 @@ void RenderSystem::renderMesh(const Transform& transform, const Material& materi
 	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
 
 	if (isSelected)
+	{
 		glUniform3f(tempBlendColorUni, 0.0f, 2.0f, 2.0f);
-	else glUniform3f(tempBlendColorUni, 1.0f, 1.0f, 1.0f);
+	}
+	else
+	{
+		glUniform3f(tempBlendColorUni, color.x, color.y, color.z);
+	}
 
-	// Bind texture in Texture Unit 0
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, material.textureId());
-	// Set textureSampler to use Texture Unit 0
-	glUniform1i(textureUni, 0);
-	// RAE_TODO REMOVE else glBindTexture(GL_TEXTURE_2D, 0);
+	GLuint textureId = material.textureId();
+
+	if (textureId == 0)
+	{
+		// Bind texture in Texture Unit 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		// Set textureSampler to use Texture Unit 0
+		glUniform1i(textureUni, 0);
+	}
+	else
+	{
+		// Bind texture in Texture Unit 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		// Set textureSampler to use Texture Unit 0
+		glUniform1i(textureUni, 0);
+	}
 
 	#ifdef RAE_DEBUG
-	std::cout << "Going to renderMesh with shaderID: " << shaderID << "\n";
+	rae_log("Going to renderMesh with shaderID: ", shaderID);
 	#endif
 
 	mesh.render(shaderID);
 }
 
-void RenderSystem::renderMeshPicking(const Transform& transform, const Mesh& mesh, Id id)
+void RenderSystem::renderMeshPicking(
+	const Camera& camera,
+	const Transform& transform,
+	const Mesh& mesh,
+	Id id)
 {
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
 	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
 
-	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	// The model-view-projection matrix
 	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
 
@@ -474,47 +493,52 @@ void RenderSystem::renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
 	nvgRestore(vg);
 }
 
-void RenderSystem::render2d()
+void RenderSystem::beginFrame2D()
 {
-	//nanovg
-	
 	const auto& window = m_screenSystem.window();
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
+}
+
+void RenderSystem::render2D(NVGcontext* nanoVG)
+{
 	if (m_rayTracer.isInfoText())
 	{
-		nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
-			nvgFontFace(m_nanoVG, "sans");
+		nvgFontFace(m_nanoVG, "sans");
 
-			float vertPos = 10.0f;
+		float vertPos = 10.0f;
 
-			nvgFontSize(m_nanoVG, 18.0f);
-			nvgTextAlign(m_nanoVG, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-			nvgFillColor(m_nanoVG, nvgRGBA(128, 128, 128, 192));
-			nvgText(m_nanoVG, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
+		nvgFontSize(m_nanoVG, 18.0f);
+		nvgTextAlign(m_nanoVG, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+		nvgFillColor(m_nanoVG, nvgRGBA(128, 128, 128, 192));
+		nvgText(m_nanoVG, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
 
-			nvgText(m_nanoVG, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
-				" NM aperture, KL bounces, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
-			nvgText(m_nanoVG, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
-			nvgText(m_nanoVG, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
+		nvgText(m_nanoVG, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
+			" NM aperture, KL bounces, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
+		nvgText(m_nanoVG, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
+		nvgText(m_nanoVG, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
 
-			std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
-			nvgText(m_nanoVG, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
+		std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
+		nvgText(m_nanoVG, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
-			nvgText(m_nanoVG, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
+		std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
+		nvgText(m_nanoVG, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string mesh_count_str = "Meshes: " + std::to_string(m_assetSystem.meshCount());
-			nvgText(m_nanoVG, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
+		std::string mesh_count_str = "Meshes: " + std::to_string(m_assetSystem.meshCount());
+		nvgText(m_nanoVG, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			std::string material_count_str = "Materials: " + std::to_string(m_assetSystem.materialCount());
-			nvgText(m_nanoVG, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
+		std::string material_count_str = "Materials: " + std::to_string(m_assetSystem.materialCount());
+		nvgText(m_nanoVG, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
 
-			//nvgText(m_nanoVG, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
-
-		nvgEndFrame(m_nanoVG);
+		//nvgText(m_nanoVG, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
 	}
+}
+
+void RenderSystem::endFrame2D()
+{
+	nvgEndFrame(m_nanoVG);
 }
 
 void RenderSystem::clearImageRenderer()

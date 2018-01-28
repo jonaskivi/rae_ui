@@ -14,17 +14,19 @@ using namespace rae;
 //RAE_TODO: Split this into Engine & Viewport classes:
 // Engine just handles all the systems and their updates.
 // Viewport handles 3D picking etc... ?
-Engine::Engine(GLFWwindow* set_window) :
-	m_window(set_window),
+Engine::Engine(GLFWwindow* window) :
+	m_window(window),
 	m_input(m_screenSystem),
 	m_transformSystem(m_time),
 	m_assetSystem(m_time, m_entitySystem),
+	m_selectionSystem(m_transformSystem),
 	m_cameraSystem(m_time, m_entitySystem, m_transformSystem, m_input),
 	m_rayTracer(m_time, m_cameraSystem),
 	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem),
 	m_renderSystem(m_time, m_entitySystem, m_window, m_input, m_screenSystem,
 		m_transformSystem, m_cameraSystem, m_assetSystem,
-		m_selectionSystem, m_uiSystem, m_rayTracer)
+		m_selectionSystem, m_rayTracer),
+	m_editorSystem(m_cameraSystem, m_renderSystem, m_assetSystem, m_selectionSystem)
 {
 	m_time.initTime(glfwGetTime());
 
@@ -33,9 +35,15 @@ Engine::Engine(GLFWwindow* set_window) :
 	addSystem(m_cameraSystem);
 	addSystem(m_assetSystem);
 	addSystem(m_selectionSystem);
+	addSystem(m_editorSystem);
 	addSystem(m_uiSystem);
 	addSystem(m_rayTracer);
 	addSystem(m_renderSystem);
+
+	addRenderer3D(m_renderSystem);
+	addRenderer3D(m_editorSystem);
+	addRenderer2D(m_renderSystem); // RAE_TODO should probably refactor and remove. Just infotext, that should be in uiSystem anyway.
+	addRenderer2D(m_uiSystem);
 
 	// RAE_TODO need to get rid of OpenGL picking hack button at id 0.
 	Id emptyEntityId = m_entitySystem.createEntity(); // hack at index 0
@@ -67,9 +75,19 @@ void Engine::defragmentTablesAsync()
 	m_defragmentTables = true;
 }
 
-void Engine::addSystem(ISystem& ownSystem)
+void Engine::addSystem(ISystem& system)
 {
-	m_systems.push_back(&ownSystem);
+	m_systems.push_back(&system);
+}
+
+void Engine::addRenderer3D(ISystem& system)
+{
+	m_renderers3D.push_back(&system);
+}
+
+void Engine::addRenderer2D(ISystem& system)
+{
+	m_renderers2D.push_back(&system);
 }
 
 void Engine::run()
@@ -136,6 +154,26 @@ UpdateStatus Engine::update()
 			//rae_log(system->name(), " update: ", bool(updateStatus == UpdateStatus::Changed));
 		}
 	}
+
+	m_renderSystem.beginFrame3D();
+	for (auto system : m_renderers3D)
+	{
+		if (system->isEnabled())
+		{
+			system->render3D();
+		}
+	}
+	m_renderSystem.endFrame3D();
+
+	m_renderSystem.beginFrame2D();
+	for (auto system : m_renderers2D)
+	{
+		if (system->isEnabled())
+		{
+			system->render2D(m_renderSystem.nanoVG());
+		}
+	}
+	m_renderSystem.endFrame2D();
 
 	//rae_log("FRAME END.");
 

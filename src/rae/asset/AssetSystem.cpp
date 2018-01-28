@@ -20,7 +20,6 @@ void AssetSystem::setNanoVG(NVGcontext* nanoVG)
 	m_nanoVG = nanoVG;
 }
 
-
 UpdateStatus AssetSystem::update()
 {
 	for (auto&& material : m_materials.items())

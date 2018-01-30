@@ -40,9 +40,19 @@ void Box::transform(const Transform& tr)
 {
 	if (not valid())
 		return;
+
+	m_min *= tr.scale;
+	m_max *= tr.scale;
+
+	vec3 rotatedMin = tr.rotation * m_min;
+	vec3 rotatedMax = tr.rotation * m_max;
+
+	clear();
+	grow(rotatedMin);
+	grow(rotatedMax);
+
 	m_min += tr.position;
 	m_max += tr.position;
-	// TODO scale, rotate
 }
 
 bool Box::hit(const Ray& ray, float minDistance, float maxDistance) const

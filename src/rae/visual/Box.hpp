@@ -53,7 +53,9 @@ public:
 	const vec3& min() const { return m_min; }
 	const vec3& max() const { return m_max; }
 
+	// 3D hit test
 	bool hit(const Ray& ray, float minDistance, float maxDistance) const;
+	// 2D hit test
 	bool hit(vec2 position) const;
 
 protected:

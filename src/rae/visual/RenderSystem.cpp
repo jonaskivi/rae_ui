@@ -5,12 +5,6 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-namespace rae
-{
-	using quat = glm::quat;
-	using mat4 = glm::mat4;
-}
-
 #include "nanovg.h"
 #define NANOVG_GL2_IMPLEMENTATION
 #include "nanovg_gl.h"

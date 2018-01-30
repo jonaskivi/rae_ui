@@ -22,8 +22,10 @@ public:
 	Camera();
 	Camera(float fieldOfViewRadians, float setAspectRatio, float aperture, float focusDistance);
 
-	Ray getRay(float s, float t);
-	Ray getExactRay(float s, float t);
+	// s and t are from 0.0f to 1.0f, s being x, and t being y coordinate.
+	// Top left corner is 0.0f, 0.0f and center 0.5f, 0.5f.
+	Ray getRay(float s, float t) const;
+	Ray getExactRay(float s, float t) const;
 
 	void calculateFrustum();
 

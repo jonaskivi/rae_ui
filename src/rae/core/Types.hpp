@@ -6,6 +6,7 @@
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 using uint = unsigned int;
 
@@ -21,6 +22,9 @@ using Color3 = glm::vec3;
 using vec2 = glm::vec2;
 using vec3 = glm::vec3;
 using vec4 = glm::vec4;
+
+using qua = glm::quat;
+using mat4 = glm::mat4;
 
 // A boolean type only to be used to counter problems with std::vector<bool>.
 // So always use rae::Array<bool_t> instead.

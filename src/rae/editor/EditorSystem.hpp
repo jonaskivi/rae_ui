@@ -16,6 +16,7 @@ class CameraSystem;
 class RenderSystem;
 class AssetSystem;
 class SelectionSystem;
+class Input;
 
 enum class Axis
 {
@@ -23,6 +24,12 @@ enum class Axis
 	Y,
 	Z,
 	Count
+};
+
+enum class HandleStatus
+{
+	NotHandled,
+	Handled
 };
 
 class IGizmo
@@ -33,9 +40,9 @@ public:
 protected:
 	vec3 m_position;
 
-	std::array<Transform, (int)Axis::Count> m_axisTransforms;
-	std::array<bool, (int)Axis::Count> m_axisHovers = { false, false, false };
-	std::array<bool, (int)Axis::Count> m_axisActives = { false, false, false };
+	std::array<Transform,	(int)Axis::Count>	m_axisTransforms;
+	std::array<bool,		(int)Axis::Count>	m_axisHovers = { false, false, false };
+	std::array<bool,		(int)Axis::Count>	m_axisActives = { false, false, false };
 };
 
 class TranslateGizmo : public IGizmo
@@ -43,7 +50,43 @@ class TranslateGizmo : public IGizmo
 public:
 	TranslateGizmo();
 
-	void hover() {}
+	bool isHovered() const
+	{
+		for (int i = 0; i < (int)Axis::Count; ++i)
+		{
+			if (m_axisHovers[i])
+				return true;
+		}
+		return false;
+	}
+
+	bool isActive() const
+	{
+		for (int i = 0; i < (int)Axis::Count; ++i)
+		{
+			if (m_axisActives[i])
+				return true;
+		}
+		return false;
+	}
+
+	void activateHovered()
+	{
+		for (int i = 0; i < (int)Axis::Count; ++i)
+		{
+			m_axisActives[i] = m_axisHovers[i];
+		}
+	}
+
+	void deactivate()
+	{
+		for (int i = 0; i < (int)Axis::Count; ++i)
+		{
+			m_axisActives[i] = false;
+		}
+	}
+
+	bool hover(Input& input, const Camera& camera);
 	void render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem);
 
 	void setGizmoMaterialId(Id id);
@@ -57,8 +100,8 @@ protected:
 class TransformTool
 {
 public:
-	UpdateStatus update();
-	UpdateStatus hover();
+	HandleStatus handleInput(Input& input, const Camera& camera);
+	bool hover(Input& input, const Camera& camera);
 	void render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem);
 
 	void setGizmoMaterialId(Id id);
@@ -73,7 +116,7 @@ class EditorSystem : public ISystem
 {
 public:
 	EditorSystem(CameraSystem& cameraSystem, RenderSystem& renderSystem, AssetSystem& assetSystem,
-		SelectionSystem& selectionSystem);
+		SelectionSystem& selectionSystem, Input& input);
 
 	UpdateStatus update() override;
 	void render3D() override;
@@ -82,6 +125,7 @@ protected:
 	RenderSystem&		m_renderSystem;
 	AssetSystem&		m_assetSystem;
 	SelectionSystem&	m_selectionSystem;
+	Input&				m_input;
 
 	TransformTool		m_transformTool;
 };

@@ -1,13 +1,5 @@
 #pragma once
 
-#define GLM_FORCE_RADIANS
-#include <glm/gtc/quaternion.hpp>
-namespace rae
-{
-	using qua = glm::quat;
-	using mat4 = glm::mat4;
-}
-
 #include "rae/core/Types.hpp"
 #include "rae/animation/Animator.hpp"
 

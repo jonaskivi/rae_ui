@@ -29,12 +29,19 @@ public:
 	// The average position of all selected entities
 	vec3 selectionPosition() const;
 
+	void clearPixelClicked() { m_pixelClickedId = InvalidId; }
+	void setPixelClicked(Id id) { m_pixelClickedId = id; }
+
+	// RAE_TODO actually hovered instead of clicked
+	Id hovered() { return m_pixelClickedId; }
+
 protected:
 	TransformSystem& m_transformSystem;
 
 	void clearSelectionInternal();
 
 	Table<Selected> m_selected;
+	Id m_pixelClickedId = InvalidId;
 };
 
 }

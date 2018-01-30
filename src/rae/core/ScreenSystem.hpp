@@ -41,6 +41,9 @@ public:
 
 	const Window& window() { return m_window; }
 
+	float xPixelsToNormalizedWindow(float pixels) { return pixels / m_window.pixelWidth(); }
+	float yPixelsToNormalizedWindow(float pixels) { return pixels / m_window.pixelHeight(); }
+
 	float heightToPixels(float heightCoords) { return heightCoords * screenHeightP() * m_window.screenPixelRatio(); }
 	// TODO: micro-optimize to multiplications:
 	float pixelsToHeight(float pixels) { return pixels / screenHeightP() / m_window.screenPixelRatio(); }

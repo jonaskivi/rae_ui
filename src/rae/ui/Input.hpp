@@ -121,6 +121,8 @@ public:
 
 	struct Mouse
 	{
+		friend class Input;
+
 		Mouse()
 		{
 		}
@@ -147,9 +149,16 @@ public:
 			m_buttonEvent[(int)but] = set;
 		}
 
+		// "normalized" from 0.0f to 1.0f
+		float normalizedWindowX() { return xNormalizedWindow; }
+		float normalizedWindowY() { return yNormalizedWindow; }
+
 	protected:
 		bool m_button[6] = { false, false, false, false, false, false };
 		EventType m_buttonEvent[6]; // the event on this frame. Will be cleared on end of frame.
+
+		float xNormalizedWindow = 0.0f;
+		float yNormalizedWindow = 0.0f;
 	public:
 		uint doubleClickButton = 0u;
 		// In height coordinates:
@@ -302,7 +311,7 @@ public:
 	void osScrollEvent(float deltaX, float deltaY);
 	void osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode);
 	void osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int setButton,
-	float xPixels, float yPixels, float setAmount = 0.0f);
+	float rawXPixels, float rawYPixels, float setAmount = 0.0f);
 
 	void connectMouseButtonPressEventHandler(std::function<void(const Input&)> set)
 	{

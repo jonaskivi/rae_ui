@@ -108,7 +108,7 @@ void Input::osScrollEvent(float deltaX, float deltaY)
 
 void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 {
-	rae_log("Input.keyEvent() setKey:", setKey);
+	//rae_log("Input.keyEvent() setKey:", setKey);
 
 	m_changed = UpdateStatus::Changed;
 	isHandled = false;
@@ -156,9 +156,14 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 }
 
 void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int setButton,
-	float xPixels, float yPixels, float setAmount)
+	float rawXPixels, float rawYPixels, float setAmount)
 {
 	//assert(setButton >= 0); // "Mouse button is smaller than 0. Platform not supported yet."
+
+	// Convert from topleft (0.0f -> width) to centered pixel coordinates.
+	const auto& window = m_screenSystem.window();
+	float xPixels = rawXPixels - (window.pixelWidth() * 0.5f);
+	float yPixels = rawYPixels - (window.pixelHeight() * 0.5f);
 
 	// TODO: possibly split coordinate conversion functions to m_windowSystem, which knows
 	// the conversion ratios per window.
@@ -245,11 +250,16 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	mouse.yP = yPixels;
 	mouse.xLocalP = xPixels;
 	mouse.yLocalP = yPixels;
-	
+
 	mouse.x = xHeight;
 	mouse.y = yHeight;
 	mouse.xLocal = xHeight;
 	mouse.yLocal = yHeight;
+
+	// These coordinate systems are bloody stupid. xPixels should be from 0 to width, instead of being centered.
+	// x could then be centered (like it is already).
+	mouse.xNormalizedWindow = m_screenSystem.xPixelsToNormalizedWindow(rawXPixels);
+	mouse.yNormalizedWindow = m_screenSystem.yPixelsToNormalizedWindow(rawYPixels);
 
 	if (eventType == EventType::MouseMotion)
 	{

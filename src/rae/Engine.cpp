@@ -26,7 +26,7 @@ Engine::Engine(GLFWwindow* window) :
 	m_renderSystem(m_time, m_entitySystem, m_window, m_input, m_screenSystem,
 		m_transformSystem, m_cameraSystem, m_assetSystem,
 		m_selectionSystem, m_rayTracer),
-	m_editorSystem(m_cameraSystem, m_renderSystem, m_assetSystem, m_selectionSystem)
+	m_editorSystem(m_cameraSystem, m_renderSystem, m_assetSystem, m_selectionSystem, m_input)
 {
 	m_time.initTime(glfwGetTime());
 
@@ -320,8 +320,8 @@ void Engine::osMouseButtonPress(int set_button, float set_xP, float set_yP)
 	m_input.osMouseEvent(
 		EventType::MouseButtonPress,
 		set_button,
-		set_xP - (window.pixelWidth() * 0.5f),
-		set_yP - (window.pixelHeight() * 0.5f),
+		set_xP,
+		set_yP,
 		setAmount);
 }
 
@@ -336,8 +336,8 @@ void Engine::osMouseButtonRelease(int set_button, float set_xP, float set_yP)
 	m_input.osMouseEvent(
 		EventType::MouseButtonRelease,
 		set_button,
-		set_xP - (window.pixelWidth() * 0.5f),
-		set_yP - (window.pixelHeight() * 0.5f),
+		set_xP,
+		set_yP,
 		setAmount);
 }
 
@@ -352,8 +352,8 @@ void Engine::osMouseMotion(float set_xP, float set_yP)
 	m_input.osMouseEvent(
 		EventType::MouseMotion,
 		(int)MouseButton::Undefined,
-		set_xP - (window.pixelWidth() * 0.5f),
-		set_yP - (window.pixelHeight() * 0.5f),
+		set_xP,
+		set_yP,
 		setAmount);
 }
 
@@ -404,7 +404,7 @@ void Engine::onMouseEvent(const Input& input)
 			if (pickedID == 0)
 			{
 				// Hit the background.
-				m_selectionSystem.clearSelection();
+				m_selectionSystem.clearPixelClicked();
 			}
 			else if (pickedID == 13)
 			{
@@ -413,20 +413,8 @@ void Engine::onMouseEvent(const Input& input)
 			}
 			else
 			{
-				rae_log("Picked entity: ", pickedID);
-
-				// RAE_TODO: Needs to have a higher level function in Input where we can ask for modifier states for Control.
-				if (m_input.getKeyState(KeySym::Control_L) ||
-					m_input.getKeyState(KeySym::Control_R) ||
-					m_input.getKeyState(KeySym::Super_L) ||
-					m_input.getKeyState(KeySym::Super_R))
-				{
-					m_selectionSystem.toggleSelected(pickedID);
-				}
-				else
-				{
-					m_selectionSystem.setSelection({ pickedID });
-				}
+				rae_log("Pixel clicked entity: ", pickedID);
+				m_selectionSystem.setPixelClicked({ pickedID });
 			}
 		}
 	}

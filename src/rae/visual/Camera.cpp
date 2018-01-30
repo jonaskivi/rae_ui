@@ -39,7 +39,7 @@ Camera::Camera(float fieldOfViewRadians, float setAspectRatio, float aperture, f
 	calculateFrustum();
 }
 
-Ray Camera::getRay(float s, float t)
+Ray Camera::getRay(float s, float t) const
 {
 	//return Ray(origin, lowerLeftCorner + (s * m_horizontal) + (t * m_vertical) - origin);
 	// Normal:
@@ -50,7 +50,7 @@ Ray Camera::getRay(float s, float t)
 	return Ray(m_position + offset, m_topLeftCorner + (s * m_horizontal) - (t * m_vertical) - m_position - offset);
 }
 
-Ray Camera::getExactRay(float s, float t)
+Ray Camera::getExactRay(float s, float t) const
 {
 	//return Ray(origin, lowerLeftCorner + (s * m_horizontal) + (t * m_vertical) - origin);
 	// Normal:

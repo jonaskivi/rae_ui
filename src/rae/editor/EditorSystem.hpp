@@ -17,6 +17,7 @@ class RenderSystem;
 class AssetSystem;
 class SelectionSystem;
 class Input;
+class UISystem;
 
 enum class Axis
 {
@@ -37,18 +38,9 @@ class IGizmo
 public:
 	void setPosition(const vec3& position) { m_position = position; }
 
-protected:
-	vec3 m_position;
-
-	std::array<Transform,	(int)Axis::Count>	m_axisTransforms;
-	std::array<bool,		(int)Axis::Count>	m_axisHovers = { false, false, false };
-	std::array<bool,		(int)Axis::Count>	m_axisActives = { false, false, false };
-};
-
-class TranslateGizmo : public IGizmo
-{
-public:
-	TranslateGizmo();
+	bool isVisible() const { return m_visible; }
+	void show() { m_visible = true; }
+	void hide() { m_visible = false; }
 
 	bool isHovered() const
 	{
@@ -70,6 +62,15 @@ public:
 		return false;
 	}
 
+	Axis getActiveAxis() const
+	{
+		for (int i = 0; i < (int)Axis::Count; ++i)
+		{
+			if (m_axisActives[i])
+				return (Axis)i;
+		}
+	}
+
 	void activateHovered()
 	{
 		for (int i = 0; i < (int)Axis::Count; ++i)
@@ -86,10 +87,28 @@ public:
 		}
 	}
 
-	bool hover(Input& input, const Camera& camera);
+protected:
+	bool m_visible = false;
+
+	vec3 m_position;
+
+	std::array<Transform,	(int)Axis::Count>	m_axisTransforms;
+	std::array<bool,		(int)Axis::Count>	m_axisHovers = { false, false, false };
+	std::array<bool,		(int)Axis::Count>	m_axisActives = { false, false, false };
+};
+
+class TranslateGizmo : public IGizmo
+{
+public:
+	TranslateGizmo();
+
+	bool hover(const Ray& mouseRay, const Camera& camera);
 	void render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem);
 
 	void setGizmoMaterialId(Id id);
+
+	vec3 getActiveAxisVector() const;
+	vec3 activeAxisDelta(const Ray& mouseRay, const Ray& previousMouseRay) const;
 
 protected:
 	float m_gizmoSizeMultiplier = 0.1f;
@@ -100,23 +119,28 @@ protected:
 class TransformTool
 {
 public:
-	HandleStatus handleInput(Input& input, const Camera& camera);
-	bool hover(Input& input, const Camera& camera);
+	HandleStatus handleInput(Input& input, const Camera& camera, SelectionSystem& selectionSystem);
+	bool hover(const Ray& mouseRay, const Camera& camera);
 	void render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem);
 
 	void setGizmoMaterialId(Id id);
 
 	void onSelectionChanged(SelectionSystem& selectionSystem);
 
+	void translateSelected(const vec3& delta, SelectionSystem& selectionSystem);
+
 protected:
 	TranslateGizmo m_translateGizmo;
+
+	Ray m_mouseRay;
+	Ray m_previousMouseRay;
 };
 
 class EditorSystem : public ISystem
 {
 public:
 	EditorSystem(CameraSystem& cameraSystem, RenderSystem& renderSystem, AssetSystem& assetSystem,
-		SelectionSystem& selectionSystem, Input& input);
+		SelectionSystem& selectionSystem, Input& input, UISystem& uiSystem);
 
 	UpdateStatus update() override;
 	void render3D() override;
@@ -126,6 +150,7 @@ protected:
 	AssetSystem&		m_assetSystem;
 	SelectionSystem&	m_selectionSystem;
 	Input&				m_input;
+	UISystem&			m_uiSystem;
 
 	TransformTool		m_transformTool;
 };

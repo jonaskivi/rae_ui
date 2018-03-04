@@ -14,6 +14,7 @@
 #include "rae/core/Utils.hpp"
 #include "rae/core/Time.hpp"
 #include "rae/ui/Input.hpp"
+#include "rae/ui/DebugSystem.hpp"
 
 #include "rae/visual/Transform.hpp"
 #include "rae/visual/Material.hpp"
@@ -90,8 +91,6 @@ RenderSystem::RenderSystem(
 
 RenderSystem::~RenderSystem()
 {
-	glDeleteProgram(shaderID);
-	glDeleteProgram(pickingShaderID);
 }
 
 void RenderSystem::initNanoVG()
@@ -141,28 +140,18 @@ void RenderSystem::init()
 	glEnable(GL_CULL_FACE);
 
 	// Init basic shader
-
-	shaderID = loadShaders( "./data/shaders/basic.vert", "./data/shaders/basic.frag" );
-	if (shaderID == 0)
+	if (m_basicShader.load("./data/shaders/basic.vert", "./data/shaders/basic.frag") == 0)
+	{
 		exit(0);
+	}
 
-	modelViewMatrixUni = glGetUniformLocation(shaderID, "modelViewProjectionMatrix");
-	viewMatrixUni = glGetUniformLocation(shaderID, "viewMatrix");
-	modelMatrixUni = glGetUniformLocation(shaderID, "modelMatrix");
-
-	glUseProgram(shaderID);
-	lightPositionUni = glGetUniformLocation(shaderID, "lightPosition_worldspace");
-	tempBlendColorUni = glGetUniformLocation(shaderID, "tempBlendColor");
-
-	textureUni  = glGetUniformLocation(shaderID, "textureSampler");
+	m_basicShader.use();
 
 	// Init picking shader
-
-	pickingShaderID = loadShaders( "./data/shaders/picking.vert", "./data/shaders/picking.frag" );
-	if (pickingShaderID == 0)
+	if (m_pickingShader.load("./data/shaders/picking.vert", "./data/shaders/picking.frag") == 0)
+	{
 		exit(0);
-	pickingModelViewMatrixUni = glGetUniformLocation(pickingShaderID, "modelViewProjectionMatrix");
-	entityUni = glGetUniformLocation(pickingShaderID, "entityID");
+	}
 }
 
 Id RenderSystem::createBox()
@@ -255,6 +244,8 @@ void RenderSystem::beginFrame3D()
 			m_nroFrames = 0;
 			m_fpsTimer = 0.0;
 		}
+
+		g_debugSystem->showDebugText(m_fpsString);
 	}
 
 	const auto& window = m_screenSystem.window();
@@ -273,7 +264,7 @@ void RenderSystem::render3D()
 	if (m_glRendererOn == false)
 		return;
 
-	glUseProgram(shaderID);
+	m_basicShader.use();
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
@@ -325,6 +316,16 @@ void RenderSystem::render3D()
 
 void RenderSystem::endFrame3D()
 {
+	{
+		g_debugSystem->showDebugText("Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
+			" NM aperture, KL bounces, G debug view, Tab UI, U fastmode");
+		g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows");
+		g_debugSystem->showDebugText("Y toggle resolution");
+		g_debugSystem->showDebugText("Entities: " + std::to_string(m_entitySystem.entityCount()));
+		g_debugSystem->showDebugText("Transforms: " + std::to_string(m_transformSystem.transformCount()));
+		g_debugSystem->showDebugText("Meshes: " + std::to_string(m_assetSystem.meshCount()));
+		g_debugSystem->showDebugText("Materials: " + std::to_string(m_assetSystem.materialCount()));
+	}
 }
 
 void RenderSystem::renderPicking()
@@ -337,7 +338,7 @@ void RenderSystem::renderPicking()
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	glUseProgram(pickingShaderID);
+	m_pickingShader.use();
 
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
@@ -378,46 +379,25 @@ void RenderSystem::renderMesh(
 	// The model-view-projection matrix
 	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
 
-	glUniformMatrix4fv(modelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
-	glUniformMatrix4fv(modelMatrixUni, 1, GL_FALSE, &modelMatrix[0][0]);
-	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &camera.viewMatrix()[0][0]);
+	m_basicShader.pushModelViewMatrix(combinedMatrix);
+	m_basicShader.pushModelMatrix(modelMatrix);
+	m_basicShader.pushViewMatrix(camera.viewMatrix());
 
 	glm::vec3 lightPos = glm::vec3(5.0f, 4.0f, 5.0f);
-	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
+	m_basicShader.pushLightPosition(lightPos);
 
 	if (isSelected)
 	{
-		glUniform3f(tempBlendColorUni, 0.0f, 2.0f, 2.0f);
+		m_basicShader.pushTempBlendColor(Color(0.0f, 2.0f, 2.0f, 1.0f));
 	}
 	else
 	{
-		glUniform3f(tempBlendColorUni, color.x, color.y, color.z);
+		m_basicShader.pushTempBlendColor(color);
 	}
 
-	GLuint textureId = material.textureId();
+	m_basicShader.pushTexture(material);
 
-	if (textureId == 0)
-	{
-		// Bind texture in Texture Unit 0
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureId);
-		// Set textureSampler to use Texture Unit 0
-		glUniform1i(textureUni, 0);
-	}
-	else
-	{
-		// Bind texture in Texture Unit 0
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureId);
-		// Set textureSampler to use Texture Unit 0
-		glUniform1i(textureUni, 0);
-	}
-
-	#ifdef RAE_DEBUG
-	rae_log("Going to renderMesh with shaderID: ", shaderID);
-	#endif
-
-	mesh.render(shaderID);
+	mesh.render(m_basicShader.getProgramId());
 }
 
 void RenderSystem::renderMeshPicking(
@@ -433,12 +413,12 @@ void RenderSystem::renderMeshPicking(
 	// The model-view-projection matrix
 	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
 
-	glUniformMatrix4fv(pickingModelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
-	glUniform1i(entityUni, id);
+	m_pickingShader.pushModelViewMatrix(combinedMatrix);
+	m_pickingShader.pushEntityId(id);
 
 	glBindTexture(GL_TEXTURE_2D, 0); // No texture
 
-	mesh.render(pickingShaderID);
+	mesh.render(m_pickingShader.getProgramId());
 }
 
 void RenderSystem::render2dBackground()
@@ -498,7 +478,7 @@ void RenderSystem::beginFrame2D()
 
 void RenderSystem::render2D(NVGcontext* nanoVG)
 {
-	if (m_rayTracer.isInfoText())
+	/*if (m_rayTracer.isInfoText())
 	{
 		nvgFontFace(m_nanoVG, "sans");
 
@@ -528,6 +508,7 @@ void RenderSystem::render2D(NVGcontext* nanoVG)
 
 		//nvgText(m_nanoVG, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
 	}
+	*/
 }
 
 void RenderSystem::endFrame2D()

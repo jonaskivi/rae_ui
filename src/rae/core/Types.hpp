@@ -65,4 +65,18 @@ bool check(const Map<Key, T, Hash, KeyEqual, Allocator>& map, Key key)
 	return map.count(key) > 0;
 }
 
+class Colors
+{
+public:
+	static Color red;
+	static Color green;
+	static Color blue;
+	static Color yellow;
+	static Color magenta;
+	static Color cyan;
+	static Color black;
+	static Color white;
+	static Color gray;
+};
+
 } // end namespace rae

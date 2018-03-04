@@ -13,6 +13,7 @@
 #include "rae/asset/AssetSystem.hpp"
 #include "rae/editor/SelectionSystem.hpp"
 #include "rae/ui/UISystem.hpp"
+#include "rae/ui/DebugSystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
 #include "rae/editor/EditorSystem.hpp"
 #include "rae_ray/RayTracer.hpp"
@@ -90,6 +91,7 @@ protected:
 	SelectionSystem		m_selectionSystem;
 	RayTracer			m_rayTracer;
 	UISystem			m_uiSystem;
+	DebugSystem			m_debugSystem;
 	RenderSystem		m_renderSystem;
 	EditorSystem		m_editorSystem;
 

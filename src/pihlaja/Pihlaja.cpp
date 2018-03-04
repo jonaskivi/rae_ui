@@ -80,6 +80,12 @@ void Pihlaja::initUI()
 			m_engine.getRayTracerSystem().writeToPng("./rae_ray_render.png");
 		});
 	ui.addToLayout(panel, saveImageButton);
+
+	/*Id positionTextBox = ui.createTextBox(
+		virxels(-100.0f, 380.0f, 0.0f),
+		virxels(98.0f, 25.0f, 0.1f));
+	ui.bindValue(positionTextBox, m_selectionSystem.positionProperty or something);
+	*/
 }
 
 void Pihlaja::togglePlay()

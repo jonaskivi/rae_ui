@@ -23,6 +23,9 @@ public:
 	{
 	}
 
+	ISystem(const ISystem&) = delete;
+	void operator=(const ISystem&) = delete;
+
 	virtual String name() { return "System name"; }
 
 	virtual UpdateStatus update() { return UpdateStatus::NotChanged; }

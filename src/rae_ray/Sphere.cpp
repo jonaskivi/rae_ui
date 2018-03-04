@@ -24,7 +24,7 @@ bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) co
 		if (temp < t_max && temp > t_min)
 		{
 			record.t = temp;
-			record.point = ray.point_at_parameter(record.t);
+			record.point = ray.pointAtParameter(record.t);
 			record.normal = (record.point - center) / radius;
 			record.material = material;
 			return true;

@@ -17,6 +17,8 @@ class SelectionSystem : public ISystem
 public:
 	SelectionSystem(TransformSystem& transformSystem);
 
+	bool isSelection() const;
+
 	void clearSelection();
 	void setSelection(const Array<Id>& ids);
 
@@ -34,6 +36,8 @@ public:
 
 	// RAE_TODO actually hovered instead of clicked
 	Id hovered() { return m_pixelClickedId; }
+
+	void translateSelected(vec3 delta);
 
 protected:
 	TransformSystem& m_transformSystem;

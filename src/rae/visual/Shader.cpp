@@ -6,48 +6,63 @@
 using namespace std;
 
 #include <stdlib.h>
-#include <string.h>
 
-#include <GL/glew.h>
+#include "rae/visual/Shader.hpp"
+#include "rae/core/Log.hpp"
+#include "rae/visual/Material.hpp"
 
-#include "Shader.hpp"
+using namespace rae;
 
-GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_path)
+Shader::~Shader()
+{
+	if (m_programId != 0)
+	{
+		glDeleteProgram(m_programId);
+	}
+}
+
+GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 {
 	// Create the shaders
-	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint vertexShaderId	= glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 
 	// Read the Vertex Shader code from the file
-	std::string vertexShaderCode;
-	std::ifstream vertexShaderStream(vertex_file_path, std::ios::in);
-	if(vertexShaderStream.is_open())
+	String vertexShaderCode;
+	std::ifstream vertexShaderStream(vertexFilePath, std::ios::in);
+
+	if (vertexShaderStream.is_open())
 	{
-		std::string Line = "";
-		while(getline(vertexShaderStream, Line))
-			vertexShaderCode += "\n" + Line;
+		String line = "";
+		while (getline(vertexShaderStream, line))
+		{
+			vertexShaderCode += "\n" + line;
+		}
 		vertexShaderStream.close();
 	}
 	else
 	{
-		cout << "Can't open shader: "<< vertex_file_path << "\n";
+		rae_log("Can't open shader: ", vertexFilePath);
 		getchar();
 		return 0;
 	}
 
 	// Read the Fragment Shader code from the file
-	std::string fragmentShaderCode;
-	std::ifstream fragmentShaderStream(fragment_file_path, std::ios::in);
-	if( fragmentShaderStream.is_open() )
+	String fragmentShaderCode;
+	std::ifstream fragmentShaderStream(fragmentFilePath, std::ios::in);
+
+	if (fragmentShaderStream.is_open())
 	{
-		std::string Line = "";
-		while(getline(fragmentShaderStream, Line))
-			fragmentShaderCode += "\n" + Line;
+		String line = "";
+		while (getline(fragmentShaderStream, line))
+		{
+			fragmentShaderCode += "\n" + line;
+		}
 		fragmentShaderStream.close();
 	}
 	else
 	{
-		cout << "Can't open shader: "<< fragment_file_path << "\n";
+		rae_log("Can't open shader: ", fragmentFilePath);
 		getchar();
 		return 0;
 	}
@@ -56,67 +71,145 @@ GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_pat
 	int infoLogLength;
 
 	// Compile Vertex Shader
-	cout << "Compiling vertex shader: " << vertex_file_path << "\n";
-	char const * vertexSourcePointer = vertexShaderCode.c_str();
-	glShaderSource(vertexShaderID, 1, &vertexSourcePointer , NULL);
-	glCompileShader(vertexShaderID);
+	rae_log( "Compiling vertex shader: ", vertexFilePath);
+	const char* vertexSourcePointer = vertexShaderCode.c_str();
+	glShaderSource(vertexShaderId, 1, &vertexSourcePointer , NULL);
+	glCompileShader(vertexShaderId);
 
 	// Check Vertex Shader
-	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(vertexShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-	if( infoLogLength > 1 )
+	glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(vertexShaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+	if (infoLogLength > 1)
 	{
-		cout<<"Error in shader: "<<vertex_file_path << " infoLogLength: " << infoLogLength <<"\n";
+		rae_log("Error in shader: ", vertexFilePath, " infoLogLength: ", infoLogLength);
 		std::vector<char> vertexShaderErrorMessage(infoLogLength+1);
-		glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
-		cout << &vertexShaderErrorMessage[0] << "\n";
+		glGetShaderInfoLog(vertexShaderId, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
+		rae_log(&vertexShaderErrorMessage[0]);
 		getchar();
 		return 0;
 	}
 
 	// Compile Fragment Shader
-	cout << "Compiling fragment shader: " << fragment_file_path << "\n";
-	char const * fragmentSourcePointer = fragmentShaderCode.c_str();
-	glShaderSource(fragmentShaderID, 1, &fragmentSourcePointer , NULL);
-	glCompileShader(fragmentShaderID);
+	rae_log( "Compiling fragment shader: ", fragmentFilePath);
+	const char* fragmentSourcePointer = fragmentShaderCode.c_str();
+	glShaderSource(fragmentShaderId, 1, &fragmentSourcePointer , NULL);
+	glCompileShader(fragmentShaderId);
 
 	// Check Fragment Shader
-	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-	if( infoLogLength > 1 )
+	glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(fragmentShaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+	if (infoLogLength > 1)
 	{
-		cout<<"Error in shader: "<<fragment_file_path << "\n";
-		std::vector<char> fragmentShaderErrorMessage(infoLogLength+1);
-		glGetShaderInfoLog(fragmentShaderID, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
-		cout << &fragmentShaderErrorMessage[0] << "\n";
+		rae_log("Error in shader: ", fragmentFilePath);
+		Array<char> fragmentShaderErrorMessage(infoLogLength+1);
+		glGetShaderInfoLog(fragmentShaderId, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
+		rae_log(&fragmentShaderErrorMessage[0]);
 		getchar();
 		return 0;
 	}
 
 	// Link the program
-	GLuint programID = glCreateProgram();
-	cout << "Created shader program: " << programID << "\n";
-	glAttachShader(programID, vertexShaderID);
-	glAttachShader(programID, fragmentShaderID);
-	glLinkProgram(programID);
+	GLuint programId = glCreateProgram();
+	rae_log( "Created shader program: ", programId);
+	glAttachShader(programId, vertexShaderId);
+	glAttachShader(programId, fragmentShaderId);
+	glLinkProgram(programId);
 
 	// Check the program
-	glGetProgramiv(programID, GL_LINK_STATUS, &result);
-	glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-	if( infoLogLength > 1 )
+	glGetProgramiv(programId, GL_LINK_STATUS, &result);
+	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+	if (infoLogLength > 1)
 	{
-		cout<<"Error in shader: "<<vertex_file_path << " or "<<fragment_file_path << "\n";
-		std::vector<char> programErrorMessage(infoLogLength+1);
-		glGetProgramInfoLog(programID, infoLogLength, NULL, &programErrorMessage[0]);
-		cout << &programErrorMessage[0] << "\n";
+		rae_log("Error in shader: ", vertexFilePath, " or ", fragmentFilePath);
+		Array<char> programErrorMessage(infoLogLength+1);
+		glGetProgramInfoLog(programId, infoLogLength, NULL, &programErrorMessage[0]);
+		rae_log( &programErrorMessage[0]);
 		getchar();
 		return 0;
 	}
 
-	glDeleteShader(vertexShaderID);
-	glDeleteShader(fragmentShaderID);
+	glDeleteShader(vertexShaderId);
+	glDeleteShader(fragmentShaderId);
 
-	return programID;
+	m_programId = programId;
+
+	prepareUniforms();
+
+	return programId;
+}
+
+void Shader::use()
+{
+	glUseProgram(m_programId);
+}
+
+void ModelViewMatrixShader::prepareUniforms()
+{
+	m_modelViewMatrixUni = glGetUniformLocation(m_programId, "modelViewProjectionMatrix");
+}
+
+void ModelViewMatrixShader::pushModelViewMatrix(const mat4& matrix)
+{
+	glUniformMatrix4fv(m_modelViewMatrixUni, 1, GL_FALSE, &matrix[0][0]);
+}
+
+void BasicShader::prepareUniforms()
+{
+	ModelViewMatrixShader::prepareUniforms();
+	m_viewMatrixUni			= glGetUniformLocation(m_programId, "viewMatrix");
+	m_modelMatrixUni		= glGetUniformLocation(m_programId, "modelMatrix");
+	m_lightPositionUni		= glGetUniformLocation(m_programId, "lightPosition_worldspace");
+	m_tempBlendColorUni		= glGetUniformLocation(m_programId, "tempBlendColor");
+	m_textureUni			= glGetUniformLocation(m_programId, "textureSampler");
+}
+
+void BasicShader::pushViewMatrix(const mat4& matrix)
+{
+	glUniformMatrix4fv(m_viewMatrixUni, 1, GL_FALSE, &matrix[0][0]);
+}
+
+void BasicShader::pushModelMatrix(const mat4& matrix)
+{
+	glUniformMatrix4fv(m_modelMatrixUni, 1, GL_FALSE, &matrix[0][0]);
+}
+
+void BasicShader::pushLightPosition(const vec3& position)
+{
+	glUniform3f(m_lightPositionUni, position.x, position.y, position.z);
+}
+
+void BasicShader::pushTempBlendColor(const Color& color)
+{
+	glUniform3f(m_tempBlendColorUni, color.x, color.y, color.z);
+}
+
+void BasicShader::pushTexture(const Material& material)
+{
+	GLuint textureId = material.textureId();
+
+	if (textureId == 0)
+	{
+		rae_log_error("BasicShader::pushTexture: material has textureId 0.");
+	}
+
+	// Bind texture in Texture Unit 0
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	// Set textureSampler to use Texture Unit 0
+	glUniform1i(m_textureUni, 0);
 }
 
 
+void PickingShader::prepareUniforms()
+{
+	ModelViewMatrixShader::prepareUniforms();
+	m_entityUni = glGetUniformLocation(m_programId, "entityID");
+}
+
+void PickingShader::pushEntityId(Id id)
+{
+	glUniform1i(m_entityUni, id);
+}

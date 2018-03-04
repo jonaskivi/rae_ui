@@ -10,6 +10,7 @@
 #include "rae/core/Utils.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
+#include "rae/ui/DebugSystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
 
 using namespace rae;
@@ -18,6 +19,8 @@ static const int ReserveBoxes = 1000;
 
 const float VirtualPixelsBase = 1080.0f;
 const float VirtualPixelsFactor = 1.0f / VirtualPixelsBase;
+
+rae::UISystem* rae::g_ui = nullptr;
 
 vec3 rae::virxels(float virtX, float virtY, float virtZ)
 {
@@ -36,12 +39,14 @@ float rae::virxels(float virtualPixels)
 }
 
 UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
-	EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem) :
+	EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem,
+	DebugSystem& debugSystem) :
 		m_input(input),
 		m_screenSystem(screenSystem),
 		m_entitySystem(entitySystem),
 		m_transformSystem(transformSystem),
 		m_renderSystem(renderSystem),
+		m_debugSystem(debugSystem),
 		m_boxes(ReserveBoxes)
 {
 	addTable(m_boxes);
@@ -62,6 +67,8 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 		[](){});
 
 	//rae_log("UISystem creating Info button: ", m_infoButtonId);
+
+	g_ui = this;
 }
 
 void UISystem::createDefaultTheme()
@@ -276,34 +283,7 @@ void UISystem::render2D(NVGcontext* nanoVG)
 
 		}
 
-		nvgFontFace(nanoVG, "sans");
-		//nvgFontFace(nanoVG, "logo");
-
-		float vertPos = 10.0f;
-
-		nvgFontSize(nanoVG, 18.0f);
-		nvgTextAlign(nanoVG, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-		nvgFillColor(nanoVG, nvgRGBA(128, 128, 128, 192));
-		nvgText(nanoVG, 10.0f, vertPos, m_renderSystem.fpsString().c_str(), nullptr); vertPos += 20.0f;
-
-		nvgText(nanoVG, 10.0f, vertPos, "HELLO WORLD. Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
-			" NM aperture, KL bounces, G debug view, Tab UI, U fastmode", nullptr); vertPos += 20.0f;
-		nvgText(nanoVG, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
-		nvgText(nanoVG, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
-
-		std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
-		nvgText(nanoVG, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
-		nvgText(nanoVG, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		//std::string mesh_count_str = "Meshes: " + std::to_string(m_assetSystem.meshCount());
-		//nvgText(nanoVG, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		//std::string material_count_str = "Materials: " + std::to_string(m_assetSystem.materialCount());
-		//nvgText(nanoVG, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		//nvgText(nanoVG, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
+		m_debugSystem.render2D(nanoVG);
 
 	nvgEndFrame(nanoVG);
 }

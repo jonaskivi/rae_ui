@@ -33,6 +33,8 @@ public:
 
 	int transformCount() { return m_transforms.size(); }
 
+	void translate(Id id, vec3 delta);
+
 private:
 	const Time& m_time;
 

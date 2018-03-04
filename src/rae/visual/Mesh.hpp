@@ -39,12 +39,15 @@ public:
 	void generateBox();
 	void generateSphere(float radius = 0.5f, int rings = 32, int sectors = 32);
 
+	void generateLinesFromVertices(const Array<vec3>& vertices);
+
 	//ASSIMP
 	bool loadModel(const String& filepath);
 	void loadNode(const aiScene* scene, const aiNode* node);
 	//end // ASSIMP
 
 	void render(uint shaderProgramId) const;
+	void renderLines(uint shaderProgramId) const;
 	int triangleCount() const { return int(m_indices.size()) / 3; }
 	void computeAabb();
 	void computeFaceNormals();

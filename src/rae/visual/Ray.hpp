@@ -10,20 +10,21 @@ using vec3 = glm::vec3;
 class Ray
 {
 public:
-	Ray(){}
-	Ray(const vec3& set_origin, const vec3& set_direction)
+	Ray() {}
+	Ray(const vec3& origin, const vec3& direction)
 	{
-		a = set_origin;
-		b = set_direction;
+		m_origin = origin;
+		m_direction = direction;
 	}
 
-	vec3 origin() const { return a; }
-	vec3 direction() const { return b; }
-	void setDirection(vec3 set_direction) { b = set_direction; }
-	vec3 point_at_parameter(float t) const { return a + t * b; }
+	vec3 origin() const { return m_origin; }
+	vec3 direction() const { return m_direction; }
+	void setDirection(vec3 direction) { m_direction = direction; }
+	vec3 pointAtParameter(float t) const { return m_origin + t * m_direction; }
 
-	vec3 a;
-	vec3 b;
+protected:
+	vec3 m_origin;
+	vec3 m_direction;
 };
 
 }

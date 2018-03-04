@@ -22,11 +22,11 @@ Engine::Engine(GLFWwindow* window) :
 	m_selectionSystem(m_transformSystem),
 	m_cameraSystem(m_time, m_entitySystem, m_transformSystem, m_input),
 	m_rayTracer(m_time, m_cameraSystem),
-	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem),
+	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem, m_debugSystem),
 	m_renderSystem(m_time, m_entitySystem, m_window, m_input, m_screenSystem,
 		m_transformSystem, m_cameraSystem, m_assetSystem,
 		m_selectionSystem, m_rayTracer),
-	m_editorSystem(m_cameraSystem, m_renderSystem, m_assetSystem, m_selectionSystem, m_input)
+	m_editorSystem(m_cameraSystem, m_renderSystem, m_assetSystem, m_selectionSystem, m_input, m_uiSystem)
 {
 	m_time.initTime(glfwGetTime());
 

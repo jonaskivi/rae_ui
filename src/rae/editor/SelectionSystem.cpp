@@ -11,6 +11,11 @@ SelectionSystem::SelectionSystem(TransformSystem& transformSystem) :
 {
 }
 
+bool SelectionSystem::isSelection() const
+{
+	return m_selected.count() > 0;
+}
+
 void SelectionSystem::clearSelection()
 {
 	clearSelectionInternal();
@@ -81,4 +86,12 @@ vec3 SelectionSystem::selectionPosition() const
 	});
 
 	return vec3(pos.x / m_selected.count(), pos.y / m_selected.count(), pos.z / m_selected.count());
+}
+
+void SelectionSystem::translateSelected(vec3 delta)
+{
+	query<Selected>(m_selected, [&](Id id)
+	{
+		m_transformSystem.translate(id, delta);
+	});
 }

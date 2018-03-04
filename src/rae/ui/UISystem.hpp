@@ -22,6 +22,7 @@ namespace rae
 class Input;
 class ScreenSystem;
 class RenderSystem;
+class DebugSystem;
 
 vec3 virxels(float virtX, float virtY, float virtZ);
 vec3 virxels(const vec3& virtualPixels);
@@ -93,7 +94,8 @@ class UISystem : public ISystem
 {
 public:
 	UISystem(Input& input, ScreenSystem& screenSystem,
-		EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem);
+		EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem,
+		DebugSystem& debugSystem);
 
 	String name() override { return "UISystem"; }
 
@@ -164,6 +166,7 @@ private:
 	EntitySystem& m_entitySystem;
 	TransformSystem& m_transformSystem;
 	RenderSystem& m_renderSystem;
+	DebugSystem& m_debugSystem;
 	NVGcontext* m_nanoVG;
 
 	Id m_infoButtonId;
@@ -181,5 +184,7 @@ private:
 	Array<Color>		m_panelThemeColors;
 	Table<Layout>		m_layouts;
 };
+
+extern UISystem* g_ui;
 
 }

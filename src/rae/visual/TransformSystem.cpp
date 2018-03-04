@@ -51,3 +51,9 @@ const vec3& TransformSystem::getPosition(Id id)
 {
 	return m_transforms.get(id).position;
 }
+
+void TransformSystem::translate(Id id, vec3 delta)
+{
+	// Note: doesn't check if Id exists. Will crash/cause stuff if used unwisely.
+	m_transforms.getF(id).position += delta; 
+}

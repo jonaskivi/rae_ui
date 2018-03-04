@@ -15,6 +15,7 @@
 #include "rae/entity/Table.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Material.hpp"
+#include "rae/visual/Shader.hpp"
 
 #include "rae/image/ImageBuffer.hpp"
 
@@ -106,7 +107,7 @@ public:
 	void addMeshLink(Id id, Id linkId);
 	void addMaterialLink(Id id, Id linkId);
 
-	String fpsString() { return m_fpsString; }
+	const String& fpsString() const { return m_fpsString; }
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
@@ -114,25 +115,9 @@ public:
 	NVGcontext* nanoVG() { return m_nanoVG; }
 
 protected:
+	BasicShader m_basicShader;
+	PickingShader m_pickingShader;
 
-	// basic shader
-
-	GLuint shaderID;
-
-	GLuint modelViewMatrixUni;
-	GLuint viewMatrixUni;
-	GLuint modelMatrixUni;
-	GLuint lightPositionUni;
-	GLuint tempBlendColorUni;
-	GLuint textureUni;
-
-	// picking shader
-
-	GLuint pickingShaderID;
-	GLuint pickingModelViewMatrixUni;
-	GLuint entityUni;
-
-protected:
 	GLFWwindow* m_window;
 
 	NVGcontext* m_nanoVG = nullptr;

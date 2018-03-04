@@ -109,7 +109,7 @@ void Mesh::freeVBOs()
 	m_vertexBufferId	= 0;
 	m_uvBufferId		= 0;
 	m_normalBufferId	= 0;
-	m_indexBufferId	= 0;
+	m_indexBufferId		= 0;
 }
 
 // Möller-Trumbore ray triangle intersection
@@ -198,7 +198,7 @@ bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) cons
 		{
 			isHit = true;
 			record.t = hitDistance;
-			record.point = ray.point_at_parameter(record.t);
+			record.point = ray.pointAtParameter(record.t);
 			record.normal = getFaceNormal(i); // currently just face normals
 			record.material = m_material;
 		}
@@ -544,6 +544,41 @@ void Mesh::computeFaceNormals()
 		*/
 }
 
+void Mesh::generateLinesFromVertices(const Array<vec3>& vertices)
+{
+	m_vertices.clear();
+	m_uvs.clear();
+	m_normals.clear();
+	m_indices.clear();
+
+	//int i = 0;
+	//int index = 0;
+	for (auto&& vertex : vertices)
+	{
+		m_vertices.emplace_back(vertex);
+		m_uvs.emplace_back(vec2(0.0f, 0.0f));
+		m_normals.emplace_back(vec3(0.0f, 1.0f, 0.0f));
+
+		/*m_indices.emplace_back(index);
+		if (i % 2 == 0)
+		{
+			index++;
+		}
+		++i;
+		*/
+	}
+
+	int index = 0;
+	for (int i = 0; i < (((int)m_vertices.size())-1)*2; ++i)
+	{
+		m_indices.emplace_back(index);
+		if (i % 2 == 0)
+		{
+			index++;
+		}
+	}
+}
+
 //ASSIMP
 bool Mesh::loadModel(const String& filepath)
 {
@@ -691,59 +726,116 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 
 void Mesh::render(uint shaderProgramId) const
 {
-
 	// Get a handle for our buffers
 	GLuint vertexPositionId		= glGetAttribLocation(shaderProgramId, "inPosition");
 	GLuint vertexUvId			= glGetAttribLocation(shaderProgramId, "inUV");
 	GLuint vertexNormalId		= glGetAttribLocation(shaderProgramId, "inNormal");
 
-		// m_vertices
-		glEnableVertexAttribArray(vertexPositionId);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-		glVertexAttribPointer(
-			vertexPositionId,	// The attribute we want to configure
-			3,					// size
-			GL_FLOAT,			// type
-			GL_FALSE,			// normalized?
-			0,					// stride
-			(void*)0			// array buffer offset
-		);
+	// m_vertices
+	glEnableVertexAttribArray(vertexPositionId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	glVertexAttribPointer(
+		vertexPositionId,	// The attribute we want to configure
+		3,					// size
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
 
-		// m_UVs
-		glEnableVertexAttribArray(vertexUvId);
-		glBindBuffer(GL_ARRAY_BUFFER, m_uvBufferId);
-		glVertexAttribPointer(
-			vertexUvId,			// The attribute we want to configure
-			2,					// size : U+V => 2
-			GL_FLOAT,			// type
-			GL_FALSE,			// normalized?
-			0,					// stride
-			(void*)0			// array buffer offset
-		);
+	// m_UVs
+	glEnableVertexAttribArray(vertexUvId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_uvBufferId);
+	glVertexAttribPointer(
+		vertexUvId,			// The attribute we want to configure
+		2,					// size : U+V => 2
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
 
-		// m_normals
-		glEnableVertexAttribArray(vertexNormalId);
-		glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
-		glVertexAttribPointer(
-			vertexNormalId,		// The attribute we want to configure
-			3,					// size
-			GL_FLOAT,			// type
-			GL_FALSE,			// normalized?
-			0,					// stride
-			(void*)0			// array buffer offset
-		);
+	// m_normals
+	glEnableVertexAttribArray(vertexNormalId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
+	glVertexAttribPointer(
+		vertexNormalId,		// The attribute we want to configure
+		3,					// size
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
 
-		// Index buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+	// Index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 
-		glDrawElements(
-			GL_TRIANGLES,
-			(GLsizei)m_indices.size(),
-			GL_UNSIGNED_SHORT,
-			(void*)0
-		);
+	glDrawElements(
+		GL_TRIANGLES,
+		(GLsizei)m_indices.size(),
+		GL_UNSIGNED_SHORT,
+		(void*)0
+	);
 
-		glDisableVertexAttribArray(vertexPositionId);
-		glDisableVertexAttribArray(vertexUvId);
-		glDisableVertexAttribArray(vertexNormalId);
+	glDisableVertexAttribArray(vertexPositionId);
+	glDisableVertexAttribArray(vertexUvId);
+	glDisableVertexAttribArray(vertexNormalId);
+}
+
+void Mesh::renderLines(uint shaderProgramId) const
+{
+	// Get a handle for our buffers
+	GLuint vertexPositionId		= glGetAttribLocation(shaderProgramId, "inPosition");
+	GLuint vertexUvId			= glGetAttribLocation(shaderProgramId, "inUV");
+	GLuint vertexNormalId		= glGetAttribLocation(shaderProgramId, "inNormal");
+
+	// m_vertices
+	glEnableVertexAttribArray(vertexPositionId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	glVertexAttribPointer(
+		vertexPositionId,	// The attribute we want to configure
+		3,					// size
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
+
+	// m_UVs
+	glEnableVertexAttribArray(vertexUvId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_uvBufferId);
+	glVertexAttribPointer(
+		vertexUvId,			// The attribute we want to configure
+		2,					// size : U+V => 2
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
+
+	// m_normals
+	glEnableVertexAttribArray(vertexNormalId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
+	glVertexAttribPointer(
+		vertexNormalId,		// The attribute we want to configure
+		3,					// size
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
+
+	// Index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+
+	glDrawElements(
+		GL_LINES,
+		(GLsizei)m_indices.size(),
+		GL_UNSIGNED_SHORT,
+		(void*)0
+	);
+
+	glDisableVertexAttribArray(vertexPositionId);
+	glDisableVertexAttribArray(vertexUvId);
+	glDisableVertexAttribArray(vertexNormalId);
 }

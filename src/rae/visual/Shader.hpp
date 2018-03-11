@@ -11,25 +11,32 @@ class Material;
 class Shader
 {
 public:
+	Shader(){}
+	Shader(String vertexFilePath, String fragmentFilePath);
+	virtual ~Shader();
 
-virtual ~Shader();
+	GLuint load() { return load(m_vertexFilePath, m_fragmentFilePath); }
 
-GLuint load(String vertexFilePath, String fragmentFilePath);
+	virtual void prepareUniforms() {}
 
-virtual void prepareUniforms() {}
+	void use();
 
-void use();
-
-// RAE_TODO get rid of this detail, and encapsulate gl calls to functions:
-GLuint getProgramId() { return m_programId; }
+	// RAE_TODO get rid of this detail, and encapsulate gl calls to functions:
+	GLuint getProgramId() { return m_programId; }
 
 protected:
-GLuint m_programId = 0u;
+	GLuint load(String vertexFilePath, String fragmentFilePath);
+
+	GLuint m_programId = 0u;
+	String m_vertexFilePath;
+	String m_fragmentFilePath;
 };
 
 class ModelViewMatrixShader : public Shader
 {
 public:
+	ModelViewMatrixShader(){}
+	ModelViewMatrixShader(String vertexFilePath, String fragmentFilePath);
 	virtual void prepareUniforms() override;
 
 	void pushModelViewMatrix(const mat4& matrix);
@@ -41,6 +48,7 @@ protected:
 class BasicShader : public ModelViewMatrixShader
 {
 public:
+	BasicShader();
 	virtual void prepareUniforms() override;
 
 	void pushViewMatrix(const mat4& matrix);
@@ -60,12 +68,25 @@ private:
 class PickingShader : public ModelViewMatrixShader
 {
 public:
+	PickingShader();
 	virtual void prepareUniforms() override;
 
 	void pushEntityId(Id id);
 
 private:
 	GLuint m_entityUni;
+};
+
+class SingleColorShader : public ModelViewMatrixShader
+{
+public:
+	SingleColorShader();
+	virtual void prepareUniforms() override;
+
+	void pushColor(const Color& color);
+
+private:
+	GLuint m_colorUni;
 };
 
 }

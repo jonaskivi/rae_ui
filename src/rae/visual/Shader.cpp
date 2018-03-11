@@ -13,6 +13,12 @@ using namespace std;
 
 using namespace rae;
 
+Shader::Shader(String vertexFilePath, String fragmentFilePath) :
+	m_vertexFilePath(vertexFilePath),
+	m_fragmentFilePath(fragmentFilePath)
+{
+}
+
 Shader::~Shader()
 {
 	if (m_programId != 0)
@@ -146,6 +152,11 @@ void Shader::use()
 	glUseProgram(m_programId);
 }
 
+ModelViewMatrixShader::ModelViewMatrixShader(String vertexFilePath, String fragmentFilePath) :
+	Shader(vertexFilePath, fragmentFilePath)
+{
+}
+
 void ModelViewMatrixShader::prepareUniforms()
 {
 	m_modelViewMatrixUni = glGetUniformLocation(m_programId, "modelViewProjectionMatrix");
@@ -154,6 +165,11 @@ void ModelViewMatrixShader::prepareUniforms()
 void ModelViewMatrixShader::pushModelViewMatrix(const mat4& matrix)
 {
 	glUniformMatrix4fv(m_modelViewMatrixUni, 1, GL_FALSE, &matrix[0][0]);
+}
+
+BasicShader::BasicShader() :
+	ModelViewMatrixShader("./data/shaders/basic.vert", "./data/shaders/basic.frag")
+{
 }
 
 void BasicShader::prepareUniforms()
@@ -202,6 +218,10 @@ void BasicShader::pushTexture(const Material& material)
 	glUniform1i(m_textureUni, 0);
 }
 
+PickingShader::PickingShader() :
+	ModelViewMatrixShader("./data/shaders/picking.vert", "./data/shaders/picking.frag")
+{
+}
 
 void PickingShader::prepareUniforms()
 {
@@ -212,4 +232,20 @@ void PickingShader::prepareUniforms()
 void PickingShader::pushEntityId(Id id)
 {
 	glUniform1i(m_entityUni, id);
+}
+
+SingleColorShader::SingleColorShader() :
+	ModelViewMatrixShader("./data/shaders/single_color.vert", "./data/shaders/single_color.frag")
+{
+}
+
+void SingleColorShader::prepareUniforms()
+{
+	ModelViewMatrixShader::prepareUniforms();
+	m_colorUni = glGetUniformLocation(m_programId, "lineColor");
+}
+
+void SingleColorShader::pushColor(const Color& color)
+{
+	glUniform3f(m_colorUni, color.x, color.y, color.z);
 }

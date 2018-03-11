@@ -1,34 +1,78 @@
 #include "rae/ui/DebugSystem.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include "nanovg.h"
+
+#include "rae/visual/CameraSystem.hpp"
+#include "rae/visual/Mesh.hpp"
 
 using namespace rae;
 
 rae::DebugSystem* rae::g_debugSystem = nullptr;
 
-DebugSystem::DebugSystem()
+DebugSystem::DebugSystem(const CameraSystem& cameraSystem) :
+	m_cameraSystem(cameraSystem)
 {
 	g_debugSystem = this;
+
+	if (m_singleColorShader.load() == 0)
+	{
+		exit(0);
+	}
 }
 
-void DebugSystem::render3D(uint shaderProgramId)
+void DebugSystem::render3D()
 {
-	/*
-	RAE_TODO 
-	for (auto&& line : m_lines)
+	m_singleColorShader.use();
+
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+
+	const Camera& camera = m_cameraSystem.getCurrentCamera();
+
+	// The model-view-projection matrix
+	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix();// * modelMatrix;
+
+	m_singleColorShader.pushModelViewMatrix(combinedMatrix);
+
+	if (m_lineMeshes.size() < m_lines.size())
 	{
-		Mesh lineMesh;
-		lineMesh.generateLinesFromVertices(line);
-		lineMesh.createVBOs();
-		lineMesh.render(shaderProgramId);
-		lineMesh.freeVBOs();
+		m_lineMeshes.reserve(m_lines.size());
 	}
-	*/
+
+	
+	for (int i = 0; i < (int)m_lines.size(); ++i)
+	{
+		auto&& line = m_lines[i];
+
+		if (m_lineMeshes.size() <= i)
+		{
+			m_lineMeshes.emplace_back();
+		}
+
+		auto&& lineMesh = m_lineMeshes[i];
+
+		m_singleColorShader.pushColor(line.color);
+		lineMesh.generateLinesFromVertices(line.points);
+		lineMesh.createVBOs(GL_DYNAMIC_DRAW);
+		lineMesh.renderLines(m_singleColorShader.getProgramId());
+	}
+	m_lines.clear();
 }
 
 void DebugSystem::drawLine(const Array<vec3>& points, const Color& color)
 {
 	m_lines.emplace_back(Line{ points, color });
+}
+
+void DebugSystem::drawLine(const Line& line)
+{
+	m_lines.emplace_back(line);
 }
 
 void DebugSystem::showDebugText(const String& text)

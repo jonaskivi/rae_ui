@@ -59,7 +59,7 @@ Mesh& Mesh::operator=(Mesh&& other)
 	return *this;
 }
 
-void Mesh::createVBOs()
+void Mesh::createVBOs(GLenum usage)
 {
 	//rae_log("Mesh::createVBOs.");
 
@@ -72,21 +72,37 @@ void Mesh::createVBOs()
 		return;
 	}
 
-	glGenBuffers(1, &m_vertexBufferId);
+	if (m_vertexBufferId == 0)
+		glGenBuffers(1, &m_vertexBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], usage);
 
-	glGenBuffers(1, &m_uvBufferId);
+	if (m_uvBufferId == 0)
+		glGenBuffers(1, &m_uvBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, m_uvBufferId);
-	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], usage);
 
-	glGenBuffers(1, &m_normalBufferId);
+	if (m_normalBufferId == 0)
+		glGenBuffers(1, &m_normalBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
-	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], usage);
 
-	glGenBuffers(1, &m_indexBufferId);
+	if (m_indexBufferId == 0)
+		glGenBuffers(1, &m_indexBufferId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLushort), &m_indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLushort), &m_indices[0], usage);
+
+	if (m_vertexBufferId == 0 &&
+		m_uvBufferId == 0 &&
+		m_normalBufferId == 0 &&
+		m_indexBufferId == 0)
+	{
+		rae_log_error("Mesh::createVBOs FAILED m_vertexBufferId: ", m_vertexBufferId,
+			"m_uvBufferId: ", m_uvBufferId,
+			"m_normalBufferId: ", m_normalBufferId,
+			"m_indexBufferId: ", m_indexBufferId);
+		return;
+	}
 }
 
 void Mesh::freeVBOs()

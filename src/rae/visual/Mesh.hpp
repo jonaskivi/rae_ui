@@ -30,7 +30,7 @@ public:
 	Mesh(Mesh&& other);
 	Mesh& operator=(Mesh&& other);
 
-	void createVBOs();
+	void createVBOs(GLenum usage = GL_STATIC_DRAW);
 	void freeVBOs();
 
 	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;

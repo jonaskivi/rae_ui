@@ -102,7 +102,7 @@ Plane computeMostPerpendicularAxisPlane(Axis axis, const vec3& gizmoOrigin, cons
 	float perpendicular1 = glm::dot(rayDirection, plane1.normal());
 	float perpendicular2 = glm::dot(rayDirection, plane2.normal());
 
-	if (fabs(perpendicular1) <= fabs(perpendicular2))
+	if (fabs(perpendicular1) >= fabs(perpendicular2))
 	{
 		return plane1;
 	}
@@ -112,41 +112,21 @@ Plane computeMostPerpendicularAxisPlane(Axis axis, const vec3& gizmoOrigin, cons
 	}
 }
 
-
+//RAE_TODO move to Ray.cpp that needs to be created:
 bool rayPlaneIntersection(const Ray& ray, const Plane& plane, vec3& outContactPoint)
 {
 	float denom = glm::dot(plane.normal(), ray.direction());
-	if (abs(denom) > 0.0001f)
+	if (fabs(denom) > 0.0001f)
 	{
-		float t = glm::dot(plane.origin() - ray.origin(), plane.normal()) / denom;
-		if (t >= 0)
+		float length = glm::dot(plane.origin() - ray.origin(), plane.normal()) / denom;
+		if (length >= 0)
 		{
-			outContactPoint = ray.origin() + glm::normalize(ray.direction()) * t;
+			outContactPoint = ray.origin() + (ray.direction() * length);
 			return true;
 		}
 	}
 	return false;
 }
-
-
-/*
-bool rayPlaneIntersection(const Ray& ray, const Plane& plane, vec3& outContactPoint)
-{
-	// get d value
-	float d = glm::dot(plane.normal(), plane.origin());
-
-	if (glm::dot(plane.normal(), ray.direction()) == 0)
-	{
-		return false; // No intersection, the line is parallel to the plane
-	}
-
-	// Compute the X value for the directed line ray intersecting the plane
-	float x = (d - glm::dot(plane.normal(), ray.origin())) / glm::dot(plane.normal(), ray.direction());
-
-	outContactPoint = ray.origin() + glm::normalize(ray.direction()) * x;
-	return true;
-}
-*/
 
 TranslateGizmo::TranslateGizmo()
 {
@@ -184,6 +164,7 @@ bool TranslateGizmo::hover(const Ray& mouseRay, const Camera& camera)
 	{
 		Transform transform = m_axisTransforms[i];
 		transform.scale = transform.scale * gizmoCameraFactor;
+		// The handle's box needs to be centered with that 0.5
 		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
 
 		Box axisBox = m_lineMesh.getAabb();
@@ -217,11 +198,14 @@ void TranslateGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, 
 		Color color = m_axisActives[i] ? activeColor : (m_axisHovers[i] ? hoverColor : axisColor(Axis(i)));
 
 		transform.scale = transform.scale * gizmoCameraFactor;
+		// The handle's box needs to be centered with that 0.5
 		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
-		renderSystem.renderMesh(camera,
+		renderSystem.renderMeshSingleColor(
+			camera,
 			transform,
 			color,
-			material, m_lineMesh, false);
+			material,
+			m_lineMesh);
 	}
 }
 
@@ -235,7 +219,7 @@ vec3 TranslateGizmo::getActiveAxisVector() const
 	return vec3();
 }
 
-vec3 TranslateGizmo::activeAxisDelta(const Ray& mouseRay, const Ray& previousMouseRay) const
+vec3 TranslateGizmo::activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay)// const
 {
 	for (int i = 0; i < (int)Axis::Count; ++i)
 	{
@@ -244,7 +228,7 @@ vec3 TranslateGizmo::activeAxisDelta(const Ray& mouseRay, const Ray& previousMou
 
 		Axis axis = (Axis)i;
 		Plane bestPlane = computeMostPerpendicularAxisPlane(axis, m_position,
-			glm::normalize(m_position - mouseRay.origin()));
+			glm::normalize(mouseRay.direction()));
 
 		vec3 intersection;
 		bool hit = rayPlaneIntersection(mouseRay, bestPlane, intersection);
@@ -256,10 +240,21 @@ vec3 TranslateGizmo::activeAxisDelta(const Ray& mouseRay, const Ray& previousMou
 			{
 				vec3 deltaVec = intersection - previousIntersection;
 
+				// RAE_TODO REMOVE:
+				/*
 				g_debugSystem->showDebugText("length: " + Utils::toString(glm::length(deltaVec)), Colors::magenta);
-				g_debugSystem->drawLine({ intersection, previousIntersection }, Colors::cyan);
+				g_debugSystem->drawLine({ intersection, previousIntersection }, Colors::magenta);
+				g_debugSystem->drawLine({ mouseRay.origin(), mouseRay.direction() * 15.0f }, Colors::cyan);
+				g_debugSystem->drawLine({ bestPlane.origin(), bestPlane.origin() + (bestPlane.normal() * 5.0f) }, Colors::red);
+				*/
 
 				float dotProduct = glm::dot(deltaVec, axisVector(axis));
+				// RAE_TODO REMOVE g_debugSystem->showDebugText("dotProduct: " + Utils::toString(dotProduct), Colors::magenta);
+
+				// RAE_TODO REMOVE g_debugSystem->drawLine({ intersection, intersection + (axisVector(axis) * dotProduct) }, Colors::white);
+
+				m_debugIntersectionLine = Line { { intersection, intersection + (axisVector(axis) * dotProduct) }, Colors::cyan };
+				m_debugLine = Line { { bestPlane.origin(), bestPlane.origin() + (bestPlane.normal() * 2.0f) }, Colors::yellow };
 
 				return axisVector(axis) * dotProduct;
 			}
@@ -281,6 +276,10 @@ bool TransformTool::hover(const Ray& mouseRay, const Camera& camera)
 
 HandleStatus TransformTool::handleInput(Input& input, const Camera& camera, SelectionSystem& selectionSystem)
 {
+	// RAE_TODO REMOVE:
+	//g_debugSystem->drawLine(m_translateGizmo.m_debugIntersectionLine);
+	//g_debugSystem->drawLine(m_translateGizmo.m_debugLine);
+
 	if (not m_translateGizmo.isVisible())
 		return HandleStatus::NotHandled;
 
@@ -298,9 +297,7 @@ HandleStatus TransformTool::handleInput(Input& input, const Camera& camera, Sele
 		}
 		else if (input.mouse.button(MouseButton::First))
 		{
-			//translateSelected((m_previousMouseRay.origin() - m_mouseRay.origin()).length(), selectionSystem);
-
-			vec3 delta = m_translateGizmo.activeAxisDelta(m_mouseRay, m_previousMouseRay);
+			vec3 delta = m_translateGizmo.activeAxisDelta(camera, m_mouseRay, m_previousMouseRay);
 
 			translateSelected(delta, selectionSystem);
 		}
@@ -326,7 +323,14 @@ void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem, A
 {
 	if (m_translateGizmo.isVisible())
 	{
+		// Alternative way would be to change depth testing to always pass, but instead we clear the depth buffer,
+		// so that the gizmo handles are depth tested against each other.
+		//glDepthFunc(GL_ALWAYS);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
 		m_translateGizmo.render3D(camera, renderSystem, assetSystem);
+
+		//glDepthFunc(GL_LEQUAL);
 	}
 }
 

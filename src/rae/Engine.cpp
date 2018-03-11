@@ -21,6 +21,7 @@ Engine::Engine(GLFWwindow* window) :
 	m_assetSystem(m_time, m_entitySystem),
 	m_selectionSystem(m_transformSystem),
 	m_cameraSystem(m_time, m_entitySystem, m_transformSystem, m_input),
+	m_debugSystem(m_cameraSystem),
 	m_rayTracer(m_time, m_cameraSystem),
 	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem, m_debugSystem),
 	m_renderSystem(m_time, m_entitySystem, m_window, m_input, m_screenSystem,
@@ -42,6 +43,7 @@ Engine::Engine(GLFWwindow* window) :
 
 	addRenderer3D(m_renderSystem);
 	addRenderer3D(m_editorSystem);
+	addRenderer3D(m_debugSystem);
 	addRenderer2D(m_renderSystem); // RAE_TODO should probably refactor and remove. Just infotext, that should be in uiSystem anyway.
 	addRenderer2D(m_uiSystem);
 

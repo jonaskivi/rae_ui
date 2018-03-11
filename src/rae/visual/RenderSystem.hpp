@@ -91,6 +91,13 @@ public:
 		const Mesh& mesh,
 		bool isSelected);
 
+	void renderMeshSingleColor(
+		const Camera& camera,
+		const Transform& transform,
+		const Color& color,
+		const Material& material,
+		const Mesh& mesh);
+
 	void renderMeshPicking(
 		const Camera& camera,
 		const Transform& transform,
@@ -116,6 +123,7 @@ public:
 
 protected:
 	BasicShader m_basicShader;
+	SingleColorShader m_singleColorShader;
 	PickingShader m_pickingShader;
 
 	GLFWwindow* m_window;

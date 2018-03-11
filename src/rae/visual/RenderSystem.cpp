@@ -140,7 +140,7 @@ void RenderSystem::init()
 	glEnable(GL_CULL_FACE);
 
 	// Init basic shader
-	if (m_basicShader.load("./data/shaders/basic.vert", "./data/shaders/basic.frag") == 0)
+	if (m_basicShader.load() == 0)
 	{
 		exit(0);
 	}
@@ -148,7 +148,12 @@ void RenderSystem::init()
 	m_basicShader.use();
 
 	// Init picking shader
-	if (m_pickingShader.load("./data/shaders/picking.vert", "./data/shaders/picking.frag") == 0)
+	if (m_pickingShader.load() == 0)
+	{
+		exit(0);
+	}
+
+	if (m_singleColorShader.load() == 0)
 	{
 		exit(0);
 	}
@@ -269,6 +274,16 @@ void RenderSystem::render3D()
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
+	bool isWireframeMode = false;
+	if (!isWireframeMode)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	else
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
 	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	const Color white(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -312,6 +327,8 @@ void RenderSystem::render3D()
 		renderMesh(debugTransform2, nullptr, debugMesh);
 	}
 	*/
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void RenderSystem::endFrame3D()
@@ -400,6 +417,29 @@ void RenderSystem::renderMesh(
 	mesh.render(m_basicShader.getProgramId());
 }
 
+void RenderSystem::renderMeshSingleColor(
+	const Camera& camera,
+	const Transform& transform,
+	const Color& color,
+	const Material& material,
+	const Mesh& mesh)
+{
+	m_singleColorShader.use();
+
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+	mat4 rotationMatrix = glm::toMat4(transform.rotation);
+	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+	mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+	// The model-view-projection matrix
+	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
+
+	m_singleColorShader.pushModelViewMatrix(combinedMatrix);
+	m_singleColorShader.pushColor(color);
+
+	mesh.render(m_singleColorShader.getProgramId());
+}
+
 void RenderSystem::renderMeshPicking(
 	const Camera& camera,
 	const Transform& transform,
@@ -408,7 +448,8 @@ void RenderSystem::renderMeshPicking(
 {
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
-	mat4 modelMatrix = translationMatrix * rotationMatrix;// * scaleMatrix;
+	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+	mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
 	// The model-view-projection matrix
 	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;

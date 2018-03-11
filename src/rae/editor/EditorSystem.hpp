@@ -8,6 +8,8 @@
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Material.hpp"
 
+#include "rae/ui/DebugSystem.hpp"
+
 namespace rae
 {
 
@@ -108,7 +110,11 @@ public:
 	void setGizmoMaterialId(Id id);
 
 	vec3 getActiveAxisVector() const;
-	vec3 activeAxisDelta(const Ray& mouseRay, const Ray& previousMouseRay) const;
+	vec3 activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay);// const;
+
+	//debug:
+	Line m_debugIntersectionLine;
+	Line m_debugLine;
 
 protected:
 	float m_gizmoSizeMultiplier = 0.1f;

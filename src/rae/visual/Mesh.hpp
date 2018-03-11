@@ -38,6 +38,7 @@ public:
 
 	void generateBox();
 	void generateSphere(float radius = 0.5f, int rings = 32, int sectors = 32);
+	void generateCone(int steps = 12);
 
 	void generateLinesFromVertices(const Array<vec3>& vertices);
 

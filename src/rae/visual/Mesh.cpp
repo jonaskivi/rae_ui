@@ -474,6 +474,54 @@ void Mesh::generateSphere(float radius, int rings, int sectors)
 	computeAabb();
 }
 
+void Mesh::generateCone(int steps)
+{
+	m_vertices.emplace_back(vec3(0.0f, 0.0f, 0.0f));
+	m_vertices.emplace_back(vec3(0.0f, 1.0f, 0.0f));
+	m_uvs.emplace_back(vec2(0.5f, 0.5f));
+	m_uvs.emplace_back(vec2(0.5f, 0.5f));
+
+	float stepAngle = Math::TAU / float(steps);
+	for (float angle = 0.0f; angle < Math::TAU; angle += stepAngle)
+	{
+		m_vertices.emplace_back(vec3(
+			sinf(angle),
+			0.0f,
+			cosf(angle)));
+
+		m_uvs.emplace_back(vec2(
+			(sinf(angle) + 1.0f) * 0.5f,
+			(cosf(angle) + 1.0f) * 0.5f));
+	}
+
+	// Circle
+	for (int i = 2; i < (int)m_vertices.size()-1; ++i)
+	{
+		m_indices.emplace_back(0);
+		m_indices.emplace_back(i);
+		m_indices.emplace_back(i+1);
+	}
+
+	m_indices.emplace_back(0);
+	m_indices.emplace_back(m_vertices.size()-1);
+	m_indices.emplace_back(2);
+
+	// Cone "circle"
+	for (int i = 2; i < (int)m_vertices.size()-1; ++i)
+	{
+		m_indices.emplace_back(1);
+		m_indices.emplace_back(i);
+		m_indices.emplace_back(i+1);
+	}
+
+	m_indices.emplace_back(1);
+	m_indices.emplace_back(m_vertices.size()-1);
+	m_indices.emplace_back(2);
+
+	computeFaceNormals();
+	computeAabb();
+}
+
 void Mesh::computeFaceNormals()
 {
 	// TEMP just enough normals to get by:

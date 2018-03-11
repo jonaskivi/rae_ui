@@ -2,6 +2,12 @@
 
 #include <cmath>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/visual/CameraSystem.hpp"
@@ -60,7 +66,7 @@ qua axisRotation(Axis axis)
 		case Axis::Y:
 			return qua(vec3(0.0f, 0.0f, Math::toRadians(90.0f)));
 		case Axis::Z:
-			return qua(vec3(0.0f, Math::toRadians(90.0f), 0.0f));
+			return qua(vec3(0.0f, -Math::toRadians(90.0f), 0.0f));
 		default:
 			assert(0);
 			break;
@@ -128,7 +134,7 @@ bool rayPlaneIntersection(const Ray& ray, const Plane& plane, vec3& outContactPo
 	return false;
 }
 
-TranslateGizmo::TranslateGizmo()
+LineGizmo::LineGizmo()
 {
 	for (int i = 0; i < (int)Axis::Count; ++i)
 	{
@@ -139,20 +145,37 @@ TranslateGizmo::TranslateGizmo()
 
 	m_lineMesh.generateBox();
 	m_lineMesh.createVBOs();
+
+	m_coneMesh.generateCone();
+	m_coneMesh.createVBOs();
 }
 
-void TranslateGizmo::setGizmoMaterialId(Id id)
+void LineGizmo::setGizmoMaterialId(Id id)
 {
 	m_materialId = id;
 }
 
-bool TranslateGizmo::hover(const Ray& mouseRay, const Camera& camera)
+bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 {
 	const float MinHoverDistance = 0.0f;
-	const float MaxHoverDistance = 8000.0f;
+	const float MaxHoverDistance = 900000.0f;
 
 	vec4 transformedPosition = camera.getProjectionAndViewMatrix() * vec4(m_position, 1.0f);
-	float gizmoCameraFactor = transformedPosition.w * m_gizmoSizeMultiplier;
+	float gizmoCameraFactor = transformedPosition.w * m_gizmoSizeMultiplier * m_hoverMarginMultiplier;
+
+	// Sort line handles
+	for (int i = 0; i < (int)Axis::Count; ++i)
+	{
+		m_sortedLineHandles[i].axisIndex = i;
+		m_sortedLineHandles[i].tipPosition = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
+		m_sortedLineHandles[i].distanceFromCamera = glm::length(m_sortedLineHandles[i].tipPosition - camera.position());
+	}
+
+	// Sort from closest to farthest
+	std::sort(m_sortedLineHandles.begin(), m_sortedLineHandles.end(), [](const LineHandle& a, const LineHandle& b)
+	{
+		return a.distanceFromCamera < b.distanceFromCamera;
+	});
 
 	// Clear hovers
 	for (int i = 0; i < (int)Axis::Count; ++i)
@@ -160,10 +183,12 @@ bool TranslateGizmo::hover(const Ray& mouseRay, const Camera& camera)
 		m_axisHovers[i] = false;
 	}
 
-	for (int i = 0; i < (int)Axis::Count; ++i)
+	for (auto&& lineHandle : m_sortedLineHandles)
 	{
+		int i = lineHandle.axisIndex;
+
 		Transform transform = m_axisTransforms[i];
-		transform.scale = transform.scale * gizmoCameraFactor;
+		transform.scale = transform.scale * gizmoCameraFactor * vec3(1.0f, m_hoverThicknessMultiplier, m_hoverThicknessMultiplier);
 		// The handle's box needs to be centered with that 0.5
 		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
 
@@ -172,7 +197,6 @@ bool TranslateGizmo::hover(const Ray& mouseRay, const Camera& camera)
 		bool isHit = axisBox.hit(mouseRay, MinHoverDistance, MaxHoverDistance);
 		m_axisHovers[i] = isHit;
 
-		// RAE_TODO: Now we just return on first hit, but we would actually want to sort them by distance.
 		if (isHit)
 		{
 			return true;
@@ -181,7 +205,7 @@ bool TranslateGizmo::hover(const Ray& mouseRay, const Camera& camera)
 	return false;
 }
 
-void TranslateGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem)
+void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem)
 {
 	auto& material = assetSystem.getMaterial(m_materialId);
 
@@ -191,12 +215,15 @@ void TranslateGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, 
 	const auto hoverColor = Utils::createColor8bit(255, 165, 0);
 	const auto activeColor = Utils::createColor8bit(255, 215, 0);
 
-	for (int i = 0; i < (int)Axis::Count; ++i)
+	// Draw from farthest to closest, so iterate backwards
+	for (int index = m_sortedLineHandles.size()-1; index >= 0; --index)
 	{
-		Transform transform = m_axisTransforms[i];
+		int i = m_sortedLineHandles[index].axisIndex;
 
 		Color color = m_axisActives[i] ? activeColor : (m_axisHovers[i] ? hoverColor : axisColor(Axis(i)));
 
+		// Draw line as a box
+		Transform transform = m_axisTransforms[i];
 		transform.scale = transform.scale * gizmoCameraFactor;
 		// The handle's box needs to be centered with that 0.5
 		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
@@ -206,10 +233,23 @@ void TranslateGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, 
 			color,
 			material,
 			m_lineMesh);
+
+		// Draw cone
+		Transform coneTransform = m_axisTransforms[i];
+		float coneSize = m_gizmoSizeMultiplier;
+		coneTransform.scale = vec3(coneSize, coneSize * m_coneLengthMultiplier, coneSize) * gizmoCameraFactor;
+		coneTransform.rotation = coneTransform.rotation * glm::angleAxis(-Math::TAU * 0.25f, vec3(0.0f, 0.0f, 1.0f));
+		coneTransform.position = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
+		renderSystem.renderMeshSingleColor(
+			camera,
+			coneTransform,
+			color,
+			material,
+			m_coneMesh);
 	}
 }
 
-vec3 TranslateGizmo::getActiveAxisVector() const
+vec3 LineGizmo::getActiveAxisVector() const
 {
 	for (int i = 0; i < (int)Axis::Count; ++i)
 	{
@@ -219,7 +259,7 @@ vec3 TranslateGizmo::getActiveAxisVector() const
 	return vec3();
 }
 
-vec3 TranslateGizmo::activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay)// const
+vec3 LineGizmo::activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay)// const
 {
 	for (int i = 0; i < (int)Axis::Count; ++i)
 	{
@@ -323,14 +363,14 @@ void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem, A
 {
 	if (m_translateGizmo.isVisible())
 	{
-		// Alternative way would be to change depth testing to always pass, but instead we clear the depth buffer,
-		// so that the gizmo handles are depth tested against each other.
-		//glDepthFunc(GL_ALWAYS);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		// Don't depth test when rendering the gizmos
+		glDepthFunc(GL_ALWAYS);
+		// Alternative way would be to clear the depth buffer, but that resulted in a slowdown and jerky rendering
+		//glClear(GL_DEPTH_BUFFER_BIT);
 
 		m_translateGizmo.render3D(camera, renderSystem, assetSystem);
 
-		//glDepthFunc(GL_LEQUAL);
+		glDepthFunc(GL_LEQUAL);
 	}
 }
 

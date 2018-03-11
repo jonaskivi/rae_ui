@@ -99,10 +99,17 @@ protected:
 	std::array<bool,		(int)Axis::Count>	m_axisActives = { false, false, false };
 };
 
-class TranslateGizmo : public IGizmo
+struct LineHandle
+{
+	int axisIndex;
+	vec3 tipPosition;
+	float distanceFromCamera;
+};
+
+class LineGizmo : public IGizmo
 {
 public:
-	TranslateGizmo();
+	LineGizmo();
 
 	bool hover(const Ray& mouseRay, const Camera& camera);
 	void render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem);
@@ -117,9 +124,22 @@ public:
 	Line m_debugLine;
 
 protected:
-	float m_gizmoSizeMultiplier = 0.1f;
+
+	std::array<LineHandle, (int)Axis::Count> m_sortedLineHandles;
+
+	float m_gizmoSizeMultiplier = 0.075f;
+	float m_hoverMarginMultiplier = 1.4f;
+	float m_hoverThicknessMultiplier = 3.0f;
+	float m_coneLengthMultiplier = 4.0f;
 	Mesh m_lineMesh;
+	Mesh m_coneMesh;
 	Id m_materialId;
+};
+
+class TranslateGizmo : public LineGizmo
+{
+public:
+	TranslateGizmo(){}
 };
 
 class TransformTool

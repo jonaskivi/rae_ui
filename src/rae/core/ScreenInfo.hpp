@@ -1,7 +1,6 @@
 #pragma once
 
-#include <iostream>
-using namespace std;
+#include "loguru/loguru.hpp"
 
 namespace rae
 {
@@ -18,11 +17,8 @@ public:
 
 	void printInfo()
 	{
-		cout << "Screen number: " << screenNumber()
-			<< " width: " << screenWidthP()
-			<< " height: " << screenHeightP()
-			<< " aspect ratio: " << screenAspect()
-			<< "\n";
+		LOG_F(INFO, "Screen number: %i width: %i height: %i aspect ratio: %f",
+			screenNumber(), screenWidthP(), screenHeightP(), screenAspect());
 	}
 
 	// -1 is UNDEFINED, 0 is the first screen
@@ -34,11 +30,11 @@ public:
 
 	public: int screenWidthP() { return m_screenWidthP; }
 	public: void screenWidthP(int set);
-	protected: int m_screenWidthP;// = 1280;//1066;
+	protected: int m_screenWidthP;
 	
 	public: int screenHeightP() { return m_screenHeightP; }
 	public: void screenHeightP(int set);
-	protected: int m_screenHeightP;// = 800;
+	protected: int m_screenHeightP;
 	
 	// Screen width and height in height coordinates.
 	public: float screenWidth() { return 1.0f*screenAspect(); }
@@ -95,7 +91,7 @@ public:
 	
 	public: float pixel() { return m_pixelsToHeight; }
 	public: float pixelsToHeight() { return m_pixelsToHeight; }
-	protected: float m_pixelsToHeight;// = 0.00125f;//1.0f / screenHeightP;
+	protected: float m_pixelsToHeight;// = 0.00125f; //1.0f / screenHeightP;
 	
 	public: float heightToPixels() { return m_heightToPixels; }
 	protected: float m_heightToPixels;//800, the same as m_screenHeightP...
@@ -159,7 +155,7 @@ public:
 	// Setting the dpi will change this too.
 	// And it will get adjusted to be in the range 0.25f - 0.48f.
 	public: float curveSideSize() { return m_curveSideSize; }
-	protected: float m_curveSideSize;// = 0.3f;
+	protected: float m_curveSideSize = 0.3f;
 };
 
 } // namespace rae

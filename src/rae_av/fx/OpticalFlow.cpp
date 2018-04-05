@@ -1,5 +1,4 @@
 #ifdef USE_RAE_AV
-#include <iostream>
 #include <cmath>
 #include <chrono>
 #include <array>
@@ -52,8 +51,8 @@ OpticalFlow::OpticalFlow(OpticalFlowMethod method)
 		return;
 	}
 
-	std::cout << "Loaded OpticalFlow example files. width: "
-		<< m_frame0.cols << " height: " << m_frame0.rows << "\n";
+	LOG_F(INFO, "Loaded OpticalFlow example files. width: %i height: %i",
+		m_frame0.cols, m_frame0.rows);
 	*/
 }
 
@@ -75,7 +74,7 @@ void OpticalFlow::process()
 	if (m_state != EffectNodeState::Processing || m_error)
 		return;
 
-	std::cout << "OpticalFlow processing.\n";
+	LOG_F(INFO, "OpticalFlow processing.");
 
 	Mat greyFrame0;
 	cvtColor(m_frame0, greyFrame0, COLOR_BGR2GRAY);
@@ -86,23 +85,23 @@ void OpticalFlow::process()
 
 	if (m_opticalFlowMethod == OpticalFlowMethod::DualTVL1)
 	{
-		std::cout << "." << std::flush;
+		LOG_F(INFO, ".");
 		Ptr<DualTVL1OpticalFlow> optFlow = DualTVL1OpticalFlow::create();
-		std::cout << ".." << std::flush;
+		LOG_F(INFO, "..");
 		optFlow->calc(greyFrame0, greyFrame1, m_flowForward);
-		std::cout << "..." << std::flush;
+		LOG_F(INFO, "...");
 		optFlow->calc(greyFrame1, greyFrame0, m_flowBackward); // backward flow
-		std::cout << "...\n";
+		LOG_F(INFO, "...");
 	}
 	else if (m_opticalFlowMethod == OpticalFlowMethod::DeepFlow)
 	{
-		std::cout << "." << std::flush;
+		LOG_F(INFO, ".");
 		Ptr<cv::DenseOpticalFlow> optFlow = optflow::createOptFlow_DeepFlow();
-		std::cout << ".." << std::flush;
+		LOG_F(INFO, "..");
 		optFlow->calc(greyFrame0, greyFrame1, m_flowForward);
-		std::cout << "..." << std::flush;
+		LOG_F(INFO, "...");
 		optFlow->calc(greyFrame1, greyFrame0, m_flowBackward); // backward flow
-		std::cout << "...\n";
+		LOG_F(INFO, "...");
 	}
 	else if (m_opticalFlowMethod == OpticalFlowMethod::Farneback)
 	{
@@ -135,7 +134,7 @@ void OpticalFlow::process()
 
 	String timeString = humanTimeString(
 		std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
-	std::cout << "OpticalFlow took: " << timeString << "\n";
+	LOG_F(INFO, "OpticalFlow took: %s", timeString.c_str());
 }
 
 inline bool isFlowCorrect(Point2f u)
@@ -147,7 +146,7 @@ void OpticalFlow::update()
 {
 	if (m_error)
 	{
-		std::cout << "OpticalFlow got some error.\n";
+		LOG_F(ERROR, "OpticalFlow got some error.");
 		return;
 	}
 
@@ -167,12 +166,12 @@ void OpticalFlow::update()
 		case EffectNodeState::Done:
 		{
 			//float lerpValue = fabs((fmod(time, m_duration) / (m_duration/2.0f)) - 1.0f);
-			//std::cout << "time: " << time << " lerpValue: " << lerpValue << "\n";
+			//LOG_F(INFO, "time: %f lerpValue: %f", time, lerpValue);
 
 			int writeFrames = 4;
 			float lerpValue = (float)doneCounter / (float)writeFrames;
-			std::cout << "lerpValue: " << lerpValue << "\n";
-			std::cout << "doneCounter: " << doneCounter << " frameCount: " << frameCount << "\n";
+			LOG_F(INFO, "lerpValue: %f", lerpValue);
+			LOG_F(INFO, "doneCounter: %i frameCount: %i", doneCounter, frameCount);
 
 			if (m_frame0.size() != m_frame1.size() ||
 				m_frame0.size() != m_flowForward.size() ||
@@ -231,8 +230,7 @@ void OpticalFlow::update()
 
 const Mat& OpticalFlow::getOutputAtTime(float lerpTime)
 {
-	std::cout << "getOutputAtTime: lerpTime: " << lerpTime << "\n";
-	//std::cout << "doneCounter: " << doneCounter << " frameCount: " << frameCount << "\n";
+	LOG_F(INFO, "getOutputAtTime: lerpTime: %f", lerpTime);
 
 	if (lerpTime <= 0.0f)
 		return m_frame0;
@@ -327,9 +325,8 @@ void OpticalFlow::replaceFrame0(AVFrame* frameRGB)
 
 void OpticalFlow::copyAVFrameToMat(AVFrame* frameRGB, cv::Mat& mat)
 {
-	std::cout << "Copy AVFrame to Mat. AVFrame width: "
-		<< frameRGB->width << " height: " << frameRGB->height
-		<< " linesize: " << frameRGB->linesize << "\n";
+	LOG_F(INFO, "Copy AVFrame to Mat. AVFrame width: %i height: %i linesize: %i",
+		frameRGB->width, frameRGB->height, frameRGB->linesize);
 
 	mat = Mat(frameRGB->height, frameRGB->width, CV_8UC3, Scalar(0,0,255));
 	for (int y = 0; y < frameRGB->height; ++y)
@@ -344,8 +341,7 @@ void OpticalFlow::copyAVFrameToMat(AVFrame* frameRGB, cv::Mat& mat)
 		}
 	}
 
-	std::cout << "Copied AVFrame to Mat. width: "
-		<< mat.cols << " height: " << mat.rows << "\n";
+	LOG_F(INFO, "Copied AVFrame to Mat. width: %i height: %i", mat.cols, mat.rows);
 }
 
 void OpticalFlow::writeFrameToImage(ImageBuffer& image)

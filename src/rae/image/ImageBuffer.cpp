@@ -1,5 +1,4 @@
 #include "rae/image/ImageBuffer.hpp"
-#include <iostream>
 #include <ciso646>
 #include <array>
 
@@ -97,7 +96,7 @@ void ImageBuffer::createImage(NVGcontext* vg)
 {
 	if (m_imageId == -1 && vg != nullptr)
 	{
-		//std::cout << "Creating image " << m_width << "x" << m_height << "\n";
+		//LOG_F(INFO, "Creating image %ix%i", m_width, m_height);
 		m_imageId = nvgCreateImageRGBA(vg, m_width, m_height, /*imageFlags*/0, &m_data[0]);
 	}
 	else

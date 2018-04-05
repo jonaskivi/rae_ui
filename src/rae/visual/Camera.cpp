@@ -3,8 +3,6 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-
 #include "rae/core/Random.hpp"
 #include "rae/visual/Camera.hpp"
 

@@ -384,10 +384,10 @@ void Engine::onMouseEvent(const Input& input)
 		{
 			const auto& window = m_screenSystem.window();
 
-			//cout << "mouse press: x: "<< input.mouse.x << " y: " << input.mouse.y << endl;
-			//cout << "mouse press: xP: "<< (int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2)
-			//	<< " yP: " << m_renderSystem.windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem.windowPixelHeight() / 2) << endl;
-	
+			//LOG_F(INFO, "mouse press: x: %f y: %f", input.mouse.x, input.mouse.y);
+			//LOG_F(INFO, "mouse press: xP: %f yP: %f", (int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2),
+			//	m_renderSystem.windowPixelHeight() - (int)m_screenSystem.heightToPixels(input.mouse.y) - (m_renderSystem.windowPixelHeight() / 2));
+
 			unsigned char res[4];
 
 			m_renderSystem.renderPicking();

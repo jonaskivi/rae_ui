@@ -111,10 +111,8 @@ ScreenInfo::ScreenInfo() :
 	calculateScreenAspect();
 	calculateHalfScreens();
 
-	m_curveSideSize = 0.3f;
 	dpi(96.0f);
 
-	cout << "Created ScreenInfo: ";
 	printInfo();
 }
 
@@ -137,10 +135,8 @@ ScreenInfo::ScreenInfo(int set_screenNumber,
 	calculateScreenAspect();
 	calculateHalfScreens();
 
-	m_curveSideSize = 0.3f;
 	dpi(96.0);
 
-	cout<<"created ScreenInfo: ";
 	printInfo();
 }
 

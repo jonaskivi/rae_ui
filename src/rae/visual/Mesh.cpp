@@ -747,7 +747,6 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 		m_uvs.reserve(mesh->mNumVertices);
 		for (uint i = 0; i < mesh->mNumVertices; i++)
 		{
-			//REMOVE cout <<"uv: " << i <<"\n";
 			if(mesh->HasTextureCoords(0))
 			{
 				aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.

@@ -1,6 +1,5 @@
 #include "RayTracer.hpp"
 
-#include <iostream>
 #include <thread>
 
 #include "rae/core/Utils.hpp"

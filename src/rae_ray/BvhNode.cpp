@@ -1,9 +1,9 @@
-#include "BvhNode.hpp"
-#include "HitRecord.hpp"
+#include "rae_ray/BvhNode.hpp"
+#include "rae_ray/HitRecord.hpp"
+
+#include "loguru/loguru.hpp"
 
 #include "rae/core/Random.hpp"
-
-#include <iostream>
 
 using namespace rae;
 
@@ -28,7 +28,9 @@ void BvhNode::init(Array<Hitable*>& hitables, float time0, float time1)
 		Box left = a->getAabb(0,0);
 		Box right = b->getAabb(0,0);
 		if (left.valid() == false || right.valid() == false)
-			std::cerr << "No aabb in BvhNode constructor\n";
+		{
+			LOG_F(ERROR, "No aabb in BvhNode constructor.");
+		}
 
 		if (left.min()[axis] - right.min()[axis] < 0.0f)
 			return true;
@@ -61,7 +63,9 @@ void BvhNode::init(Array<Hitable*>& hitables, float time0, float time1)
 	Box left = m_left->getAabb(time0, time1);
 	Box right = m_right->getAabb(time0, time1);
 	if (left.valid() == false || right.valid() == false)
-		std::cerr << "No aabb in BvhNode constructor\n";
+	{
+		LOG_F(ERROR, "No aabb in BvhNode constructor.");
+	}
 
 	m_aabb.init(left, right);
 }

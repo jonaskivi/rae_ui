@@ -98,14 +98,14 @@ void Pihlaja::rewind()
 	#ifdef USE_RAE_AV
 	if (not m_avSystem.hasAsset(m_videoAssetId))
 	{
-		std::cout << "No asset found in AVSystem.\n";
+		LOG_F(ERROR, "No asset found in AVSystem with id: %i", m_videoAssetId);
 		return;
 	}
 
 	auto& asset = m_avSystem.getAsset(m_videoAssetId);
 	if (not asset.isLoaded())
 	{
-		std::cout << "Asset is not loaded.\n";
+		LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
 		return;
 	}
 
@@ -181,14 +181,14 @@ UpdateStatus Pihlaja::update()
 	{
 		if (not m_avSystem.hasAsset(m_videoAssetId))
 		{
-			std::cout << "No asset found in AVSystem.\n";
+			LOG_F(ERROR, "No asset found in AVSystem with id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
 		}
 
 		auto& asset = m_avSystem.getAsset(m_videoAssetId);
 		if (not asset.isLoaded())
 		{
-			std::cout << "Asset is not loaded.\n";
+			LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
 		}
 
@@ -258,14 +258,14 @@ UpdateStatus Pihlaja::update()
 	{
 		if (not m_avSystem.hasAsset(m_videoAssetId))
 		{
-			std::cout << "No asset found in AVSystem.\n";
+			LOG_F(ERROR, "No asset found in AVSystem with id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
 		}
 
 		auto& asset = m_avSystem.getAsset(m_videoAssetId);
 		if (not asset.isLoaded())
 		{
-			std::cout << "Asset is not loaded.\n";
+			LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
 		}
 

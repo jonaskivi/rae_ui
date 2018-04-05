@@ -1,6 +1,7 @@
 #pragma once
 #ifdef USE_RAE_AV
-#include <iostream>
+
+#include "loguru/loguru.hpp"
 
 #include "opencv2/core.hpp"
 #include "opencv2/core/utility.hpp"
@@ -71,7 +72,7 @@ private:
 
 	void setState(EffectNodeState state)
 	{
-		std::cout << "Optical flow State: " << (int)state << "\n";
+		LOG_F(INFO, "Optical flow State: %i", (int)state);
 		m_state = state;
 	}
 

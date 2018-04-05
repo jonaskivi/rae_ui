@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-using namespace std;
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +24,6 @@ GLFWwindow* window;
 
 #define CATCH_CONFIG_RUNNER
 #include "rae/core/catch.hpp"
-#include <iostream>
 #include <exception>
 
 //----------------------------------------
@@ -96,10 +94,10 @@ int main(int argc, char** argv)
 	try
 	{
 		// Run all unit tests.
-		auto result = Catch::Session().run(argc, argv);
+		int result = Catch::Session().run(argc, argv);
 		if (result != 0)
 		{
-			std::cout << "Unit test(s) failed. Result: " << result << "\n";
+			LOG_F(ERROR, "Unit test(s) failed. Result: %i", result);
 			LOG_F(INFO, "Press Return to Quit.");
 			std::cin.get(); // Keep console window open.
 			return -1;

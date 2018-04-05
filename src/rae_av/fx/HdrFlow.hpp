@@ -27,7 +27,7 @@ private:
 
 	void setState(EffectNodeState state)
 	{
-		std::cout << "HdrFlow State: " << (int)state << "\n";
+		LOG_F(INFO, "HdrFlow State: %i", (int)state);
 		m_state = state;
 	}
 

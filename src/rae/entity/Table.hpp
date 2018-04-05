@@ -2,7 +2,6 @@
 
 #include "rae/core/Types.hpp"
 
-#include <iostream>
 #include <functional>
 
 namespace rae
@@ -58,19 +57,19 @@ public:
 			m_items[m_idMap[id]] = std::move(comp);
 			m_updated[m_idMap[id]] = true;
 
-			//std::cout << "Table: Entity already exists, replacing: " << id << "\n";
+			//LOG_F(INFO, "Table: Entity already exists, replacing: %i", id);
 			return;
 		}
 
 		// Reserve enough space in idMap to hold the id.
-		//std::cout << "Creating id: " << id << " size: " << m_idMap.size() << "\n";
+		//LOG_F(INFO, "Creating id: %i size: %i", id, (int)m_idMap.size());
 		int index = (int)id;
 		while ((int)m_idMap.size() <= index)
 		{
 			m_idMap.emplace_back(InvalidIndex);
-			//std::cout << "Created: " << m_idMap.size() << "\n";
+			//LOG_F(INFO, "Created: %i", (int)m_idMap.size());
 		}
-		//std::cout << "Size after: " << m_idMap.size() <<"\n";
+		//LOG_F(INFO, "Size after: %i", (int)m_idMap.size());
 
 		// Find next free place
 		if (m_freeItems.size() > 0)
@@ -81,7 +80,7 @@ public:
 			m_items[freeIndex] = std::move(comp);
 			m_updated[freeIndex] = true;
 
-			//std::cout << "Table: Re-used existing entity: id: " << id << " at freeindex: " << freeIndex << "\n";
+			//LOG_F(INFO, "Table: Re-used existing entity: id: %i at freeindex: %i", id, freeIndex);
 			return;
 		}
 
@@ -91,7 +90,7 @@ public:
 		m_items.emplace_back(std::move(comp));
 		m_updated.emplace_back(true);
 
-		//std::cout << "Table: Created a completely new object: " << id << " idMap.size: " << m_idMap.size() << "\n";
+		//LOG_F(INFO, "Table: Created a completely new object: %i idMap.size: %i", id, (int)m_idMap.size());
 	}
 
 	void clear()
@@ -168,7 +167,7 @@ public:
 	{
 		if (check(id))
 			return m_items[m_idMap[id]];
-		//std::cout << "Table: invalid get: " << id << "\n";
+		//LOG_F(ERROR, "Table: invalid get: %i", id);
 		//assert(false);
 		return m_empty;
 	}
@@ -177,7 +176,7 @@ public:
 	{
 		if (check(id))
 			return m_items[m_idMap[id]];
-		//std::cout << "Table: invalid get: " << id << "\n";
+		//LOG_F(ERROR, "Table: invalid get: %i", id);
 		//assert(false);
 		return m_empty;
 	}

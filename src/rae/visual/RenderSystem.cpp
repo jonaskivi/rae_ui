@@ -310,8 +310,8 @@ void RenderSystem::render3D()
 			//debugMesh = &mesh;
 
 			#ifdef RAE_DEBUG
-				cout << "Going to render Mesh. id: " << id << "\n";
-				cout << "MeshLink is: " << m_meshLinks.get(id) << "\n";
+				LOG_F(INFO, "Going to render Mesh. id: %i", id);
+				LOG_F(INFO, "MeshLink is: %i", m_meshLinks.get(id));
 			#endif
 
 			renderMesh(camera, transform, white, *material, mesh, m_selectionSystem.isSelected(id));

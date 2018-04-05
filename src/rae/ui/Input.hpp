@@ -27,7 +27,6 @@
 #include "rae/ui/KeySym.hpp"
 
 #include <cassert>
-#include <iostream>
 #include <vector>
 #include <functional>
 

@@ -1,7 +1,5 @@
-#include <iostream>
-using namespace std;
-#include <math.h>
-#include <assert.h>
+#include <cmath>
+#include <cassert>
 
 #include "rae/core/Random.hpp"
 
@@ -57,7 +55,7 @@ bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
 	float discriminant = 1.0f - ni_over_nt * ni_over_nt * (1.0f - dt * dt);
 	if (discriminant > 0)
 	{
-		refracted = ni_over_nt * (uv - n * dt) - n * sqrt(discriminant);
+		refracted = ni_over_nt * (uv - n * dt) - n * std::sqrt(discriminant);
 		return true;
 	}
 	return false;

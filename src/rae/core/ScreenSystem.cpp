@@ -77,7 +77,7 @@ void ScreenSystem::updateScreenInfo()
 	}
 		
 	#ifdef DebugRae
-		RaeLog << "ScreenSystem::updateScreenInfo() END.\n";
+		LOG_F(INFO, "ScreenSystem::updateScreenInfo() END.");
 	#endif
 }
 
@@ -88,7 +88,7 @@ void ScreenSystem::updateScreenInfo()
 void ScreenSystem::updateScreenInfo()
 {
 	#ifdef DebugRae
-		std::cout << "ScreenSystem::updateScreenInfo() START.\n";
+		LOG_F(INFO, "ScreenSystem::updateScreenInfo() START.");
 	#endif
 
 	//If we happen to have some screens there already, we'll clear them first.
@@ -116,7 +116,7 @@ void ScreenSystem::updateScreenInfo()
 	}
 		
 	#ifdef DebugRae
-		std::cout << "ScreenSystem::updateScreenInfo() END.\n";
+		LOG_F(INFO, "ScreenSystem::updateScreenInfo() END.");
 	#endif
 }
 

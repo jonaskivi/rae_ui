@@ -52,7 +52,7 @@ void Input::addTouchPoint(TouchPointState setState, int setId, float xPixels, fl
 	float yHeight = m_screenSystem.pixelsToHeight(yPixels);
 
 	#ifdef DebugTouch
-		RaeLog<<"addTouchPoint: x: "<<xPixels<<" y: "<<yPixels<<"\n";
+		LOG_F(INFO, "Input::addTouchPoint: x: %f y: %f", xPixels, yPixels);
 	#endif
 
 	if (setId < touch.touchPoints_size)
@@ -62,7 +62,7 @@ void Input::addTouchPoint(TouchPointState setState, int setId, float xPixels, fl
 	else
 	{
 		touch.eventId = 0;
-		std::cout << "ERROR: Rae.Input.addTouchPoint. ID is over 20. id: " << setId;
+		LOG_F(ERROR, "ERROR: Input::addTouchPoint. ID is over 20. id: %i", setId);
 	}
 
 	for (int i = 0; i < touch.touchPoints_size; i++ )
@@ -91,7 +91,7 @@ void Input::addTouchPoint(TouchPointState setState, int setId, float xPixels, fl
 			return;
 		}
 	}
-	std::cout << "Rae::Input ERROR: Touch ID not found. id: " << setId << "\n";
+	LOG_F(ERROR, "ERROR: Input::addTouchPoint. Touch ID not found. id: %i", setId);
 }
 
 void Input::osScrollEvent(float deltaX, float deltaY)

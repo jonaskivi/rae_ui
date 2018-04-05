@@ -3,9 +3,6 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
-using namespace std;
-
-#include <stdlib.h>
 
 #include "loguru/loguru.hpp"
 
@@ -50,7 +47,8 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	else
 	{
 		LOG_F(ERROR, "Can't open shader: %s", vertexFilePath.c_str());
-		getchar();
+		LOG_F(INFO, "Press Return to Quit.");
+		std::cin.get(); // Keep console window open.
 		return 0;
 	}
 
@@ -70,7 +68,8 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	else
 	{
 		LOG_F(ERROR, "Can't open shader: %s", fragmentFilePath.c_str());
-		getchar();
+		LOG_F(INFO, "Press Return to Quit.");
+		std::cin.get(); // Keep console window open.
 		return 0;
 	}
 
@@ -81,7 +80,7 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	LOG_F(INFO, "Compiling vertex shader: %s", vertexFilePath.c_str());
 
 	const char* vertexSourcePointer = vertexShaderCode.c_str();
-	glShaderSource(vertexShaderId, 1, &vertexSourcePointer , NULL);
+	glShaderSource(vertexShaderId, 1, &vertexSourcePointer , nullptr);
 	glCompileShader(vertexShaderId);
 
 	// Check Vertex Shader
@@ -92,16 +91,17 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	{
 		LOG_F(ERROR, "Error in shader: %s infoLogLength: %i", vertexFilePath.c_str(), infoLogLength);
 		std::vector<char> vertexShaderErrorMessage(infoLogLength+1);
-		glGetShaderInfoLog(vertexShaderId, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
+		glGetShaderInfoLog(vertexShaderId, infoLogLength, nullptr, &vertexShaderErrorMessage[0]);
 		LOG_F(ERROR, "%s", &vertexShaderErrorMessage[0]);
-		getchar();
+		LOG_F(INFO, "Press Return to Quit.");
+		std::cin.get(); // Keep console window open.
 		return 0;
 	}
 
 	// Compile Fragment Shader
 	LOG_F(INFO, "Compiling fragment shader: %s", fragmentFilePath.c_str());
 	const char* fragmentSourcePointer = fragmentShaderCode.c_str();
-	glShaderSource(fragmentShaderId, 1, &fragmentSourcePointer , NULL);
+	glShaderSource(fragmentShaderId, 1, &fragmentSourcePointer , nullptr);
 	glCompileShader(fragmentShaderId);
 
 	// Check Fragment Shader
@@ -112,9 +112,10 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	{
 		LOG_F(ERROR, "Error in shader: %s", fragmentFilePath.c_str());
 		Array<char> fragmentShaderErrorMessage(infoLogLength+1);
-		glGetShaderInfoLog(fragmentShaderId, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
+		glGetShaderInfoLog(fragmentShaderId, infoLogLength, nullptr, &fragmentShaderErrorMessage[0]);
 		LOG_F(ERROR, "%s", &fragmentShaderErrorMessage[0]);
-		getchar();
+		LOG_F(INFO, "Press Return to Quit.");
+		std::cin.get(); // Keep console window open.
 		return 0;
 	}
 
@@ -133,9 +134,10 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	{
 		LOG_F(ERROR, "Error in shader: %s or %s", vertexFilePath.c_str(), fragmentFilePath.c_str());
 		Array<char> programErrorMessage(infoLogLength+1);
-		glGetProgramInfoLog(programId, infoLogLength, NULL, &programErrorMessage[0]);
+		glGetProgramInfoLog(programId, infoLogLength, nullptr, &programErrorMessage[0]);
 		LOG_F(ERROR, "%s", &programErrorMessage[0]);
-		getchar();
+		LOG_F(INFO, "Press Return to Quit.");
+		std::cin.get(); // Keep console window open.
 		return 0;
 	}
 

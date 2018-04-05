@@ -30,9 +30,6 @@ void CameraSystem::onMouseEvent(const Input& input)
 	{
 		if (input.mouse.button(MouseButton::Second))
 		{
-			//cout << "RenderSystem mouse motion. x: " << input->mouse.xRel
-			//	<< " y: " << input->mouse.yRel << endl;
-
 			const float rotateSpeedMul = 5.0f;
 
 			camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
@@ -41,15 +38,11 @@ void CameraSystem::onMouseEvent(const Input& input)
 	}
 	else if (input.eventType == EventType::MouseButtonPress)
 	{
-		//cout << "RenderSystem mouse press. x: " << input->mouse.x
-		//	<< " y: " << input->mouse.y << endl;
 	}
 	else if (input.eventType == EventType::MouseButtonRelease)
 	{
 		if (input.mouse.eventButton == MouseButton::First)
 		{
-			//cout << "RenderSystem mouse release. x: " << input->mouse.x
-			//	<< " y: " << input->mouse.y << endl;
 		}
 	}
 

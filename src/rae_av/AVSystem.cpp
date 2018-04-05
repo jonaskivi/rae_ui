@@ -1,5 +1,4 @@
 #ifdef USE_RAE_AV
-#include <iostream>
 #include <array>
 
 #include "rae/core/Utils.hpp"
@@ -12,8 +11,8 @@
 
 using namespace rae::av;
 
-AVSystem::AVSystem(RenderSystem& renderSystem)
-: m_renderSystem(renderSystem)
+AVSystem::AVSystem(RenderSystem& renderSystem) :
+	m_renderSystem(renderSystem)
 {
 	av_register_all();
 }

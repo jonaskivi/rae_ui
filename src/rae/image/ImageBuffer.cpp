@@ -10,7 +10,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/core/Utils.hpp"
 
 using namespace rae;
@@ -102,11 +102,11 @@ void ImageBuffer::createImage(NVGcontext* vg)
 	}
 	else
 	{
-		rae_log("Failed to create an image ", m_width, "x", m_height);
+		LOG_F(ERROR, "Failed to create an image %ix%i", m_width, m_height);
 		if (m_imageId != -1)
-			rae_log("imageId was not -1. It was ", m_imageId);
+			LOG_F(ERROR, "imageId was not -1. It was %i", m_imageId);
 		if (vg == nullptr)
-			rae_log("NanoVG context was null.");
+			LOG_F(ERROR, "NanoVG context was null.");
 		assert(m_imageId == -1);
 		assert(vg != nullptr);
 	}
@@ -185,7 +185,7 @@ void FrameBufferImage::generateFBO(NVGcontext* vg)
 	m_framebufferObject = nvgluCreateFramebuffer(vg, m_width, m_height, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
 	if (m_framebufferObject == nullptr)
 	{
-		rae_log("Could not create FBO.");
+		LOG_F(ERROR, "Could not create FBO.");
 		assert(0);
 	}
 }

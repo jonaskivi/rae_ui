@@ -1,6 +1,6 @@
 #include "rae/ui/Input.hpp"
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/core/ScreenSystem.hpp"
 
 using namespace rae;
@@ -108,7 +108,7 @@ void Input::osScrollEvent(float deltaX, float deltaY)
 
 void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 {
-	//rae_log("Input.keyEvent() setKey:", setKey);
+	//LOG_F(INFO, "Input.keyEvent() setKey: %i", setKey);
 
 	m_changed = UpdateStatus::Changed;
 	isHandled = false;
@@ -133,23 +133,23 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 	
 	if (setEventType == EventType::KeyPress)
 	{
-		//rae_log("KEY_PRESS: ", hex, setKey, dec, " unicode: ", setUnicode);
+		//LOG_F(INFO, "KEY_PRESS: %i unicode: %i", setKey, setUnicode);
 		if (key.value < key.keyStatesSize)
 		{
 			key.keyStates[key.value] = true;
 			key.pressedThisFrame[key.value] = true;
 		}
-		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.");
+		else LOG_F(ERROR, "key.value: %i is bigger than keyStatesSize.", key.value);
 	}
 	else if (setEventType == EventType::KeyRelease)
 	{
-		//rae_log("KEY_RELEASE: ", hex, setKey, dec, " unicode: ", setUnicode);
+		//LOG_F(INFO, "KEY_RELEASE: %i unicode: %i", setKey, setUnicode);
 		if (key.value < key.keyStatesSize)
 		{
 			key.keyStates[key.value] = false;
 			key.releasedThisFrame[key.value] = true;
 		}
-		else rae_log_error("ERROR: key.value: ", key.value, " is bigger than keyStatesSize.");
+		else LOG_F(ERROR, "key.value: %i is bigger than keyStatesSize.", key.value);
 	}
 
 	emitKeyEvent();
@@ -170,8 +170,8 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	float xHeight = m_screenSystem.pixelsToHeight(xPixels);
 	float yHeight = m_screenSystem.pixelsToHeight(yPixels);
 
-	//rae_log("Input::osMouseEvent: xPixels: ", xPixels, " yPixels: ", yPixels,
-	// " xHeight: ", xHeight, " yHeight: ", yHeight);
+	//LOG_F(INFO, "Input::osMouseEvent: xPixels: %f yPixels: %f xHeight: %f yHeight: %f", xPixels, yPixels,
+	//	xHeight, yHeight);
 
 	m_changed = UpdateStatus::Changed;
 	isHandled = false;
@@ -236,7 +236,7 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	}
 	//else
 	//{
-		//rae_log("Input NO PRESS.");
+		//LOG_F(INFO, "Input NO PRESS.");
 	//}
 	
 	mouse.xRelP = xPixels - mouse.xP;

@@ -1,6 +1,6 @@
 #include "rae/editor/SelectionSystem.hpp"
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/visual/TransformSystem.hpp"
 #include "rae/entity/Table.hpp"
 
@@ -19,6 +19,7 @@ bool SelectionSystem::isSelection() const
 void SelectionSystem::clearSelection()
 {
 	clearSelectionInternal();
+	LOG_F(INFO, "Clear selection. Selection table: %i", m_selected.count());
 	onSelectionChanged.emit(*this);
 }
 
@@ -36,6 +37,15 @@ void SelectionSystem::setSelection(const Array<Id>& ids)
 		m_selected.assign(id, std::move(Selected()));
 	}
 
+	if (ids.size() > 1)
+	{
+		LOG_F(INFO, "Selected multiple ids: %i and %i others.", ids[0], (int)ids.size());
+	}
+	else if (ids.size() == 1)
+	{
+		LOG_F(INFO, "Selected id: %i", ids[0]);
+	}
+
 	onSelectionChanged.emit(*this);
 }
 
@@ -44,12 +54,12 @@ void SelectionSystem::toggleSelected(Id id)
 	if (isSelected(id))
 	{
 		m_selected.remove(id);
-		rae_log("Deselected id: ", id);
+		LOG_F(INFO, "Deselected id: %i selection table: %i", id, m_selected.count());
 	}
 	else
 	{
 		m_selected.assign(id, std::move(Selected()));
-		rae_log("Selected id: ", id);
+		LOG_F(INFO, "Selected id: %i selection table: %i", id, m_selected.count());
 	}
 
 	onSelectionChanged.emit(*this);
@@ -60,13 +70,12 @@ void SelectionSystem::setSelected(Id id, bool selected)
 	if (selected)
 	{
 		m_selected.assign(id, std::move(Selected()));
-		rae_log("Selected id: ", id);
+		LOG_F(INFO, "Selected id: %i selection table: %i", id, m_selected.count());
 	}
 	else
 	{
 		m_selected.remove(id);
-		rae_log("Deselected id: ", id);
-
+		LOG_F(INFO, "Deselected id: %i selection table: %i", id, m_selected.count());
 	}
 
 	onSelectionChanged.emit(*this);

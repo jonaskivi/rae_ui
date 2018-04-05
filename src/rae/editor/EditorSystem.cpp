@@ -8,7 +8,6 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
@@ -340,6 +339,7 @@ HandleStatus TransformTool::handleInput(Input& input, const Camera& camera, Sele
 			vec3 delta = m_translateGizmo.activeAxisDelta(camera, m_mouseRay, m_previousMouseRay);
 
 			translateSelected(delta, selectionSystem);
+			m_translateGizmo.setPosition(m_translateGizmo.position() + delta);
 		}
 		return HandleStatus::Handled;
 	}
@@ -384,7 +384,7 @@ void TransformTool::onSelectionChanged(SelectionSystem& selectionSystem)
 	if (selectionSystem.isSelection())
 	{
 		m_translateGizmo.show();
-		//m_translateGizmo.setPosition(selectionSystem.selectionPosition());
+		m_translateGizmo.setPosition(selectionSystem.selectionPosition());
 	}
 	else
 	{

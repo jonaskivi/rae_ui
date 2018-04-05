@@ -1,5 +1,6 @@
 #include "rae/asset/AssetSystem.hpp"
 
+#include "loguru/loguru.hpp"
 #include "rae/core/Time.hpp"
 #include "rae/entity/EntitySystem.hpp"
 
@@ -33,7 +34,7 @@ UpdateStatus AssetSystem::update()
 Id AssetSystem::createMesh(const String& filename)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createMesh entity: ", id);
+	//LOG_F(INFO, "createMesh entity: %i", id);
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
@@ -45,7 +46,7 @@ Id AssetSystem::createMesh(const String& filename)
 Id AssetSystem::createMaterial(const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createMaterial entity: ", id);
+	//LOG_F(INFO, "createMaterial entity: %i", id);
 	Material material(color);
 	addMaterial(id, std::move(material));
 
@@ -57,7 +58,7 @@ Id AssetSystem::createMaterial(const Color& color)
 Id AssetSystem::createAnimatingMaterial(const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createAnimatingMaterial entity: ", id);
+	//LOG_F(INFO, "createAnimatingMaterial entity: %i", id);
 	Material material(color);
 	addMaterial(id, std::move(material));
 
@@ -69,7 +70,7 @@ Id AssetSystem::createAnimatingMaterial(const Color& color)
 
 void AssetSystem::addMesh(Id id, Mesh&& comp)
 {
-	//rae_log("addMesh to entity: ", id);
+	//LOG_F(INFO, "addMesh to entity: %i", id);
 	m_meshes.assign(id, std::move(comp));
 }
 

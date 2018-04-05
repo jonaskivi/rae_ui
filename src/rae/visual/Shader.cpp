@@ -7,8 +7,9 @@ using namespace std;
 
 #include <stdlib.h>
 
+#include "loguru/loguru.hpp"
+
 #include "rae/visual/Shader.hpp"
-#include "rae/core/Log.hpp"
 #include "rae/visual/Material.hpp"
 
 using namespace rae;
@@ -48,7 +49,7 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	}
 	else
 	{
-		rae_log("Can't open shader: ", vertexFilePath);
+		LOG_F(ERROR, "Can't open shader: %s", vertexFilePath.c_str());
 		getchar();
 		return 0;
 	}
@@ -68,7 +69,7 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	}
 	else
 	{
-		rae_log("Can't open shader: ", fragmentFilePath);
+		LOG_F(ERROR, "Can't open shader: %s", fragmentFilePath.c_str());
 		getchar();
 		return 0;
 	}
@@ -77,7 +78,8 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	int infoLogLength;
 
 	// Compile Vertex Shader
-	rae_log( "Compiling vertex shader: ", vertexFilePath);
+	LOG_F(INFO, "Compiling vertex shader: %s", vertexFilePath.c_str());
+
 	const char* vertexSourcePointer = vertexShaderCode.c_str();
 	glShaderSource(vertexShaderId, 1, &vertexSourcePointer , NULL);
 	glCompileShader(vertexShaderId);
@@ -88,16 +90,16 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 
 	if (infoLogLength > 1)
 	{
-		rae_log("Error in shader: ", vertexFilePath, " infoLogLength: ", infoLogLength);
+		LOG_F(ERROR, "Error in shader: %s infoLogLength: %i", vertexFilePath.c_str(), infoLogLength);
 		std::vector<char> vertexShaderErrorMessage(infoLogLength+1);
 		glGetShaderInfoLog(vertexShaderId, infoLogLength, NULL, &vertexShaderErrorMessage[0]);
-		rae_log(&vertexShaderErrorMessage[0]);
+		LOG_F(ERROR, "%s", &vertexShaderErrorMessage[0]);
 		getchar();
 		return 0;
 	}
 
 	// Compile Fragment Shader
-	rae_log( "Compiling fragment shader: ", fragmentFilePath);
+	LOG_F(INFO, "Compiling fragment shader: %s", fragmentFilePath.c_str());
 	const char* fragmentSourcePointer = fragmentShaderCode.c_str();
 	glShaderSource(fragmentShaderId, 1, &fragmentSourcePointer , NULL);
 	glCompileShader(fragmentShaderId);
@@ -108,17 +110,17 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 
 	if (infoLogLength > 1)
 	{
-		rae_log("Error in shader: ", fragmentFilePath);
+		LOG_F(ERROR, "Error in shader: %s", fragmentFilePath.c_str());
 		Array<char> fragmentShaderErrorMessage(infoLogLength+1);
 		glGetShaderInfoLog(fragmentShaderId, infoLogLength, NULL, &fragmentShaderErrorMessage[0]);
-		rae_log(&fragmentShaderErrorMessage[0]);
+		LOG_F(ERROR, "%s", &fragmentShaderErrorMessage[0]);
 		getchar();
 		return 0;
 	}
 
 	// Link the program
 	GLuint programId = glCreateProgram();
-	rae_log( "Created shader program: ", programId);
+	LOG_F(INFO, "Created shader program: %i", (int)programId);
 	glAttachShader(programId, vertexShaderId);
 	glAttachShader(programId, fragmentShaderId);
 	glLinkProgram(programId);
@@ -129,10 +131,10 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 
 	if (infoLogLength > 1)
 	{
-		rae_log("Error in shader: ", vertexFilePath, " or ", fragmentFilePath);
+		LOG_F(ERROR, "Error in shader: %s or %s", vertexFilePath.c_str(), fragmentFilePath.c_str());
 		Array<char> programErrorMessage(infoLogLength+1);
 		glGetProgramInfoLog(programId, infoLogLength, NULL, &programErrorMessage[0]);
-		rae_log( &programErrorMessage[0]);
+		LOG_F(ERROR, "%s", &programErrorMessage[0]);
 		getchar();
 		return 0;
 	}
@@ -208,7 +210,7 @@ void BasicShader::pushTexture(const Material& material)
 
 	if (textureId == 0)
 	{
-		rae_log_error("BasicShader::pushTexture: material has textureId 0.");
+		//LOG_F(ERROR, "BasicShader::pushTexture: material has textureId 0.");
 	}
 
 	// Bind texture in Texture Unit 0

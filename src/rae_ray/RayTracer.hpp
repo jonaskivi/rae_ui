@@ -41,6 +41,7 @@ public:
 	void createSceneFromBook(HitableList& list);
 
 	UpdateStatus update() override;
+	void updateDebugTexts();
 
 	void updateRenderThread();
 

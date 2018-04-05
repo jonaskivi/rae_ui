@@ -3,10 +3,11 @@
 #include <iostream>
 #include <thread>
 
-#include "rae/core/Log.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/core/Random.hpp"
 #include "rae/core/Time.hpp"
+
+#include "rae/ui/DebugSystem.hpp"
 
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/Material.hpp"
@@ -364,6 +365,47 @@ void RayTracer::updateRenderThread()
 	}
 }
 
+void RayTracer::updateDebugTexts()
+{
+	Camera& camera = m_cameraSystem.getCurrentCamera();
+
+	g_debugSystem->showDebugText("Samples: " + std::to_string(m_currentSample));
+
+	if (m_samplesLimit > 0)
+	{
+		g_debugSystem->showDebugText("/" + std::to_string(m_samplesLimit));
+	}
+
+	g_debugSystem->showDebugText("Time: " + std::to_string(m_totalRayTracingTime) + " s");
+
+	g_debugSystem->showDebugText("Position: "
+		+ std::to_string(camera.position().x) + ", "
+		+ std::to_string(camera.position().y) + ", "
+		+ std::to_string(camera.position().z));
+
+	g_debugSystem->showDebugText("Yaw: "
+		+ std::to_string(Math::toDegrees(camera.yaw())) + "°"
+		+ " Pitch: "
+		+ std::to_string(Math::toDegrees(camera.pitch())) + "°");
+
+	g_debugSystem->showDebugText("Field of View: " + std::to_string(Math::toDegrees(camera.fieldOfView())) + "°");
+	g_debugSystem->showDebugText("Focus distance: " + std::to_string(camera.focusDistance()));
+	g_debugSystem->showDebugText(camera.isContinuousAutoFocus() ? "Autofocus ON" : "Autofocus OFF");
+	g_debugSystem->showDebugText("Aperture: " + std::to_string(camera.aperture()));
+	g_debugSystem->showDebugText("Bounces: " + std::to_string(m_bouncesLimit));
+
+	g_debugSystem->showDebugText("Debug hit pos: "
+		+ std::to_string(debugHitRecord.point.x) + ", "
+		+ std::to_string(debugHitRecord.point.y) + ", "
+		+ std::to_string(debugHitRecord.point.z));
+
+	vec3 focusPos = camera.getFocusPosition();
+	g_debugSystem->showDebugText("Debug focus pos: "
+		+ std::to_string(focusPos.x) + ", "
+		+ std::to_string(focusPos.y) + ", "
+		+ std::to_string(focusPos.z));
+}
+
 void RayTracer::toggleBufferQuality()
 {
 	{
@@ -490,6 +532,9 @@ void RayTracer::updateImageBuffer()
 
 void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 {
+	if (!m_isEnabled)
+		return;
+
 	ImageBuffer& readBuffer = imageBuffer();
 
 	nvgSave(vg);
@@ -507,76 +552,6 @@ void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 	nvgRect(vg, x, y, w, h);
 	nvgFillPaint(vg, m_imgPaint);
 	nvgFill(vg);
-
-	// Text
-	if (m_isInfoText)
-	{
-		Camera& camera = m_cameraSystem.getCurrentCamera();
-
-		nvgFontFace(vg, "sans");
-
-		nvgFontSize(vg, 18.0f);
-		nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-		nvgFillColor(vg, nvgRGBA(128, 128, 128, 192));
-	
-		float vertPos = 200.0f;
-
-		std::string samplesStr = "Samples: " + std::to_string(m_currentSample);
-		nvgText(vg, 10.0f, vertPos, samplesStr.c_str(), nullptr); vertPos += 20.0f;
-
-		if (m_samplesLimit > 0)
-		{
-			std::string samplesLimitStr = "/" + std::to_string(m_samplesLimit);
-			nvgText(vg, 10.0f, vertPos, samplesLimitStr.c_str(), nullptr); vertPos += 20.0f;
-		}
-
-		std::string totalTimeStr = "Time: " + std::to_string(m_totalRayTracingTime) + " s";
-		nvgText(vg, 10.0f, vertPos, totalTimeStr.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string positionStr = "Position: "
-			+ std::to_string(camera.position().x) + ", "
-			+ std::to_string(camera.position().y) + ", "
-			+ std::to_string(camera.position().z);
-		nvgText(vg, 10.0f, vertPos, positionStr.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string yawStr = "Yaw: "
-			+ std::to_string(Math::toDegrees(camera.yaw())) + "°"
-			+ " Pitch: "
-			+ std::to_string(Math::toDegrees(camera.pitch())) + "°";
-		nvgText(vg, 10.0f, vertPos, yawStr.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string fovStr = "Field of View: "
-			+ std::to_string(Math::toDegrees(camera.fieldOfView())) + "°";
-		nvgText(vg, 10.0f, vertPos, fovStr.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string focusDistanceStr = "Focus distance: "
-			+ std::to_string(camera.focusDistance());
-		nvgText(vg, 10.0f, vertPos, focusDistanceStr.c_str(), nullptr); vertPos += 20.0f;
-
-		nvgText(vg, 10.0f, vertPos, camera.isContinuousAutoFocus() ? "Autofocus ON" : "Autofocus OFF", nullptr);
-		vertPos += 20.0f;
-
-		std::string apertureStr = "Aperture: "
-			+ std::to_string(camera.aperture());
-		nvgText(vg, 10.0f, vertPos, apertureStr.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string bouncesStr = "Bounces: "
-			+ std::to_string(m_bouncesLimit);
-		nvgText(vg, 10.0f, vertPos, bouncesStr.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string debugStr = "Debug hit pos: "
-			+ std::to_string(debugHitRecord.point.x) + ", "
-			+ std::to_string(debugHitRecord.point.y) + ", "
-			+ std::to_string(debugHitRecord.point.z);
-		nvgText(vg, 10.0f, vertPos, debugStr.c_str(), nullptr); vertPos += 20.0f;
-
-		vec3 focusPos = camera.getFocusPosition();
-		std::string debugStr2 = "Debug focus pos: "
-			+ std::to_string(focusPos.x) + ", "
-			+ std::to_string(focusPos.y) + ", "
-			+ std::to_string(focusPos.z);
-		nvgText(vg, 10.0f, vertPos, debugStr2.c_str(), nullptr); vertPos += 20.0f;
-	}
 
 	nvgRestore(vg);
 }

@@ -1,7 +1,7 @@
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/core/version.hpp"
 
-#include <iostream>
+#include "loguru/loguru.hpp"
 
 #ifdef version_glfw
 	#include <GLFW/glfw3.h>
@@ -53,9 +53,9 @@ void ScreenSystem::updateScreenInfo()
 	NSRect visibleRect;
 	NSArray* screenArray = [NSScreen screens];
 	uint screenCount = [screenArray count];
-	
+
 	#ifdef DebugScreenInfo
-		RaeLog << "ScreenSystem::updateScreenInfo() found " << screenCount << " screens.\n";
+		LOG_F(INFO, "ScreenSystem::updateScreenInfo() found %i screens.", screenCount);
 	#endif
 	
 	for( uint i = 0; i < screenCount; i++ )
@@ -70,9 +70,8 @@ void ScreenSystem::updateScreenInfo()
 			visibleRect.size.width, visibleRect.size.height);
 		
 		#ifdef DebugScreenInfo
-			RaeLog << "Screen [" << i << "]: " << screenRect.size.width << "x"
-				<< screenRect.size.height << " : visibleArea: " << visibleRect.size.width
-				<< "x" << visibleRect.size.height << "\n";
+			LOG_F(INFO, "Screen [%i]: %ix%i : visibleArea: %ix%i", i, screenRect.size.width, screenRect.size.height,
+				visibleRect.size.width, visibleRect.size.height);
 		#endif
 		
 	}
@@ -99,7 +98,7 @@ void ScreenSystem::updateScreenInfo()
 	GLFWmonitor** monitors = glfwGetMonitors(&screenCount);
 
 	#ifdef DebugScreenInfo
-		std::cout << "ScreenSystem::updateScreenInfo() found " << screenCount << " screens.\n";
+		LOG_F(INFO, "ScreenSystem::updateScreenInfo() found %i screens.", screenCount);
 	#endif
 	
 	for (int i = 0; i < screenCount; ++i)
@@ -110,8 +109,8 @@ void ScreenSystem::updateScreenInfo()
 		screens.emplace_back(i, videoMode->width, videoMode->height, videoMode->width, videoMode->height);
 		
 		#ifdef DebugScreenInfo
-			std::cout << "Screen [" << i << "]: " << videoMode->width << "x"
-				<< videoMode->height << " : no visibleArea info available with GLFW.\n";
+			LOG_F(INFO, "Screen [%i]: %ix%i : no visibleArea info available with GLFW.",
+				i, videoMode->width, videoMode->height);
 		#endif
 		
 	}

@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/core/ISystem.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Transform.hpp"
@@ -49,7 +49,7 @@ Engine::Engine(GLFWwindow* window) :
 
 	// RAE_TODO need to get rid of OpenGL picking hack button at id 0.
 	Id emptyEntityId = m_entitySystem.createEntity(); // hack at index 0
-	rae_log("Create empty hack entity at 0: ", emptyEntityId);
+	LOG_F(INFO, "Create empty hack entity at id: %i", emptyEntityId);
 
 	// Load model
 	Id meshID = m_assetSystem.createMesh("./data/models/bunny.obj");
@@ -145,7 +145,7 @@ UpdateStatus Engine::update()
 
 	UpdateStatus engineUpdateStatus = UpdateStatus::NotChanged;
 
-	//rae_log("FRAME START.");
+	//LOG_F(INFO, "FRAME START.");
 
 	for (auto system : m_systems)
 	{
@@ -153,7 +153,7 @@ UpdateStatus Engine::update()
 		{
 			UpdateStatus updateStatus = system->update();
 			engineUpdateStatus = (updateStatus == UpdateStatus::Changed) ? UpdateStatus::Changed : engineUpdateStatus;
-			//rae_log(system->name(), " update: ", bool(updateStatus == UpdateStatus::Changed));
+			//LOG_F(INFO, "%s update: %s", system->name(), bool(updateStatus == UpdateStatus::Changed) ? "true" : "false");
 		}
 	}
 
@@ -177,7 +177,7 @@ UpdateStatus Engine::update()
 	}
 	m_renderSystem.endFrame2D();
 
-	//rae_log("FRAME END.");
+	//LOG_F(INFO, "FRAME END.");
 
 	for (auto system : m_systems)
 	{
@@ -200,7 +200,7 @@ void Engine::askForFrameUpdate()
 Id Engine::createAddObjectButton()
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createAddObjectButton id: ", id);
+	//LOG_F(INFO, "createAddObjectButton id: %i", id);
 	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
 	m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
 
@@ -213,7 +213,7 @@ Id Engine::createAddObjectButton()
 Id Engine::createRandomBunnyEntity()
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createRandomBunnyEntity id: ", id);
+	LOG_F(INFO, "createRandomBunnyEntity id: %i", id);
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
 
 	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
@@ -225,7 +225,7 @@ Id Engine::createRandomBunnyEntity()
 Id Engine::createRandomCubeEntity()
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createRandomCubeEntity id: ", id);
+	LOG_F(INFO, "createRandomCubeEntity id: %i", id);
 	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
 
 	m_renderSystem.addMaterialLink(id, m_materialID);
@@ -237,7 +237,7 @@ Id Engine::createRandomCubeEntity()
 Id Engine::createCube(const vec3& position, const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createCube id: ", id);
+	//LOG_F(INFO, "createCube id: %i", id);
 	// The desired API:
 	m_transformSystem.addTransform(id, Transform(position));
 	//m_geometrySystem.setMesh(entity, m_meshID);
@@ -252,7 +252,7 @@ Id Engine::createCube(const vec3& position, const Color& color)
 Id Engine::createBunny(const vec3& position, const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createBunny id: ", id);
+	//LOG_F(INFO, "createBunny id: %i", id);
 	m_transformSystem.addTransform(id, Transform(position));
 
 	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
@@ -268,7 +268,7 @@ void Engine::createTestWorld()
 
 void Engine::createTestWorld2()
 {
-	//rae_log("createTestWorld2);
+	//LOG_F(INFO, "createTestWorld2");
 
 	//createAddObjectButton(); // at index 1
 
@@ -315,8 +315,8 @@ void Engine::osMouseButtonPress(int set_button, float set_xP, float set_yP)
 	set_xP = set_xP * window.screenPixelRatio();
 	set_yP = set_yP * window.screenPixelRatio();
 
-	//rae_log("osMouseButtonPress after screenPixelRatio: ", window.screenPixelRatio(),
-	//	" x: ", set_xP, " y: ", set_yP);
+	//LOG_F(INFO, "osMouseButtonPress after screenPixelRatio: %f x: %f y: %f", window.screenPixelRatio(),
+	//	set_xP, set_yP);
 
 	float setAmount = 0.0f;
 	m_input.osMouseEvent(
@@ -415,7 +415,7 @@ void Engine::onMouseEvent(const Input& input)
 			}
 			else
 			{
-				rae_log("Pixel clicked entity: ", pickedID);
+				//LOG_F(INFO, "Pixel clicked entity: %i", pickedID);
 				m_selectionSystem.setPixelClicked({ pickedID });
 			}
 		}
@@ -457,7 +457,7 @@ void Engine::reactToInput(const Input& input)
 
 	if (input.getKeyState(KeySym::O))
 	{
-		rae_log("Destroy biggestId: ", m_entitySystem.biggestId());
+		LOG_F(INFO, "Destroy biggestId: %i", m_entitySystem.biggestId());
 		destroyEntity((Id)getRandomInt(20, m_entitySystem.biggestId()));
 	}
 

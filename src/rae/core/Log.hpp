@@ -5,6 +5,8 @@
 #define RAE_LOG_TARGET std::cout
 #define RAE_LOG_ERROR_TARGET std::cerr
 
+// THIS FILE IS DEPRECATED AND SHOULD NOT BE USED. Use loguru LOG_F instead.
+
 #ifndef rae_log
 #define rae_log(...) rae::do_log(__VA_ARGS__, "\n")
 // To disable log output on compile time:

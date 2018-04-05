@@ -6,7 +6,7 @@
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
@@ -66,7 +66,7 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 		virxels(300.0f, 25.0f, 0.1f),
 		[](){});
 
-	//rae_log("UISystem creating Info button: ", m_infoButtonId);
+	//LOG_F("UISystem creating Info button: %i", m_infoButtonId);
 
 	g_ui = this;
 }
@@ -120,11 +120,11 @@ UpdateStatus UISystem::update()
 		auto& transform = m_transformSystem.getTransform(m_infoButtonId);
 		if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
 		{
-			//rae_log("UISystem::render settings stuff mouse.x: ",
-			//	m_input.mouse.x, " mouse.y: ", m_input.mouse.y);
+			//LOG_F(INFO, "UISystem::render settings stuff mouse.x: %f mouse.y: %f",
+			//	m_input.mouse.x, m_input.mouse.y);
 
 			transform.setTarget(vec3(m_input.mouse.x, m_input.mouse.y, 0.0f), 1.0f);
-			//rae_log("Click ", frameCount);
+			//LOG_F(INFO, "Click %i", frameCount);
 		}
 	}
 	*/
@@ -522,7 +522,7 @@ Id UISystem::createToggleButton(const String& text, const vec3& position, const 
 	addCommand(id, Command([this, &property]()
 	{
 		property = !property;
-		//rae_log("Set property to: ", Utils::toString(property));
+		//LOG_F(INFO, "Set property to: %s", Utils::toString(property));
 	}));
 
 	bindActive(id, property);
@@ -539,7 +539,7 @@ void UISystem::bindActive(Id id, Bool& property)
 	property.onChanged.connect(
 	[this, id](bool isEnabled)
 	{
-		//rae_log("Changed to ", Utils::toString(isEnabled), " on: ", id, " : ", getText(id).text);
+		//LOG_F(INFO, "Changed to %s on: %i : %s", Utils::toString(isEnabled), id, getText(id).text);
 		setActive(id, isEnabled);
 	});
 }

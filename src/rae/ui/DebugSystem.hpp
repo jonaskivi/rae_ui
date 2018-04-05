@@ -1,5 +1,7 @@
 #pragma once
 
+#include "loguru/loguru.hpp"
+
 #include "rae/core/ISystem.hpp"
 #include "rae/core/Types.hpp"
 #include "rae/visual/Shader.hpp"
@@ -35,6 +37,7 @@ class DebugSystem : public ISystem
 {
 public:
 	DebugSystem(const CameraSystem& cameraSystem);
+	~DebugSystem();
 
 	void render3D() override;
 
@@ -45,10 +48,18 @@ public:
 	void showDebugText(const String& text, const Color& color);
 	void render2D(NVGcontext* nanoVG);
 
+	void log(const String& text);
+	void log(const String& text, const Color& color);
+
 private:
+	static void loguruLoggerCallback(void* user_data, const loguru::Message& message);
+	static void loguruCallbackFlush(void* user_data);
+	static void loguruCallbackClose(void* user_data);
+
 	const CameraSystem& m_cameraSystem;
 
 	Color m_defaultTextColor = Color(0.5f, 0.5f, 0.5f, 0.75f);
+	Color m_defaultLogColor = Color(1.0f, 0.0f, 1.0f, 0.75f);
 
 	Material m_material;
 	SingleColorShader m_singleColorShader;
@@ -56,6 +67,7 @@ private:
 	Array<Line>				m_lines;
 	Array<Mesh>				m_lineMeshes;
 	Array<DebugText>		m_debugTexts;
+	Array<DebugText>		m_logTexts;
 };
 
 extern DebugSystem* g_debugSystem;

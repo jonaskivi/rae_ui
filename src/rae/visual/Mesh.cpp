@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/visual/Material.hpp"
 
 using namespace rae;
@@ -17,7 +17,7 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-	//rae_log("Mesh destructor.");
+	//LOG_F(INFO, "Mesh destructor.");
 	freeVBOs();
 	delete m_material;
 }
@@ -61,14 +61,14 @@ Mesh& Mesh::operator=(Mesh&& other)
 
 void Mesh::createVBOs(GLenum usage)
 {
-	//rae_log("Mesh::createVBOs.");
+	//LOG_F(INFO, "Mesh::createVBOs.");
 
 	if (m_vertices.size() <= 0 ||
 		m_indices.size() <= 0 ||
 		m_uvs.size() <= 0 ||
 		m_normals.size() <= 0)
 	{
-		rae_log("Mesh::createVBOs: Can't create VBOs because vertices (or something else) is empty.");
+		LOG_F(ERROR, "Mesh::createVBOs: Can't create VBOs because vertices (or something else) is empty.");
 		return;
 	}
 
@@ -97,10 +97,13 @@ void Mesh::createVBOs(GLenum usage)
 		m_normalBufferId == 0 &&
 		m_indexBufferId == 0)
 	{
-		rae_log_error("Mesh::createVBOs FAILED m_vertexBufferId: ", m_vertexBufferId,
-			"m_uvBufferId: ", m_uvBufferId,
-			"m_normalBufferId: ", m_normalBufferId,
-			"m_indexBufferId: ", m_indexBufferId);
+		LOG_F(ERROR, "Mesh::createVBOs FAILED m_vertexBufferId: %i "
+			"m_uvBufferId: %i m_normalBufferId: %i m_indexBufferId: %i",
+			m_vertexBufferId,
+			m_uvBufferId,
+			m_normalBufferId,
+			m_indexBufferId
+			);
 		return;
 	}
 }
@@ -112,11 +115,11 @@ void Mesh::freeVBOs()
 		m_normalBufferId == 0 &&
 		m_indexBufferId == 0)
 	{
-		rae_log_error("Mesh::freeVBOs, but no resources created.");
+		LOG_F(ERROR, "Mesh::freeVBOs, but no resources created.");
 		return;
 	}
 
-	//rae_log("Mesh::freeVBOs.");
+	//LOG_F(INFO, "Mesh::freeVBOs.");
 	glDeleteBuffers(1, &m_vertexBufferId);
 	glDeleteBuffers(1, &m_uvBufferId);
 	glDeleteBuffers(1, &m_normalBufferId);
@@ -263,7 +266,7 @@ void Mesh::computeAabb()
 
 void Mesh::generateBox()
 {
-	//rae_log("Generating Mesh.");
+	//LOG_F("Generating Mesh.");
 
 	float boxSize = 0.5f; // Actually half of the box size
 
@@ -430,7 +433,7 @@ void Mesh::generateBox()
 	computeAabb();
 	computeFaceNormals();
 
-	//rae_log("size of: m_vertices: ", m_vertices.size(), " size of m_indices: ", m_indices.size());
+	//LOG_F("size of: m_vertices: %i size of m_indices: %i", (int)m_vertices.size(), (int)m_indices.size());
 }
 
 void Mesh::generateSphere(float radius, int rings, int sectors)
@@ -666,8 +669,8 @@ bool Mesh::loadModel(const String& filepath)
 	}
 	else
 	{
-		rae_log_error("Couldn't open file: ", filepath);
-		rae_log_error(importer.GetErrorString());
+		LOG_F(ERROR, "Couldn't open file: %s", filepath.c_str());
+		LOG_F(ERROR, importer.GetErrorString());
 		return false;
 	}
 
@@ -675,7 +678,7 @@ bool Mesh::loadModel(const String& filepath)
 
 	if( !scene )
 	{
-		rae_log_error(importer.GetErrorString());
+		LOG_F(ERROR, importer.GetErrorString());
 		return false;
 	}
 
@@ -685,20 +688,20 @@ bool Mesh::loadModel(const String& filepath)
 	//computeAabb();
 	createVBOs();
 
-	rae_log("Succesfully imported scene ", filepath);
+	LOG_F(INFO, "Succesfully imported scene %s", filepath.c_str());
 	return true;
 }
 
 void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 {
-	//rae_log("Node mesh count: ", node->mNumMeshes);
+	//LOG_F(INFO, "Node mesh count: %i", node->mNumMeshes);
 
 	if (node->mNumMeshes > 0)
 	{
 
 		for (uint i = 0; i < node->mNumMeshes; ++i)
 		{
-			//rae_log("Node: ", i);
+			//LOG_F(INFO, "Node: %i", i);
 
 			const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
@@ -708,7 +711,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			
 			}
 
-			//rae_log("Faces: ", f);
+			//LOG_F(INFO, "Faces: %i", f);
 
 			for (uint n = 0; n < node->mNumChildren; ++n)
 			{
@@ -721,12 +724,12 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 	{
 		const aiMesh* mesh = scene->mMeshes[0]; // In this simple example code we always use the 1rst mesh (in OBJ files there is often only one anyway)
 
-		//rae_log("m_vertices: ", mesh->mNumVertices);
-		//rae_log("faces: ", mesh->mNumFaces);
+		//LOG_F(INFO, "m_vertices: %i", mesh->mNumVertices);
+		//LOG_F(INFO, "faces: %i", mesh->mNumFaces);
 		
 		if (mesh->HasTextureCoords(0) == false)
 		{
-			//rae_log("no texture coordinates in mesh.");
+			//LOG_F(INFO, "No texture coordinates in mesh.");
 		}
 
 		m_aabb.clear();

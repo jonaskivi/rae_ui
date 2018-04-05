@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/animation/Animator.hpp"
 #include "rae/visual/Shader.hpp"
 #include "rae/visual/Transform.hpp"
@@ -55,7 +55,7 @@ protected:
 
 	void setVideoRenderingState(VideoRenderingState state)
 	{
-		rae_log("Video rendering state: ", (int)state);
+		LOG_F(INFO, "Video rendering state: %i", (int)state);
 		m_videoRenderingState = state;
 		m_needsFrameUpdate = true;
 	}

@@ -5,13 +5,13 @@
 
 #include "rae/core/Utils.hpp"
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 
 SCENARIO("Utils unittest", "[rae][Utils]")
 {
 	GIVEN( "parallel_for 8193 array" )
 	{
-		rae_log("Testing testing...");
+		LOG_F(INFO, "Testing testing...");
 
 		std::vector<int> array;
 		int arraySize = 8193;

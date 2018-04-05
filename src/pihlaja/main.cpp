@@ -20,7 +20,8 @@ GLFWwindow* window;
 #include "rae/Engine.hpp"
 #include "pihlaja/Pihlaja.hpp"
 
-#include "rae/core/Log.hpp"
+#define LOGURU_IMPLEMENTATION 1
+#include "loguru/loguru.hpp"
 
 #define CATCH_CONFIG_RUNNER
 #include "rae/core/catch.hpp"
@@ -53,7 +54,7 @@ void glfwOnMouseButton(GLFWwindow* set_window, int set_button, int set_action, i
 	double mx, my;
 	glfwGetCursorPos(set_window, &mx, &my);
 
-	//rae_log("glfwOnMouseButtonPress. x: ", mx, " y: ", my);
+	//LOG_F(INFO, "glfwOnMouseButtonPress. x: %f y: %f", mx, my);
 	if(set_action == GLFW_PRESS)
 	{
 		g_engine->osMouseButtonPress(set_button, (float)mx, (float)my);
@@ -88,16 +89,18 @@ void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 	g_engine->osScrollEvent((float)xoffset, (float)yoffset);	
 }
 
-int main(int argCount, char** ppArgs)
+int main(int argc, char** argv)
 {
+	loguru::init(argc, argv);
+
 	try
 	{
 		// Run all unit tests.
-		auto result = Catch::Session().run(argCount, ppArgs);
+		auto result = Catch::Session().run(argc, argv);
 		if (result != 0)
 		{
 			std::cout << "Unit test(s) failed. Result: " << result << "\n";
-			std::cout << "Press Return to Quit.\n";
+			LOG_F(INFO, "Press Return to Quit.");
 			std::cin.get(); // Keep console window open.
 			return -1;
 		}
@@ -107,9 +110,9 @@ int main(int argCount, char** ppArgs)
 		auto pMessage = ex.what();
 		if (pMessage)
 		{
-			std::cout << "An unhandled exception was thrown:\n" << pMessage << "\n";
+			LOG_F(ERROR, "An unhandled exception was thrown:\n%s", pMessage);
 		}
-		std::cout << "Press Return to Quit.\n";
+		LOG_F(INFO, "Press Return to Quit.");
 		std::cin.get(); // Keep console window open.
 		return -1;
 	}
@@ -117,7 +120,7 @@ int main(int argCount, char** ppArgs)
 	// Initialise GLFW
 	if( !glfwInit() )
 	{
-		rae_log_error("Failed to initialize GLFW");
+		LOG_F(ERROR, "Failed to initialize GLFW.");
 		return -1;
 	}
 
@@ -138,10 +141,10 @@ int main(int argCount, char** ppArgs)
 	const GLFWvidmode* mode = glfwGetVideoMode(screen);
 
 	window = glfwCreateWindow(mode->width - 200, mode->height - 200, "Pihlaja", nullptr, nullptr);
-	
-	if( window == nullptr )
+
+	if (window == nullptr)
 	{
-		rae_log_error("Failed to open GLFW window.");
+		LOG_F(ERROR, "Failed to open GLFW window.");
 		glfwTerminate();
 		return -1;
 	}
@@ -152,7 +155,7 @@ int main(int argCount, char** ppArgs)
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 	{
-		rae_log_error("Failed to initialize GLEW");
+		LOG_F(ERROR, "Failed to initialize GLEW.");
 		return -1;
 	}
 	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.

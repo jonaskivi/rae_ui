@@ -38,6 +38,7 @@ enum class HandleStatus
 class IGizmo
 {
 public:
+	const vec3& position() const { return m_position; }
 	void setPosition(const vec3& position) { m_position = position; }
 
 	bool isVisible() const { return m_visible; }

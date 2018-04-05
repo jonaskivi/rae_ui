@@ -10,7 +10,7 @@
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-#include "rae/core/Log.hpp"
+#include "loguru/loguru.hpp"
 #include "rae/core/Utils.hpp"
 #include "rae/core/Time.hpp"
 #include "rae/ui/Input.hpp"
@@ -98,7 +98,7 @@ void RenderSystem::initNanoVG()
 	m_nanoVG = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 	if (m_nanoVG == nullptr)
 	{
-		rae_log("Could not init nanovg.");
+		LOG_F(ERROR, "Could not init nanovg.");
 		getchar();
 		exit(0);
 		assert(0);
@@ -117,7 +117,7 @@ void RenderSystem::initNanoVG()
 
 	if (loadFonts(m_nanoVG) == -1)
 	{
-		rae_log("Could not load fonts");
+		LOG_F(ERROR, "Could not load fonts");
 		getchar();
 		exit(0);
 		assert(0);
@@ -162,7 +162,7 @@ void RenderSystem::init()
 Id RenderSystem::createBox()
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createBox entity: ", id);
+	//LOG_F(INFO, "createBox entity: %i", id);
 	Mesh mesh;
 	m_assetSystem.addMesh(id, std::move(mesh));
 
@@ -177,7 +177,7 @@ Id RenderSystem::createBox()
 Id RenderSystem::createSphere()
 {
 	Id id = m_entitySystem.createEntity();
-	//rae_log("createSphere entity: ", id);
+	//LOG_F(INFO, "createSphere entity: %i", id);
 	Mesh mesh;
 	m_assetSystem.addMesh(id, std::move(mesh));
 
@@ -215,7 +215,7 @@ void RenderSystem::checkErrors(const char *file, int line)
 			default:                                error = "Unknown error: " + std::to_string((int)err); break;
 		}
 
-		rae_log_error("OpenGL error: ", error, " - Received error in ", file, ":", line);
+		LOG_F(ERROR, "OpenGL error: %s - Received error in %s : %i", error.c_str(), file, line);
 
 		err = glGetError();
 	}
@@ -224,7 +224,7 @@ void RenderSystem::checkErrors(const char *file, int line)
 UpdateStatus RenderSystem::update()
 {
 	#ifdef RAE_DEBUG
-		cout<<"RenderSystem::update().\n";
+		LOG_F(INFO, "RenderSystem::update().");
 	#endif
 
 	// RAE_TODO TEMP:
@@ -334,14 +334,23 @@ void RenderSystem::render3D()
 void RenderSystem::endFrame3D()
 {
 	{
-		g_debugSystem->showDebugText("Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
-			" NM aperture, KL bounces, G debug view, Tab UI, U fastmode");
-		g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows");
-		g_debugSystem->showDebugText("Y toggle resolution");
+		g_debugSystem->showDebugText("");
+		g_debugSystem->showDebugText("Esc to quit, R reset, F autofocus, H visualize focus, ", Colors::white);
+		g_debugSystem->showDebugText("VB focus distance, NM aperture, KL bounces, ", Colors::white);
+		g_debugSystem->showDebugText("G debug view, Tab UI, U fastmode", Colors::white);
+		g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows", Colors::white);
+		g_debugSystem->showDebugText("Y toggle resolution", Colors::white);
+		g_debugSystem->showDebugText("");
 		g_debugSystem->showDebugText("Entities: " + std::to_string(m_entitySystem.entityCount()));
 		g_debugSystem->showDebugText("Transforms: " + std::to_string(m_transformSystem.transformCount()));
 		g_debugSystem->showDebugText("Meshes: " + std::to_string(m_assetSystem.meshCount()));
 		g_debugSystem->showDebugText("Materials: " + std::to_string(m_assetSystem.materialCount()));
+		g_debugSystem->showDebugText("");
+	}
+
+	if (m_rayTracer.isEnabled())
+	{
+		m_rayTracer.updateDebugTexts();
 	}
 }
 
@@ -372,7 +381,7 @@ void RenderSystem::renderPicking()
 			const Transform& transform = m_transformSystem.getTransform(id);
 
 			#ifdef RAE_DEBUG
-				rae_log("Going to render Mesh. id: ", id);
+				LOG_F(INFO, "Going to render Mesh. id: %i", id);
 			#endif
 
 			renderMeshPicking(camera, transform, mesh, id);

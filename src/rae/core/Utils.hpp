@@ -30,6 +30,12 @@ namespace Utils
 
 void sleep(int durationMilliSeconds);
 
+template <typename T>
+T clamp(const T& n, const T& lower, const T& upper)
+{
+	return std::max(lower, std::min(n, upper));
+}
+
 int randomInt(int low, int high);
 float randFloat(float a_min, float a_max);
 bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);

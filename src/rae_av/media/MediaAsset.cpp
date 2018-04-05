@@ -1,5 +1,5 @@
 #ifdef USE_RAE_AV
-#include <iostream>
+#include "loguru/loguru.hpp"
 
 #include "rae_av/media/MediaAsset.hpp"
 
@@ -27,22 +27,29 @@ bool MediaAsset::load()
 	// Open video file
 	if (avformat_open_input(&m_formatContext, m_filepath.c_str(), nullptr, nullptr) != 0)
 	{
-		std::cout << "Couldn't open file: " << m_filepath << "\n";
+		LOG_F(ERROR, "Couldn't open file: %s", m_filepath.c_str());
 		return false;
 	}
-	else std::cout << "FFMPEG opened file nicely!: " << m_filepath << "\n";
+	else
+	{
+		LOG_F(INFO, "FFMPEG opened file nicely!: %s", m_filepath.c_str());
+	}
 
 	// Retrieve stream information
 	if (avformat_find_stream_info(m_formatContext, nullptr) < 0)
 	{
-		std::cout << "Couldn't find stream information: " << m_filepath << "\n";
+		LOG_F(ERROR, "Couldn't find stream information: %s", m_filepath.c_str());
 		return false;
 	}
 
-	std::cout << "Video file info: " << m_filepath
-		<< "\nDuration: " << (m_formatContext->duration / AV_TIME_BASE)
-		<< "\nStream count: " << m_formatContext->nb_streams
-		<< "\nBit rate: " << m_formatContext->bit_rate << "\n";
+	LOG_F(INFO, "Video file info: %s"
+		" Duration: %f"
+		" Stream count: %i"
+		" Bit rate: %i",
+		m_filepath.c_str(),
+		(m_formatContext->duration / AV_TIME_BASE),
+		m_formatContext->nb_streams,
+		m_formatContext->bit_rate);
 
 	// Dump information about file onto standard error (doesn't seem to work with XCode...)
 	//av_dump_format(m_formatContext, 0, m_filepath.c_str(), 0);
@@ -60,7 +67,7 @@ bool MediaAsset::load()
 
 	if (m_videoStreamIndex == -1)
 	{
-		std::cout << "Didn't find a video stream: " << m_filepath << "\n";
+		LOG_F(ERROR, "Didn't find a video stream: ", m_filepath.c_str());
 		return false;
 	}
 
@@ -71,7 +78,7 @@ bool MediaAsset::load()
 	AVCodec* pCodec = avcodec_find_decoder(m_codecContextOriginal->codec_id);
 	if (pCodec == nullptr)
 	{
-		std::cout << "Unsupported codec!\n";
+		LOG_F(ERROR, "Unsupported codec!");
 		return false;
 	}
 	// Copy context
@@ -79,24 +86,24 @@ bool MediaAsset::load()
 	m_codecContext = avcodec_alloc_context3(pCodec);
 	if (avcodec_copy_context(m_codecContext, m_codecContextOriginal) != 0)
 	{
-		std::cout << "Could not copy codec context\n";
+		LOG_F(ERROR, "Could not copy codec context.");
 		return false;
 	}
 	// Open codec
 	if (avcodec_open2(m_codecContext, pCodec, /*options*/nullptr) < 0)
 	{
-		std::cout << "Could not open codec\n";
+		LOG_F(ERROR, "Could not open codec.");
 		return false;
 	}
 
-	std::cout << "Video file width: " << m_codecContext->width << " height:" << m_codecContext->height << "\n";
+	LOG_F(INFO, "Video file width: %i height: %i", m_codecContext->width, m_codecContext->height);
 
 	// Allocate video frames
 	m_frame = av_frame_alloc();
 	m_frameRGB = av_frame_alloc();
 	if (m_frame == nullptr || m_frameRGB == nullptr)
 	{
-		std::cout << "Could not allocate video frames.\n";
+		LOG_F(ERROR, "Could not allocate video frames.");
 		return false;
 	}
 
@@ -137,7 +144,9 @@ AVFrame* MediaAsset::pullFrame()
 		{
 			// Decode video frame
 			if (avcodec_decode_video2(m_codecContext, m_frame, &frameFinished, &packet) <= 0)
-				std::cout << "Error while decoding stream.\n";
+			{
+				LOG_F(ERROR, "Error while decoding stream.");
+			}
 
 			// Did we get a video frame?
 			if (frameFinished)
@@ -159,12 +168,12 @@ AVFrame* MediaAsset::pullFrame()
 					// RAE_TODO: SaveFrame(m_frameRGB, m_codecContext->width, m_codecContext->height, frameCount);
 					if (frameCount % 2 != 0)
 					{
-						std::cout << "pushFrame1.\n";
+						LOG_F(INFO, "pushFrame1.);
 						m_opticalFlow.pushFrame1(m_frameRGB);
 					}
 					else
 					{
-						std::cout << "pushFrame2.\n";
+						LOG_F(INFO, "pushFrame2.");
 						m_opticalFlow.pushFrame2(m_frameRGB);
 					}
 				}

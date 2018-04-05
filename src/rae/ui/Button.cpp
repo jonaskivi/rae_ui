@@ -1,8 +1,6 @@
 #include "rae/ui/Button.hpp"
 
-#include <iostream>
-
-//#include "rae/core/Log.hpp"
+//#include "loguru/loguru.hpp"
 
 using namespace rae;
 
@@ -13,7 +11,7 @@ Command::Command(std::function<void()> handler)
 
 void Command::execute() const
 {
-	//log("Going to execute command...\n");
+	//LOG_F(INFO, "Going to execute command...\n");
 	emitExecuteEvent();
 }
 
@@ -24,7 +22,7 @@ void Command::connectExecuteEventHandler(std::function<void()> handler)
 
 void Button::execute() const
 {
-	//log("Going to execute button: ", m_text, "\n");
+	//LOG_F(INFO, "Going to execute button: %s", m_text.c_str());
 	emitExecuteEvent();
 }
 

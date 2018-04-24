@@ -1,7 +1,7 @@
 #include "rae/editor/SelectionSystem.hpp"
 
 #include "loguru/loguru.hpp"
-#include "rae/visual/TransformSystem.hpp"
+#include "rae/scene/TransformSystem.hpp"
 #include "rae/entity/Table.hpp"
 
 using namespace rae;
@@ -99,8 +99,11 @@ vec3 SelectionSystem::selectionPosition() const
 
 void SelectionSystem::translateSelected(vec3 delta)
 {
+	Array<Id> selected;
 	query<Selected>(m_selected, [&](Id id)
 	{
-		m_transformSystem.translate(id, delta);
+		selected.emplace_back(id);
 	});
+
+	m_transformSystem.translate(selected, delta);
 }

@@ -13,8 +13,10 @@ struct Entity
 class EntitySystem
 {
 public:
-	EntitySystem();
+	EntitySystem(String owner);
 	~EntitySystem();
+
+	EntitySystem(EntitySystem&&) = default;
 
 	Id createEntity();
 	void destroyEntities(const Array<Id>& entities);
@@ -23,12 +25,16 @@ public:
 	int entityCount() const { return (int)m_entities.size(); }
 	const Array<Id>& entities() const { return m_entities; }
 
-	Id getNextId() { return ++m_nextId; }
+	const String& owner() { return m_owner; }
+
+	Id getNextId();
 
 protected:
-	static Id			m_nextId;
+	String		m_owner = "";
 
-	Array<Id>			m_entities;
+	Id			m_nextId = 0;
+
+	Array<Id>	m_entities;
 };
 
 }

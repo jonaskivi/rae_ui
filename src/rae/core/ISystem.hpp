@@ -1,5 +1,7 @@
 #pragma once
 
+#include "loguru/loguru.hpp"
+
 #include "rae/core/Property.hpp"
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
@@ -16,6 +18,9 @@ enum class UpdateStatus
 	Disabled,
 };
 
+class Camera;
+class Scene;
+
 class ISystem
 {
 public:
@@ -23,13 +28,10 @@ public:
 	{
 	}
 
-	ISystem(const ISystem&) = delete;
-	void operator=(const ISystem&) = delete;
-
-	virtual String name() { return "System name"; }
+	virtual String name() { return "System name not set"; }
 
 	virtual UpdateStatus update() { return UpdateStatus::NotChanged; }
-	virtual void render3D() {};
+	virtual void render3D(const Scene& scene) {};
 	virtual void render2D(NVGcontext* nanoVG) {};
 	virtual void onFrameEnd()
 	{

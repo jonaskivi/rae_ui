@@ -31,18 +31,21 @@ vec3 gammaCorrectionAnd255(const vec3& linear)
 
 //------------------------------------------------------------------------------------------------------------
 
-ImageBuffer::ImageBuffer()
+template <typename T>
+ImageBuffer<T>::ImageBuffer()
 {
 }
 
-ImageBuffer::ImageBuffer(int width, int height) :
+template <typename T>
+ImageBuffer<T>::ImageBuffer(int width, int height) :
 	m_width(width),
 	m_height(height)
 {
 	init();
 }
 
-void ImageBuffer::init(int width, int height)
+template <typename T>
+void ImageBuffer<T>::init(int width, int height)
 {
 	m_width = width;
 	m_height = height;
@@ -50,7 +53,8 @@ void ImageBuffer::init(int width, int height)
 	init();
 }
 
-void ImageBuffer::init()
+template <typename T>
+void ImageBuffer<T>::init()
 {
 	if (m_width == 0 || m_height == 0)
 	{
@@ -58,16 +62,9 @@ void ImageBuffer::init()
 		return;
 	}
 
-	if (m_colorData.size() > 0)
-		m_colorData.clear();
 	if (m_data.size() > 0)
 		m_data.clear();
 
-	m_colorData.reserve(m_width * m_height);
-	for (int i = 0; i < m_width * m_height; ++i)
-	{
-		m_colorData.push_back(vec3(0.5f, 0.5f, 0.5f));
-	}
 	m_data.reserve(m_width * m_height * m_channels);
 	for (int i = 0; i < m_width * m_height; ++i)
 	{
@@ -78,7 +75,78 @@ void ImageBuffer::init()
 	}
 }
 
-void ImageBuffer::load(NVGcontext* vg, String filename)
+template <typename T>
+void ImageBuffer<T>::clear()
+{
+	std::fill(m_data.begin(), m_data.end(), 0);
+}
+
+template <typename T>
+Pixel4<T> ImageBuffer<T>::getPixel(int x, int y) const
+{
+	Pixel4<T> pixel;
+	pixel[Channel::R] = m_data[(y*m_width*m_channels) + (x*m_channels) + 0];
+	pixel[Channel::G] = m_data[(y*m_width*m_channels) + (x*m_channels) + 1];
+	pixel[Channel::B] = m_data[(y*m_width*m_channels) + (x*m_channels) + 2];
+	pixel[Channel::A] = m_data[(y*m_width*m_channels) + (x*m_channels) + 3];
+	return pixel;
+}
+
+template <typename T>
+void ImageBuffer<T>::setPixel(int x, int y, Pixel4<T> color)
+{
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 0] = color[Channel::R];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 1] = color[Channel::G];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 2] = color[Channel::B];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 3] = color[Channel::A];
+}
+
+template <typename T>
+Pixel3<T> ImageBuffer<T>::getPixel3(int x, int y) const
+{
+	Pixel3<T> pixel;
+	pixel[Channel::R] = m_data[(y*m_width*m_channels) + (x*m_channels) + 0];
+	pixel[Channel::G] = m_data[(y*m_width*m_channels) + (x*m_channels) + 1];
+	pixel[Channel::B] = m_data[(y*m_width*m_channels) + (x*m_channels) + 2];
+	return pixel;
+}
+
+template <typename T>
+void ImageBuffer<T>::setPixel3(int x, int y, Pixel3<T> color)
+{
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 0] = color[Channel::R];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 1] = color[Channel::G];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 2] = color[Channel::B];
+}
+
+template <typename T>
+Color3 ImageBuffer<T>::getPixelColor3(int x, int y) const
+{
+	return Color3(
+		m_data[(y*m_width*m_channels) + (x*m_channels) + 0],
+		m_data[(y*m_width*m_channels) + (x*m_channels) + 1],
+		m_data[(y*m_width*m_channels) + (x*m_channels) + 2]
+	);
+}
+
+template <typename T>
+void ImageBuffer<T>::setPixelColor3(int x, int y, const Color3& color)
+{
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 0] = color[Channel::R];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 1] = color[Channel::G];
+	m_data[(y*m_width*m_channels) + (x*m_channels) + 2] = color[Channel::B];
+}
+
+// NanoVG specific, uint8_t
+
+template <typename T>
+void ImageBuffer<T>::load(NVGcontext* vg, String filename)
+{
+	//CAN*T
+}
+
+template <>
+void ImageBuffer<uint8_t>::load(NVGcontext* vg, String filename)
 {
 	if (m_imageId == -1)
 	{
@@ -87,12 +155,26 @@ void ImageBuffer::load(NVGcontext* vg, String filename)
 	}
 }
 
-void ImageBuffer::writeToPng(String filename)
+template <typename T>
+void ImageBuffer<T>::writeToPng(String filename)
+{
+	//CAN*T
+}
+
+template <>
+void ImageBuffer<uint8_t>::writeToPng(String filename)
 {
 	stbi_write_png(filename.c_str(), m_width, m_height, 4, &m_data[0], int(m_width) * 4);
 }
 
-void ImageBuffer::createImage(NVGcontext* vg)
+template <typename T>
+void ImageBuffer<T>::createImage(NVGcontext* vg)
+{
+	//CAN*T
+}
+
+template <>
+void ImageBuffer<uint8_t>::createImage(NVGcontext* vg)
 {
 	if (m_imageId == -1 && vg != nullptr)
 	{
@@ -111,13 +193,14 @@ void ImageBuffer::createImage(NVGcontext* vg)
 	}
 }
 
-void ImageBuffer::clear()
+template <typename T>
+void ImageBuffer<T>::update(NVGcontext* vg)
 {
-	std::fill(m_colorData.begin(), m_colorData.end(), vec3(0,0,0));
-	//std::fill(m_data.begin(), m_data.end(), 0);
+	//CAN*T
 }
 
-void ImageBuffer::update(NVGcontext* vg)
+template <>
+void ImageBuffer<uint8_t>::update(NVGcontext* vg)
 {
 	if (not m_needsUpdate)
 		return;
@@ -129,52 +212,60 @@ void ImageBuffer::update(NVGcontext* vg)
 	nvgUpdateImage(vg, m_imageId, &m_data[0]);
 }
 
-void ImageBuffer::update8BitImageBuffer(NVGcontext* vg)
+template <typename T>
+void ImageBuffer<T>::updateToNanoVG(NVGcontext* vg)
 {
+	//CAN*T
+}
+
+template <>
+void ImageBuffer<uint8_t>::updateToNanoVG(NVGcontext* vg)
+{
+	nvgUpdateImage(vg, m_imageId, &m_data[0]);
+}
+
+template class rae::ImageBuffer<uint8_t>;
+template class rae::ImageBuffer<float>;
+
+void rae::renderImageNano(NVGcontext* vg, int imageId, float x, float y, float w, float h)
+{
+	nvgSave(vg);
+
+	NVGpaint imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, imageId, 1.0f);
+	nvgBeginPath(vg);
+	nvgRect(vg, x, y, w, h);
+	nvgFillPaint(vg, imgPaint);
+	nvgFill(vg);
+
+	nvgRestore(vg);
+}
+
+void rae::update8BitImageBuffer(
+	const ImageBuffer<float>& colorImageSource,
+	ImageBuffer<uint8_t>& uintImageTarget,
+	NVGcontext* vg)
+{
+	assert(colorImageSource.width() == uintImageTarget.width());//, "Image sizes must match.");
+	assert(colorImageSource.height() == uintImageTarget.height());//, "Image sizes must match.");
+
 	// update 8 bit image buffer
 	{
-		parallel_for(0, m_height, [&](int j)
+		parallel_for(0, uintImageTarget.height(), [&](int y)
 		{
-			for (int i = 0; i < m_width; ++i)
+			for (int x = 0; x < uintImageTarget.width(); ++x)
 			{
-				const vec3& linear = m_colorData[(j*m_width)+i];
+				const Color3& linear = colorImageSource.getPixelColor3(x, y);
 
-				vec3 color = gammaCorrectionAnd255(linear);
+				Color3 color = gammaCorrectionAnd255(linear);
 
-				m_data[(j*m_width*m_channels) + (i*m_channels) + 0] = uint8_t(color.r);
-				m_data[(j*m_width*m_channels) + (i*m_channels) + 1] = uint8_t(color.g);
-				m_data[(j*m_width*m_channels) + (i*m_channels) + 2] = uint8_t(color.b);
+				uintImageTarget.setPixel3(x, y,
+						{ uint8_t(color.r), uint8_t(color.g), uint8_t(color.b) }
+					);
 			}
 		});
 
-		nvgUpdateImage(vg, m_imageId, &m_data[0]);
+		uintImageTarget.updateToNanoVG(vg);
 	}
-}
-
-vec3 ImageBuffer::getPixel(int x, int y) const
-{
-	return m_colorData[(y * m_width) + x];
-}
-
-void ImageBuffer::setPixel(int x, int y, const vec3& color)
-{
-	m_colorData[(y * m_width) + x] = color;
-}
-
-std::array<uint8_t, 4> ImageBuffer::getPixelData(int x, int y) const
-{
-	std::array<uint8_t, 4> pixel;
-	pixel[Channel::R] = m_data[(y*m_width*m_channels) + (x*m_channels) + 0];
-	pixel[Channel::G] = m_data[(y*m_width*m_channels) + (x*m_channels) + 1];
-	pixel[Channel::B] = m_data[(y*m_width*m_channels) + (x*m_channels) + 2];
-	return pixel;
-}
-
-void ImageBuffer::setPixel(int x, int y, std::array<uint8_t, 4> color)
-{
-	m_data[(y*m_width*m_channels) + (x*m_channels) + 0] = color[Channel::R];
-	m_data[(y*m_width*m_channels) + (x*m_channels) + 1] = color[Channel::G];
-	m_data[(y*m_width*m_channels) + (x*m_channels) + 2] = color[Channel::B];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -185,7 +276,7 @@ void FrameBufferImage::generateFBO(NVGcontext* vg)
 	if (m_framebufferObject == nullptr)
 	{
 		LOG_F(ERROR, "Could not create FBO.");
-		assert(0);
+		//assert(0);
 	}
 }
 

@@ -9,8 +9,8 @@
 #include "rae/core/Utils.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
+#include "rae/asset/AssetSystem.hpp"
 #include "rae/ui/DebugSystem.hpp"
-#include "rae/visual/RenderSystem.hpp"
 
 using namespace rae;
 
@@ -37,14 +37,17 @@ float rae::virxels(float virtualPixels)
 	return virtualPixels * VirtualPixelsFactor;
 }
 
-UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
-	EntitySystem& entitySystem, TransformSystem& transformSystem, RenderSystem& renderSystem,
+UISystem::UISystem(
+	const Time& time,
+	Input& input,
+	ScreenSystem& screenSystem,
+	AssetSystem& assetSystem,
 	DebugSystem& debugSystem) :
+		m_entitySystem("UISystem"),
+		m_transformSystem(time),
 		m_input(input),
 		m_screenSystem(screenSystem),
-		m_entitySystem(entitySystem),
-		m_transformSystem(transformSystem),
-		m_renderSystem(renderSystem),
+		m_assetSystem(assetSystem),
 		m_debugSystem(debugSystem),
 		m_boxes(ReserveBoxes)
 {
@@ -55,19 +58,25 @@ UISystem::UISystem(Input& input, ScreenSystem& screenSystem,
 	addTable(m_colors);
 	addTable(m_actives);
 	addTable(m_hovers);
+	addTable(m_viewports);
 	addTable(m_panels);
 	addTable(m_layouts);
 
 	createDefaultTheme();
 
 	m_infoButtonId = createButton("Info",
-		virxels(-550.0f, -300.0f, 0.0f),
+		virxels(450.0f, -400.0f, 0.0f),
 		virxels(300.0f, 25.0f, 0.1f),
 		[](){});
 
 	//LOG_F("UISystem creating Info button: %i", m_infoButtonId);
 
 	g_ui = this;
+}
+
+UISystem::~UISystem()
+{
+	g_ui = nullptr;
 }
 
 void UISystem::createDefaultTheme()
@@ -191,10 +200,14 @@ void UISystem::hover()
 
 void UISystem::render2D(NVGcontext* nanoVG)
 {
+	/*
+	RAE_REMOVE
 	const auto& window = m_screenSystem.window();
+
 	int windowWidth = window.width();
 	int windowHeight = window.height();
 	float screenPixelRatio = window.screenPixelRatio();
+	*/
 
 	m_nanoVG = nanoVG;
 
@@ -211,83 +224,103 @@ void UISystem::render2D(NVGcontext* nanoVG)
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
 	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
 
-	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	nvgBeginFrame(nanoVG, windowWidth, windowHeight, screenPixelRatio);
-
-		int i = 0;
-		for (Id id : m_entitySystem.entities())
+	int i = 0;
+	for (Id id : m_entitySystem.entities())
+	{
+		if (m_buttons.check(id) and
+			m_transformSystem.hasTransform(id) and
+			m_boxes.check(id))
 		{
-			if (m_buttons.check(id) and
-				m_transformSystem.hasTransform(id) and
-				m_boxes.check(id))
-			{
-				i++;
-				const Transform& transform = m_transformSystem.getTransform(id);
-				const Box& box = getBox(id);
-				const Button& button = getButton(id);
-				bool hasColor = m_colors.check(id);
-				bool active = isActive(id);
-				bool hovered = m_hovers.check(id);
+			i++;
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
+			const Button& button = getButton(id);
+			bool hasColor = m_colors.check(id);
+			bool active = isActive(id);
+			bool hovered = m_hovers.check(id);
 
-				renderButton(button.text(), transform, box,
-					(hovered and active ? buttonActiveHoverColor :
-						hovered ? buttonHoverColor :
-						active ? buttonActiveColor :
-						hasColor ? getColor(id) :
-						buttonBackgroundColor),
-					(hovered and active ? buttonActiveHoverTextColor :
-						hovered ? buttonHoverTextColor :
-						active ? buttonActiveTextColor :
-						buttonTextColor));
-			}
-			else if (m_panels.check(id) and
-					 m_transformSystem.hasTransform(id) and
-					 m_boxes.check(id))
-			{
-				i++;
-				const Transform& transform = m_transformSystem.getTransform(id);
-				const Box& box = getBox(id);
-				bool hasColor = m_colors.check(id);
-
-				bool hovered = m_hovers.check(id);
-
-				renderRectangle(transform, box,
-						hovered ? panelHoverColor :
-						hasColor ? getColor(id) :
-						panelBackgroundColor);
-			}
-			// TODO this last case is strange
-			else if (m_transformSystem.hasTransform(id) and
-					 m_boxes.check(id))
-			{
-				i++;
-				const Transform& transform = m_transformSystem.getTransform(id);
-				const Box& box = getBox(id);
-				bool hasColor = m_colors.check(id);
-				bool active = isActive(id);
-				bool hovered = m_hovers.check(id);
-
-				renderButton(getText(id), transform, box,
-					(hovered and active ? buttonActiveHoverColor :
-						hovered ? buttonHoverColor :
-						active ? buttonActiveColor :
-						hasColor ? getColor(id) :
-						buttonBackgroundColor),
-					(hovered and active ? buttonActiveHoverTextColor :
-						hovered ? buttonHoverTextColor :
-						active ? buttonActiveTextColor :
-						buttonTextColor));
-			}
-
+			renderButton(button.text(), transform, box,
+				(hovered and active ? buttonActiveHoverColor :
+					hovered ? buttonHoverColor :
+					active ? buttonActiveColor :
+					hasColor ? getColor(id) :
+					buttonBackgroundColor),
+				(hovered and active ? buttonActiveHoverTextColor :
+					hovered ? buttonHoverTextColor :
+					active ? buttonActiveTextColor :
+					buttonTextColor));
 		}
+		else if (m_panels.check(id) and
+				 m_transformSystem.hasTransform(id) and
+				 m_boxes.check(id))
+		{
+			i++;
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
+			bool hasColor = m_colors.check(id);
 
-		m_debugSystem.render2D(nanoVG);
+			bool hovered = m_hovers.check(id);
 
-	nvgEndFrame(nanoVG);
+			renderRectangle(transform, box,
+					hovered ? panelHoverColor :
+					hasColor ? getColor(id) :
+					panelBackgroundColor);
+		}
+		else if (m_viewports.check(id) and
+			m_transformSystem.hasTransform(id) and
+			m_boxes.check(id))
+		{
+			i++;
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
+			bool hasColor = m_colors.check(id);
+
+			bool hovered = m_hovers.check(id);
+
+			renderBorder(transform, box,
+				hovered ? panelHoverColor :
+				hasColor ? getColor(id) :
+				panelBackgroundColor);
+		}
+		else if (m_imageLinks.check(id) and
+			m_transformSystem.hasTransform(id) and
+			m_boxes.check(id))
+		{
+			i++;
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
+			ImageLink imageLink = getImageLink(id);
+
+			renderImage(imageLink, transform, box);
+		}
+		// TODO this last case is strange, it renders buttons when it only sees boxes...
+		/*
+		else if (m_transformSystem.hasTransform(id) and
+				 m_boxes.check(id))
+		{
+			i++;
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
+			bool hasColor = m_colors.check(id);
+			bool active = isActive(id);
+			bool hovered = m_hovers.check(id);
+
+			renderButton(getText(id), transform, box,
+				(hovered and active ? buttonActiveHoverColor :
+					hovered ? buttonHoverColor :
+					active ? buttonActiveColor :
+					hasColor ? getColor(id) :
+					buttonBackgroundColor),
+				(hovered and active ? buttonActiveHoverTextColor :
+					hovered ? buttonHoverTextColor :
+					active ? buttonActiveTextColor :
+					buttonTextColor));
+		}
+		*/
+	}
 }
 
-void UISystem::renderRectangle(const Transform& transform, const Box& box, const Color& color)
+Rectangle UISystem::convertToRectangle(const Transform& transform, const Box& box) const
 {
 	vec3 dimensions = box.dimensions();
 	float halfWidth = dimensions.x * 0.5f;
@@ -295,11 +328,17 @@ void UISystem::renderRectangle(const Transform& transform, const Box& box, const
 
 	const auto& window = m_screenSystem.window();
 
-	renderRectangleNano(m_nanoVG,
+	return Rectangle(
 		m_screenSystem.heightToAltPixels(transform.position.x - halfWidth) + (window.width() * 0.5f),
 		m_screenSystem.heightToAltPixels(transform.position.y - halfHeight) + (window.height() * 0.5f),
 		m_screenSystem.heightToAltPixels(dimensions.x),
-		m_screenSystem.heightToAltPixels(dimensions.y),
+		m_screenSystem.heightToAltPixels(dimensions.y));
+}
+
+void UISystem::renderRectangle(const Transform& transform, const Box& box, const Color& color)
+{
+	renderRectangleNano(m_nanoVG,
+		convertToRectangle(transform, box),
 		0.0f, // cornerRadius
 		color);
 }
@@ -307,49 +346,79 @@ void UISystem::renderRectangle(const Transform& transform, const Box& box, const
 void UISystem::renderButton(const String& text, const Transform& transform, const Box& box,
 	const Color& color, const Color& textColor)
 {
-	vec3 dimensions = box.dimensions();
-	float halfWidth = dimensions.x * 0.5f;
-	float halfHeight = dimensions.y * 0.5f;
-
-	const auto& window = m_screenSystem.window();
-
 	renderButtonNano(m_nanoVG, text,
-		m_screenSystem.heightToAltPixels(transform.position.x - halfWidth) + (window.width() * 0.5f),
-		m_screenSystem.heightToAltPixels(transform.position.y - halfHeight) + (window.height() * 0.5f),
-		m_screenSystem.heightToAltPixels(dimensions.x),
-		m_screenSystem.heightToAltPixels(dimensions.y),
+		convertToRectangle(transform, box),
 		m_screenSystem.heightToAltPixels(virxels(2.0f)), // cornerRadius
 		color,
 		textColor);
 }
 
-void UISystem::renderRectangleNano(NVGcontext* vg, float x, float y, float w, float h,
+void UISystem::renderImage(ImageLink imageLink, const Transform& transform, const Box& box)
+{
+	const auto& image = m_assetSystem.getImage(imageLink);
+
+	auto rect = convertToRectangle(transform, box);
+
+	renderImageNano(m_nanoVG, image.imageId(), rect.x, rect.y, rect.width, rect.height);
+}
+
+void UISystem::renderBorder(const Transform& transform, const Box& box, const Color& color)
+{
+	renderBorderNano(m_nanoVG,
+		convertToRectangle(transform, box),
+		0.0f, // cornerRadius
+		color);
+}
+
+void UISystem::renderBorderNano(NVGcontext* vg, const Rectangle& rectangle,
+	float cornerRadius, const Color& color)
+{
+	// No negatives please:
+	//if (w < 5.0f) w = 5.0f;
+	//if (h < 5.0f) h = 5.0f;
+
+	nvgSave(vg);
+
+	NVGcolor strokeColor = nvgRGBAf(color.r, color.g, color.b, color.a);
+
+	nvgBeginPath(vg);
+	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
+	nvgStrokeColor(vg, strokeColor);
+	nvgStrokeWidth(vg, 1.0f);
+	nvgStroke(vg);
+
+	nvgRestore(vg);
+}
+
+void UISystem::renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
 	float cornerRadius, const Color& color)
 {
 	NVGpaint shadowPaint;
 	NVGpaint headerPaint;
 
 	// No negatives please:
-	if(w < 5.0f) w = 5.0f;
-	if(h < 5.0f) h = 5.0f;
+	//if (w < 5.0f) w = 5.0f;
+	//if (h < 5.0f) h = 5.0f;
 
 	nvgSave(vg);
 
-	headerPaint = nvgLinearGradient(vg, x, y, x, y + 15,
+	headerPaint = nvgLinearGradient(vg, rectangle.x, rectangle.y, rectangle.x, rectangle.y + 15,
 		nvgRGBAf(color.r, color.g, color.b, color.a),
 		nvgRGBAf(color.r, color.g, color.b, color.a));
 
 	nvgBeginPath(vg);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
+	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
 	nvgFillPaint(vg, headerPaint);
 	nvgFill(vg);
 
 	// Drop shadow
-	shadowPaint = nvgBoxGradient(vg, x, y+5, w,h, cornerRadius, 20,
-		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f), nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f));
+	shadowPaint = nvgBoxGradient(vg, rectangle.x, rectangle.y+5, rectangle.width, rectangle.height,
+		cornerRadius, 20,
+		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f),
+		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f));
 	nvgBeginPath(vg);
-	nvgRect(vg, x - 60, y - 60, w + 120, h + 120);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
+	nvgRect(vg, rectangle.x - 60, rectangle.y - 60, rectangle.width + 120, rectangle.height + 120);
+	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
 	nvgPathWinding(vg, NVG_HOLE);
 	nvgFillPaint(vg, shadowPaint);
 	nvgFill(vg);
@@ -357,7 +426,7 @@ void UISystem::renderRectangleNano(NVGcontext* vg, float x, float y, float w, fl
 	nvgRestore(vg);
 }
 
-void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, float y, float w, float h,
+void UISystem::renderWindowNano(NVGcontext* vg, const String& title, const Rectangle& rectangle,
 							float cornerRadius, const Color& color)
 {
 	//float cornerRadius = 30.0f;
@@ -365,6 +434,7 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 	NVGpaint headerPaint;
 
 	// No negative windows please:
+	/*
 	if (w < 30.0f)
 	{
 		w = 30.0f;
@@ -374,18 +444,19 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 	{
 		h = 30.0f;
 	}
+	*/
 
 	nvgSave(vg);
 //	nvgClearState(vg);
 
 	// Window
 
-	headerPaint = nvgLinearGradient(vg, x,y,x,y+15,
+	headerPaint = nvgLinearGradient(vg, rectangle.x, rectangle.y, rectangle.x, rectangle.y+15,
 		nvgRGBAf(color.r + 0.5f, color.g + 0.5f, color.b + 0.5f, color.a - 0.3f),
 		nvgRGBAf(color.r, color.g, color.b, color.a));
 
 	nvgBeginPath(vg);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
+	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
 	//nvgFillColor(vg, nvgRGBA(28,30,34,192));
 	//	nvgFillColor(vg, nvgRGBA(0,0,0,128));
 	//nvgFill(vg);
@@ -400,10 +471,12 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 
 	// Drop shadow
 	// RAE_TODO shadowPaint = nvgBoxGradient(vg, x,y+5, w,h, cornerRadius, 20, nvgRGBAf(0.0f,0.0f,0.0f,0.5f*a()), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
-	shadowPaint = nvgBoxGradient(vg, x,y+5, w,h, cornerRadius, 20, nvgRGBAf(0.0f,0.0f,0.0f,0.5f), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
+	shadowPaint = nvgBoxGradient(vg, rectangle.x, rectangle.y+5, rectangle.width, rectangle.height,
+		cornerRadius, 20,
+		nvgRGBAf(0.0f,0.0f,0.0f,0.5f), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
 	nvgBeginPath(vg);
-	nvgRect(vg, x-60,y-60, w+120,h+120);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
+	nvgRect(vg, rectangle.x-60, rectangle.y-60, rectangle.width+120, rectangle.height+120);
+	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
 	nvgPathWinding(vg, NVG_HOLE);
 	nvgFillPaint(vg, shadowPaint);
 	nvgFill(vg);
@@ -428,7 +501,7 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 	nvgFontBlur(vg,2);
 	// RAE_TODO nvgFillColor(vg, nvgRGBAf(0.0f,0.0f,0.0f,0.5f*a()));
 	nvgFillColor(vg, nvgRGBAf(0.0f,0.0f,0.0f,0.5f));
-	nvgText(vg, x+w/2,y+16+1, title.c_str(), nullptr);
+	nvgText(vg, rectangle.x + rectangle.width/2, rectangle.y+16+1, title.c_str(), nullptr);
 
 	// Actual title text
 	nvgFontBlur(vg,0);
@@ -436,29 +509,29 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, float x, fl
 	//nvgFillColor(vg, nvgRGBA(220,220,220,160));
 	// RAE_TODO nvgFillColor(vg, nvgRGBAf(1.0f,1.0f,1.0f,a()));
 	nvgFillColor(vg, nvgRGBAf(1.0f,1.0f,1.0f,1.0f));
-	nvgText(vg, x+w/2,y+16, title.c_str(), nullptr);
+	nvgText(vg, rectangle.x + rectangle.width/2, rectangle.y+16, title.c_str(), nullptr);
 
 	nvgRestore(vg);
 }
 
-void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, float y, float w, float h,
+void UISystem::renderButtonNano(NVGcontext* vg, const String& text, const Rectangle& rectangle,
 							float cornerRadius, const Color& color, const Color& textColor)
 {
 	NVGpaint shadowPaint;
 	NVGpaint headerPaint;
 
 	// No negative buttons please:
-	if(w < 5.0f) w = 5.0f;
-	if(h < 5.0f) h = 5.0f;
+	//if (w < 5.0f) w = 5.0f;
+	//if (h < 5.0f) h = 5.0f;
 
 	nvgSave(vg);
 
-	headerPaint = nvgLinearGradient(vg, x, y, x, y + 15,
+	headerPaint = nvgLinearGradient(vg, rectangle.x, rectangle.y, rectangle.x, rectangle.y + 15,
 		nvgRGBAf(color.r, color.g, color.b, color.a),
 		nvgRGBAf(color.r, color.g, color.b, color.a));
 
 	nvgBeginPath(vg);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
+	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
 	nvgFillPaint(vg, headerPaint);
 	nvgFill(vg);
 
@@ -470,11 +543,12 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, flo
 	*/
 
 	// Drop shadow
-	shadowPaint = nvgBoxGradient(vg, x, y+5, w,h, cornerRadius, 20,
+	shadowPaint = nvgBoxGradient(vg, rectangle.x, rectangle.y+5, rectangle.width, rectangle.height,
+		cornerRadius, 20,
 		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f), nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f));
 	nvgBeginPath(vg);
-	nvgRect(vg, x - 60, y - 60, w + 120, h + 120);
-	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
+	nvgRect(vg, rectangle.x - 60, rectangle.y - 60, rectangle.width + 120, rectangle.height + 120);
+	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
 	nvgPathWinding(vg, NVG_HOLE);
 	nvgFillPaint(vg, shadowPaint);
 	nvgFill(vg);
@@ -486,12 +560,12 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, float x, flo
 	// Text shadow
 	nvgFontBlur(vg,2);
 	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f));
-	nvgText(vg, x + w / 2, y + 16 + 1, text.c_str(), nullptr);
+	nvgText(vg, rectangle.x + rectangle.width / 2, rectangle.y + 16 + 1, text.c_str(), nullptr);
 
 	// Actual text
 	nvgFontBlur(vg,0);
 	nvgFillColor(vg, nvgRGBAf(textColor.r, textColor.g, textColor.b, textColor.a));
-	nvgText(vg, x + w / 2, y + 16, text.c_str(), nullptr);
+	nvgText(vg, rectangle.x + rectangle.width / 2, rectangle.y + 16, text.c_str(), nullptr);
 
 	nvgRestore(vg);
 }
@@ -555,6 +629,44 @@ Id UISystem::createTextBox(const String& text, const vec3& position, const vec3&
 	return id;
 }
 
+Id UISystem::createViewport(int sceneIndex, const vec3& position, const vec3& extents)
+{
+	Id id = m_entitySystem.createEntity();
+	m_transformSystem.addTransform(id, Transform(position));
+
+	vec3 halfExtents = extents / 2.0f;
+	addBox(id, Box(-(halfExtents), halfExtents));
+	addViewport(id, Viewport(sceneIndex));
+	return id;
+}
+
+void UISystem::addViewport(Id id, Viewport&& entity)
+{
+	m_viewports.assign(id, std::move(entity));
+}
+
+const Viewport& UISystem::getViewport(Id id)
+{
+	return m_viewports.get(id);
+}
+
+Rectangle UISystem::getViewportPixelRectangle(int sceneIndex)
+{
+	Rectangle viewportRect;
+	query<Viewport>(m_viewports, [&](Id id, Viewport& viewport)
+	{
+		if (viewport.sceneIndex == sceneIndex and
+			m_transformSystem.hasTransform(id) and
+			m_boxes.check(id))
+		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
+			viewportRect = convertToRectangle(transform, box);
+		}
+	});
+	return viewportRect;
+}
+
 Id UISystem::createPanel(const vec3& position, const vec3& extents)
 {
 	Id id = m_entitySystem.createEntity();
@@ -591,6 +703,27 @@ void UISystem::addToLayout(Id layoutId, Id childId)
 			layout.children.emplace_back(childId);
 		}
 	}
+}
+
+Id UISystem::createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents)
+{
+	Id id = m_entitySystem.createEntity();
+	m_transformSystem.addTransform(id, Transform(position));
+
+	vec3 halfExtents = extents / 2.0f;
+	addBox(id, Box(-(halfExtents), halfExtents));
+	addImageLink(id, ImageLink(imageLink));
+	return id;
+}
+
+void UISystem::addImageLink(Id id, ImageLink&& entity)
+{
+	m_imageLinks.assign(id, std::move(entity));
+}
+
+const ImageLink& UISystem::getImageLink(Id id)
+{
+	return m_imageLinks.get(id);
 }
 
 void UISystem::addBox(Id id, Box&& box)

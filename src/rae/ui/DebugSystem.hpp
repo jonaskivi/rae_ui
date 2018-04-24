@@ -13,8 +13,6 @@ struct NVGcontext;
 namespace rae
 {
 
-class CameraSystem;
-
 struct Line
 {
 	Array<vec3> points;
@@ -33,20 +31,22 @@ struct DebugText
 	Color color;
 };
 
+class Scene;
+
 class DebugSystem : public ISystem
 {
 public:
-	DebugSystem(const CameraSystem& cameraSystem);
+	DebugSystem();
 	~DebugSystem();
 
-	void render3D() override;
+	void render3D(const Scene& scene) override;
 
 	void drawLine(const Array<vec3>& points, const Color& color);
 	void drawLine(const Line& line);
 
 	void showDebugText(const String& text);
 	void showDebugText(const String& text, const Color& color);
-	void render2D(NVGcontext* nanoVG);
+	void render2D(NVGcontext* nanoVG) override;
 
 	void log(const String& text);
 	void log(const String& text, const Color& color);
@@ -55,8 +55,6 @@ private:
 	static void loguruLoggerCallback(void* user_data, const loguru::Message& message);
 	static void loguruCallbackFlush(void* user_data);
 	static void loguruCallbackClose(void* user_data);
-
-	const CameraSystem& m_cameraSystem;
 
 	Color m_defaultTextColor = Color(0.5f, 0.5f, 0.5f, 0.75f);
 	Color m_defaultLogColor = Color(1.0f, 0.0f, 1.0f, 0.75f);

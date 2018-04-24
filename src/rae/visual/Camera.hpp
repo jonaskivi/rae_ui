@@ -16,6 +16,13 @@ vec3 randomInUnitDisk();
 
 const float MinFocusDistance = 0.01f;
 
+enum class CoordinatesUp
+{
+	//X, No. Just no.
+	Y, // It's an option.
+	Z // The default!
+};
+
 class Camera
 {
 public:
@@ -89,19 +96,34 @@ public:
 	bool isContinuousAutoFocus() const { return m_isContinuousAutoFocus; }
 	bool shouldWeAutoFocus() const;
 
+	void toggleCoordinatesUp()
+	{
+		if (m_coordinatesUp == CoordinatesUp::Z)
+			m_coordinatesUp = CoordinatesUp::Y;
+		else m_coordinatesUp = CoordinatesUp::Z;
+	}
+
 protected:
 
-	vec3 m_position = vec3(13.0f, 2.0f, 3.0f);
-	vec3 m_direction = vec3(0.0f, 0.0f, -1.0f);
-	vec3 m_right = vec3(1,0,0); // u
-	vec3 m_up = vec3(0,1,0); // v
+	CoordinatesUp m_coordinatesUp = CoordinatesUp::Z;
 
-	vec3 m_worldUpAxis = vec3(0.0f, 1.0f, 0.0f);
+	vec3 m_position = vec3(-20.0f, 0.0f, 1.0f);
+	vec3 m_direction = vec3(1.0f, 0.0f, 1.0f);
+	vec3 m_right = vec3(0,-1,0); // u
+	vec3 m_up = vec3(0,0,1); // v
 
 	//vec3 m_lowerLeftCorner = vec3(-2.0f, -1.0f, -1.0f);
+	/*
+	// Y-up:
 	vec3 m_topLeftCorner = vec3(-2.0f, 1.0f, -1.0f);
 	vec3 m_horizontal = vec3(4.0f, 0.0f, 0.0f);
 	vec3 m_vertical = vec3(0.0f, 2.0f, 0.0f);
+	*/
+
+	// Z-up:
+	vec3 m_topLeftCorner = vec3(-2.0f, -1.0f, 1.0f);
+	vec3 m_horizontal = vec3(4.0f, 0.0f, 0.0f);
+	vec3 m_vertical = vec3(0.0f, 0.0f, 2.0f);
 
 	float m_fieldOfView; // in radians
 	float m_aspectRatio;

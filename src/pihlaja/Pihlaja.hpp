@@ -3,7 +3,7 @@
 #include "loguru/loguru.hpp"
 #include "rae/animation/Animator.hpp"
 #include "rae/visual/Shader.hpp"
-#include "rae/visual/Transform.hpp"
+#include "rae/scene/Transform.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Material.hpp"
 #include "rae/entity/EntitySystem.hpp"
@@ -30,7 +30,7 @@ enum class VideoRenderingState
 class Pihlaja : public rae::ISystem
 {
 public:
-	Pihlaja(GLFWwindow* glfwWindow);
+	Pihlaja(GLFWwindow* glfwWindow, NVGcontext* nanoVG = nullptr);
 
 	String name() { return "PihlajaSystem"; }
 
@@ -38,6 +38,7 @@ public:
 
 	void initUI();
 
+	void reactToInput(const Input& input);
 	void onKeyEvent(const Input& input);
 
 	void run();
@@ -60,14 +61,18 @@ protected:
 		m_needsFrameUpdate = true;
 	}
 
-	Engine m_engine;
-	UISystem& m_uiSystem;
-	#ifdef USE_RAE_AV
-	AVSystem m_avSystem;
-	#endif
-	Input& m_input;
+	Engine			m_engine;
+	AssetSystem&	m_assetSystem;
+	UISystem&		m_uiSystem;
 
-	ImageBuffer&			m_screenImage;
+	#ifdef USE_RAE_AV
+	AVSystem		m_avSystem;
+	#endif
+
+	Input&			m_input;
+
+	asset::Id				m_screenImageAssetId;
+	ImageBuffer<uint8_t>	m_screenImage;
 
 	#ifdef USE_RAE_AV
 	AssetId					m_videoAssetId;

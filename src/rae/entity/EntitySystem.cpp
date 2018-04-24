@@ -1,13 +1,19 @@
 #include <algorithm>
 
+#include "loguru/loguru.hpp"
+
 #include "rae/entity/EntitySystem.hpp"
 
 using namespace rae;
 
-Id EntitySystem::m_nextId = 0;
-
-EntitySystem::EntitySystem()
+EntitySystem::EntitySystem(String owner) :
+	m_owner(owner),
+	m_nextId(InvalidId)
 {
+	LOG_F(INFO, "Init one EntitySystem for %s", owner.c_str());
+
+	Id emptyEntityId = createEntity(); // hack at index 0
+	LOG_F(INFO, "Create empty hack entity at id: %i", emptyEntityId);
 }
 
 EntitySystem::~EntitySystem()
@@ -16,9 +22,22 @@ EntitySystem::~EntitySystem()
 
 Id EntitySystem::createEntity()
 {
+	LOG_F(INFO, "%s EntitySystem Creating entity.", m_owner.c_str());
 	Id id = getNextId();
+	LOG_F(INFO, "%s EntitySystem Creating entity: %i", m_owner.c_str(), (int)id);
 	m_entities.emplace_back(id);
 	return id;
+}
+
+Id EntitySystem::getNextId()
+{
+	LOG_F(INFO, "getNextId. Going to increment.");
+
+	LOG_F(INFO, "getNextId. Going to inc: %i", (int)m_nextId);
+	++m_nextId;
+	LOG_F(INFO, "getNextId. Going to return: %i", (int)m_nextId);
+
+	return m_nextId;
 }
 
 void EntitySystem::destroyEntities(const Array<Id>& entities)

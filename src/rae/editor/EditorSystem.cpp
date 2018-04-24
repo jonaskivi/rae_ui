@@ -9,6 +9,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "rae/core/Utils.hpp"
+#include "rae/scene/SceneSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
 #include "rae/visual/Plane.hpp"
@@ -142,7 +143,7 @@ LineGizmo::LineGizmo()
 		m_axisTransforms[i].scale = vec3(1.0f, AxisThickness, AxisThickness);
 	}
 
-	m_lineMesh.generateBox();
+	m_lineMesh.generateCube();
 	m_lineMesh.createVBOs();
 
 	m_coneMesh.generateCone();
@@ -167,11 +168,13 @@ bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 	{
 		m_sortedLineHandles[i].axisIndex = i;
 		m_sortedLineHandles[i].tipPosition = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
-		m_sortedLineHandles[i].distanceFromCamera = glm::length(m_sortedLineHandles[i].tipPosition - camera.position());
+		m_sortedLineHandles[i].distanceFromCamera =
+			glm::length(m_sortedLineHandles[i].tipPosition - camera.position());
 	}
 
 	// Sort from closest to farthest
-	std::sort(m_sortedLineHandles.begin(), m_sortedLineHandles.end(), [](const LineHandle& a, const LineHandle& b)
+	std::sort(m_sortedLineHandles.begin(), m_sortedLineHandles.end(),
+		[](const LineHandle& a, const LineHandle& b)
 	{
 		return a.distanceFromCamera < b.distanceFromCamera;
 	});
@@ -187,7 +190,8 @@ bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 		int i = lineHandle.axisIndex;
 
 		Transform transform = m_axisTransforms[i];
-		transform.scale = transform.scale * gizmoCameraFactor * vec3(1.0f, m_hoverThicknessMultiplier, m_hoverThicknessMultiplier);
+		transform.scale = transform.scale *
+			gizmoCameraFactor * vec3(1.0f, m_hoverThicknessMultiplier, m_hoverThicknessMultiplier);
 		// The handle's box needs to be centered with that 0.5
 		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
 
@@ -237,7 +241,8 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, Asset
 		Transform coneTransform = m_axisTransforms[i];
 		float coneSize = m_gizmoSizeMultiplier;
 		coneTransform.scale = vec3(coneSize, coneSize * m_coneLengthMultiplier, coneSize) * gizmoCameraFactor;
-		coneTransform.rotation = coneTransform.rotation * glm::angleAxis(-Math::TAU * 0.25f, vec3(0.0f, 0.0f, 1.0f));
+		coneTransform.rotation = coneTransform.rotation *
+			glm::angleAxis(-Math::TAU * 0.25f, vec3(0.0f, 0.0f, 1.0f));
 		coneTransform.position = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
 		renderSystem.renderMeshSingleColor(
 			camera,
@@ -258,7 +263,7 @@ vec3 LineGizmo::getActiveAxisVector() const
 	return vec3();
 }
 
-vec3 LineGizmo::activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay)// const
+vec3 LineGizmo::activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay)
 {
 	for (int i = 0; i < (int)Axis::Count; ++i)
 	{
@@ -365,7 +370,8 @@ void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem, A
 	{
 		// Don't depth test when rendering the gizmos
 		glDepthFunc(GL_ALWAYS);
-		// Alternative way would be to clear the depth buffer, but that resulted in a slowdown and jerky rendering
+		// Alternative way would be to clear the depth buffer,
+		// but that resulted in a slowdown and jerky rendering
 		//glClear(GL_DEPTH_BUFFER_BIT);
 
 		m_translateGizmo.render3D(camera, renderSystem, assetSystem);
@@ -400,49 +406,63 @@ void TransformTool::translateSelected(const vec3& delta, SelectionSystem& select
 	selectionSystem.translateSelected(delta);
 }
 
-EditorSystem::EditorSystem(CameraSystem& cameraSystem, RenderSystem& renderSystem, AssetSystem& assetSystem,
-	SelectionSystem& selectionSystem, Input& input, UISystem& uiSystem) :
-		m_cameraSystem(cameraSystem),
+EditorSystem::EditorSystem(
+	SceneSystem& sceneSystem,
+	RenderSystem& renderSystem,
+	AssetSystem& assetSystem,
+	Input& input) :
+		m_sceneSystem(sceneSystem),
 		m_renderSystem(renderSystem),
 		m_assetSystem(assetSystem),
-		m_selectionSystem(selectionSystem),
-		m_input(input),
-		m_uiSystem(uiSystem)
+		m_input(input)
 {
+	LOG_F(INFO, "Init %s", name().c_str());
+
 	Id gizmoMaterialID = m_assetSystem.createMaterial(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	m_transformTool.setGizmoMaterialId(gizmoMaterialID);
 
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& selectionSystem = scene.selectionSystem();
+
 	using std::placeholders::_1;
-	m_selectionSystem.onSelectionChanged.connect(std::bind(&TransformTool::onSelectionChanged, &m_transformTool, _1));
+	selectionSystem.onSelectionChanged.connect(std::bind(
+		&TransformTool::onSelectionChanged, &m_transformTool, _1));
 }
 
 UpdateStatus EditorSystem::update()
 {
+	if (!m_sceneSystem.hasActiveScene())
+		return UpdateStatus::NotChanged;
+
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& selectionSystem = scene.selectionSystem();
+
 	HandleStatus transformToolStatus = m_transformTool.handleInput(m_input,
-																   m_cameraSystem.getCurrentCamera(),
-																   m_selectionSystem);
+																   scene.cameraSystem().currentCamera(),
+																   selectionSystem);
 
 	if (transformToolStatus == HandleStatus::NotHandled)
 	{
 		if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
 		{
-			Id hoveredId = m_selectionSystem.hovered();
-			// RAE_TODO: Needs to have a higher level function in Input where we can ask for modifier states for Control.
+			Id hoveredId = selectionSystem.hovered();
+			// RAE_TODO: Needs to have a higher level function
+			// in Input where we can ask for modifier states for Control.
 			if (m_input.getKeyState(KeySym::Control_L) ||
 				m_input.getKeyState(KeySym::Control_R) ||
 				m_input.getKeyState(KeySym::Super_L) ||
 				m_input.getKeyState(KeySym::Super_R))
 			{
 				if (hoveredId != InvalidId)
-					m_selectionSystem.toggleSelected(hoveredId);
+					selectionSystem.toggleSelected(hoveredId);
 			}
 			else if (hoveredId == InvalidId)
 			{
-				m_selectionSystem.clearSelection();
+				selectionSystem.clearSelection();
 			}
 			else
 			{
-				m_selectionSystem.setSelection({ hoveredId });
+				selectionSystem.setSelection({ hoveredId });
 			}
 		}
 	}
@@ -450,7 +470,8 @@ UpdateStatus EditorSystem::update()
 	return UpdateStatus::NotChanged; // for now.
 }
 
-void EditorSystem::render3D()
+void EditorSystem::render3D(const Scene& scene)
 {
-	m_transformTool.render3D(m_cameraSystem.getCurrentCamera(), m_renderSystem, m_assetSystem);
+	const Camera& camera = scene.cameraSystem().currentCamera();
+	m_transformTool.render3D(camera, m_renderSystem, m_assetSystem);
 }

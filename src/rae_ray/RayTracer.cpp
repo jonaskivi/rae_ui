@@ -8,6 +8,8 @@
 
 #include "rae/ui/DebugSystem.hpp"
 
+#include "rae/asset/AssetSystem.hpp"
+#include "rae/scene/SceneSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/Material.hpp"
 #include "rae_ray/Sphere.hpp"
@@ -16,22 +18,30 @@
 
 using namespace rae;
 
-RayTracer::RayTracer(const Time& time, CameraSystem& cameraSystem) :
-	m_world(4),
-	m_time(time),
-	m_cameraSystem(cameraSystem),
-	m_renderThread(&RayTracer::updateRenderThread, this)
+RayTracer::RayTracer(
+	const Time& time,
+	AssetSystem& assetSystem,
+	SceneSystem& sceneSystem) :
+		m_world(4),
+		m_time(time),
+		m_assetSystem(assetSystem),
+		m_sceneSystem(sceneSystem),
+		m_renderThread(&RayTracer::updateRenderThread, this)
 {
 	m_smallBuffer.init(300, 150);
 	m_bigBuffer.init(1920, 1080);
-
 	m_buffer = &m_smallBuffer;
 
-	createSceneOne(m_world);
+	m_smallUintBuffer.init(300, 150);
+	m_bigUintBuffer.init(1920, 1080);
+	m_uintBuffer = &m_smallUintBuffer;
+
+	//createSceneOne(m_world);
 	//createSceneFromBook(m_world);
 
+	// RAE_TODO
 	using std::placeholders::_1;
-	m_cameraSystem.connectCameraChangedEventHandler(std::bind(&RayTracer::onCameraChanged, this, _1));
+	sceneSystem.activeScene().cameraSystem().connectCameraUpdatedEventHandler(std::bind(&RayTracer::onCameraChanged, this, _1));
 }
 
 RayTracer::~RayTracer()
@@ -40,23 +50,54 @@ RayTracer::~RayTracer()
 	m_renderThread.join();
 }
 
+void RayTracer::updateScene(const Scene& scene)
+{
+	const Camera& camera = scene.cameraSystem().currentCamera();
+	const auto& transformSystem = scene.transformSystem();
+	const auto& selectionSystem = scene.selectionSystem();
+	const auto& assetLinkSystem = scene.assetLinkSystem();
+
+	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
+	{
+		Material* material = nullptr;
+		const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
+
+		if (m_assetSystem.isMaterial(id))
+			material = &m_assetSystem.getMaterial(id);
+		else if (assetLinkSystem.materialLinks().check(id))
+			material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
+
+		if (transformSystem.hasTransform(id) &&
+			material)
+		{
+			const Transform& transform = transformSystem.getTransform(id);
+
+			#ifdef RAE_DEBUG
+				LOG_F(INFO, "Adding Mesh to raytracer. id: %i", id);
+				LOG_F(INFO, "MeshLink is: %i", assetLinkSystem.m_meshLinks.get(id));
+			#endif
+
+			m_world.add(
+				new Sphere(transform.position, 0.5f,
+				new Lambertian(material->color3()))
+				);
+		}
+	});
+
+	m_tree.init(m_world.list(), 0, 0);
+}
+
 void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 {
-	Camera& camera = m_cameraSystem.getCurrentCamera();
-
+	/*
+	Camera& camera = m_sceneSystem.activescene().cameraSystem().currentCamera();
 	camera.setFieldOfViewDeg(44.6f);
-
-	//camera.setPosition(vec3(0.698890f, 1.275992f, 6.693169f));
-	//camera.setYaw(Math::toRadians(188.0f));
-	//camera.setPitch(Math::toRadians(-7.744f));
-	//camera.setAperture(0.3f);
-	//camera.setFocusDistance(7.6f);
-
 	camera.setPosition(vec3(-0.16f, 2.9664f, 14.8691f));
 	camera.setYaw(Math::toRadians(178.560333f));
 	camera.setPitch(Math::toRadians(-10.8084f));
 	camera.setAperture(0.07f);
 	camera.setFocusDistance(14.763986f);
+	 */
 
 	// A big light
 	world.add(
@@ -105,7 +146,7 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 	auto bunny = new Mesh();
 	if (loadBunny)
 		bunny->loadModel("./data/models/bunny.obj");
-	else bunny->generateBox();
+	else bunny->generateCube();
 
 	world.add(bunny);
 
@@ -114,13 +155,15 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 
 void RayTracer::createSceneFromBook(HitableList& list)
 {
-	Camera& camera = m_cameraSystem.getCurrentCamera();
+	/*
+	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
 	camera.setPosition(vec3(16.857f, 2.0f, 6.474f));
 	camera.setYaw(Math::toRadians(247.8f));
 	camera.setPitch(Math::toRadians(-4.762f));
 	camera.setAperture(0.1f);
 	camera.setFocusDistance(17.29f);
+	*/
 
 	list.add( new Sphere(vec3(0,-1000,0), 1000, new Lambertian(vec3(0.5, 0.5, 0.5))) );
 
@@ -183,7 +226,7 @@ void RayTracer::showScene(int number)
 void RayTracer::clearScene()
 {
 	m_world.clear();
-	m_cameraSystem.setNeedsUpdate();
+	m_sceneSystem.activeScene().cameraSystem().setNeedsUpdate();
 	clear();
 }
 
@@ -216,8 +259,8 @@ void RayTracer::setNanoVG(NVGcontext* nanoVG)
 
 	m_nanoVG = nanoVG;
 
-	m_smallBuffer.createImage(m_nanoVG);
-	m_bigBuffer.createImage(m_nanoVG);
+	m_smallUintBuffer.createImage(m_nanoVG);
+	m_bigUintBuffer.createImage(m_nanoVG);
 }
 
 std::string toString(const HitRecord& record)
@@ -231,7 +274,7 @@ std::string toString(const HitRecord& record)
 void RayTracer::autoFocus()
 {
 	// Get a ray to middle of the screen and focus there
-	Camera& camera = m_cameraSystem.getCurrentCamera();
+	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 	Ray ray = camera.getExactRay(0.5f, 0.5f);
 	HitRecord record;
 	if (m_tree.hit(ray, 0.001f, FLT_MAX, record))
@@ -243,7 +286,7 @@ void RayTracer::autoFocus()
 
 vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 {
-	Camera& camera = m_cameraSystem.getCurrentCamera();
+	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 	HitRecord record;
 	if (m_tree.hit(ray, 0.001f, rayMaxLength(), record))
 	{
@@ -366,7 +409,7 @@ void RayTracer::updateRenderThread()
 
 void RayTracer::updateDebugTexts()
 {
-	Camera& camera = m_cameraSystem.getCurrentCamera();
+	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
 	g_debugSystem->showDebugText("Samples: " + std::to_string(m_currentSample));
 
@@ -414,6 +457,12 @@ void RayTracer::toggleBufferQuality()
 			m_buffer = &m_bigBuffer;
 		}
 		else m_buffer = &m_smallBuffer;
+
+		if (m_uintBuffer == &m_smallUintBuffer)
+		{
+			m_uintBuffer = &m_bigUintBuffer;
+		}
+		else m_uintBuffer = &m_smallUintBuffer;
 	}
 	clear();
 }
@@ -448,7 +497,7 @@ void RayTracer::renderAllAtOnce()
 
 	if (m_currentSample < m_allAtOnceSamplesLimit)
 	{
-		Camera& camera = m_cameraSystem.getCurrentCamera();
+		Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
 		// Parallel was about 3.6 times faster here. From 48 seconds to 13 seconds with a very low resolution and sample count.
 		parallel_for(0, m_buffer->height(), [&](int y)
@@ -468,7 +517,7 @@ void RayTracer::renderAllAtOnce()
 
 				color /= float(m_allAtOnceSamplesLimit);
 
-				m_buffer->setPixel(x, y, color);
+				m_buffer->setPixelColor3(x, y, color);
 			}
 		});
 
@@ -490,7 +539,7 @@ void RayTracer::renderSamples()
 
 	if (m_samplesLimit == 0 || m_currentSample < m_samplesLimit)
 	{
-		Camera& camera = m_cameraSystem.getCurrentCamera();
+		Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
 		// Single threaded
 		//for (int j = 0; j < m_buffer->height; ++j)
@@ -507,8 +556,8 @@ void RayTracer::renderSamples()
 
 				//http://stackoverflow.com/questions/22999487/update-the-average-of-a-continuous-sequence-of-numbers-in-constant-time
 				// add to average
-				m_buffer->setPixel(x, y,
-					(float(m_currentSample) * m_buffer->getPixel(x, y) + color) / float(m_currentSample + 1));
+				m_buffer->setPixelColor3(x, y,
+					(float(m_currentSample) * m_buffer->getPixelColor3(x, y) + color) / float(m_currentSample + 1));
 			}
 		});
 		
@@ -520,13 +569,13 @@ void RayTracer::renderSamples()
 void RayTracer::writeToPng(String filename)
 {
 	std::lock_guard<std::mutex> lock(m_bufferMutex);
-	m_buffer->writeToPng(filename);
+	m_uintBuffer->writeToPng(filename);
 }
 
 void RayTracer::updateImageBuffer()
 {
 	std::lock_guard<std::mutex> lock(m_bufferMutex);
-	m_buffer->update8BitImageBuffer(m_nanoVG);
+	update8BitImageBuffer(*m_buffer, *m_uintBuffer, m_nanoVG);
 }
 
 void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
@@ -534,7 +583,7 @@ void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 	if (!m_isEnabled)
 		return;
 
-	ImageBuffer& readBuffer = imageBuffer();
+	ImageBuffer<uint8_t>& readBuffer = uintBuffer();
 
 	nvgSave(vg);
 

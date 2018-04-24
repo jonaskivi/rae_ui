@@ -13,8 +13,23 @@ using uint = unsigned int;
 namespace rae
 {
 
-using Id = int;
-const Id InvalidId = 0;
+//namespace scene
+//{
+	using Id = int;
+	const Id InvalidId = 0;
+//}
+
+namespace asset
+{
+	using Id = int;
+	const Id InvalidId = 0;
+}
+
+namespace ui
+{
+	using Id = int;
+	const Id InvalidId = 0;
+}
 
 using Color = glm::vec4;
 using Color3 = glm::vec3;

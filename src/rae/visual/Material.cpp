@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cassert>
+#include <ciso646>
 
 #include "rae/core/Random.hpp"
 

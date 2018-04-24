@@ -13,8 +13,8 @@ using namespace cv::cuda;
 using namespace rae;
 using namespace rae::av;
 
-OpticalFlow::OpticalFlow(OpticalFlowMethod method)
-: m_opticalFlowMethod(method)
+OpticalFlow::OpticalFlow(OpticalFlowMethod method) :
+	m_opticalFlowMethod(method)
 {
 	//"/Users/joonaz/Documents/jonas/opencv-3.2.0/samples/data/basketball2.png"
 
@@ -279,7 +279,7 @@ void OpticalFlow::writeMatToPng(String filepath, const cv::Mat& mat)
 	imwrite(filepath, mat, compression_params);
 }
 
-void OpticalFlow::copyMatToImage(const Mat& mat, ImageBuffer& image)
+void OpticalFlow::copyMatToImage(const Mat& mat, ImageBuffer<uint8_t>& image)
 {
 	if (image.width() != mat.cols or image.height() != mat.rows)
 		image.init(mat.cols, mat.rows);
@@ -344,12 +344,12 @@ void OpticalFlow::copyAVFrameToMat(AVFrame* frameRGB, cv::Mat& mat)
 	LOG_F(INFO, "Copied AVFrame to Mat. width: %i height: %i", mat.cols, mat.rows);
 }
 
-void OpticalFlow::writeFrameToImage(ImageBuffer& image)
+void OpticalFlow::writeFrameToImage(ImageBuffer<uint8_t>& image)
 {
 	copyMatToImage(m_output, image);
 }
 
-void OpticalFlow::writeFrameToDiskAndImage(String filepath, ImageBuffer& image)
+void OpticalFlow::writeFrameToDiskAndImage(String filepath, ImageBuffer<uint8_t>& image)
 {
 	copyMatToImage(m_output, image);
 

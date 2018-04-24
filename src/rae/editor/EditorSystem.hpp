@@ -15,6 +15,8 @@ namespace rae
 
 class Camera;
 class CameraSystem;
+class scene;
+class SceneSystem;
 class RenderSystem;
 class AssetSystem;
 class SelectionSystem;
@@ -102,9 +104,9 @@ protected:
 
 struct LineHandle
 {
-	int axisIndex;
-	vec3 tipPosition;
-	float distanceFromCamera;
+	int axisIndex = 0;
+	vec3 tipPosition = vec3(0.0f, 0.0f, 0.0f);
+	float distanceFromCamera = 0.0f;
 };
 
 class LineGizmo : public IGizmo
@@ -166,18 +168,22 @@ protected:
 class EditorSystem : public ISystem
 {
 public:
-	EditorSystem(CameraSystem& cameraSystem, RenderSystem& renderSystem, AssetSystem& assetSystem,
-		SelectionSystem& selectionSystem, Input& input, UISystem& uiSystem);
+	EditorSystem(
+		SceneSystem& sceneSystem,
+		RenderSystem& renderSystem,
+		AssetSystem& assetSystem,
+		Input& input);
+
+	String name() override { return "EditorSystem"; }
 
 	UpdateStatus update() override;
-	void render3D() override;
+	void render3D(const Scene& scene) override;
+
 protected:
-	CameraSystem&		m_cameraSystem;
+	SceneSystem&		m_sceneSystem;
 	RenderSystem&		m_renderSystem;
 	AssetSystem&		m_assetSystem;
-	SelectionSystem&	m_selectionSystem;
 	Input&				m_input;
-	UISystem&			m_uiSystem;
 
 	TransformTool		m_transformTool;
 };

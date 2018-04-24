@@ -1,5 +1,7 @@
 #include "rae/visual/CameraSystem.hpp"
 
+#include "rae/ui/DebugSystem.hpp"
+
 #include "rae/core/Utils.hpp"
 #include "rae/core/Time.hpp"
 #include "rae/ui/Input.hpp"
@@ -24,7 +26,7 @@ CameraSystem::CameraSystem(const Time& time, EntitySystem& entitySystem, Transfo
 
 void CameraSystem::onMouseEvent(const Input& input)
 {
-	auto& camera = getCurrentCamera();
+	auto& camera = currentCamera();
 
 	if (input.eventType == EventType::MouseMotion)
 	{
@@ -70,7 +72,8 @@ void CameraSystem::onKeyEvent(const Input& input)
 
 Id CameraSystem::createCamera()
 {
-	vec3 position = vec3(0.0f, 0.0f, 0.0f);
+	// NOTE: This doesn't matter. Look at position member init.
+	vec3 position = vec3(0.0f, 0.0f, -30.0f);
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
@@ -99,16 +102,16 @@ Camera& CameraSystem::getCamera(Id id)
 	return m_cameras.get(id);
 }
 
-void CameraSystem::connectCameraChangedEventHandler(std::function<void(const Camera&)> handler)
+void CameraSystem::connectCameraUpdatedEventHandler(std::function<void(const Camera&)> handler)
 {
-	cameraChangedEvent.push_back(handler);
+	cameraUpdatedEvent.push_back(handler);
 }
 
-void CameraSystem::emitCameraChangedEvent()
+void CameraSystem::emitCameraUpdatedEvent()
 {
-	auto& camera = getCurrentCamera();
+	auto& camera = currentCamera();
 
-	for (auto&& handler : cameraChangedEvent)
+	for (auto&& handler : cameraUpdatedEvent)
 	{
 		handler(camera);
 	}
@@ -119,7 +122,7 @@ UpdateStatus CameraSystem::update()
 	// RAE_TODO: m_screenInfo??? from ScreenSystem???
 	// RAE_TODO camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
 
-	auto& camera = getCurrentCamera();
+	auto& camera = currentCamera();
 
 	if (m_input.getKeyState(KeySym::Control_L))
 		camera.setCameraSpeedDown(true);
@@ -154,23 +157,25 @@ UpdateStatus CameraSystem::update()
 	if (m_input.getKeyState(KeySym::V)) { camera.minusFocusDistance(); }
 	if (m_input.getKeyState(KeySym::B)) { camera.plusFocusDistance();  }
 
-	UpdateStatus cameraChanged = UpdateStatus::NotChanged;
+	UpdateStatus cameraUpdated = UpdateStatus::NotChanged;
 
 	if (m_input.getKeyPressed(KeySym::F))
 	{
 		camera.toggleContinuousAutoFocus();
-		cameraChanged = UpdateStatus::Changed;
+		cameraUpdated = UpdateStatus::Changed;
 	}
 
 	if (camera.update(m_time.time()))
 	{
-		cameraChanged = UpdateStatus::Changed;
+		cameraUpdated = UpdateStatus::Changed;
 	}
 
-	if (cameraChanged == UpdateStatus::Changed)
+	if (cameraUpdated == UpdateStatus::Changed)
 	{
-		emitCameraChangedEvent();
+		emitCameraUpdatedEvent();
 	}
 
-	return cameraChanged;
+	g_debugSystem->showDebugText("Camera position: " + Utils::toString(camera.position()), Colors::magenta);
+
+	return cameraUpdated;
 }

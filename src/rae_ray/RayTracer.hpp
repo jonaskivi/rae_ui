@@ -10,6 +10,8 @@
 #include "rae/core/Types.hpp"
 #include "rae/core/ISystem.hpp"
 
+#include "rae/scene/SceneSystem.hpp"
+
 #include "rae/visual/Ray.hpp"
 #include "rae_ray/HitRecord.hpp"
 #include "rae_ray/Hitable.hpp"
@@ -22,14 +24,18 @@ namespace rae
 {
 
 class Time;
-class CameraSystem;
+class AssetSystem;
+class SceneSystem;
 class Camera;
 class Material;
 
 class RayTracer : public ISystem
 {
 public:
-	RayTracer(const Time& time, CameraSystem& cameraSystem);
+	RayTracer(
+		const Time& time,
+		AssetSystem& assetSystem,
+		SceneSystem& sceneSystem);
 	~RayTracer();
 
 	String name() override { return "RayTracer"; }
@@ -37,6 +43,7 @@ public:
 	void showScene(int number);
 	void clearScene();
 
+	void updateScene(const Scene& scene);
 	void createSceneOne(HitableList& world, bool loadBunny = false);
 	void createSceneFromBook(HitableList& list);
 
@@ -70,7 +77,8 @@ public:
 
 	void toggleVisualizeFocusDistance() { m_isVisualizeFocusDistance = !m_isVisualizeFocusDistance; }
 
-	ImageBuffer& imageBuffer() { return *m_buffer; }
+	ImageBuffer<float>& imageBuffer() { return *m_buffer; }
+	ImageBuffer<uint8_t>& uintBuffer() { return *m_uintBuffer; }
 	void writeToPng(String filename);
 
 	void plusBounces(int delta = 1);
@@ -86,11 +94,16 @@ protected:
 
 	double m_switchTime = 5.0f; // time to switch to big buffer rendering in seconds
 
-	ImageBuffer m_smallBuffer;
-	ImageBuffer m_bigBuffer;
-	ImageBuffer* m_buffer = nullptr;
-	std::mutex m_bufferMutex;
-	std::atomic<bool> m_frameReady;
+	std::mutex				m_bufferMutex;
+	std::atomic<bool>		m_frameReady;
+
+	ImageBuffer<float>		m_smallBuffer;
+	ImageBuffer<float>		m_bigBuffer;
+	ImageBuffer<float>*		m_buffer = nullptr;
+
+	ImageBuffer<uint8_t>	m_smallUintBuffer;
+	ImageBuffer<uint8_t>	m_bigUintBuffer;
+	ImageBuffer<uint8_t>*	m_uintBuffer = nullptr;
 
 	bool m_requestClear;
 
@@ -105,7 +118,9 @@ protected:
 	double m_startTime = -1.0;
 
 	const Time& m_time;
-	CameraSystem& m_cameraSystem;
+	AssetSystem& m_assetSystem;
+	SceneSystem& m_sceneSystem;
+	Scene*		m_scene;
 	HitableList m_world;
 	BvhNode m_tree;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rae/core/Types.hpp"
-#include "rae/visual/Transform.hpp"
+#include "rae/scene/Transform.hpp"
 
 namespace rae
 {
@@ -32,10 +32,12 @@ public:
 
 	bool valid()
 	{
-		if (m_min.x <= m_max.x
-			&& m_min.y <= m_max.y
-			&& m_min.z <= m_max.z)
+		if (m_min.x <= m_max.x &&
+			m_min.y <= m_max.y &&
+			m_min.z <= m_max.z)
+		{
 			return true;
+		}
 		return false;
 	}
 
@@ -52,6 +54,11 @@ public:
 
 	const vec3& min() const { return m_min; }
 	const vec3& max() const { return m_max; }
+
+	float left() { return m_min.x; }
+	float right() { return m_max.x; }
+	float up() { return m_max.y; }
+	float down() { return m_min.y; }
 
 	// 3D hit test
 	bool hit(const Ray& ray, float minDistance, float maxDistance) const;

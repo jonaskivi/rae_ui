@@ -44,7 +44,7 @@ public:
 	void destroyEntities(const Array<Id>& entities) override;
 	void defragmentTables() override;
 
-	void copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image);
+	void copyFrameToImage(AVFrame* frameRGB, ImageBuffer<uint8_t>& image);
 
 private:
 

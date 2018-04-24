@@ -9,7 +9,7 @@
 #include "rae/core/Types.hpp"
 #include "rae/core/ISystem.hpp"
 #include "rae/core/ScreenSystem.hpp"
-#include "rae/visual/TransformSystem.hpp"
+#include "rae/scene/TransformSystem.hpp"
 #include "rae_ray/RayTracer.hpp"
 
 #include "rae/entity/Table.hpp"
@@ -25,63 +25,66 @@ namespace rae
 {
 
 class Time;
-class EntitySystem;
 class ScreenSystem;
-class TransformSystem;
-class CameraSystem;
+class SceneSystem;
+class UISystem;
 class AssetSystem;
-class SelectionSystem;
 struct Transform;
 class Material;
 class Mesh;
 struct Entity;
 class Input;
+struct Rectangle;
 
-using MeshLink = Id;
+enum class RenderMode
+{
+	Rasterize,
+	RayTrace,
+	MixedRayTraceRasterize,
+	Count
+};
 
 class RenderSystem : public ISystem
 {
 public:
 	RenderSystem(
+		NVGcontext* nanoVG,
 		const Time& time,
-		EntitySystem& entitySystem,
 		GLFWwindow* setWindow,
 		Input& input,
 		ScreenSystem& screenSystem,
-		TransformSystem& transformSystem,
-		CameraSystem& cameraSystem,
 		AssetSystem& assetSystem,
-		SelectionSystem& selectionSystem,
+		UISystem& uiSystem,
+		SceneSystem& sceneSystem,
 		RayTracer& rayTracer);
 	~RenderSystem();
 
 	String name() override { return "RenderSystem"; }
 
-	void initNanoVG();
+	void initNanoVG(NVGcontext* nanoVG = nullptr);
 	void init();
 
 	void checkErrors(const char *file, int line);
 
-	Id createBox();
-	Id createSphere();
-
 	UpdateStatus update() override;
 
 	void beginFrame3D();
-	void render3D() override;
+	void setViewport(const Rectangle& viewport);
+	void render3D(const Scene& scene) override;
 	void endFrame3D();
 
 	void renderPicking();
 	void render2dBackground();
+	void renderRayTracerOutput();
 
 	void beginFrame2D();
 	void render2D(NVGcontext* nanoVG) override;
 	void endFrame2D();
 
 	// RAE_TODO TEMP:
-	void renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
+	void renderImageBuffer(NVGcontext* vg, ImageBuffer<uint8_t>& readBuffer,
 		float x, float y, float w, float h);
-	ImageBuffer& getBackgroundImage() { return m_backgroundImage; }
+	ImageBuffer<uint8_t>& getBackgroundImage() { return m_backgroundImage; }
 
 	void renderMesh(
 		const Camera& camera,
@@ -106,13 +109,10 @@ public:
 
 	// Temp before we get keyboard Input class
 	void clearImageRenderer();
-	void toggleGlRenderer()
+	RenderMode toggleRenderMode()
 	{
-		m_glRendererOn = !m_glRendererOn;
+		return m_renderMode = (RenderMode) Utils::wrapEnum(((int)m_renderMode) + 1, (int)RenderMode::Count);
 	}
-
-	void addMeshLink(Id id, Id linkId);
-	void addMaterialLink(Id id, Id linkId);
 
 	const String& fpsString() const { return m_fpsString; }
 
@@ -132,13 +132,11 @@ protected:
 	
 	// dependencies
 	const Time&			m_time;
-	EntitySystem&		m_entitySystem;
 	Input&				m_input;
 	ScreenSystem&		m_screenSystem;
-	TransformSystem&	m_transformSystem;
-	CameraSystem&		m_cameraSystem;
 	AssetSystem&		m_assetSystem;
-	SelectionSystem&	m_selectionSystem;
+	UISystem&			m_uiSystem;
+	SceneSystem&		m_sceneSystem;
 	RayTracer&			m_rayTracer;
 
 	Transform*		debugTransform = nullptr;
@@ -148,12 +146,9 @@ protected:
 	double	m_fpsTimer = 0.0;
 	String	m_fpsString = "fps:";
 
-	bool	m_glRendererOn = false;
+	RenderMode	m_renderMode = RenderMode::MixedRayTraceRasterize;
 
-	ImageBuffer			m_backgroundImage;
-
-	Table<MeshLink>		m_meshLinks;
-	Table<Id>			m_materialLinks;
+	ImageBuffer<uint8_t> m_backgroundImage;
 };
 
 }

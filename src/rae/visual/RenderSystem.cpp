@@ -6,7 +6,6 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "nanovg.h"
-#define NANOVG_GL2_IMPLEMENTATION
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
@@ -16,14 +15,18 @@
 #include "rae/ui/Input.hpp"
 #include "rae/ui/DebugSystem.hpp"
 
-#include "rae/visual/Transform.hpp"
+#include "rae/scene/Transform.hpp"
 #include "rae/visual/Material.hpp"
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Shader.hpp"
 
+#include "rae/image/ImageBuffer.hpp"
+
 #include "rae/entity/EntitySystem.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/asset/AssetSystem.hpp"
+#include "rae/ui/UISystem.hpp"
+#include "rae/scene/SceneSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/editor/SelectionSystem.hpp"
 
@@ -57,34 +60,30 @@ int loadFonts(NVGcontext* vg)
 }
 
 RenderSystem::RenderSystem(
+	NVGcontext* nanoVG,
 	const Time& time,
-	EntitySystem& entitySystem,
 	GLFWwindow* setWindow,
 	Input& input,
 	ScreenSystem& screenSystem,
-	TransformSystem& transformSystem,
-	CameraSystem& cameraSystem,
 	AssetSystem& assetSystem,
-	SelectionSystem& selectionSystem,
+	UISystem& uiSystem,
+	SceneSystem& sceneSystem,
 	RayTracer& rayTracer) :
 		m_time(time),
-		m_entitySystem(entitySystem),
 		m_window(setWindow),
 		m_input(input),
 		m_screenSystem(screenSystem),
-		m_transformSystem(transformSystem),
-		m_cameraSystem(cameraSystem),
 		m_assetSystem(assetSystem),
-		m_selectionSystem(selectionSystem),
+		m_uiSystem(uiSystem),
+		m_sceneSystem(sceneSystem),
 		m_rayTracer(rayTracer)
 {
-	addTable(m_meshLinks);
-	addTable(m_materialLinks);
+	LOG_F(INFO, "Init %s", name().c_str());
 
 	debugTransform = new Transform(vec3(0,0,0));
 	debugTransform2 = new Transform(vec3(0,0,0));
 
-	initNanoVG();
+	initNanoVG(nanoVG);
 
 	init();
 }
@@ -93,9 +92,15 @@ RenderSystem::~RenderSystem()
 {
 }
 
-void RenderSystem::initNanoVG()
+void RenderSystem::initNanoVG(NVGcontext* nanoVG)
 {
-	m_nanoVG = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+	LOG_F(INFO, "Init NanoVG");
+
+	if (nanoVG)
+	{
+		m_nanoVG = nanoVG;
+	}
+
 	if (m_nanoVG == nullptr)
 	{
 		LOG_F(ERROR, "Could not init nanovg.");
@@ -159,44 +164,6 @@ void RenderSystem::init()
 	}
 }
 
-Id RenderSystem::createBox()
-{
-	Id id = m_entitySystem.createEntity();
-	//LOG_F(INFO, "createBox entity: %i", id);
-	Mesh mesh;
-	m_assetSystem.addMesh(id, std::move(mesh));
-
-	// Got into nasty crashes when I first created the VBOs and then moved the mesh to the table.
-	// Apparently you can't do that. Must first move mesh into table, and only create VBOs at the final memory pointers.
-	Mesh& mesh2 = m_assetSystem.getMesh(id);
-	mesh2.generateBox();
-	mesh2.createVBOs();
-	return id;
-}
-
-Id RenderSystem::createSphere()
-{
-	Id id = m_entitySystem.createEntity();
-	//LOG_F(INFO, "createSphere entity: %i", id);
-	Mesh mesh;
-	m_assetSystem.addMesh(id, std::move(mesh));
-
-	Mesh& mesh2 = m_assetSystem.getMesh(id);
-	mesh2.generateSphere();
-	mesh2.createVBOs();
-	return id;
-}
-
-void RenderSystem::addMeshLink(Id id, Id linkId)
-{
-	m_meshLinks.assign(id, std::move(linkId));
-}
-
-void RenderSystem::addMaterialLink(Id id, Id linkId)
-{
-	m_materialLinks.assign(id, std::move(linkId));
-}
-
 void RenderSystem::checkErrors(const char *file, int line)
 {
 	GLenum err(glGetError());
@@ -253,21 +220,52 @@ void RenderSystem::beginFrame3D()
 		g_debugSystem->showDebugText(m_fpsString);
 	}
 
-	const auto& window = m_screenSystem.window();
-
-	glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
-
 	// Clear the screen
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void RenderSystem::render3D()
+void RenderSystem::setViewport(const Rectangle& viewport)
 {
-	render2dBackground();
+	//FULLSCREEN: const auto& window = m_screenSystem.window();
+	// glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 
-	if (m_glRendererOn == false)
+	if (viewport.width == 0.0f)
+	{
+		const auto& window = m_screenSystem.window();
+		glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
+	}
+	else
+	{
+		const auto& window = m_screenSystem.window();
+		glViewport(viewport.x, window.pixelHeight() - viewport.y - viewport.height, viewport.width, viewport.height);
+	}
+}
+
+void RenderSystem::render3D(const Scene& scene)
+{
+	if (!m_sceneSystem.hasActiveScene())
 		return;
+
+	//LOG_F(INFO, "Render.");
+
+	//Scene* scene = m_sceneSystem.activeScene();
+	const Camera& camera = scene.cameraSystem().currentCamera();
+	auto& transformSystem = scene.transformSystem();
+	auto& selectionSystem = scene.selectionSystem();
+	auto& assetLinkSystem = scene.assetLinkSystem();
+
+	if (m_renderMode == RenderMode::MixedRayTraceRasterize ||
+		m_renderMode == RenderMode::RayTrace)
+	{
+		renderRayTracerOutput();
+	}
+
+	if (m_renderMode != RenderMode::MixedRayTraceRasterize &&
+		m_renderMode != RenderMode::Rasterize)
+	{
+		return;
+	}
 
 	m_basicShader.use();
 
@@ -284,37 +282,36 @@ void RenderSystem::render3D()
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	const Camera& camera = m_cameraSystem.getCurrentCamera();
 	const Color white(1.0f, 1.0f, 1.0f, 1.0f);
 
 	//debug
 	Mesh* debugMesh = nullptr;
 	Material* debugMaterial = nullptr;
 
-	query<MeshLink>(m_meshLinks, [&](Id id, MeshLink& meshLink)
+	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
 	{
 		Material* material = nullptr;
-		Mesh& mesh = m_assetSystem.getMesh(m_meshLinks.get(id));
+		const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
 
 		if (m_assetSystem.isMaterial(id))
 			material = &m_assetSystem.getMaterial(id);
-		else if (m_materialLinks.check(id))
-			material = &m_assetSystem.getMaterial(m_materialLinks.get(id));
+		else if (assetLinkSystem.m_materialLinks.check(id))
+			material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
 
-		if (m_transformSystem.hasTransform(id) &&
+		if (transformSystem.hasTransform(id) &&
 			material)
 		{
-			const Transform& transform = m_transformSystem.getTransform(id);
+			const Transform& transform = transformSystem.getTransform(id);
 
 			//debugMaterial = &material;
 			//debugMesh = &mesh;
 
 			#ifdef RAE_DEBUG
 				LOG_F(INFO, "Going to render Mesh. id: %i", id);
-				LOG_F(INFO, "MeshLink is: %i", m_meshLinks.get(id));
+				LOG_F(INFO, "MeshLink is: %i", assetLinkSystem.meshLinks().get(id));
 			#endif
 
-			renderMesh(camera, transform, white, *material, mesh, m_selectionSystem.isSelected(id));
+			renderMesh(camera, transform, white, *material, mesh, selectionSystem.isSelected(id));
 		}
 	});
 
@@ -333,16 +330,24 @@ void RenderSystem::render3D()
 
 void RenderSystem::endFrame3D()
 {
+	if (!m_sceneSystem.hasActiveScene())
+		return;
+
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& transformSystem = scene.transformSystem();
+	auto& entitySystem = scene.entitySystem();
+
 	{
 		g_debugSystem->showDebugText("");
+		g_debugSystem->showDebugText("Scene: " + scene.name());
 		g_debugSystem->showDebugText("Esc to quit, R reset, F autofocus, H visualize focus, ", Colors::white);
 		g_debugSystem->showDebugText("VB focus distance, NM aperture, KL bounces, ", Colors::white);
 		g_debugSystem->showDebugText("G debug view, Tab UI, U fastmode", Colors::white);
 		g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows", Colors::white);
 		g_debugSystem->showDebugText("Y toggle resolution", Colors::white);
 		g_debugSystem->showDebugText("");
-		g_debugSystem->showDebugText("Entities: " + std::to_string(m_entitySystem.entityCount()));
-		g_debugSystem->showDebugText("Transforms: " + std::to_string(m_transformSystem.transformCount()));
+		g_debugSystem->showDebugText("Entities on scene: " + std::to_string(entitySystem.entityCount()));
+		g_debugSystem->showDebugText("Transforms: " + std::to_string(transformSystem.transformCount()));
 		g_debugSystem->showDebugText("Meshes: " + std::to_string(m_assetSystem.meshCount()));
 		g_debugSystem->showDebugText("Materials: " + std::to_string(m_assetSystem.materialCount()));
 		g_debugSystem->showDebugText("");
@@ -356,9 +361,34 @@ void RenderSystem::endFrame3D()
 
 void RenderSystem::renderPicking()
 {
-	const auto& window = m_screenSystem.window();
+	if (!m_sceneSystem.hasActiveScene())
+		return;
 
-	glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& cameraSystem = scene.cameraSystem();
+	auto& transformSystem = scene.transformSystem();
+	auto& assetLinkSystem = scene.assetLinkSystem();
+
+	const Camera& camera = cameraSystem.currentCamera();
+
+	//FULLSCREEN: const auto& window = m_screenSystem.window();
+	// glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
+
+	//TODO sceneIndex:
+	Rectangle viewport = m_uiSystem.getViewportPixelRectangle(0);
+
+	setViewport(viewport);
+	/*JONDE REMOVE
+	if (viewport.width == 0.0f)
+	{
+		const auto& window = m_screenSystem.window();
+		glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
+	}
+	else
+	{
+		glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+	}
+	*/
 
 	// Clear the screen
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -370,15 +400,13 @@ void RenderSystem::renderPicking()
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
-	const Camera& camera = m_cameraSystem.getCurrentCamera();
-
-	query<MeshLink>(m_meshLinks, [&](Id id, MeshLink& meshLink)
+	query<MeshLink>(assetLinkSystem.m_meshLinks, [&](Id id, MeshLink& meshLink)
 	{
-		Mesh& mesh = m_assetSystem.getMesh(m_meshLinks.get(id));
+		Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.m_meshLinks.get(id));
 
-		if (m_transformSystem.hasTransform(id))
+		if (transformSystem.hasTransform(id))
 		{
-			const Transform& transform = m_transformSystem.getTransform(id);
+			const Transform& transform = transformSystem.getTransform(id);
 
 			#ifdef RAE_DEBUG
 				LOG_F(INFO, "Going to render Mesh. id: %i", id);
@@ -473,54 +501,26 @@ void RenderSystem::renderMeshPicking(
 
 void RenderSystem::render2dBackground()
 {
-	// Nanovg
-
 	const auto& window = m_screenSystem.window();
-
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
-
-	// RAE_TODO RAYTRACER:
-	//m_rayTracer.renderNanoVG(m_nanoVG, 0.0f, 0.0f, (float)window.width(), (float)window.height());
-	//renderImageBuffer(m_nanoVG, m_backgroundImage, 0.0f, 0.0f, (float)window.width(), (float)window.height());
-
-	Box rayWindow(
-		vec3(0.0f, 0.0f, 0.0f),
-		vec3(float(window.width()), float(window.height()), 0.0f));
-	m_rayTracer.renderNanoVG(m_nanoVG,
-		rayWindow.min().x, rayWindow.min().y,
-		rayWindow.dimensions().x, rayWindow.dimensions().y);
-	/*
-	// Video window:
-	Box imageWindow(
-		vec3(float(window.width()) * 0.5f, float(window.height()) * 0.5f, 0.0f),
-		vec3((float(window.width()) * 0.5f) * 2.0f, (float(window.height()) * 0.5f) * 2.0f, 0.0f));
-	renderImageBuffer(m_nanoVG, m_backgroundImage,
-		imageWindow.min().x, imageWindow.min().y,
-		imageWindow.dimensions().x, imageWindow.dimensions().y);
-	*/
+	renderImageNano(m_nanoVG, m_backgroundImage.imageId(), 0.0f, 0.0f, (float)window.width(), (float)window.height());
 	nvgEndFrame(m_nanoVG);
 }
 
-void RenderSystem::renderImageBuffer(NVGcontext* vg, ImageBuffer& readBuffer,
-	float x, float y, float w, float h)
+void RenderSystem::renderRayTracerOutput()
 {
-	nvgSave(vg);
-
-	NVGpaint imgPaint = nvgImagePattern(vg, x, y, w, h, 0.0f, readBuffer.imageId(), 1.0f);
-	nvgBeginPath(vg);
-	nvgRect(vg, x, y, w, h);
-	nvgFillPaint(vg, imgPaint);
-	nvgFill(vg);
-
-	nvgRestore(vg);
+	const auto& window = m_screenSystem.window();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
+	m_rayTracer.renderNanoVG(m_nanoVG, 0.0f, 0.0f, (float)window.width(), (float)window.height());
+	nvgEndFrame(m_nanoVG);
 }
 
 void RenderSystem::beginFrame2D()
 {
 	const auto& window = m_screenSystem.window();
-
+	glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
@@ -528,37 +528,6 @@ void RenderSystem::beginFrame2D()
 
 void RenderSystem::render2D(NVGcontext* nanoVG)
 {
-	/*if (m_rayTracer.isInfoText())
-	{
-		nvgFontFace(m_nanoVG, "sans");
-
-		float vertPos = 10.0f;
-
-		nvgFontSize(m_nanoVG, 18.0f);
-		nvgTextAlign(m_nanoVG, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-		nvgFillColor(m_nanoVG, nvgRGBA(128, 128, 128, 192));
-		nvgText(m_nanoVG, 10.0f, vertPos, m_fpsString.c_str(), nullptr); vertPos += 20.0f;
-
-		nvgText(m_nanoVG, 10.0f, vertPos, "Esc to quit, R reset, F autofocus, H visualize focus, VB focus distance,"
-			" NM aperture, KL bounces, G debug view, T text, U fastmode", nullptr); vertPos += 20.0f;
-		nvgText(m_nanoVG, 10.0f, vertPos, "Movement: Second mouse button, WASDQE, Arrows", nullptr); vertPos += 20.0f;
-		nvgText(m_nanoVG, 10.0f, vertPos, "Y toggle resolution", nullptr); vertPos += 20.0f;
-
-		std::string entity_count_str = "Entities: " + std::to_string(m_entitySystem.entityCount());
-		nvgText(m_nanoVG, 10.0f, vertPos, entity_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string transform_count_str = "Transforms: " + std::to_string(m_transformSystem.transformCount());
-		nvgText(m_nanoVG, 10.0f, vertPos, transform_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string mesh_count_str = "Meshes: " + std::to_string(m_assetSystem.meshCount());
-		nvgText(m_nanoVG, 10.0f, vertPos, mesh_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		std::string material_count_str = "Materials: " + std::to_string(m_assetSystem.materialCount());
-		nvgText(m_nanoVG, 10.0f, vertPos, material_count_str.c_str(), nullptr); vertPos += 20.0f;
-
-		//nvgText(m_nanoVG, 10.0f, vertPos, m_pickedString.c_str(), nullptr);
-	}
-	*/
 }
 
 void RenderSystem::endFrame2D()
@@ -574,11 +543,21 @@ void RenderSystem::clearImageRenderer()
 void RenderSystem::osEventResizeWindow(int width, int height)
 {
 	m_screenSystem.osEventResizeWindow(width, height);
-	m_cameraSystem.setAspectRatio(float(width) / float(height));
+
+	if (!m_sceneSystem.hasActiveScene())
+		return;
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& cameraSystem = scene.cameraSystem();
+	cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
 void RenderSystem::osEventResizeWindowPixels(int width, int height)
 {
 	m_screenSystem.osEventResizeWindowPixels(width, height);
-	m_cameraSystem.setAspectRatio(float(width) / float(height));
+
+	if (!m_sceneSystem.hasActiveScene())
+		return;
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& cameraSystem = scene.cameraSystem();
+	cameraSystem.setAspectRatio(float(width) / float(height));
 }

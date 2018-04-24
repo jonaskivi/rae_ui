@@ -26,6 +26,10 @@ float getRandom()
 
 float getRandom( float from, float to )
 {
+	if (from > to)
+	{
+		std::swap(from, to);
+	}
 	static std::uniform_real_distribution<float> uniform_dist;
 	return uniform_dist( g_randomEngine, std::uniform_real_distribution<float>::param_type(from, to) );
 }
@@ -38,6 +42,10 @@ float getRandomDistribution(float mean, float deviation)
 
 int getRandomInt( int from, int to )
 {
+	if (from > to)
+	{
+		std::swap(from, to);
+	}
 	static std::uniform_int_distribution<int> uniform_dist;
 	return uniform_dist( g_randomEngine, std::uniform_int_distribution<int>::param_type(from, to) );
 }

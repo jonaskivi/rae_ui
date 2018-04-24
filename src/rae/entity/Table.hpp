@@ -27,6 +27,9 @@ template <typename Comp>
 void query(Table<Comp>& table, std::function<void(Id)> process);
 
 template <typename Comp>
+void query(const Table<Comp>& table, std::function<void(Id, const Comp&)> process);
+
+template <typename Comp>
 void query(const Table<Comp>& table, std::function<void(Id)> process);
 
 template <typename Comp>
@@ -38,6 +41,8 @@ public:
 		m_idMap.reserve(reserveSize);
 		m_items.reserve(reserveSize);
 	}
+
+	Table(Table&&) = default;
 
 	void reserve(int reserveSize)
 	{
@@ -220,6 +225,7 @@ public:
 
 	friend void query<Comp>(Table<Comp>& table, std::function<void(Id, Comp&)> process);
 	friend void query<Comp>(Table<Comp>& table, std::function<void(Id)> process);
+	friend void query<Comp>(const Table<Comp>& table, std::function<void(Id, const Comp&)> process);
 	friend void query<Comp>(const Table<Comp>& table, std::function<void(Id)> process);
 
 protected:
@@ -252,6 +258,18 @@ void query(Table<Comp>& table, std::function<void(Id)> process)
 		if (table.m_idMap[i] != InvalidIndex)
 		{
 			process((Id)i);
+		}
+	}
+}
+
+template <typename Comp>
+void query(const Table<Comp>& table, std::function<void(Id, const Comp&)> process)
+{
+	for (int i = 0; i < (int)table.m_idMap.size(); ++i)
+	{
+		if (table.m_idMap[i] != InvalidIndex)
+		{
+			process((Id)i, table.getF((Id)i));
 		}
 	}
 }

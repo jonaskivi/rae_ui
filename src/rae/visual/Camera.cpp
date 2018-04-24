@@ -3,6 +3,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "loguru/loguru.hpp"
+
 #include "rae/core/Random.hpp"
 #include "rae/visual/Camera.hpp"
 
@@ -61,21 +63,46 @@ void Camera::calculateFrustum()
 	m_lensRadius = m_aperture / 2.0f;
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
-	m_direction = vec3(
-		cos(m_pitchAngle) * sin(m_yawAngle), 
-		sin(m_pitchAngle),
-		cos(m_pitchAngle) * cos(m_yawAngle)
-	);
-	
-	// Right vector
-	m_right = glm::vec3(
-		sin(m_yawAngle - 3.14f/2.0f),
-		0,
-		cos(m_yawAngle - 3.14f/2.0f)
-	);
+
+	if (m_coordinatesUp == CoordinatesUp::Z)
+	{
+		m_direction = vec3(
+			cos(m_pitchAngle) * cos(m_yawAngle),
+			cos(m_pitchAngle) * sin(m_yawAngle), 
+			sin(m_pitchAngle)
+		);
+
+		// Right vector
+		m_right = glm::vec3(
+			cos(m_yawAngle - 3.14f/2.0f),
+			sin(m_yawAngle - 3.14f/2.0f),
+			0
+		);
+	}
+	else if (m_coordinatesUp == CoordinatesUp::Y)
+	{
+		m_direction = vec3(
+			cos(m_pitchAngle) * sin(m_yawAngle), 
+			sin(m_pitchAngle),
+			cos(m_pitchAngle) * cos(m_yawAngle)
+		);
+		
+		// Right vector
+		m_right = glm::vec3(
+			sin(m_yawAngle - 3.14f/2.0f),
+			0,
+			cos(m_yawAngle - 3.14f/2.0f)
+		);
+	}
 
 	// Up vector
 	m_up = glm::cross( m_right, m_direction );
+
+	/*
+	LOG_F(INFO, "forward: %f %f %f", m_direction.x, m_direction.y, m_direction.z);
+	LOG_F(INFO, "right: %f %f %f", m_right.x, m_right.y, m_right.z);
+	LOG_F(INFO, "up: %f %f %f", m_up.x, m_up.y, m_up.z);
+	*/
 
 	m_projectionMatrix = glm::perspective(Math::toDegrees(m_fieldOfView), m_aspectRatio, 0.1f, 500.0f);
 	m_viewMatrix = glm::lookAt( m_position, m_position + m_direction, m_up );

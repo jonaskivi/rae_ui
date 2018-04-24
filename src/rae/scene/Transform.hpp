@@ -15,7 +15,7 @@ public:
 	String toString() const;
 
 	void setTarget(glm::vec3 setTarget, float duration);
-	void update(double time);
+	void update(double time = 0.0);
 
 	vec3 position = vec3(0.0f, 0.0f, 0.0f);
 	qua rotation;

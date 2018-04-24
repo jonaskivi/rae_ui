@@ -8,8 +8,9 @@
 
 #include "nanovg.h"
 
-#include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/Mesh.hpp"
+#include "rae/visual/Camera.hpp"
+#include "rae/scene/SceneSystem.hpp"
 
 using namespace rae;
 
@@ -35,8 +36,7 @@ void DebugSystem::loguruCallbackClose(void* user_data)
 }
 
 
-DebugSystem::DebugSystem(const CameraSystem& cameraSystem) :
-	m_cameraSystem(cameraSystem)
+DebugSystem::DebugSystem()
 {
 	g_debugSystem = this;
 
@@ -56,16 +56,18 @@ DebugSystem::DebugSystem(const CameraSystem& cameraSystem) :
 DebugSystem::~DebugSystem()
 {
 	loguru::remove_callback("user_callback");
+
+	g_debugSystem = nullptr;
 }
 
-void DebugSystem::render3D()
+void DebugSystem::render3D(const Scene& scene)
 {
+	const Camera& camera = scene.cameraSystem().currentCamera();
+
 	m_singleColorShader.use();
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-
-	const Camera& camera = m_cameraSystem.getCurrentCamera();
 
 	// The model-view-projection matrix
 	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix();// * modelMatrix;

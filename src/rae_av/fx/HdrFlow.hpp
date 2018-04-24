@@ -17,8 +17,8 @@ public:
 	void pushFrame(AVFrame* frameRGB);
 
 	void update();
-	void writeFrameToImage(ImageBuffer& image);
-	void writeFrameToDiskAndImage(String filepath, ImageBuffer& image);
+	void writeFrameToImage(ImageBuffer<uint8_t>& image);
+	void writeFrameToDiskAndImage(String filepath, ImageBuffer<uint8_t>& image);
 	void waitForData();
 
 	void setExposureWeight(float value) { m_exposureWeight = value;}

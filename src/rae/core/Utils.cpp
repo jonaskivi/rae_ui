@@ -39,6 +39,15 @@ void sleep(int durationMilliSeconds)
 	#endif
 }
 
+int wrapEnum(int enumValue, int enumCount)
+{
+	if (enumValue < 0)
+		return enumCount-1;
+	if (enumValue >= enumCount)
+		return 0;
+	return enumValue;
+}
+
 int randomInt(int low, int high)
 {
 	return rand() % ((high + 1) - low) + low;

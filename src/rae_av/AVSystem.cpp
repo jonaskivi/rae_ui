@@ -46,7 +46,7 @@ void AVSystem::defragmentTables()
 {
 }
 
-void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
+void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer<uint8_t>& image)
 {
 	if (image.width() != frameRGB->width or image.height() != frameRGB->height)
 	{
@@ -61,7 +61,7 @@ void AVSystem::copyFrameToImage(AVFrame* frameRGB, ImageBuffer& image)
 			uint8_t r = frameRGB->data[0][p];
 			uint8_t g = frameRGB->data[0][p+1];
 			uint8_t b = frameRGB->data[0][p+2];
-			image.setPixel(x, y, {r, g, b});
+			image.setPixel(x, y, {r, g, b, 255});
 		}
 	});
 

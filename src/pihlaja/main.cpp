@@ -13,10 +13,18 @@
 GLFWwindow* window;
 
 #include "nanovg.h"
+
+#ifdef _WIN32
+#define NANOVG_GL3_IMPLEMENTATION
+#else
+#define NANOVG_GL2_IMPLEMENTATION
+#endif
+
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
 #include "rae/Engine.hpp"
+#include "test/Test2DCoordinates.hpp"
 #include "pihlaja/Pihlaja.hpp"
 
 #define LOGURU_IMPLEMENTATION 1
@@ -163,10 +171,6 @@ int main(int argc, char** argv)
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	Pihlaja pihlaja(window);
-
-	// Set global access point just for GLFW callbacks.
-	g_engine = pihlaja.getEngine();
 	glfwSetWindowSizeCallback     (window, windowSizeCallback);
 	glfwSetFramebufferSizeCallback(window, windowPixelSizeCallback); // Support hi-dpi displays
 	glfwSetMouseButtonCallback    (window, glfwOnMouseButton);
@@ -174,9 +178,35 @@ int main(int argc, char** argv)
 	glfwSetKeyCallback            (window, glfwKeyCallback);
 	glfwSetScrollCallback         (window, glfwScrollCallback);
 
-	pihlaja.run();
+	NVGcontext* nanoVG;
 
-	g_engine = nullptr;
+	#ifdef _WIN32
+		nanoVG = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+	#else
+		nanoVG = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+	#endif
+
+	if (nanoVG == nullptr)
+	{
+		LOG_F(ERROR, "Could not init nanovg.");
+		getchar();
+		exit(0);
+		assert(0);
+	}
+
+	{
+		Test2DCoordinates test2DCoordinates(window, nanoVG);
+		g_engine = test2DCoordinates.getEngine();
+		test2DCoordinates.run();
+		g_engine = nullptr;
+	}
+
+	{
+		Pihlaja pihlaja(window, nanoVG);
+		g_engine = pihlaja.getEngine();
+		pihlaja.run();
+		g_engine = nullptr;
+	}
 
 	glfwTerminate();
 

@@ -8,7 +8,7 @@
 #include "rae/entity/Table.hpp"
 
 #include "rae/entity/EntitySystem.hpp"
-#include "rae/visual/TransformSystem.hpp"
+#include "rae/scene/TransformSystem.hpp"
 
 namespace rae
 {
@@ -28,18 +28,18 @@ public:
 	void onMouseEvent(const Input& input);
 	void onKeyEvent(const Input& input);
 
-	void setNeedsUpdate() { getCurrentCamera().setNeedsUpdate(); }
-	void setAspectRatio(float aspect) { getCurrentCamera().setAspectRatio(aspect); }
+	void setNeedsUpdate() { currentCamera().setNeedsUpdate(); }
+	void setAspectRatio(float aspect) { currentCamera().setAspectRatio(aspect); }
 
-	const Camera& getCurrentCamera() const { return getCamera(m_currentCamera); }
-	Camera& getCurrentCamera() { return getCamera(m_currentCamera); }
+	const Camera& currentCamera() const { return getCamera(m_currentCamera); }
+	Camera& currentCamera() { return getCamera(m_currentCamera); }
 
 	Id createCamera();
 	void addCamera(Id id, Camera&& comp);
 	const Camera& getCamera(Id id) const;
 	Camera& getCamera(Id id);
 
-	void connectCameraChangedEventHandler(std::function<void(const Camera&)> handler);
+	void connectCameraUpdatedEventHandler(std::function<void(const Camera&)> handler);
 
 private:
 	const Time& m_time;
@@ -50,8 +50,8 @@ private:
 	Id m_currentCamera;
 	Table<Camera> m_cameras;
 
-	void emitCameraChangedEvent();
-	std::vector<std::function<void(const Camera&)>> cameraChangedEvent;
+	void emitCameraUpdatedEvent();
+	std::vector<std::function<void(const Camera&)>> cameraUpdatedEvent;
 };
 
 }

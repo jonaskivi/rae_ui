@@ -74,7 +74,7 @@ void HdrFlow::update()
 	*/
 }
 
-void HdrFlow::writeFrameToImage(ImageBuffer& image)
+void HdrFlow::writeFrameToImage(ImageBuffer<uint8_t>& image)
 {
 	//const Mat& frameTwo0 = m_flows[0].getOutputAtTime(0.5f);
 	//const Mat& frameTwo1 = m_flows[1].getOutputAtTime(0.0f);
@@ -88,7 +88,7 @@ void HdrFlow::writeFrameToImage(ImageBuffer& image)
 	m_flows[0].copyMatToImage(m_output, image);
 }
 
-void HdrFlow::writeFrameToDiskAndImage(String filepath, ImageBuffer& image)
+void HdrFlow::writeFrameToDiskAndImage(String filepath, ImageBuffer<uint8_t>& image)
 {
 	//TODO frameOne
 	const Mat& frameTwo0 = m_flows[0].getOutputAtTime(0.0f);

@@ -17,7 +17,7 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-	//LOG_F(INFO, "Mesh destructor.");
+	LOG_F(INFO, "Mesh destructor.");
 	freeVBOs();
 	delete m_material;
 }
@@ -264,7 +264,7 @@ void Mesh::computeAabb()
 	}
 }
 
-void Mesh::generateBox()
+void Mesh::generateCube()
 {
 	//LOG_F("Generating Mesh.");
 
@@ -739,7 +739,12 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 		for (uint i = 0; i < mesh->mNumVertices; i++)
 		{
 			aiVector3D pos = mesh->mVertices[i];
-			m_vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
+
+			// Test swapping Y and Z:
+			//m_vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
+			m_vertices.push_back(glm::vec3(pos.x, pos.z, pos.y));
+
+
 			m_aabb.grow(m_vertices[i]);
 		}
 
@@ -768,7 +773,10 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			if(mesh->HasNormals())
 			{
 				aiVector3D n = mesh->mNormals[i];
-				m_normals.push_back(glm::vec3(n.x, n.y, n.z));
+
+				// Test swapping Y and Z
+				//m_normals.push_back(glm::vec3(n.x, n.y, n.z));
+				m_normals.push_back(glm::vec3(n.x, n.z, n.y));
 			}
 			else
 			{

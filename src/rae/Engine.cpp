@@ -5,62 +5,30 @@
 #include "loguru/loguru.hpp"
 #include "rae/core/ISystem.hpp"
 #include "rae/visual/Mesh.hpp"
-#include "rae/visual/Transform.hpp"
+#include "rae/scene/Transform.hpp"
 #include "rae/visual/Material.hpp"
 #include "rae/core/Random.hpp"
 
 using namespace rae;
 
-//RAE_TODO: Split this into Engine & Viewport classes:
+//RAE_TODO: Split this into Engine & ViewportSystem classes:
 // Engine just handles all the systems and their updates.
-// Viewport handles 3D picking etc... ?
-Engine::Engine(GLFWwindow* window) :
+// ViewportSystem handles 3D picking etc... ?
+
+Engine::Engine(GLFWwindow* window, NVGcontext* nanoVG) :
 	m_window(window),
 	m_input(m_screenSystem),
-	m_transformSystem(m_time),
-	m_assetSystem(m_time, m_entitySystem),
-	m_selectionSystem(m_transformSystem),
-	m_cameraSystem(m_time, m_entitySystem, m_transformSystem, m_input),
-	m_debugSystem(m_cameraSystem),
-	m_rayTracer(m_time, m_cameraSystem),
-	m_uiSystem(m_input, m_screenSystem, m_entitySystem, m_transformSystem, m_renderSystem, m_debugSystem),
-	m_renderSystem(m_time, m_entitySystem, m_window, m_input, m_screenSystem,
-		m_transformSystem, m_cameraSystem, m_assetSystem,
-		m_selectionSystem, m_rayTracer),
-	m_editorSystem(m_cameraSystem, m_renderSystem, m_assetSystem, m_selectionSystem, m_input, m_uiSystem)
+	m_debugSystem(),
+	m_assetSystem(m_time),
+	m_sceneSystem(m_time, m_input/*, m_assetSystem*/),
+	m_uiSystem(m_time, m_input, m_screenSystem, m_assetSystem, m_debugSystem),
+	m_rayTracer(m_time, m_assetSystem, m_sceneSystem),
+	m_renderSystem(nanoVG, m_time, m_window, m_input, m_screenSystem,
+		m_assetSystem, m_uiSystem, m_sceneSystem,
+		m_rayTracer),
+	m_editorSystem(m_sceneSystem, m_renderSystem, m_assetSystem, m_input/*, m_uiSystem*/)
 {
 	m_time.initTime(glfwGetTime());
-
-	addSystem(m_input);
-	addSystem(m_transformSystem);
-	addSystem(m_cameraSystem);
-	addSystem(m_assetSystem);
-	addSystem(m_selectionSystem);
-	addSystem(m_editorSystem);
-	addSystem(m_uiSystem);
-	addSystem(m_rayTracer);
-	addSystem(m_renderSystem);
-
-	addRenderer3D(m_renderSystem);
-	addRenderer3D(m_editorSystem);
-	addRenderer3D(m_debugSystem);
-	addRenderer2D(m_renderSystem); // RAE_TODO should probably refactor and remove. Just infotext, that should be in uiSystem anyway.
-	addRenderer2D(m_uiSystem);
-
-	// RAE_TODO need to get rid of OpenGL picking hack button at id 0.
-	Id emptyEntityId = m_entitySystem.createEntity(); // hack at index 0
-	LOG_F(INFO, "Create empty hack entity at id: %i", emptyEntityId);
-
-	// Load model
-	Id meshID = m_assetSystem.createMesh("./data/models/bunny.obj");
-	m_modelID = meshID;
-
-	m_meshID			= m_renderSystem.createBox();
-	m_materialID		= m_assetSystem.createMaterial(Color(0.2f, 0.5f, 0.7f, 0.0f));
-	m_bunnyMaterialID	= m_assetSystem.createMaterial(Color(0.7f, 0.3f, 0.1f, 0.0f));
-	m_buttonMaterialID	= m_assetSystem.createAnimatingMaterial(Color(0.0f, 0.0f, 0.1f, 0.0f));
-
-	createTestWorld2();
 
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&Engine::onMouseEvent, this, _1));
@@ -92,9 +60,20 @@ void Engine::addRenderer2D(ISystem& system)
 	m_renderers2D.push_back(&system);
 }
 
+void Engine::start()
+{
+	m_running = true;
+}
+
+void Engine::quit()
+{
+	m_running = false;
+}
+
 void Engine::run()
 {
-	do {
+	while (m_running)
+	{
 		//glfwPollEvents(); // Don't use this here, it's for games. Use it in the inner loop if something is updating.
 		// It will take up too much CPU all the time, even when nothing is happening.
 		glfwWaitEvents(); //use this instead. It will sleep when no events are being received.
@@ -107,28 +86,33 @@ void Engine::run()
 			glfwPollEvents();
 
 			if (glfwWindowShouldClose(m_window) != 0)
+			{
 				m_running = false;
+			}
 
 			m_time.setPreviousTime();
 		}
-
-	} // Check if the ESC key was pressed or the window was closed
-	while (glfwGetKey(m_window, GLFW_KEY_ESCAPE) != GLFW_PRESS
-		   && glfwWindowShouldClose(m_window) == 0);
+	}
 }
 
 UpdateStatus Engine::update()
 {
+	if (!m_sceneSystem.hasActiveScene())
+		return UpdateStatus::NotChanged;
+
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& entitySystem = scene.entitySystem();
+
 	// Measure speed
 	m_time.setTime(glfwGetTime());
 
 	if (!m_destroyEntities.empty())
 	{
-		for (auto system : m_systems)
+		/*for (auto system : m_systems)
 		{
 			system->destroyEntities(m_destroyEntities);
-		}
-		m_entitySystem.destroyEntities(m_destroyEntities);
+		}*/
+		m_sceneSystem.destroyEntities(m_destroyEntities);
 		m_destroyEntities.clear();
 	}
 
@@ -158,13 +142,27 @@ UpdateStatus Engine::update()
 	}
 
 	m_renderSystem.beginFrame3D();
-	for (auto system : m_renderers3D)
+
+	for (int i = 0; i < m_uiSystem.viewportCount(); ++i)
 	{
-		if (system->isEnabled())
+		Rectangle viewport = m_uiSystem.getViewportPixelRectangle(i);
+
+		m_renderSystem.setViewport(viewport);
+
+		if (m_sceneSystem.hasScene(i))
 		{
-			system->render3D();
+			const Scene& scene = m_sceneSystem.getScene(i);
+
+			for (auto system : m_renderers3D)
+			{
+				if (system->isEnabled())
+				{
+					system->render3D(scene);
+				}
+			}
 		}
 	}
+
 	m_renderSystem.endFrame3D();
 
 	m_renderSystem.beginFrame2D();
@@ -195,105 +193,6 @@ UpdateStatus Engine::update()
 void Engine::askForFrameUpdate()
 {
 	//glfwPostEmptyEvent(); //TODO need to update to GLFW 3.1
-}
-
-Id Engine::createAddObjectButton()
-{
-	Id id = m_entitySystem.createEntity();
-	//LOG_F(INFO, "createAddObjectButton id: %i", id);
-	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
-	m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
-
-	m_renderSystem.addMaterialLink(id, m_buttonMaterialID);
-	m_renderSystem.addMeshLink(id, m_meshID);
-
-	return id;
-}
-
-Id Engine::createRandomBunnyEntity()
-{
-	Id id = m_entitySystem.createEntity();
-	LOG_F(INFO, "createRandomBunnyEntity id: %i", id);
-	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
-
-	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
-	m_renderSystem.addMeshLink(id, m_modelID);
-
-	return id;
-}
-
-Id Engine::createRandomCubeEntity()
-{
-	Id id = m_entitySystem.createEntity();
-	LOG_F(INFO, "createRandomCubeEntity id: %i", id);
-	m_transformSystem.addTransform(id, Transform(vec3(getRandom(-10.0f, 10.0f), getRandom(-10.0f, 10.0f), getRandom(4.0f, 50.0f))));
-
-	m_renderSystem.addMaterialLink(id, m_materialID);
-	m_renderSystem.addMeshLink(id, m_meshID);
-
-	return id;
-}
-
-Id Engine::createCube(const vec3& position, const Color& color)
-{
-	Id id = m_entitySystem.createEntity();
-	//LOG_F(INFO, "createCube id: %i", id);
-	// The desired API:
-	m_transformSystem.addTransform(id, Transform(position));
-	//m_geometrySystem.setMesh(entity, m_meshID);
-	//m_materialSystem.setMaterial(entity, color);
-
-	m_assetSystem.addMaterial(id, Material(color));
-	m_renderSystem.addMeshLink(id, m_meshID);
-
-	return id;
-}
-
-Id Engine::createBunny(const vec3& position, const Color& color)
-{
-	Id id = m_entitySystem.createEntity();
-	//LOG_F(INFO, "createBunny id: %i", id);
-	m_transformSystem.addTransform(id, Transform(position));
-
-	m_renderSystem.addMaterialLink(id, m_bunnyMaterialID);
-	m_renderSystem.addMeshLink(id, m_modelID);
-
-	return id;
-}
-
-void Engine::createTestWorld()
-{
-	createAddObjectButton(); // at index 1
-}
-
-void Engine::createTestWorld2()
-{
-	//LOG_F(INFO, "createTestWorld2");
-
-	//createAddObjectButton(); // at index 1
-
-	auto cube0 = createCube(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
-	
-	auto cube1 = createCube(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
-	auto cube2 = createCube(glm::vec3(-0.5f, 0.65f, -1.0f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
-	auto cube3 = createCube(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
-	auto cube4 = createCube(glm::vec3(-3.15f, 0.1f, -5.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
-
-	auto bunny1 = createBunny(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
-
-	/*Hierarchy& hierarchy1 = m_entitySystem.createHierarchy();
-	cube1.addComponent( (int)ComponentType::HIERARCHY, hierarchy1.id() );
-	hierarchy1.addChild(cube2.id());
-
-	Hierarchy& hierarchy2 = m_entitySystem.createHierarchy();
-	cube2.addComponent( (int)ComponentType::HIERARCHY, hierarchy2.id() );
-	hierarchy2.setParent(cube1.id());
-	hierarchy2.addChild(cube3.id());
-
-	Hierarchy& hierarchy3 = m_entitySystem.createHierarchy();
-	cube3.addComponent( (int)ComponentType::HIERARCHY, hierarchy3.id() );
-	hierarchy3.setParent(cube2.id());
-	*/
 }
 
 void Engine::osEventResizeWindow(int width, int height)
@@ -378,6 +277,12 @@ void Engine::osKeyEvent(int key, int scancode, int action, int mods)
 
 void Engine::onMouseEvent(const Input& input)
 {
+	if (!m_sceneSystem.hasActiveScene())
+		return;
+
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& selectionSystem = scene.selectionSystem();
+
 	if (input.eventType == EventType::MouseButtonPress)
 	{
 		if (input.mouse.eventButton == MouseButton::First)
@@ -406,17 +311,17 @@ void Engine::onMouseEvent(const Input& input)
 			if (pickedID == 0)
 			{
 				// Hit the background.
-				m_selectionSystem.clearPixelClicked();
+				selectionSystem.clearPixelClicked();
 			}
 			else if (pickedID == 13)
 			{
-				createRandomCubeEntity();
-				createRandomBunnyEntity();
+				scene.createRandomCubeEntity(m_assetSystem);
+				scene.createRandomBunnyEntity(m_assetSystem);
 			}
 			else
 			{
 				//LOG_F(INFO, "Pixel clicked entity: %i", pickedID);
-				m_selectionSystem.setPixelClicked({ pickedID });
+				selectionSystem.setPixelClicked({ pickedID });
 			}
 		}
 	}
@@ -428,19 +333,6 @@ void Engine::onKeyEvent(const Input& input)
 	{
 		switch (input.key.value)
 		{
-			case KeySym::Escape: m_running = false; break;
-			case KeySym::R: m_renderSystem.clearImageRenderer(); break;
-			case KeySym::G:
-				m_renderSystem.toggleGlRenderer(); // more like debug view currently
-				m_rayTracer.toggleIsEnabled();
-				break;
-			case KeySym::Tab: m_rayTracer.toggleInfoText(); break;
-			case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
-			case KeySym::U: m_rayTracer.toggleFastMode(); break;
-			case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;
-			case KeySym::_1: m_rayTracer.showScene(1); break;
-			case KeySym::_2: m_rayTracer.showScene(2); break;
-			case KeySym::_3: m_rayTracer.showScene(3); break;
 			default:
 			break;
 		}
@@ -449,24 +341,4 @@ void Engine::onKeyEvent(const Input& input)
 
 void Engine::reactToInput(const Input& input)
 {
-	if (input.getKeyState(KeySym::I))
-	{
-		createRandomCubeEntity();
-		createRandomBunnyEntity();
-	}
-
-	if (input.getKeyState(KeySym::O))
-	{
-		LOG_F(INFO, "Destroy biggestId: %i", m_entitySystem.biggestId());
-		destroyEntity((Id)getRandomInt(20, m_entitySystem.biggestId()));
-	}
-
-	if (input.getKeyState(KeySym::P))
-	{
-		defragmentTablesAsync();
-	}
-
-	// TODO use KeySym::Page_Up
-	if (input.getKeyState(KeySym::K)) { m_rayTracer.minusBounces(); }
-	if (input.getKeyState(KeySym::L)) { m_rayTracer.plusBounces(); }
 }

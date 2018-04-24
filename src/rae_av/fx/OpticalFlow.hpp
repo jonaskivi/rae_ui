@@ -58,11 +58,11 @@ public:
 	void replaceFrame0(AVFrame* frameRGB);
 	const cv::Mat& getOutputAtTime(float lerpTime);
 
-	void writeFrameToImage(ImageBuffer& image);
-	void writeFrameToDiskAndImage(String filepath, ImageBuffer& image);
+	void writeFrameToImage(ImageBuffer<uint8_t>& image);
+	void writeFrameToDiskAndImage(String filepath, ImageBuffer<uint8_t>& image);
 
 	// RAE_TODO MOVE TO UTILS OR OTHER CLASS:
-	void copyMatToImage(const cv::Mat& mat, ImageBuffer& image);
+	void copyMatToImage(const cv::Mat& mat, ImageBuffer<uint8_t>& image);
 	void copyAVFrameToMat(AVFrame* frameRGB, cv::Mat& mat);
 	void writeMatToPng(String filepath, const cv::Mat& mat);
 

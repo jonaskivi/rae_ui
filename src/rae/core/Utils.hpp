@@ -36,6 +36,10 @@ T clamp(const T& n, const T& lower, const T& upper)
 	return std::max(lower, std::min(n, upper));
 }
 
+// Pass the enum parameter as cast to int
+// Usage: m_renderMode = (RenderMode) Utils::wrapEnum(((int)m_renderMode) + 1, (int)RenderMode::Count);
+int wrapEnum(int enumValue, int enumCount);
+
 int randomInt(int low, int high);
 float randFloat(float a_min, float a_max);
 bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);

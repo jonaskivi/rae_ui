@@ -249,14 +249,14 @@ void RenderSystem::render3D(const Scene& scene)
 
 	//LOG_F(INFO, "Render.");
 
-	//Scene* scene = m_sceneSystem.activeScene();
 	const Camera& camera = scene.cameraSystem().currentCamera();
 	auto& transformSystem = scene.transformSystem();
 	auto& selectionSystem = scene.selectionSystem();
 	auto& assetLinkSystem = scene.assetLinkSystem();
 
-	if (m_renderMode == RenderMode::MixedRayTraceRasterize ||
-		m_renderMode == RenderMode::RayTrace)
+	if ((m_renderMode == RenderMode::MixedRayTraceRasterize ||
+		m_renderMode == RenderMode::RayTrace) &&
+		scene.isActive())
 	{
 		renderRayTracerOutput();
 	}

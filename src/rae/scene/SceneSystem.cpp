@@ -26,14 +26,12 @@ void AssetLinkSystem::addMaterialLink(Id id, Id linkId)
 Scene::Scene(
 	String name,
 	const Time& time,
-	Input& input/*,
-	AssetSystem& assetSystem*/) :
+	Input& input) :
 		m_name(name),
 		m_entitySystem("SceneSystem"),
 		m_transformSystem(time),
 		m_selectionSystem(m_transformSystem),
-		m_cameraSystem(time, m_entitySystem, m_transformSystem, input)/*,
-		m_assetSystem(assetSystem)*/
+		m_cameraSystem(time, m_entitySystem, m_transformSystem, input)
 {
 }
 
@@ -179,7 +177,7 @@ SceneSystem::SceneSystem(
 Scene& SceneSystem::createScene(String name)
 {
 	LOG_F(INFO, "Creating Scene: %s", name.c_str());
-	m_scenes.emplace_back(name, m_time, m_input/*, m_assetSystem*/);
+	m_scenes.emplace_back(name, m_time, m_input);
 	return m_scenes.back();
 }
 

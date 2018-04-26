@@ -154,7 +154,7 @@ public:
 	void addToLayout(Id layoutId, Id childId);
 
 	Id createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents);
-	void addImageLink(Id id, ImageLink&& imageLink);
+	void addImageLink(Id id, ImageLink imageLink);
 	const ImageLink& getImageLink(Id id);
 
 	// RAE_TODO These functions just repeat each other. Possibly all of these should just be functions of the Table

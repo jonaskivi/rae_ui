@@ -42,11 +42,10 @@ public:
 	Scene(
 		String name,
 		const Time& time,
-		Input& input/*,
-		AssetSystem& assetSystem*/);
+		Input& input);
 
-	String name() { return m_name; }
-	bool isActive() { return m_isActive; }
+	String name() const { return m_name; }
+	bool isActive() const { return m_isActive; }
 
 	UpdateStatus update();
 

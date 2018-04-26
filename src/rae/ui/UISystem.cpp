@@ -716,7 +716,7 @@ Id UISystem::createImageBox(asset::Id imageLink, const vec3& position, const vec
 	return id;
 }
 
-void UISystem::addImageLink(Id id, ImageLink&& entity)
+void UISystem::addImageLink(Id id, ImageLink entity)
 {
 	m_imageLinks.assign(id, std::move(entity));
 }

@@ -38,7 +38,9 @@ solution "pihlaja"
          "src/rae_av/**.hpp",
          "src/rae_av/**.cpp",
          "src/rae_ray/**.hpp",
-         "src/rae_ray/**.cpp"
+         "src/rae_ray/**.cpp",
+         "src/test/**.hpp",
+         "src/test/**.cpp"
       }
       includedirs
       {

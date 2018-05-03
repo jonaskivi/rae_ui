@@ -13,7 +13,7 @@ Test2DCoordinates::Test2DCoordinates(GLFWwindow* glfwWindow, NVGcontext* nanoVG)
 	//m_engine.addSystem(m_engine.sceneSystem());
 
 	//m_engine.addSystem(m_engine.editorSystem());
-	//m_engine.addSystem(m_engine.uiSystem());
+	m_engine.addSystem(m_engine.uiSystem());
 	//m_engine.addSystem(m_engine.rayTracer());
 	//m_engine.addSystem(m_engine.renderSystem());
 
@@ -22,14 +22,12 @@ Test2DCoordinates::Test2DCoordinates(GLFWwindow* glfwWindow, NVGcontext* nanoVG)
 	m_engine.addRenderer3D(m_engine.debugSystem());
 	*/
 
-	/////////m_engine.addRenderer2D(m_engine.uiSystem());
-
-	//
+	m_engine.addRenderer2D(*this);
+	m_engine.addRenderer2D(m_engine.uiSystem());
+	//m_engine.addRenderer2D(m_engine.debugSystem());
 
 	//m_engine.addSystem(m_engine.renderSystem());
 	m_engine.addSystem(*this);
-
-	m_engine.addRenderer2D(*this);
 
 	using std::placeholders::_1;
 	m_input.connectKeyEventHandler(std::bind(&Test2DCoordinates::onKeyEvent, this, _1));
@@ -41,16 +39,46 @@ void Test2DCoordinates::initUI()
 {
 	auto& ui = m_uiSystem;
 
+	Id keyline1 = ui.createKeyline({ OrientationType::Vertical, 0.3f });
+
+	LOG_F(INFO, "Created keyline id: %i", (int)keyline1);
+
 	int sceneIndex = 0;
 	Id viewport = ui.createViewport(sceneIndex,
-		virxels(-400.0f, -200.0f, 0.0f),
-		virxels(800.0f, 500.0f, 0.1f));
+		vec3(93.0f, 46.0f, 0.0f),
+		vec3(186.0f, 116.0f, 1.0f));
 
 	Id panel = ui.createPanel(
-		virxels(-600.0f, 250.0f, 0.0f),
-		virxels(250.0f, 325.0f, 0.1f));
+		vec3(139.0f, 58.0f, 0.0f),
+		vec3(58.0f, 75.0f, 1.0f));
+
+	LOG_F(INFO, "Created panel id: %i", (int)panel);
+
+	//ui.addAnchor(panel, vec2 left something...); Anchors::left which returns a vec2
+	ui.addKeylineLink(panel, keyline1);
 
 	ui.addLayout(panel);
+
+	Id testButton = ui.createButton("Test Button",
+		vec3(100.0f, 81.0f, 0.0f),
+		vec3(22.0f, 6.0f, 0.1f),
+		[&]()
+		{
+		});
+	ui.addToLayout(panel, testButton);
+
+	Id panel2 = ui.createPanel(
+		vec3(239.0f, 158.0f, 0.0f),
+		vec3(58.0f, 75.0f, 1.0f));
+
+	Id testButton2 = ui.createButton("Test Button 2",
+		[&]()
+		{
+		});
+
+	auto& trans = ui.transformSystem();
+
+	trans.addChild(panel2, testButton2);
 }
 
 void Test2DCoordinates::onKeyEvent(const Input& input)
@@ -90,25 +118,83 @@ UpdateStatus Test2DCoordinates::update()
 	return UpdateStatus::Changed;
 }
 
-void Test2DCoordinates::render2D(NVGcontext* nanoVG)
+void Test2DCoordinates::renderGrid(NVGcontext* vg, float width, float height, float pixelStep, vec2 startPos)
 {
+	Color color = Colors::darkGray;
+	Color midColor = Colors::gray;
+	Color accentColor = Colors::lightGray;
+
+	nvgSave(vg);
+
+	//nvgShapeAntiAlias(vg, 0); // Should be fixed in later NanoVG: https://github.com/memononen/nanovg/issues/471
+
+	NVGcolor strokeColor = nvgRGBAf(color.r, color.g, color.b, color.a);
+	NVGcolor midColor2 = nvgRGBAf(midColor.r, midColor.g, midColor.b, midColor.a);
+	NVGcolor accColor = nvgRGBAf(accentColor.r, accentColor.g, accentColor.b, accentColor.a);
+	nvgStrokeColor(vg, strokeColor);
+	nvgStrokeWidth(vg, 1.0f);
+
+	auto drawLines = [&strokeColor, &midColor2, &accColor]
+		(NVGcontext* vg, int lineCount, vec2 pos, vec2 xIter, vec2 yIter)
+	{
+		for (int i = 0; i < lineCount; ++i)
+		{
+			if (i % 100 == 0)
+			{
+				nvgStrokeColor(vg, accColor);
+			}
+			else if (i % 10 == 0)
+			{
+				nvgStrokeColor(vg, midColor2);
+			}
+			else
+			{
+				nvgStrokeColor(vg, strokeColor);
+			}
+
+			nvgBeginPath(vg);
+			nvgMoveTo(vg, pos.x, pos.y);
+			pos += xIter;
+			nvgLineTo(vg, pos.x, pos.y);
+			nvgStroke(vg);
+			pos -= xIter;
+			pos += yIter;
+		}
+	};
+
+	// Horizontal lines
+	drawLines(vg, 1+(int)height/pixelStep, startPos, vec2(width, 0.0f), vec2(0.0f, pixelStep));
+	// Vertical lines
+	drawLines(vg, 1+(int)width/pixelStep, startPos, vec2(0.0f, height), vec2(pixelStep, 0.0f));
+
+	nvgRestore(vg);
+}
+
+void Test2DCoordinates::render2D(NVGcontext* vg)
+{
+	// Pixel grid:
+	//renderGrid(vg, 1920.0f, 1080.0f);
+
+	// cm grid:
+	renderGrid(vg, 1920.0f, 1080.0f, m_engine.screenSystem().mmToPixels(1.0f));
+
 	float cornerRadius = 0.0f;
-	m_uiSystem.renderRectangleNano(nanoVG, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
+	m_uiSystem.renderRectangleNano(vg, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
 		cornerRadius, Color(1.0f, 0.0f, 1.0f, 1.0f));
 
 	const float lineHeight = 45.0f;
 
-	nvgFontFace(nanoVG, "sans");
+	nvgFontFace(vg, "sans");
 
 	float vertPos = 250.0f - 100.0f;
 
-	nvgFontSize(nanoVG, 22.0f);
-	nvgTextAlign(nanoVG, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+	nvgFontSize(vg, 22.0f);
+	nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
 
 	String text = "Rectangle x: 200 y: 100 w: 400 h: 150";
 
-	nvgFillColor(nanoVG, nvgRGBAf(1.0f, 1.0f, 1.0f, 1.0f));
-	nvgText(nanoVG, 220.0f, vertPos, text.c_str(), nullptr);
+	nvgFillColor(vg, nvgRGBAf(1.0f, 1.0f, 1.0f, 1.0f));
+	nvgText(vg, 220.0f, vertPos, text.c_str(), nullptr);
 	vertPos += lineHeight;
 }
 

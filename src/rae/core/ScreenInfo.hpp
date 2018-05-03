@@ -1,6 +1,7 @@
 #pragma once
 
 #include "loguru/loguru.hpp"
+#include "rae/core/Types.hpp"
 
 namespace rae
 {
@@ -10,9 +11,12 @@ class ScreenInfo
 public:
 
 	ScreenInfo();
-	ScreenInfo(int set_screenNumber,
-		int set_screenWidthP, int set_screenHeightP,
-		int set_visibleAreaWidthP = -1, int set_visibleAreaHeightP = -1);
+	ScreenInfo(
+		int screenNumber,
+		int screenWidthP,
+		int screenHeightP,
+		int visibleAreaWidthP = -1,
+		int visibleAreaHeightP = -1);
 	~ScreenInfo(){}
 
 	void printInfo()
@@ -22,129 +26,102 @@ public:
 	}
 
 	// -1 is UNDEFINED, 0 is the first screen
-	public: int screenNumber() { return m_screenNumber; }
-	public: void screenNumber(int set) { m_screenNumber = set; }
-	protected: int m_screenNumber;
+	int screenNumber() { return m_screenNumber; }
+	void setScreenNumber(int set) { m_screenNumber = set; }
 
-	public: void setScreenSizeP(int set_widthP, int set_heightP);
+	void setScreenSizeP(int set_widthP, int set_heightP);
 
-	public: int screenWidthP() { return m_screenWidthP; }
-	public: void screenWidthP(int set);
-	protected: int m_screenWidthP;
-	
-	public: int screenHeightP() { return m_screenHeightP; }
-	public: void screenHeightP(int set);
-	protected: int m_screenHeightP;
-	
+	int screenWidthP() { return m_screenWidthP; }
+	void screenWidthP(int set);
+
+	int screenHeightP() { return m_screenHeightP; }
+	void screenHeightP(int set);
+
 	// Screen width and height in height coordinates.
-	public: float screenWidth() { return 1.0f*screenAspect(); }
+	float screenWidth() { return 1.0f * screenAspect(); }
 	// screenHeight in height coordinates should always be 1.0f.
-	public: float screenHeight() { return 1.0f; }
+	float screenHeight() { return 1.0f; }
 
 	// helpers for half screenWidth and height:
 
-	public: float screenHalfWidth() { return 0.5f*screenAspect(); }
+	float screenHalfWidth() { return 0.5f * screenAspect(); }
 	// screenHalfHeight in height coordinates should always be 0.5f.
-	public: float screenHalfHeight() { return 0.5f; }
+	float screenHalfHeight() { return 0.5f; }
 
-	public: void calculateHalfScreens()
+	void calculateHalfScreens()
 	{
 		screenHalfWidthP( float(screenWidthP() / 2) );
 		screenHalfHeightP( float(screenHeightP() / 2) );
 	}
-	public: float screenHalfWidthP() { return m_screenHalfWidthP; }
-	public: void screenHalfWidthP(float set) { m_screenHalfWidthP = set; }
-	protected: float m_screenHalfWidthP;
-	public: float screenHalfHeightP() { return m_screenHalfHeightP; }
-	public: void screenHalfHeightP(float set) { m_screenHalfHeightP = set; }
-	protected: float m_screenHalfHeightP;
+	float screenHalfWidthP() { return m_screenHalfWidthP; }
+	void screenHalfWidthP(float set) { m_screenHalfWidthP = set; }
 
-	/*public: float screenAspect()
-	{
-		return (float)(m_screenWidthP)/(float)(m_screenHeightP);
-	}*/
-	public: void calculateScreenAspect()
+	float screenHalfHeightP() { return m_screenHalfHeightP; }
+	void screenHalfHeightP(float set) { m_screenHalfHeightP = set; }
+
+	void calculateScreenAspect()
 	{
 		screenAspect( (float)(m_screenWidthP)/(float)(m_screenHeightP) );
 	}
-	public: float screenAspect() { return m_screenAspect; }
-	public: void screenAspect(float set) { m_screenAspect = set; }
-	protected: float m_screenAspect;
+	float screenAspect() { return m_screenAspect; }
+	void screenAspect(float set) { m_screenAspect = set; }
 
-
-	
 	// On Mac OS X these are the visibleFrame, which is the size of the screen that is not
 	// occupied by the top main menu, the dock 
 	// (or if it is hidden the activation area of the dock) etc.
 	// So, if you would create a window with these sizes, it would not overlap the dock or menu.
 
 	// With these, we'll use -1 as UNDEFINED
-	public: int visibleAreaWidthP() { return m_visibleAreaWidthP; }
-	public: void visibleAreaWidthP(int set) { m_visibleAreaWidthP = set; }
-	protected: int m_visibleAreaWidthP;
-	
-	public: int visibleAreaHeightP() { return m_visibleAreaHeightP; }
-	public: void visibleAreaHeightP(int set) { m_visibleAreaHeightP = set; }
-	protected: int m_visibleAreaHeightP;
-	
+	int visibleAreaWidthP() { return m_visibleAreaWidthP; }
+	void visibleAreaWidthP(int set) { m_visibleAreaWidthP = set; }
+
+	int visibleAreaHeightP() { return m_visibleAreaHeightP; }
+	void visibleAreaHeightP(int set) { m_visibleAreaHeightP = set; }
+
 	//
-	
-	public: float pixel() { return m_pixelsToHeight; }
-	public: float pixelsToHeight() { return m_pixelsToHeight; }
-	protected: float m_pixelsToHeight;// = 0.00125f; //1.0f / screenHeightP;
-	
-	public: float heightToPixels() { return m_heightToPixels; }
-	protected: float m_heightToPixels;//800, the same as m_screenHeightP...
-	
+
+	float pixel() { return m_pixelsToHeight; }
+	float pixelsToHeight() { return m_pixelsToHeight; }
+
+	float heightToPixels() { return m_heightToPixels; }
+
 	// Ok. We should make these methods as well:
-	public: float pixelsToHeight(float in_pixels) { return in_pixels * m_pixelsToHeight; }
-	public: float heightToPixels(float in_height) { return in_height * m_heightToPixels; }
+	float pixelsToHeight(float inPixels) { return inPixels * m_pixelsToHeight; }
+	float heightToPixels(float inHeight) { return inHeight * m_heightToPixels; }
 
 	// Convert a percentage (e.g. -0.5 - 0.5f which is the whole screen) to "height units" (in the width direction)
 	// e.g. 0.5 is 50% and it will be half of 1.78 when the aspect ratio is 1:1.78 (16:9)
 	// so the result will be 0.89, which is half of the screen width in "height units".
-	public: float percentToWidth(float in_percent) { return in_percent * screenAspect(); }
+	float percentToWidth(float inPercent) { return inPercent * screenAspect(); }
 
-	//This returns and accepts Height coordinates
+	// This returns and accepts Height coordinates
 	float roundToPixels( float set )
 	{
-		float temppixel = pixel();
-		return ((float)((int)( set / temppixel ))) * temppixel;
+		float tempPixel = pixel();
+		return ((float)((int)( set / tempPixel ))) * tempPixel;
 	}
+
+	// Always try to use PPCM (pixels per cm) or PPMM instead of DPI, even though DPI is more commonly used.
+	// Use SI everywhere.
+	float ppmm() { return m_pixelsPerMM; } // A shorthand
+	float pixelsPerMM() { return m_pixelsPerMM; }
+
+	float ppcm() { return m_pixelsPerMM * 10.0f; } // A shorthand
+	float pixelsPerCM() { return m_pixelsPerMM * 10.0f; }
+	// Calculate the PPCM and DPI using the physical size, if physical size is set (> 0.0f)
+	void calculatePixelsPerMM();
 
 	// The default dpi (dots per inch) is 96.0f.
 	// The user should change it according to screen size.
 	// A smaller dpi will result in smaller widgets and
 	// smaller text.
-	void dpi(float set)
-	{
-		// The range for the Dpi is currently 30-300.
-		// You'll get distortions in both ends. So, the
-		// real usable range is something about 60-180.
-		if( set < 30.0f ) set = 30.0f;
-		else if( set > 300.0f ) set = 300.0f;
+	void setDpi(float set);
+	float dpi() { return m_dpi; }
 
-		m_dpiMul = set/96.0f;
+	float setDpiMul(float set) { return m_dpiMul * set; }
+	float dpiMul() { return m_dpiMul; }
 
-		// Adjust curveSideSize to fall on the desired range.
-		// Dpi over about 190.0 will propably not look so good anymore.
-		// even with these adjustments. Would have to change the texture
-		// size to 128 in that case. TODO.
-		m_curveSideSize = m_dpiMul * 0.3f;
-		if( m_curveSideSize < 0.25f ) m_curveSideSize = 0.25f;
-		else if( m_curveSideSize > 0.48f ) m_curveSideSize = 0.48f;
-
-		m_dpi = set;
-		//m_dpiForSaving = set; // So that it will be saved too.
-	}
-	public: float dpi() { return m_dpi; }
-	protected: float m_dpi;
-
-	public: float dpiMul(float set) { return m_dpiMul * set; }
-	public: float dpiMul() { return m_dpiMul; }
-	protected: float m_dpiMul;
-
-	public: void dpiToDefault() { dpi(96.0f); }
+	void dpiToDefault() { setDpi(96.0f); }
 
 	// A setting for RoundedRectangles:
 	// e.g. in HORIZONTAL this is
@@ -154,8 +131,44 @@ public:
 	// get clipped too soon.
 	// Setting the dpi will change this too.
 	// And it will get adjusted to be in the range 0.25f - 0.48f.
-	public: float curveSideSize() { return m_curveSideSize; }
-	protected: float m_curveSideSize = 0.3f;
+	float curveSideSize() { return m_curveSideSize; }
+
+	void setName(const String& name) { m_name = name; }
+	void setPhysicalSize(float widthMM, float heightMM)
+	{
+		m_widthMM = widthMM;
+		m_heightMM = heightMM;
+	}
+
+	float widthMM() { return m_widthMM; }
+	float heightMM() { return m_heightMM; }
+
+protected:
+	int m_screenNumber = -1;
+
+	int m_screenWidthP = 1280;
+	int m_screenHeightP = 800;
+
+	float m_screenHalfWidthP;
+	float m_screenHalfHeightP;
+
+	float m_screenAspect;
+
+	int m_visibleAreaWidthP = -1;
+	int m_visibleAreaHeightP = -1;
+
+	float m_pixelsToHeight = 0.00125f; // 1.0f / screenHeightP;
+	float m_heightToPixels = 800.0f; // the same as m_screenHeightP...
+
+	float m_pixelsPerMM;
+	float m_dpi;
+	float m_dpiMul;
+
+	float m_curveSideSize = 0.3f;
+
+	String m_name = "Unnamed monitor";
+	float m_widthMM = -1.0f;
+	float m_heightMM = -1.0f;
 };
 
 } // namespace rae

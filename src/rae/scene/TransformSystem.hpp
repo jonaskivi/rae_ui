@@ -15,6 +15,10 @@ namespace rae
 class Time;
 class Input;
 
+struct Changed
+{
+};
+
 class TransformSystem : public ISystem
 {
 public:
@@ -24,10 +28,11 @@ public:
 
 	UpdateStatus update() override;
 
+	//UpdateStatus updateSceneGraph();
+
 	void addTransform(Id id, Transform&& transform);
 	bool hasTransform(Id id) const;
 	const Transform& getTransform(Id id) const;
-	Transform& getTransform(Id id);
 
 	void setPosition(Id id, const vec3& position);
 	const vec3& getPosition(Id id);
@@ -45,10 +50,20 @@ public:
 	Hierarchy& getHierarchy(Id id);
 
 private:
+
+	Transform& getTransformPrivate(Id id);
+
 	const Time& m_time;
 
-	Table<Transform> m_transforms;
-	Table<Hierarchy> m_hierarchies;
+	Table<Transform>	m_localTransforms;
+	Table<Changed>		m_localTransformChanged;
+
+	Table<Transform>	m_transforms;
+	Table<Changed>		m_transformChanged;
+
+	Table<Hierarchy>	m_hierarchies;
+	Table<Changed>		m_parentChanged;
+	Table<Changed>		m_childrenChanged;
 };
 
 }

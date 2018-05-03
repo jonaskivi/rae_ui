@@ -25,10 +25,6 @@ class ScreenSystem;
 class AssetSystem;
 class DebugSystem;
 
-vec3 virxels(float virtX, float virtY, float virtZ);
-vec3 virxels(const vec3& virtualPixels);
-float virxels(float virtualPixels);
-
 struct Rectangle
 {
 	Rectangle(){}
@@ -77,6 +73,37 @@ struct Text
 	operator String() const { return text; }
 
 	String text;
+};
+
+enum class OrientationType
+{
+	Horizontal,
+	Vertical
+};
+
+struct Keyline
+{
+	Keyline(){}
+
+	Keyline(OrientationType orientationType, float relativePosition) :
+		orientationType(orientationType),
+		relativePosition(relativePosition)
+	{
+	}
+
+	OrientationType orientationType = OrientationType::Vertical;
+	float relativePosition = 0.5f;
+};
+
+struct KeylineLink
+{
+	KeylineLink(){}
+	KeylineLink(Id keylineId) :
+		keylineId(keylineId)
+	{
+	}
+
+	Id keylineId;
 };
 
 struct Panel
@@ -130,12 +157,15 @@ public:
 
 	String name() override { return "UISystem"; }
 
+	TransformSystem&	transformSystem()	{ return m_transformSystem; }
+
 	UpdateStatus update() override;
 	virtual void render2D(NVGcontext* nanoVG) override;
 
 	void doLayout();
 	void hover();
 
+	Id createButton(const String& text, std::function<void()> handler);
 	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
 	Id createTextBox(const String& text, const vec3& position, const vec3& extents);
@@ -156,6 +186,12 @@ public:
 	Id createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents);
 	void addImageLink(Id id, ImageLink imageLink);
 	const ImageLink& getImageLink(Id id);
+
+	Id createKeyline(Keyline&& element);
+	void addKeyline(Id id, Keyline&& element);
+	const Keyline& getKeyline(Id id);
+	void addKeylineLink(Id childId, Id keylineId); //TODO anchor
+	const KeylineLink& getKeylineLink(Id id);
 
 	// RAE_TODO These functions just repeat each other. Possibly all of these should just be functions of the Table
 	// and possibly then rename the Table to be a Component class.
@@ -194,6 +230,8 @@ public:
 	Rectangle convertToRectangle(const Transform& transform, const Box& box) const;
 
 	// NanoVG takes input in pixels, and so do these helper functions:
+	void renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
+			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderBorderNano(NVGcontext* vg, const Rectangle& rectangle,
 			float cornerRadius,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
@@ -235,6 +273,9 @@ private:
 	Table<Viewport>		m_viewports;
 	Table<Panel>		m_panels;
 	Array<Color>		m_panelThemeColors;
+
+	Table<Keyline>		m_keylines;
+	Table<KeylineLink>	m_keylineLinks;
 
 	Table<Layout>		m_layouts;
 

@@ -30,7 +30,7 @@ class Engine
 {
 public:
 	// If nanoVG is nullptr, it will be created. But you can supply it from the outside too.
-	Engine(GLFWwindow* set_window, NVGcontext* nanoVG = nullptr);
+	Engine(GLFWwindow* glfwWindow, NVGcontext* nanoVG = nullptr);
 
 	// Restarts the engine if it was stopped with quit().
 	void start();
@@ -50,6 +50,7 @@ public:
 	void addRenderer2D(ISystem& system);
 
 	Input& input() { return m_input; }
+	ScreenSystem& screenSystem() { return m_screenSystem; }
 	DebugSystem& debugSystem() { return m_debugSystem; }
 	AssetSystem& assetSystem() { return m_assetSystem; }
 	SceneSystem& sceneSystem() { return m_sceneSystem; }
@@ -72,8 +73,6 @@ public:
 	void reactToInput(const Input& input);
 
 protected:
-
-	GLFWwindow* m_window;
 
 	bool m_running = true;
 

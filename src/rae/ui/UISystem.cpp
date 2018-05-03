@@ -16,26 +16,7 @@ using namespace rae;
 
 static const int ReserveBoxes = 1000;
 
-const float VirtualPixelsBase = 1080.0f;
-const float VirtualPixelsFactor = 1.0f / VirtualPixelsBase;
-
 rae::UISystem* rae::g_ui = nullptr;
-
-vec3 rae::virxels(float virtX, float virtY, float virtZ)
-{
-	//static float pixelsToHeight = 1.0f / VirtualPixelsBase;
-	return vec3(virtX, virtY, virtZ) * VirtualPixelsFactor;
-}
-
-vec3 rae::virxels(const vec3& virtualPixels)
-{
-	return virtualPixels * VirtualPixelsFactor;
-}
-
-float rae::virxels(float virtualPixels)
-{
-	return virtualPixels * VirtualPixelsFactor;
-}
 
 UISystem::UISystem(
 	const Time& time,
@@ -60,13 +41,16 @@ UISystem::UISystem(
 	addTable(m_hovers);
 	addTable(m_viewports);
 	addTable(m_panels);
+	addTable(m_keylines);
+	addTable(m_keylineLinks);
 	addTable(m_layouts);
+	addTable(m_imageLinks);
 
 	createDefaultTheme();
 
 	m_infoButtonId = createButton("Info",
-		virxels(450.0f, -400.0f, 0.0f),
-		virxels(300.0f, 25.0f, 0.1f),
+		vec3(350.0f, 93.0f, 0.0f),
+		vec3(69.0f, 6.0f, 1.0f),
 		[](){});
 
 	//LOG_F("UISystem creating Info button: %i", m_infoButtonId);
@@ -101,6 +85,8 @@ UpdateStatus UISystem::update()
 {
 	static int frameCount = 0;
 
+	m_transformSystem.update(); // RAE_TODO return value.
+
 	doLayout();
 
 	hover();
@@ -110,11 +96,20 @@ UpdateStatus UISystem::update()
 	{
 		auto& button = m_buttons.get(m_infoButtonId);
 		const auto& transform = m_transformSystem.getTransform(m_infoButtonId);
-		button.setText("Mouse: xP: " + Utils::toString(m_input.mouse.xP)
+		button.setText(
+			"Mouse:"
+			" raw x: " + Utils::toString(m_input.mouse.xP / m_screenSystem.window().screenPixelRatio())
+			+ " raw y: " + Utils::toString(m_input.mouse.yP / m_screenSystem.window().screenPixelRatio())
+
+			+ " xMM: " + Utils::toString(m_input.mouse.xMM)
+			+ " yMM: " + Utils::toString(m_input.mouse.yMM)
+
+			+ " xP: " + Utils::toString(m_input.mouse.xP)
 			+ " yP: " + Utils::toString(m_input.mouse.yP)
+
 			+ " x: " + Utils::toString(m_input.mouse.x)
 			+ " y: " + Utils::toString(m_input.mouse.y)
-			+ " frame: " + Utils::toString(frameCount)
+			//+ " frame: " + Utils::toString(frameCount)
 			+ "\nx: " + Utils::toString(transform.position.x)
 			+ "y: " + Utils::toString(transform.position.y)
 			+ "z: " + Utils::toString(transform.position.z)
@@ -149,18 +144,31 @@ void UISystem::doLayout()
 		const vec3& parentPos = m_transformSystem.getPosition(layoutId);
 		const auto& parentBox = m_boxes.get(layoutId);
 
-		float margin = virxels(24.0f);
-		float someValue = virxels(30.0f);
+		// RAE_TODO Some kind of margin: float marginMM = 6.0f;
 		float someIter = parentPos.y + parentBox.min().y;
 		for (auto&& childId : layout.children)
 		{
 			vec3 pos = m_transformSystem.getPosition(childId);
 			const auto& box = m_boxes.get(childId);
 
-			pos.x = (parentPos.x + parentBox.min().x) - box.min().x + margin;
-			pos.y = someIter - box.min().y + margin;
+			pos.x = (parentPos.x + parentBox.min().x) - box.min().x;// + marginMM;
+			pos.y = someIter - box.min().y;// + marginMM;
 			m_transformSystem.setPosition(childId, pos);
-			someIter = someIter + someValue;
+			someIter = someIter + box.dimensions().y;
+		}
+	});
+
+	query<KeylineLink>(m_keylineLinks, [&](Id id, const KeylineLink& keylineLink)
+	{
+		if (m_keylines.check(keylineLink.keylineId))
+		{
+			auto& keyline = getKeyline(keylineLink.keylineId);
+			vec3 origPos = m_transformSystem.getPosition(id);
+
+			float posX = m_screenSystem.window(0).width() * keyline.relativePosition;
+
+			float posXmm = m_screenSystem.pixelsToMM(posX);
+			m_transformSystem.setPosition(id, vec3(posXmm, origPos.y, origPos.z));
 		}
 	});
 }
@@ -177,7 +185,7 @@ void UISystem::hover()
 			Box tbox = m_boxes.get(id);
 			tbox.transform(transform);
 
-			if (tbox.hit(vec2(m_input.mouse.x, m_input.mouse.y)))
+			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			{
 				setHovered(id, true);
 
@@ -224,17 +232,49 @@ void UISystem::render2D(NVGcontext* nanoVG)
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
 	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
 
-	int i = 0;
-	for (Id id : m_entitySystem.entities())
+	query<Viewport>(m_viewports, [&](Id id, const Viewport& viewport)
 	{
-		if (m_buttons.check(id) and
-			m_transformSystem.hasTransform(id) and
+		if (m_transformSystem.hasTransform(id) and
 			m_boxes.check(id))
 		{
-			i++;
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = getBox(id);
-			const Button& button = getButton(id);
+			bool hasColor = m_colors.check(id);
+
+			bool hovered = m_hovers.check(id);
+
+			renderBorder(transform, box,
+				hovered ? panelHoverColor :
+				hasColor ? getColor(id) :
+				panelBackgroundColor);
+		}
+	});
+
+	query<Panel>(m_panels, [&](Id id, const Panel& panel)
+	{
+		if (m_transformSystem.hasTransform(id) and
+			m_boxes.check(id))
+		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
+			bool hasColor = m_colors.check(id);
+
+			bool hovered = m_hovers.check(id);
+
+			renderRectangle(transform, box,
+					hovered ? panelHoverColor :
+					hasColor ? getColor(id) :
+					panelBackgroundColor);
+		}
+	});
+
+	query<Button>(m_buttons, [&](Id id, const Button& button)
+	{
+		if (m_transformSystem.hasTransform(id) and
+			m_boxes.check(id))
+		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = getBox(id);
 			bool hasColor = m_colors.check(id);
 			bool active = isActive(id);
 			bool hovered = m_hovers.check(id);
@@ -250,74 +290,29 @@ void UISystem::render2D(NVGcontext* nanoVG)
 					active ? buttonActiveTextColor :
 					buttonTextColor));
 		}
-		else if (m_panels.check(id) and
-				 m_transformSystem.hasTransform(id) and
-				 m_boxes.check(id))
-		{
-			i++;
-			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
-			bool hasColor = m_colors.check(id);
+	});
 
-			bool hovered = m_hovers.check(id);
-
-			renderRectangle(transform, box,
-					hovered ? panelHoverColor :
-					hasColor ? getColor(id) :
-					panelBackgroundColor);
-		}
-		else if (m_viewports.check(id) and
-			m_transformSystem.hasTransform(id) and
+	query<ImageLink>(m_imageLinks, [&](Id id, const ImageLink& imageLink)
+	{
+		if (m_transformSystem.hasTransform(id) and
 			m_boxes.check(id))
 		{
-			i++;
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = getBox(id);
-			bool hasColor = m_colors.check(id);
-
-			bool hovered = m_hovers.check(id);
-
-			renderBorder(transform, box,
-				hovered ? panelHoverColor :
-				hasColor ? getColor(id) :
-				panelBackgroundColor);
-		}
-		else if (m_imageLinks.check(id) and
-			m_transformSystem.hasTransform(id) and
-			m_boxes.check(id))
-		{
-			i++;
-			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
-			ImageLink imageLink = getImageLink(id);
 
 			renderImage(imageLink, transform, box);
 		}
-		// TODO this last case is strange, it renders buttons when it only sees boxes...
-		/*
-		else if (m_transformSystem.hasTransform(id) and
-				 m_boxes.check(id))
-		{
-			i++;
-			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
-			bool hasColor = m_colors.check(id);
-			bool active = isActive(id);
-			bool hovered = m_hovers.check(id);
+	});
 
-			renderButton(getText(id), transform, box,
-				(hovered and active ? buttonActiveHoverColor :
-					hovered ? buttonHoverColor :
-					active ? buttonActiveColor :
-					hasColor ? getColor(id) :
-					buttonBackgroundColor),
-				(hovered and active ? buttonActiveHoverTextColor :
-					hovered ? buttonHoverTextColor :
-					active ? buttonActiveTextColor :
-					buttonTextColor));
-		}
-		*/
-	}
+	query<Keyline>(m_keylines, [&](Id id, const Keyline& keyline)
+	{
+		float fromX = m_screenSystem.window(0).width() * keyline.relativePosition;
+		float toX = fromX;
+		float fromY = 0.0f;
+		float toY = 800.0f;
+
+		renderLineNano(m_nanoVG, vec2(fromX, fromY), vec2(toX, toY), Colors::orange);
+	});
 }
 
 Rectangle UISystem::convertToRectangle(const Transform& transform, const Box& box) const
@@ -329,10 +324,10 @@ Rectangle UISystem::convertToRectangle(const Transform& transform, const Box& bo
 	const auto& window = m_screenSystem.window();
 
 	return Rectangle(
-		m_screenSystem.heightToAltPixels(transform.position.x - halfWidth) + (window.width() * 0.5f),
-		m_screenSystem.heightToAltPixels(transform.position.y - halfHeight) + (window.height() * 0.5f),
-		m_screenSystem.heightToAltPixels(dimensions.x),
-		m_screenSystem.heightToAltPixels(dimensions.y));
+		m_screenSystem.mmToPixels(transform.position.x - halfWidth),
+		m_screenSystem.mmToPixels(transform.position.y - halfHeight),
+		m_screenSystem.mmToPixels(dimensions.x),
+		m_screenSystem.mmToPixels(dimensions.y));
 }
 
 void UISystem::renderRectangle(const Transform& transform, const Box& box, const Color& color)
@@ -348,7 +343,7 @@ void UISystem::renderButton(const String& text, const Transform& transform, cons
 {
 	renderButtonNano(m_nanoVG, text,
 		convertToRectangle(transform, box),
-		m_screenSystem.heightToAltPixels(virxels(2.0f)), // cornerRadius
+		m_screenSystem.mmToPixels(0.46f), // cornerRadius
 		color,
 		textColor);
 }
@@ -368,6 +363,24 @@ void UISystem::renderBorder(const Transform& transform, const Box& box, const Co
 		convertToRectangle(transform, box),
 		0.0f, // cornerRadius
 		color);
+}
+
+void UISystem::renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
+			const Color& color)
+{
+	nvgSave(vg);
+
+	NVGcolor strokeColor = nvgRGBAf(color.r, color.g, color.b, color.a);
+
+	nvgBeginPath(vg);
+	nvgStrokeColor(vg, strokeColor);
+	nvgStrokeWidth(vg, 1.0f);
+
+	nvgMoveTo(vg, from.x, from.y);
+	nvgLineTo(vg, to.x, to.y);
+	nvgStroke(vg);
+
+	nvgRestore(vg);
 }
 
 void UISystem::renderBorderNano(NVGcontext* vg, const Rectangle& rectangle,
@@ -560,14 +573,24 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, const Rectan
 	// Text shadow
 	nvgFontBlur(vg,2);
 	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f));
-	nvgText(vg, rectangle.x + rectangle.width / 2, rectangle.y + 16 + 1, text.c_str(), nullptr);
+
+	const float shadowOffset = 1.0f;
+	const float rectangleHalfWidth = rectangle.width * 0.5f;
+	const float rectangleHalfHeight = rectangle.height * 0.5f;
+
+	nvgText(vg, rectangle.x + rectangleHalfWidth, rectangle.y + rectangleHalfHeight + shadowOffset, text.c_str(), nullptr);
 
 	// Actual text
 	nvgFontBlur(vg,0);
 	nvgFillColor(vg, nvgRGBAf(textColor.r, textColor.g, textColor.b, textColor.a));
-	nvgText(vg, rectangle.x + rectangle.width / 2, rectangle.y + 16, text.c_str(), nullptr);
+	nvgText(vg, rectangle.x + rectangleHalfWidth, rectangle.y + rectangleHalfHeight, text.c_str(), nullptr);
 
 	nvgRestore(vg);
+}
+
+Id UISystem::createButton(const String& text, std::function<void()> handler)
+{
+	return createButton(text, vec3(), vec3(32.0f, 16.0f, 1.0f), handler);
 }
 
 Id UISystem::createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler)
@@ -724,6 +747,33 @@ void UISystem::addImageLink(Id id, ImageLink entity)
 const ImageLink& UISystem::getImageLink(Id id)
 {
 	return m_imageLinks.get(id);
+}
+
+Id UISystem::createKeyline(Keyline&& element)
+{
+	Id id = m_entitySystem.createEntity();
+	addKeyline(id, std::move(element));
+	return id;
+}
+
+void UISystem::addKeyline(Id id, Keyline&& element)
+{
+	m_keylines.assign(id, std::move(element));
+}
+
+const Keyline& UISystem::getKeyline(Id id)
+{
+	return m_keylines.get(id);
+}
+
+void UISystem::addKeylineLink(Id childId, Id keylineId) //TODO anchor
+{
+	m_keylineLinks.assign(childId, KeylineLink(keylineId));
+}
+
+const KeylineLink& UISystem::getKeylineLink(Id id)
+{
+	return m_keylineLinks.get(id);
 }
 
 void UISystem::addBox(Id id, Box&& box)

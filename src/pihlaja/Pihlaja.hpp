@@ -32,7 +32,7 @@ class Pihlaja : public rae::ISystem
 public:
 	Pihlaja(GLFWwindow* glfwWindow, NVGcontext* nanoVG = nullptr);
 
-	String name() { return "PihlajaSystem"; }
+	String name() override { return "PihlajaSystem"; }
 
 	Engine* getEngine() { return &m_engine; }
 

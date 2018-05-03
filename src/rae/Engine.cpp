@@ -15,15 +15,15 @@ using namespace rae;
 // Engine just handles all the systems and their updates.
 // ViewportSystem handles 3D picking etc... ?
 
-Engine::Engine(GLFWwindow* window, NVGcontext* nanoVG) :
-	m_window(window),
+Engine::Engine(GLFWwindow* glfwWindow, NVGcontext* nanoVG) :
+	m_screenSystem(glfwWindow),
 	m_input(m_screenSystem),
 	m_debugSystem(),
 	m_assetSystem(m_time),
 	m_sceneSystem(m_time, m_input/*, m_assetSystem*/),
 	m_uiSystem(m_time, m_input, m_screenSystem, m_assetSystem, m_debugSystem),
 	m_rayTracer(m_time, m_assetSystem, m_sceneSystem),
-	m_renderSystem(nanoVG, m_time, m_window, m_input, m_screenSystem,
+	m_renderSystem(nanoVG, m_time, glfwWindow, m_input, m_screenSystem,
 		m_assetSystem, m_uiSystem, m_sceneSystem,
 		m_rayTracer),
 	m_editorSystem(m_sceneSystem, m_renderSystem, m_assetSystem, m_input/*, m_uiSystem*/)
@@ -78,14 +78,16 @@ void Engine::run()
 		// It will take up too much CPU all the time, even when nothing is happening.
 		glfwWaitEvents(); //use this instead. It will sleep when no events are being received.
 
+		GLFWwindow* window = m_screenSystem.window(0).windowHandle();
+
 		while (m_running == true && update() == UpdateStatus::Changed)
 		{
 			// Swap buffers
-			glfwSwapBuffers(m_window);
+			glfwSwapBuffers(window);
 
 			glfwPollEvents();
 
-			if (glfwWindowShouldClose(m_window) != 0)
+			if (glfwWindowShouldClose(window) != 0)
 			{
 				m_running = false;
 			}

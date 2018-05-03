@@ -31,6 +31,13 @@ public:
 	UpdateStatus update() override;
 	void render2D(NVGcontext* nanoVG) override;
 
+	void renderGrid(
+		NVGcontext* nanoVG,
+		float width = 1920.0f,
+		float height = 1080.0f,
+		float pixelStep = 10.0f,
+		vec2 startPos = vec2(0.0f, 0.0f));
+
 	void destroyEntities(const Array<Id>& entities) override {}
 	void defragmentTables() override {}
 

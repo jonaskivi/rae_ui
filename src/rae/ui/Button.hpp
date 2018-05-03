@@ -25,13 +25,13 @@ protected:
 class Button
 {
 public:
-	Button()
-	: m_text("")
+	Button() :
+		m_text("")
 	{
 	}
 
-	Button(String text)
-	: m_text(text)
+	Button(String text) :
+		m_text(text)
 	{
 	}
 

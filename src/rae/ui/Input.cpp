@@ -161,14 +161,23 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	//assert(setButton >= 0); // "Mouse button is smaller than 0. Platform not supported yet."
 
 	// Convert from topleft (0.0f -> width) to centered pixel coordinates.
+	/* OLD:
 	const auto& window = m_screenSystem.window();
 	float xPixels = rawXPixels - (window.pixelWidth() * 0.5f);
 	float yPixels = rawYPixels - (window.pixelHeight() * 0.5f);
+	*/
+
+	float xPixels = rawXPixels;
+	float yPixels = rawYPixels;
+
+	const auto& window = m_screenSystem.window();
+	float xCenterPixels = rawXPixels - (window.pixelWidth() * 0.5f);
+	float yCenterPixels = rawYPixels - (window.pixelHeight() * 0.5f);
 
 	// TODO: possibly split coordinate conversion functions to m_windowSystem, which knows
 	// the conversion ratios per window.
-	float xHeight = m_screenSystem.pixelsToHeight(xPixels);
-	float yHeight = m_screenSystem.pixelsToHeight(yPixels);
+	float xHeight = m_screenSystem.pixelsToHeight(xCenterPixels);
+	float yHeight = m_screenSystem.pixelsToHeight(yCenterPixels);
 
 	//LOG_F(INFO, "Input::osMouseEvent: xPixels: %f yPixels: %f xHeight: %f yHeight: %f", xPixels, yPixels,
 	//	xHeight, yHeight);
@@ -238,14 +247,14 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	//{
 		//LOG_F(INFO, "Input NO PRESS.");
 	//}
-	
+
 	mouse.xRelP = xPixels - mouse.xP;
 	mouse.yRelP = yPixels - mouse.yP;
 	mouse.xRel = xHeight - mouse.x;
 	mouse.yRel = yHeight - mouse.y;
-	
+
 	//
-	
+
 	mouse.xP = xPixels;
 	mouse.yP = yPixels;
 	mouse.xLocalP = xPixels;
@@ -256,8 +265,9 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	mouse.xLocal = xHeight;
 	mouse.yLocal = yHeight;
 
-	// These coordinate systems are bloody stupid. xPixels should be from 0 to width, instead of being centered.
-	// x could then be centered (like it is already).
+	mouse.xMM = m_screenSystem.pixelsToMM(rawXPixels);
+	mouse.yMM = m_screenSystem.pixelsToMM(rawYPixels);
+
 	mouse.xNormalizedWindow = m_screenSystem.xPixelsToNormalizedWindow(rawXPixels);
 	mouse.yNormalizedWindow = m_screenSystem.yPixelsToNormalizedWindow(rawYPixels);
 

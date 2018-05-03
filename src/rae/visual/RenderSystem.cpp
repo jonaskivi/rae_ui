@@ -378,17 +378,6 @@ void RenderSystem::renderPicking()
 	Rectangle viewport = m_uiSystem.getViewportPixelRectangle(0);
 
 	setViewport(viewport);
-	/*JONDE REMOVE
-	if (viewport.width == 0.0f)
-	{
-		const auto& window = m_screenSystem.window();
-		glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
-	}
-	else
-	{
-		glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
-	}
-	*/
 
 	// Clear the screen
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

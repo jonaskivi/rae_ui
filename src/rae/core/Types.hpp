@@ -89,9 +89,12 @@ public:
 	static Color yellow;
 	static Color magenta;
 	static Color cyan;
+	static Color orange;
 	static Color black;
 	static Color white;
 	static Color gray;
+	static Color lightGray;
+	static Color darkGray;
 };
 
 } // end namespace rae

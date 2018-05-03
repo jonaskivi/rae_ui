@@ -275,6 +275,180 @@ static void parallel_for(int start, int end, Callable func)
 	});
 }
 
+2018.04.27
+
+I think that Y-up is a mistake in 3D. Because of mathematics, architecture, level design etc.
+Adopted Z-up, X-forward, Y-left (aka Z-up right handed) coordinate system.
+Other major projects using it: 3DS Max, Blender, Source Engine, Cry Engine.
+Most games are heavy in level design, so the XY-plane is best to be the ground plane (in 3D).
+If the game is a 2D or 2.5D game then it kind of makes sense to use Y-up.
+
+Also I think there is no point in trying to match the 3D and the 2D (UI) coordinate systems.
+3D is a space, so it feels more natural to have a center point at 0,0,0 in the middle of the screen and Z-up (or Y-up).
+For 2D the natural space might be more that of an image. The screen is an image not a space. Maybe.
+So for an image, it makes sense to have top-left origin, instead of center. Then your width matches your max X-value etc.
+and you don't have to deal with half extents etc.
+
+But I'm kind of on the edge with this one, as 2D origin in the center feels attractive too. Then I'd probably use Y-up
+instead of Y-down. Hmm. Difficult decisions.
+Center origin makes centering easy.
+
+But for default, I'd say top-left origin Y-up is best for UI thinking. UI consists mostly of images and text, and their
+coordinates are like that.
+
+For centering we could use anchors.
+
+So, maybe an anchor component? And if it is missing, we presume top-left?
+
+enum class AnchorType
+{
+	TopLeft,
+	TopRight,
+	BottomLeft,
+	BottomRight,
+	Center,
+};
+
+Do we need more precise anchors? Like I think Unity uses min max based anchors. But in Unity they are really strange, in
+the way they change the basic coordinate unit behaviour. Anchor 0.5, 0.5 gives you Pos and Widht/Height controls. Any
+other anchor min/max (like min 0.2 max 0.7) gives you left and right controls in relation to the anchor, which is in
+relation to the parent. So X anchor min 0.0 max 0.0, Y anchor min 1.0 max 1.0 gives you top-left anchor, because Unity UI
+is Y-up.
+
+So let's stick to a simple anchor for now. Then a simple Rectangle class instead of the Position and Box (with 3D extents)
+mess that we are now. Hmm. 3D UI still sounds interesting. Rectangle with Z-value?
+
+class Rectangle
+{
+	float x;
+	float y;
+	float width;
+	float height;
+	float depth; // z-depth...
+};
+
+Or a depth component? Hmm. Sounds too small and creates too many ifs. And what about z-position.
+
+Let's rewrite that with vec2's, because I sometimes think, that things should be grouped logically.
+
+class Rectangle
+{
+	vec3 position;
+	vec3 size;
+};
+
+Hah, used vec3 instead. Now there's a class that looks logical. 
+
+class Box
+{
+	vec3 position;
+	vec3 extents;
+};
+
+Hmm. Could we use both Boxes and Rectangles and have the origin different...? Probably not.
+
+What about absolute coords versus relative coords? Relative would be 0.0 -> 1.0 of parent width/height. And absolute
+in our preferred coordinates (probably mm, yes millimetres, which are then converted to pixels).
+
+Position and size in relative? Pivot in relative? Hmm. Probably need to offer both variants, but can you mix them?
+Like X in absolute, and Y in relative, and mix position Y and size Y etc.
+
+class RectangleRelative
+{
+	vec3 position; // from 0 to 1
+	vec3 size; // from 0 to 1
+};
+
+or just Coordinates component:
+
+enum class CoordinatesType
+{
+	Absolute,
+	Relative
+}
+
+I forecast ifs in either case. NOPE let's not do this, if we don't need to. Use absolute for Rects, and relative for
+layouts.
+
+------------------------------------------------------------------------------------------------------------------------
+
+Pivots are an interesting subject. Especially with rotation.
+
+So an anchor enum, and a free pivot? The pivot only affects rotation?
+
+class Pivot
+{
+	vec2 position;
+};
+
+What about terminology like Offset? Hmm. Is it the opposite of pivot? Don't like it.
+
+Without pivots, we must define the position to be either
+center (with half-extents defining the size) or
+top left (with width height defining the size).
+Anchor feels like it's exactly the same concept as Pivot.
+Except in this case we would have Anchor to be an enum with fixed positions, and the Pivot would have free positioning.
+Hmm...
+
+Maybe it would be good to have only one of those Anchors or Pivots, and just choose if we want fixed Anchors/Pivots or
+free Anchors/Pivots?
+
+I presume we would want free Pivots, because otherwise we restrict that certain kind of UI elements are not possible.
+
+So, scrap the Anchor thing, and use Pivots instead.
+
+What about: should the Pivot be a separate optional component, or should the Box, Rectangle or Cube have it as a member?
+
+----------> Usually pivots are done with the scene graph. So a pivot is just a parent. You would then lose the parent widget
+-> child widget relationship, because you get this middle pivot in the hierarchy then...
+
+
+------------------------------------------------------------------------------------------------------------------------
+
+What's even more interesting is Layout objects.
+Especially Layout Lines.
+
+You can connect objects to multiple layout lines.
+
+- Layout line controlling the center of an object.
+- LL controlling left side of rectangle, another LL controlling right side. Can't have third for middle.
+It's either the center, one side or two sides. For X and Y separately.
+
+- Then there's also relative vs absolute offsets with LL. How about no offsets? If you need to offset, move the line,
+or make another line.
+- Margins can be done with LL's.
+- Layout Points. You get X and Y easily. Basically the cross of two lines.
+- Layout Rectangles (4 lines)
+
+------------------------------------------------------------------------------------------------------------------------
+
+Ok. Rectangle position must always be in absolute local coords.
+But Layout objects could be in relative coords. Do they need to be optionally in fixed coords?
+
+Anchor = LayoutPoint
+LayoutLine, horizontal, vertical, free?
+LayoutRectangle
+LayoutGrid, more versatile than rectangle, vertical box or horizontal box. Can do all three.
+
+x LayoutPoint
+
+----------------------------- LayoutLine, horizontal
+
+------------------
+|       |        |
+------------------
+|       |        |
+------------------ LayoutGrid, 2 columns, 2 rows
+
+---------
+|       |
+--------- also LayoutGrid, with 1 column and 1 row
+
+Parenting is one kind of layout!
+
+
+
+
 
 
 

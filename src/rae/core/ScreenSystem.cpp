@@ -25,17 +25,19 @@ void Window::osEventResizeWindowPixels(int width, int height)
 
 void ScreenSystem::osEventResizeWindow(int width, int height)
 {
-	m_window.osEventResizeWindow(width, height);
+	m_windows[0].osEventResizeWindow(width, height);
 }
 
 void ScreenSystem::osEventResizeWindowPixels(int width, int height)
 {
-	m_window.osEventResizeWindowPixels(width, height);
+	m_windows[0].osEventResizeWindowPixels(width, height);
 }
 
-ScreenSystem::ScreenSystem()
+ScreenSystem::ScreenSystem(GLFWwindow* window)
 {
 	updateScreenInfo();
+
+	m_windows.emplace_back(window);
 }
 
 #ifdef version_cocoa
@@ -107,10 +109,27 @@ void ScreenSystem::updateScreenInfo()
 
 		// GLFW won't tell us the size of the visible area, which doesn't include the menubars etc.
 		screens.emplace_back(i, videoMode->width, videoMode->height, videoMode->width, videoMode->height);
-		
+
+		auto& screen = screens.back();
+
+		const char* name = glfwGetMonitorName(monitors[i]);
+		if (name != nullptr)
+			screen.setName(name);
+
+		int widthMM, heightMM;
+		glfwGetMonitorPhysicalSize(monitors[i], &widthMM, &heightMM);
+		screen.setPhysicalSize((float)widthMM, (float)heightMM);
+		screen.calculatePixelsPerMM();
+
 		#ifdef DebugScreenInfo
-			LOG_F(INFO, "Screen [%i]: %ix%i : no visibleArea info available with GLFW.",
-				i, videoMode->width, videoMode->height);
+			LOG_F(INFO, "Screen [%i]: %ix%i : Physical size: [%f mm x %f mm] pixels per cm (PPCM): [%f] DPI: [%f] : no visibleArea info available with GLFW.",
+				i,
+				videoMode->width,
+				videoMode->height,
+				screen.widthMM(),
+				screen.heightMM(),
+				screen.pixelsPerCM(),
+				screen.dpi());
 		#endif
 		
 	}
@@ -125,6 +144,16 @@ void ScreenSystem::updateScreenInfo()
 int ScreenSystem::numberOfScreens()
 {
 	return int(screens.size());
+}
+
+float ScreenSystem::ppmm(int screenIndex)
+{
+	return screens[screenIndex].ppmm();
+}
+
+float ScreenSystem::pixelsPerMM(int screenIndex)
+{
+	return screens[screenIndex].pixelsPerMM();
 }
 
 int ScreenSystem::screenWidthP(int set_screen)
@@ -209,7 +238,7 @@ float ScreenSystem::roundToPixels( float set, int set_screen)
 // A smaller dpi will result in smaller widgets and smaller text.
 void ScreenSystem::dpi(float set, int set_screen)
 {
-	screens[set_screen].dpi(set);
+	screens[set_screen].setDpi(set);
 }
 float ScreenSystem::dpi(int set_screen)
 {
@@ -217,7 +246,7 @@ float ScreenSystem::dpi(int set_screen)
 }
 float ScreenSystem::dpiMul(float set, int set_screen)
 {
-	return screens[set_screen].dpiMul(set);
+	return screens[set_screen].setDpiMul(set);
 }
 float ScreenSystem::dpiMul(int set_screen)
 {

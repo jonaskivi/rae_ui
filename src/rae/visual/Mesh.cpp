@@ -1,11 +1,13 @@
-
-#include "GL/glew.h"
-#include "Mesh.hpp"
+#include "rae/visual/Mesh.hpp"
 
 #include <fstream>
 
+#include "GL/glew.h"
 #include "loguru/loguru.hpp"
+
+#include "rae/core/Utils.hpp"
 #include "rae/visual/Material.hpp"
+
 
 using namespace rae;
 

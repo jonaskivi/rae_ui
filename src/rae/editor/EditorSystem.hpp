@@ -74,6 +74,8 @@ public:
 			if (m_axisActives[i])
 				return (Axis)i;
 		}
+		assert(0);
+		return Axis::X;
 	}
 
 	void activateHovered()

@@ -178,6 +178,10 @@ public:
 		float yRelP = 0.0f;
 		float xRelLocalP = 0.0f;
 		float yRelLocalP = 0.0f;
+
+		// In millimeters
+		float xMM = 0.0f;
+		float yMM = 0.0f;
 		
 		float amount = 0.0f;
 
@@ -210,6 +214,9 @@ public:
 
 		TouchPointState state = TouchPointState::Undefined;
 
+		// Height coordinates, origin center of the window, but 1.0f is the height of the screen.
+		// Y-down. So for a centered fullscreen window, (0.0, 0.0) is the middle of the screen.
+		// (-0.5 * aspectRatio, -0.5) is top left corner. If the window is moved, the origin will move with it.
 		float x = 0.0f;
 		float y = 0.0f;
 		float xLocal = 0.0f; // These change all the time.
@@ -218,7 +225,7 @@ public:
 		float yRel = 0.0f;
 		float xRelLocal = 0.0f;
 		float yRelLocal = 0.0f;
-		// In pixels:
+		// In pixels. Y-down. Origin in top-left of the window. Simple raw pixels. 
 		float xP = 0.0f;
 		float yP = 0.0f;
 		float xLocalP = 0.0f; // These change all the time.
@@ -227,6 +234,10 @@ public:
 		float yRelP = 0.0f;
 		float xRelLocalP = 0.0f;
 		float yRelLocalP = 0.0f;
+
+		// In millimeters
+		float xMM = 0.0f;
+		float yMM = 0.0f;
 
 		void printInfo()
 		{

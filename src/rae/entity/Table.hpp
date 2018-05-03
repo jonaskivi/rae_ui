@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rae/core/Types.hpp"
+#include "loguru/loguru.hpp"
 
 #include <functional>
 
@@ -151,6 +152,33 @@ public:
 		m_items = std::move(newItems);
 	}
 
+	void printInfo()
+	{
+		LOG_F(INFO, "m_idMap size: %i", (int)m_idMap.size());
+		for (auto&& index : m_idMap)
+		{
+			if (index != InvalidIndex)
+				LOG_F(INFO, "idMap OK: %i", (int)index);
+			else LOG_F(INFO, "idMap INVALID: %i", (int)index);
+		}
+
+		LOG_F(INFO, "m_freeItems size: %i", (int)m_freeItems.size());
+		for (auto&& index : m_freeItems)
+		{
+			if (index != InvalidIndex)
+				LOG_F(INFO, "freeItem OK: %i", (int)index);
+			else LOG_F(INFO, "freeItem INVALID: %i", (int)index);
+		}
+
+		LOG_F(INFO, "m_items size: %i", (int)m_items.size());
+		int i = 0;
+		for (auto&& item : m_items)
+		{
+			LOG_F(INFO, "item: %i", i);
+			++i;
+		}
+	}
+
 	const Array<Comp>& items() const { return m_items; }
 	Array<Comp>& items() { return m_items; }
 
@@ -219,7 +247,7 @@ public:
 	}
 
 	bool isUpdatedF(Id id) const
-	{	
+	{
 		return m_updated[m_idMap[id]];
 	}
 

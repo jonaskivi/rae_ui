@@ -76,45 +76,45 @@ void Pihlaja::initUI()
 
 	Id videoBufferImageBox = ui.createImageBox(
 		m_screenImageAssetId,
-		virxels(400.0f, 300.0f, 0.0f),
-		virxels(500.0f, 300.0f, 0.1f));
+		vec3(300.0f, 210.0f, 0.0f),
+		vec3(150.0f, 80.0f, 1.0f));
 
 	int sceneIndex = 0;
 	Id viewport = ui.createViewport(sceneIndex,
-		virxels(-402.0f, -200.0f, 0.0f),
-		virxels(800.0f, 500.0f, 0.1f));
+		vec3(130.0f, 80.0f, 0.0f),
+		vec3(250.0f, 150.0f, 1.0f));
 
 	int sceneIndex2 = 1;
 	Id viewport2 = ui.createViewport(sceneIndex2,
-		virxels(402.0f, -200.0f, 0.0f),
-		virxels(800.0f, 500.0f, 0.1f));
+		vec3(385.0f, 80.0f, 0.0f),
+		vec3(250.0f, 150.0f, 1.0f));
 
 	Id panel = ui.createPanel(
-		virxels(-600.0f, 250.0f, 0.0f),
-		virxels(250.0f, 325.0f, 0.1f));
+		vec3(130.0f, 210.0f, 0.0f),
+		vec3(150.0f, 80.0f, 1.0f));
 
 	ui.addLayout(panel);
 
 	Id playButtonId = ui.createToggleButton("Play",
-		virxels(0.0f, 350.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
 		m_play);
 	ui.addToLayout(panel, playButtonId);
 
 	Id rewindButton = ui.createButton("Rewind",
-		virxels(-100.0f, 350.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
 		std::bind(&Pihlaja::rewind, this));
 	ui.addToLayout(panel, rewindButton);
 
 	Id debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
-		virxels(-100.0f, 380.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f));
+		vec3(0.0f, 38.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f));
 	ui.bindActive(debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
 
 	Id renderModeButton = ui.createButton("Render Mode",
-		virxels(-100.0f, 350.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
 		[&]()
 		{
 			auto renderMode = m_engine.renderSystem().toggleRenderMode();
@@ -136,22 +136,22 @@ void Pihlaja::initUI()
 
 	/*
 	Id renderButtonId = ui.createToggleButton("Render",
-		virxels(0.0f, 150.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
+		vec3(0.0f, 150.0f, 0.0f),
+		vec3(98.0f, 25.0f, 1.0f),
 		m_engine.renderSystem().isEnabled());
 	ui.addToLayout(panel, renderButtonId);
 
 	// Raytracer
 	Id rayTracerButtonId = ui.createToggleButton("Raytrace",
-		virxels(0.0f, 150.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
+		vec3(0.0f, 150.0f, 0.0f),
+		vec3(98.0f, 25.0f, 1.0f),
 		m_engine.rayTracer().isEnabled());
 	ui.addToLayout(panel, rayTracerButtonId);
 	*/
 
 	Id qualityButton = ui.createButton("Quality",
-		virxels(-100.0f, 350.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
 		[&]()
 		{
 			m_engine.rayTracer().toggleBufferQuality();
@@ -159,8 +159,8 @@ void Pihlaja::initUI()
 	ui.addToLayout(panel, qualityButton);
 
 	Id saveImageButton = ui.createButton("Save Image",
-		virxels(-200.0f, 350.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f),
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
 		[&]()
 		{
 			m_engine.rayTracer().writeToPng("./rae_ray_render.png");
@@ -168,8 +168,8 @@ void Pihlaja::initUI()
 	ui.addToLayout(panel, saveImageButton);
 
 	/*Id positionTextBox = ui.createTextBox(
-		virxels(-100.0f, 380.0f, 0.0f),
-		virxels(98.0f, 25.0f, 0.1f));
+		vec3(-100.0f, 380.0f, 0.0f),
+		vec3(98.0f, 25.0f, 1.0f));
 	ui.bindValue(positionTextBox, m_selectionSystem.positionProperty or something);
 	*/
 }

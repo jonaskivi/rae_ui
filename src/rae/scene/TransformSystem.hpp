@@ -38,6 +38,7 @@ public:
 	const vec3& getPosition(Id id);
 
 	int transformCount() { return m_transforms.size(); }
+	const Table<Transform>& transforms() const { return m_transforms; }
 
 	void translate(Id id, vec3 delta);
 	void translate(const Array<Id>& ids, vec3 delta);
@@ -48,6 +49,17 @@ public:
 	bool hasHierarchy(Id id) const;
 	const Hierarchy& getHierarchy(Id id) const;
 	Hierarchy& getHierarchy(Id id);
+
+	bool hasParent(Id id) const;
+	Id getParent(Id id) const;
+	bool hasChildren(Id id) const;
+	const std::set<Id>& getChildren(Id id);
+
+	// Pivot is defined in normalized coordinates -1 to 1 (in relation to own size)
+	// and it will affect how the origin of the current entity will be interpreted.
+	void addPivot(Id id, const vec3& pivot);
+	bool hasPivot(Id id) const;
+	const Pivot& getPivot(Id id) const;
 
 private:
 
@@ -64,6 +76,8 @@ private:
 	Table<Hierarchy>	m_hierarchies;
 	Table<Changed>		m_parentChanged;
 	Table<Changed>		m_childrenChanged;
+
+	Table<Pivot>		m_pivots;
 };
 
 }

@@ -41,6 +41,9 @@ using vec4 = glm::vec4;
 using qua = glm::quat;
 using mat4 = glm::mat4;
 
+// A custom pivot can be defined, and it will affect how we interpret the origin of the current entity.
+using Pivot = glm::vec3;
+
 // A boolean type only to be used to counter problems with std::vector<bool>.
 // So always use rae::Array<bool_t> instead.
 struct bool_t
@@ -80,9 +83,8 @@ bool check(const Map<Key, T, Hash, KeyEqual, Allocator>& map, Key key)
 	return map.count(key) > 0;
 }
 
-class Colors
+struct Colors
 {
-public:
 	static Color red;
 	static Color green;
 	static Color blue;
@@ -95,6 +97,12 @@ public:
 	static Color gray;
 	static Color lightGray;
 	static Color darkGray;
+};
+
+struct Pivots
+{
+	static Pivot Center;
+	static Pivot TopLeft2D;
 };
 
 } // end namespace rae

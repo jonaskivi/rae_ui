@@ -51,19 +51,22 @@ public:
 	}
 
 	void transform(const Transform& tr);
+	void translate(const Pivot& pivot);
 
 	const vec3& min() const { return m_min; }
 	const vec3& max() const { return m_max; }
 
-	float left() { return m_min.x; }
-	float right() { return m_max.x; }
-	float up() { return m_max.y; }
-	float down() { return m_min.y; }
+	float left() const { return m_min.x; }
+	float right() const { return m_max.x; }
+	float up() const { return m_max.y; }
+	float down() const { return m_min.y; }
 
 	// 3D hit test
 	bool hit(const Ray& ray, float minDistance, float maxDistance) const;
 	// 2D hit test
 	bool hit(vec2 position) const;
+
+	String toString() const;
 
 protected:
 	vec3 m_min;

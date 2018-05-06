@@ -24,7 +24,7 @@ Test2DCoordinates::Test2DCoordinates(GLFWwindow* glfwWindow, NVGcontext* nanoVG)
 
 	m_engine.addRenderer2D(*this);
 	m_engine.addRenderer2D(m_engine.uiSystem());
-	//m_engine.addRenderer2D(m_engine.debugSystem());
+	m_engine.addRenderer2D(m_engine.debugSystem());
 
 	//m_engine.addSystem(m_engine.renderSystem());
 	m_engine.addSystem(*this);
@@ -38,6 +38,7 @@ Test2DCoordinates::Test2DCoordinates(GLFWwindow* glfwWindow, NVGcontext* nanoVG)
 void Test2DCoordinates::initUI()
 {
 	auto& ui = m_uiSystem;
+	auto& trans = ui.transformSystem();
 
 	Id keyline1 = ui.createKeyline({ OrientationType::Vertical, 0.3f });
 
@@ -48,37 +49,77 @@ void Test2DCoordinates::initUI()
 		vec3(93.0f, 46.0f, 0.0f),
 		vec3(186.0f, 116.0f, 1.0f));
 
-	Id panel = ui.createPanel(
-		vec3(139.0f, 58.0f, 0.0f),
-		vec3(58.0f, 75.0f, 1.0f));
+	Id testButton0 = ui.createButton("Test Button 0",
+			vec3(100.0f, 81.0f, 0.0f),
+			vec3(22.0f, 6.0f, 0.1f),
+			[&]()
+			{
+			});
 
-	LOG_F(INFO, "Created panel id: %i", (int)panel);
+	Id testButton05 = ui.createButton("Test Button 0.5",
+			Rectangle(100.0f, 121.0f, 26.0f, 6.0f),
+			[&]()
+			{
+			});
 
-	//ui.addAnchor(panel, vec2 left something...); Anchors::left which returns a vec2
-	ui.addKeylineLink(panel, keyline1);
+	{
+		Id panel = ui.createPanel(Rectangle(100.0f, 40.0f, 58.0f, 75.0f));
 
-	ui.addLayout(panel);
+		LOG_F(INFO, "Created panel id: %i", (int)panel);
 
-	Id testButton = ui.createButton("Test Button",
-		vec3(100.0f, 81.0f, 0.0f),
-		vec3(22.0f, 6.0f, 0.1f),
-		[&]()
-		{
-		});
-	ui.addToLayout(panel, testButton);
+		ui.addKeylineLink(panel, keyline1);
 
-	Id panel2 = ui.createPanel(
-		vec3(239.0f, 158.0f, 0.0f),
-		vec3(58.0f, 75.0f, 1.0f));
+		ui.addStackLayout(panel);
 
-	Id testButton2 = ui.createButton("Test Button 2",
-		[&]()
-		{
-		});
+		Id testButton1 = ui.createButton("Test Button 1",
+			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
+			[&]()
+			{
+			});
 
-	auto& trans = ui.transformSystem();
+		Id testButton2 = ui.createButton("Test Button 2",
+			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
+			[&]()
+			{
+			});
 
-	trans.addChild(panel2, testButton2);
+		Id testButton3 = ui.createButton("Test Button 3",
+			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
+			[&]()
+			{
+			});
+
+		trans.addPivot(testButton3, Pivots::Center);
+
+		trans.addChild(panel, testButton1);
+		trans.addChild(panel, testButton2);
+		trans.addChild(panel, testButton3);
+	}
+
+	{
+		Id panel2 = ui.createPanel(
+			vec3(239.0f, 158.0f, 0.0f),
+			vec3(58.0f, 75.0f, 1.0f));
+
+		Id testButton4 = ui.createButton("Test Button 4",
+			[&]()
+			{
+			});
+
+		Id testButton5 = ui.createButton("Test Button 5",
+			[&]()
+			{
+			});
+
+		Id testButton6 = ui.createButton("Test Button 6",
+			[&]()
+			{
+			});
+
+		trans.addChild(panel2, testButton4);
+		trans.addChild(panel2, testButton5);
+		trans.addChild(panel2, testButton6);
+	}
 }
 
 void Test2DCoordinates::onKeyEvent(const Input& input)
@@ -87,23 +128,20 @@ void Test2DCoordinates::onKeyEvent(const Input& input)
 	{
 		switch (input.key.value)
 		{
-			case KeySym::Escape: m_engine.quit(); break;
-			case KeySym::space:
-			break;
-			case KeySym::Home:
-			break;
+			case KeySym::Escape:	m_engine.quit(); break;
+			case KeySym::space: break;
+			case KeySym::Home: break;
 			case KeySym::Tab:
 				m_uiSystem.toggleIsEnabled();
 				m_engine.debugSystem().toggleIsEnabled();
-			break;
-			case KeySym::_1:
-			break;
-			case KeySym::_2:
-			break;
-			case KeySym::R:
-			break;
+				break;
+			case KeySym::F1:		m_engine.debugSystem().toggleIsEnabled(); break;
+			case KeySym::F2:		m_uiSystem.toggleIsEnabled(); break;
+			case KeySym::_1: break;
+			case KeySym::_2: break;
+			case KeySym::R: break;
 			default:
-			break;
+				break;
 		}
 	}
 }

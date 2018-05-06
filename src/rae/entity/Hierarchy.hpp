@@ -11,11 +11,11 @@ class Hierarchy
 public:
 	Hierarchy();
 
-	Id parent() { return m_parent; }
+	Id parent() const { return m_parent; }
 	void setParent(Id parent) { m_parent = parent; }
 
 	void addChild(Id child) { m_children.insert(child); }
-	std::set<Id>& children() { return m_children; }
+	const std::set<Id>& children() const { return m_children; }
 
 protected:
 	Id m_parent;

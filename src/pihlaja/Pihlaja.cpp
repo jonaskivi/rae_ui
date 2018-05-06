@@ -63,6 +63,7 @@ Pihlaja::Pihlaja(GLFWwindow* glfwWindow, NVGcontext* nanoVG) :
 void Pihlaja::initUI()
 {
 	auto& ui = m_uiSystem;
+	auto& trans = ui.transformSystem();
 
 	// RAE_TODO: Convert from this strange centered virtual pixel coordinate system to
 	// a top-left corner millimeter based coordinate system. That kind of system should
@@ -93,19 +94,19 @@ void Pihlaja::initUI()
 		vec3(130.0f, 210.0f, 0.0f),
 		vec3(150.0f, 80.0f, 1.0f));
 
-	ui.addLayout(panel);
+	ui.addStackLayout(panel);
 
 	Id playButtonId = ui.createToggleButton("Play",
 		vec3(0.0f, 35.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
 		m_play);
-	ui.addToLayout(panel, playButtonId);
+	trans.addChild(panel, playButtonId);
 
 	Id rewindButton = ui.createButton("Rewind",
 		vec3(0.0f, 35.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
 		std::bind(&Pihlaja::rewind, this));
-	ui.addToLayout(panel, rewindButton);
+	trans.addChild(panel, rewindButton);
 
 	Id debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
 		vec3(0.0f, 38.0f, 0.0f),
@@ -132,7 +133,7 @@ void Pihlaja::initUI()
 				m_engine.rayTracer().setIsEnabled(false);
 			else m_engine.rayTracer().setIsEnabled(true);
 		});
-	ui.addToLayout(panel, renderModeButton);
+	trans.addChild(panel, renderModeButton);
 
 	/*
 	Id renderButtonId = ui.createToggleButton("Render",
@@ -156,7 +157,7 @@ void Pihlaja::initUI()
 		{
 			m_engine.rayTracer().toggleBufferQuality();
 		});
-	ui.addToLayout(panel, qualityButton);
+	trans.addChild(panel, qualityButton);
 
 	Id saveImageButton = ui.createButton("Save Image",
 		vec3(0.0f, 35.0f, 0.0f),
@@ -165,7 +166,7 @@ void Pihlaja::initUI()
 		{
 			m_engine.rayTracer().writeToPng("./rae_ray_render.png");
 		});
-	ui.addToLayout(panel, saveImageButton);
+	trans.addChild(panel, saveImageButton);
 
 	/*Id positionTextBox = ui.createTextBox(
 		vec3(-100.0f, 380.0f, 0.0f),
@@ -253,9 +254,11 @@ void Pihlaja::onKeyEvent(const Input& input)
 			case KeySym::space:		togglePlay(); break;
 			case KeySym::Home:		rewind(); break;
 			case KeySym::Tab:
-					m_uiSystem.toggleIsEnabled();
-					m_engine.debugSystem().toggleIsEnabled();
-					break;
+				m_uiSystem.toggleIsEnabled();
+				m_engine.debugSystem().toggleIsEnabled();
+				break;
+			case KeySym::F1:		m_engine.debugSystem().toggleIsEnabled(); break;
+			case KeySym::F2:		m_uiSystem.toggleIsEnabled(); break;
 			case KeySym::_1:		m_engine.sceneSystem().activateScene(0); break;
 			case KeySym::_2:		m_engine.sceneSystem().activateScene(1); break;
 			case KeySym::_3:		m_evenFrames = true; break;
@@ -280,7 +283,7 @@ void Pihlaja::onKeyEvent(const Input& input)
 			//RAE_OLD case KeySym::_2: m_rayTracer.showScene(2); break;
 			//RAE_OLD case KeySym::_3: m_rayTracer.showScene(3); break;
 			default:
-			break;
+				break;
 		}
 	}
 }

@@ -218,6 +218,34 @@ enum e //enum KeySym
  * We've not found a keyboard with more than 35 function keys total.
  */
 
+#ifdef version_glfw
+	F1 = GLFW_KEY_F1,
+	F2 = GLFW_KEY_F2,
+	F3 = GLFW_KEY_F3,
+	F4 = GLFW_KEY_F4,
+	F5 = GLFW_KEY_F5,
+	F6 = GLFW_KEY_F6,
+	F7 = GLFW_KEY_F7,
+	F8 = GLFW_KEY_F8,
+	F9 = GLFW_KEY_F9,
+	F10 = GLFW_KEY_F10,
+	F11 = GLFW_KEY_F11,
+	F12 = GLFW_KEY_F12,
+	F13 = GLFW_KEY_F13,
+	F14 = GLFW_KEY_F14,
+	F15 = GLFW_KEY_F15,
+	F16 = GLFW_KEY_F16,
+	F17 = GLFW_KEY_F17,
+	F18 = GLFW_KEY_F18,
+	F19 = GLFW_KEY_F19,
+	F20 = GLFW_KEY_F20,
+	F21 = GLFW_KEY_F21,
+	F22 = GLFW_KEY_F22,
+	F23 = GLFW_KEY_F23,
+	F24 = GLFW_KEY_F24,
+	F25 = GLFW_KEY_F25,
+	// glfw ends on F25
+#else
 	F1 = 0xffbe,
 	F2 = 0xffbf,
 	F3 = 0xffc0,
@@ -278,6 +306,7 @@ enum e //enum KeySym
 	R14 = 0xffdf,
 	F35 = 0xffe0,
 	R15 = 0xffe0,
+#endif
 
 /* Modifiers */
 

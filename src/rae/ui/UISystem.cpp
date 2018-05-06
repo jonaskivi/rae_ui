@@ -43,7 +43,7 @@ UISystem::UISystem(
 	addTable(m_panels);
 	addTable(m_keylines);
 	addTable(m_keylineLinks);
-	addTable(m_layouts);
+	addTable(m_stackLayouts);
 	addTable(m_imageLinks);
 
 	createDefaultTheme();
@@ -139,23 +139,38 @@ UpdateStatus UISystem::update()
 
 void UISystem::doLayout()
 {
-	query<Layout>(m_layouts, [&](Id layoutId, Layout& layout)
+	query<StackLayout>(m_stackLayouts, [&](Id layoutId, StackLayout& layout)
 	{
-		const vec3& parentPos = m_transformSystem.getPosition(layoutId);
-		const auto& parentBox = m_boxes.get(layoutId);
-
-		// RAE_TODO Some kind of margin: float marginMM = 6.0f;
-		float someIter = parentPos.y + parentBox.min().y;
-		for (auto&& childId : layout.children)
+		if (m_transformSystem.hasChildren(layoutId))
 		{
-			vec3 pos = m_transformSystem.getPosition(childId);
-			const auto& box = m_boxes.get(childId);
+			auto& children = m_transformSystem.getChildren(layoutId);
+			//Array<Id> children(childrenSet.begin(), childrenSet.end());
+			//layout.doLayout(children);
 
-			pos.x = (parentPos.x + parentBox.min().x) - box.min().x;// + marginMM;
-			pos.y = someIter - box.min().y;// + marginMM;
-			m_transformSystem.setPosition(childId, pos);
-			someIter = someIter + box.dimensions().y;
+			const vec3& parentPos = m_transformSystem.getPosition(layoutId);
+			const Pivot& parentPivot = m_transformSystem.getPivot(layoutId);
+			Box parentBox = m_boxes.get(layoutId);
+			parentBox.translate(parentPivot);
+
+			// RAE_TODO Some kind of margin: float marginMM = 6.0f;
+			float someIter = parentPos.y + parentBox.min().y;
+			for (auto&& childId : children)
+			{
+				vec3 pos = m_transformSystem.getPosition(childId);
+				const Pivot& pivot = m_transformSystem.getPivot(childId);
+				Box tbox = m_boxes.get(childId);
+				tbox.translate(pivot);
+
+				pos.x = (parentPos.x + parentBox.min().x) - tbox.min().x;// + marginMM;
+				pos.y = someIter - tbox.min().y;// + marginMM;
+				m_transformSystem.setPosition(childId, pos);
+				someIter = someIter + tbox.dimensions().y;
+			}
 		}
+
+		//RAE_TODO use owner owned? or layoutParent layoutChildren?
+		// or some other type of additional hierarchy, so that layout could even be a member of the parent panel here
+		// and it would do layout on its siblings.
 	});
 
 	query<KeylineLink>(m_keylineLinks, [&](Id id, const KeylineLink& keylineLink)
@@ -182,8 +197,10 @@ void UISystem::hover()
 			&& m_boxes.check(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
 			Box tbox = m_boxes.get(id);
 			tbox.transform(transform);
+			tbox.translate(pivot);
 
 			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			{
@@ -239,11 +256,12 @@ void UISystem::render2D(NVGcontext* nanoVG)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = getBox(id);
-			bool hasColor = m_colors.check(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
 
+			bool hasColor = m_colors.check(id);
 			bool hovered = m_hovers.check(id);
 
-			renderBorder(transform, box,
+			renderBorder(transform, box, pivot,
 				hovered ? panelHoverColor :
 				hasColor ? getColor(id) :
 				panelBackgroundColor);
@@ -257,11 +275,12 @@ void UISystem::render2D(NVGcontext* nanoVG)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = getBox(id);
-			bool hasColor = m_colors.check(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
 
+			bool hasColor = m_colors.check(id);
 			bool hovered = m_hovers.check(id);
 
-			renderRectangle(transform, box,
+			renderRectangle(transform, box, pivot,
 					hovered ? panelHoverColor :
 					hasColor ? getColor(id) :
 					panelBackgroundColor);
@@ -275,11 +294,13 @@ void UISystem::render2D(NVGcontext* nanoVG)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = getBox(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
+
 			bool hasColor = m_colors.check(id);
 			bool active = isActive(id);
 			bool hovered = m_hovers.check(id);
 
-			renderButton(button.text(), transform, box,
+			renderButton(button.text(), transform, box, pivot,
 				(hovered and active ? buttonActiveHoverColor :
 					hovered ? buttonHoverColor :
 					active ? buttonActiveColor :
@@ -299,8 +320,9 @@ void UISystem::render2D(NVGcontext* nanoVG)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = getBox(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
 
-			renderImage(imageLink, transform, box);
+			renderImage(imageLink, transform, box, pivot);
 		}
 	});
 
@@ -313,56 +335,76 @@ void UISystem::render2D(NVGcontext* nanoVG)
 
 		renderLineNano(m_nanoVG, vec2(fromX, fromY), vec2(toX, toY), Colors::orange);
 	});
+
+	query<Transform>(m_transformSystem.transforms(), [&](Id id, const Transform& transform)
+	{
+		float diameter = 2.0f;
+		renderCircle(transform, diameter, Colors::cyan);
+	});
 }
 
-Rectangle UISystem::convertToRectangle(const Transform& transform, const Box& box) const
+Rectangle UISystem::convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const
 {
 	vec3 dimensions = box.dimensions();
-	float halfWidth = dimensions.x * 0.5f;
-	float halfHeight = dimensions.y * 0.5f;
+	//float halfWidth = dimensions.x * 0.5f;
+	//float halfHeight = dimensions.y * 0.5f;
+
+	Box pivotedBox = box;
+	pivotedBox.translate(pivot);
 
 	const auto& window = m_screenSystem.window();
 
 	return Rectangle(
-		m_screenSystem.mmToPixels(transform.position.x - halfWidth),
-		m_screenSystem.mmToPixels(transform.position.y - halfHeight),
+		//m_screenSystem.mmToPixels(transform.position.x - halfWidth),
+		//m_screenSystem.mmToPixels(transform.position.y - halfHeight),
+		m_screenSystem.mmToPixels(transform.position.x + pivotedBox.left()),
+		m_screenSystem.mmToPixels(transform.position.y + pivotedBox.down()), // Aaargh, Y down vs Y up issue. That's why this is down. Or should it be up?
 		m_screenSystem.mmToPixels(dimensions.x),
 		m_screenSystem.mmToPixels(dimensions.y));
 }
 
-void UISystem::renderRectangle(const Transform& transform, const Box& box, const Color& color)
+void UISystem::renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color)
 {
-	renderRectangleNano(m_nanoVG,
-		convertToRectangle(transform, box),
+	renderBorderNano(m_nanoVG,
+		convertToRectangle(transform, box, pivot),
 		0.0f, // cornerRadius
 		color);
 }
 
-void UISystem::renderButton(const String& text, const Transform& transform, const Box& box,
+void UISystem::renderCircle(const Transform& transform, float diameter, const Color& color)
+{
+	renderCircleNano(m_nanoVG,
+		vec2(m_screenSystem.mmToPixels(transform.position.x),
+			 m_screenSystem.mmToPixels(transform.position.y)),
+		m_screenSystem.mmToPixels(diameter),
+		color);
+}
+
+void UISystem::renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color)
+{
+	renderRectangleNano(m_nanoVG,
+		convertToRectangle(transform, box, pivot),
+		0.0f, // cornerRadius
+		color);
+}
+
+void UISystem::renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 	const Color& color, const Color& textColor)
 {
 	renderButtonNano(m_nanoVG, text,
-		convertToRectangle(transform, box),
+		convertToRectangle(transform, box, pivot),
 		m_screenSystem.mmToPixels(0.46f), // cornerRadius
 		color,
 		textColor);
 }
 
-void UISystem::renderImage(ImageLink imageLink, const Transform& transform, const Box& box)
+void UISystem::renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot)
 {
 	const auto& image = m_assetSystem.getImage(imageLink);
 
-	auto rect = convertToRectangle(transform, box);
+	auto rect = convertToRectangle(transform, box, pivot);
 
 	renderImageNano(m_nanoVG, image.imageId(), rect.x, rect.y, rect.width, rect.height);
-}
-
-void UISystem::renderBorder(const Transform& transform, const Box& box, const Color& color)
-{
-	renderBorderNano(m_nanoVG,
-		convertToRectangle(transform, box),
-		0.0f, // cornerRadius
-		color);
 }
 
 void UISystem::renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
@@ -379,6 +421,24 @@ void UISystem::renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
 	nvgMoveTo(vg, from.x, from.y);
 	nvgLineTo(vg, to.x, to.y);
 	nvgStroke(vg);
+
+	nvgRestore(vg);
+}
+
+void UISystem::renderCircleNano(NVGcontext* vg, const vec2& position,
+	float diameter, const Color& color)
+{
+	nvgSave(vg);
+
+	NVGcolor fillColor = nvgRGBAf(color.r, color.g, color.b, color.a);
+
+	nvgBeginPath(vg);
+	nvgCircle(vg, position.x, position.y, diameter * 0.5f);
+	nvgFillColor(vg, fillColor);
+	nvgFill(vg);
+	//nvgStrokeColor(vg, strokeColor);
+	//nvgStrokeWidth(vg, 1.0f);
+	//nvgStroke(vg);
 
 	nvgRestore(vg);
 }
@@ -593,6 +653,14 @@ Id UISystem::createButton(const String& text, std::function<void()> handler)
 	return createButton(text, vec3(), vec3(32.0f, 16.0f, 1.0f), handler);
 }
 
+Id UISystem::createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler)
+{
+	Id button = createButton(text, vec3(rectangle.x, rectangle.y, 0.0f), vec3(rectangle.width, rectangle.height, 1.0f),
+		handler);
+	m_transformSystem.addPivot(button, Pivots::TopLeft2D);
+	return button;
+}
+
 Id UISystem::createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler)
 {
 	Id id = m_entitySystem.createEntity();
@@ -684,10 +752,17 @@ Rectangle UISystem::getViewportPixelRectangle(int sceneIndex)
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = getBox(id);
-			viewportRect = convertToRectangle(transform, box);
+			viewportRect = convertToRectangle(transform, box, Pivots::Center);
 		}
 	});
 	return viewportRect;
+}
+
+Id UISystem::createPanel(const Rectangle& rectangle)
+{
+	Id entity = createPanel(vec3(rectangle.x, rectangle.y, 0.0f), vec3(rectangle.width, rectangle.height, 1.0f));
+	m_transformSystem.addPivot(entity, Pivots::TopLeft2D);
+	return entity;
 }
 
 Id UISystem::createPanel(const vec3& position, const vec3& extents)
@@ -711,11 +786,12 @@ const Panel& UISystem::getPanel(Id id)
 	return m_panels.get(id);
 }
 
-void UISystem::addLayout(Id id)
+void UISystem::addStackLayout(Id id)
 {
-	m_layouts.assign(id, Layout());
+	m_stackLayouts.assign(id, StackLayout());
 }
 
+/*RAE_TODO owner or layoutChildren thing
 void UISystem::addToLayout(Id layoutId, Id childId)
 {
 	if (m_layouts.check(layoutId))
@@ -727,6 +803,7 @@ void UISystem::addToLayout(Id layoutId, Id childId)
 		}
 	}
 }
+*/
 
 Id UISystem::createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents)
 {

@@ -165,3 +165,42 @@ Hierarchy& TransformSystem::getHierarchy(Id id)
 {
 	return m_hierarchies.get(id);
 }
+
+bool TransformSystem::hasParent(Id id) const
+{
+	if (not hasHierarchy(id))
+		return false;
+	return (m_hierarchies.get(id).parent() != InvalidId);
+}
+
+Id TransformSystem::getParent(Id id) const
+{
+	return m_hierarchies.get(id).parent();
+}
+
+bool TransformSystem::hasChildren(Id id) const
+{
+	if (not hasHierarchy(id))
+		return false;
+	return (m_hierarchies.get(id).children().size() > 0);
+}
+
+const std::set<Id>& TransformSystem::getChildren(Id id)
+{
+	return m_hierarchies.get(id).children();
+}
+
+void TransformSystem::addPivot(Id id, const Pivot& pivot)
+{
+	m_pivots.assign(id, Pivot(pivot));
+}
+
+bool TransformSystem::hasPivot(Id id) const
+{
+	return m_pivots.check(id);
+}
+
+const Pivot& TransformSystem::getPivot(Id id) const
+{
+	return m_pivots.get(id);
+}

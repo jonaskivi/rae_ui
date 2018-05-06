@@ -25,6 +25,12 @@ class ScreenSystem;
 class AssetSystem;
 class DebugSystem;
 
+enum class OrientationType
+{
+	Horizontal,
+	Vertical
+};
+
 struct Rectangle
 {
 	Rectangle(){}
@@ -38,9 +44,16 @@ struct Rectangle
 	float height = 0.0f;
 };
 
-struct Layout
+struct StackLayout
 {
-	Array<Id> children;
+	StackLayout(){}
+
+	StackLayout(OrientationType orientationType) :
+		orientationType(orientationType)
+	{
+	}
+
+	OrientationType orientationType = OrientationType::Vertical;
 };
 
 struct Hover
@@ -73,12 +86,6 @@ struct Text
 	operator String() const { return text; }
 
 	String text;
-};
-
-enum class OrientationType
-{
-	Horizontal,
-	Vertical
 };
 
 struct Keyline
@@ -166,6 +173,8 @@ public:
 	void hover();
 
 	Id createButton(const String& text, std::function<void()> handler);
+
+	Id createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler);
 	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
 	Id createTextBox(const String& text, const vec3& position, const vec3& extents);
@@ -176,12 +185,12 @@ public:
 	const Viewport& getViewport(Id id);
 	Rectangle getViewportPixelRectangle(int sceneIndex);
 
+	Id createPanel(const Rectangle& rectangle);
 	Id createPanel(const vec3& position, const vec3& extents);
 	void addPanel(Id id, Panel&& panel);
 	const Panel& getPanel(Id id);
 
-	void addLayout(Id id);
-	void addToLayout(Id layoutId, Id childId);
+	void addStackLayout(Id id);
 
 	Id createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents);
 	void addImageLink(Id id, ImageLink imageLink);
@@ -221,19 +230,22 @@ public:
 
 // internal:
 
-	void renderRectangle(const Transform& transform, const Box& box, const Color& color);
-	void renderButton(const String& text, const Transform& transform, const Box& box,
+	void renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color);
+	void renderCircle(const Transform& transform, float diameter, const Color& color);
+	void renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color);
+	void renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		const Color& color, const Color& textColor);
-	void renderBorder(const Transform& transform, const Box& box, const Color& color);
-	void renderImage(ImageLink imageLink, const Transform& transform, const Box& box);
+	void renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot);
 
-	Rectangle convertToRectangle(const Transform& transform, const Box& box) const;
+	Rectangle convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const;
 
 	// NanoVG takes input in pixels, and so do these helper functions:
 	void renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderBorderNano(NVGcontext* vg, const Rectangle& rectangle,
 			float cornerRadius,
+			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
+	void renderCircleNano(NVGcontext* vg, const vec2& position, float diameter,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
 			float cornerRadius,
@@ -277,7 +289,7 @@ private:
 	Table<Keyline>		m_keylines;
 	Table<KeylineLink>	m_keylineLinks;
 
-	Table<Layout>		m_layouts;
+	Table<StackLayout>	m_stackLayouts;
 
 	Table<ImageLink>	m_imageLinks;
 };

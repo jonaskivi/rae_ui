@@ -14,3 +14,6 @@ Color Colors::white		= Color(1,1,1,1);
 Color Colors::lightGray	= Color(0.75f, 0.75f, 0.75f, 1.0f);
 Color Colors::gray		= Color(0.5f, 0.5f, 0.5f, 1.0f);
 Color Colors::darkGray	= Color(0.25f, 0.25f, 0.25f, 1.0f);
+
+Pivot Pivots::Center	= Pivot( 0,  0,  0);
+Pivot Pivots::TopLeft2D	= Pivot(-1, -1,  0);

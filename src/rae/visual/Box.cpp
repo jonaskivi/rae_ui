@@ -1,8 +1,10 @@
 #include "rae/visual/Box.hpp"
-#include "rae/visual/Ray.hpp"
 
 #include <ciso646>
 #include <algorithm>
+
+#include "rae/core/Utils.hpp"
+#include "rae/visual/Ray.hpp"
 
 using namespace rae;
 
@@ -55,6 +57,17 @@ void Box::transform(const Transform& tr)
 	m_max += tr.position;
 }
 
+void Box::translate(const Pivot& pivot)
+{
+	if (not valid())
+		return;
+
+	auto halfDimensions = dimensions() * 0.5f;
+
+	m_min -= (pivot * halfDimensions);
+	m_max -= (pivot * halfDimensions);
+}
+
 bool Box::hit(const Ray& ray, float minDistance, float maxDistance) const
 {
 	for (int a = 0; a < 3; ++a)
@@ -80,4 +93,9 @@ bool Box::hit(vec2 position) const
 		position.y >= m_min.y)
 		return true;
 	return false;
+}
+
+String Box::toString() const
+{
+	return "min: " + Utils::toString(m_min) + " max: " + Utils::toString(m_max);
 }

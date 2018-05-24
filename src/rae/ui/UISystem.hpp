@@ -7,19 +7,22 @@
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
 
-#include "rae/visual/Box.hpp"
 #include "rae/ui/Button.hpp"
 #include "rae/image/ImageBuffer.hpp"
 
 #include "rae/core/ISystem.hpp"
 #include "rae/entity/EntitySystem.hpp"
 #include "rae/scene/TransformSystem.hpp"
+#include "rae/editor/SelectionSystem.hpp"
+#include "rae/ui/WindowSystem.hpp"
 
 struct NVGcontext;
 
 namespace rae
 {
 
+class Time;
+class Box;
 class Input;
 class ScreenSystem;
 class AssetSystem;
@@ -54,10 +57,6 @@ struct StackLayout
 	}
 
 	OrientationType orientationType = OrientationType::Vertical;
-};
-
-struct Hover
-{
 };
 
 struct Active
@@ -113,6 +112,11 @@ struct KeylineLink
 	Id keylineId;
 };
 
+// This is a proxy entity for the actual window which lives in the WindowSystem
+struct WindowEntity
+{
+};
+
 struct Panel
 {
 };
@@ -150,27 +154,29 @@ enum class PanelThemeColorKey
 	Count
 };
 
-class UISystem : public ISystem
+class UIScene : public ISystem
 {
 public:
-	UISystem(
+	UIScene(
+		const String& name,
 		const Time& time,
 		Input& input,
 		ScreenSystem& screenSystem,
-		AssetSystem& assetSystem,
 		DebugSystem& debugSystem);
 
-	~UISystem();
-
-	String name() override { return "UISystem"; }
+	String name() const override { return "Untitled"; }
 
 	TransformSystem&	transformSystem()	{ return m_transformSystem; }
 
 	UpdateStatus update() override;
-	virtual void render2D(NVGcontext* nanoVG) override;
+	void render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem);
 
 	void doLayout();
 	void hover();
+
+	// Attach this scene to an existing WindowSystem window.
+	Id connectToWindow(const Window& window);
+	void updateWindowSize(const Window& window);
 
 	Id createButton(const String& text, std::function<void()> handler);
 
@@ -179,11 +185,11 @@ public:
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
 	Id createTextBox(const String& text, const vec3& position, const vec3& extents);
 
-	int viewportCount() { return m_viewports.size(); }
+	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
 	void addViewport(Id id, Viewport&& viewport);
 	const Viewport& getViewport(Id id);
-	Rectangle getViewportPixelRectangle(int sceneIndex);
+	Rectangle getViewportPixelRectangle(int sceneIndex) const;
 
 	Id createPanel(const Rectangle& rectangle);
 	Id createPanel(const vec3& position, const vec3& extents);
@@ -204,9 +210,6 @@ public:
 
 	// RAE_TODO These functions just repeat each other. Possibly all of these should just be functions of the Table
 	// and possibly then rename the Table to be a Component class.
-	void addBox(Id id, Box&& box);
-	const Box& getBox(Id id);
-
 	void addText(Id id, const String& text);
 	void addText(Id id, Text&& text);
 	const Text& getText(Id id);
@@ -220,9 +223,6 @@ public:
 	void addCommand(Id id, Command&& element);
 	const Command& getCommand(Id id);
 
-	void setHovered(Id id, bool hovered);
-	bool isHovered(Id id);
-
 	void setActive(Id id, bool active);
 	bool isActive(Id id);
 	// Make active follow property state with a two-way binding
@@ -230,26 +230,33 @@ public:
 
 // internal:
 
-	void renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color);
+	// Input in millimeters
+
+	// When thickness in mm is 0 use 1 pixel thickness.
+	void renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color,
+		float cornerRadius = 0.0f, float thickness = 0.0f);
 	void renderCircle(const Transform& transform, float diameter, const Color& color);
 	void renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color);
 	void renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		const Color& color, const Color& textColor);
-	void renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot);
+	void renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
+		const AssetSystem& assetSystem);
 
 	Rectangle convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const;
 
 	// NanoVG takes input in pixels, and so do these helper functions:
 	void renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
-	void renderBorderNano(NVGcontext* vg, const Rectangle& rectangle,
-			float cornerRadius,
-			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
+	void renderBorderNano(NVGcontext* vg,
+			const Rectangle& rectangle,
+			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f),
+			float cornerRadius = 0.0f,
+			float thickness = 1.0f);
 	void renderCircleNano(NVGcontext* vg, const vec2& position, float diameter,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
 			float cornerRadius,
-			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
+			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f)) const;
 	void renderWindowNano(NVGcontext* vg, const String& title, const Rectangle& rectangle,
 			float cornerRadius, const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderButtonNano(NVGcontext* vg, const String& text, const Rectangle& rectangle,
@@ -263,16 +270,19 @@ private:
 
 	EntitySystem		m_entitySystem;
 	TransformSystem		m_transformSystem;
+	SelectionSystem		m_selectionSystem;
 
 	Input&				m_input;
 	ScreenSystem&		m_screenSystem;
-	AssetSystem&		m_assetSystem;
 	DebugSystem&		m_debugSystem;
-	NVGcontext*			m_nanoVG;
 
-	Id					m_infoButtonId;
+	Id					m_infoButtonId = InvalidId;
 
-	Table<Box>			m_boxes;
+	// The root WindowEntity
+	Id					m_rootId = InvalidId;
+
+	Table<WindowEntity>	m_windows;
+
 	Table<Text>			m_texts;
 	Table<Button>		m_buttons;
 	Array<Color>		m_buttonThemeColors;
@@ -280,7 +290,6 @@ private:
 	Table<Command>		m_commands;
 	Table<Color>		m_colors;
 	Table<Active>		m_actives;
-	Table<Hover>		m_hovers;
 
 	Table<Viewport>		m_viewports;
 	Table<Panel>		m_panels;
@@ -292,6 +301,74 @@ private:
 	Table<StackLayout>	m_stackLayouts;
 
 	Table<ImageLink>	m_imageLinks;
+
+	NVGcontext*			m_nanoVG;
+};
+
+class UISystem : public ISystem
+{
+public:
+	UISystem(
+		WindowSystem& windowSystem,
+		const Time& time,
+		Input& input,
+		ScreenSystem& screenSystem,
+		AssetSystem& assetSystem,
+		DebugSystem& debugSystem);
+
+	~UISystem();
+
+	String name() const override { return "UISystem"; }
+
+	UIScene& createUIScene(const String& name = "Untitled");
+	void connectWindowToScene(Window& window, UIScene& uiScene);
+
+	UpdateStatus update() override;
+	virtual void render2D(UIScene& uiScene, NVGcontext* nanoVG) override;
+
+	bool hasScene(int index) const
+	{
+		if (index >= 0 && index < (int)m_uiScenes.size())
+			return true;
+		return false;
+	}
+
+	const UIScene& defaultScene() const { return scene(0); }
+	UIScene& defaultScene() { return scene(0); }
+
+	const UIScene& scene(int index) const { return m_uiScenes[index]; }
+	UIScene& scene(int index) { return m_uiScenes[index]; }
+
+	// Returns -1 if the scene was not found.
+	int getSceneIndex(const UIScene& findScene)
+	{
+		int i = 0;
+		for (auto&& scene : m_uiScenes)
+		{
+			if (&findScene == &scene)
+			{
+				return i;
+			}
+			i++;
+		}
+		//RAE_TODO temp
+		assert(0);
+		return -1;
+	}
+
+private:
+
+	//RAE_TODO void createDefaultTheme();
+
+	const Time&			m_time;
+	Input&				m_input;
+	ScreenSystem&		m_screenSystem;
+	WindowSystem&		m_windowSystem;
+	AssetSystem&		m_assetSystem;
+	DebugSystem&		m_debugSystem;
+
+	//RAE_TODO RENAME TO m_scenes
+	Array<UIScene>		m_uiScenes;
 };
 
 extern UISystem* g_ui;

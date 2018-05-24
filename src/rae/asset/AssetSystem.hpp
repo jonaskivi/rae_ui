@@ -16,11 +16,9 @@ class Time;
 class AssetSystem : public ISystem
 {
 public:
-	AssetSystem(Time& time);
+	AssetSystem(Time& time, NVGcontext* nanoVG);
 
-	String name() override { return "AssetSystem"; }
-
-	void setNanoVG(NVGcontext* nanoVG);
+	String name() const override { return "AssetSystem"; }
 
 	UpdateStatus update() override;
 

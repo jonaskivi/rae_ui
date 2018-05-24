@@ -1,18 +1,18 @@
 /*
 * The X11/MIT License
-* 
+*
 * Copyright (c) 2008-2018, Jonas Kivi
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in
 * all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -92,6 +92,7 @@ enum class EventType
 };
 
 class ScreenSystem;
+class Window;
 
 class Input : public ISystem
 {
@@ -103,7 +104,7 @@ public:
 	{
 	}
 
-	String name() override { return "InputSystem"; }
+	String name() const override { return "InputSystem"; }
 
 	UpdateStatus update() override
 	{
@@ -125,7 +126,7 @@ public:
 		Mouse()
 		{
 		}
-	
+
 		bool button(MouseButton but) const
 		{
 			return m_button[(int)but];
@@ -182,7 +183,7 @@ public:
 		// In millimeters
 		float xMM = 0.0f;
 		float yMM = 0.0f;
-		
+
 		float amount = 0.0f;
 
 		// onButtonPress locations:
@@ -225,7 +226,7 @@ public:
 		float yRel = 0.0f;
 		float xRelLocal = 0.0f;
 		float yRelLocal = 0.0f;
-		// In pixels. Y-down. Origin in top-left of the window. Simple raw pixels. 
+		// In pixels. Y-down. Origin in top-left of the window. Simple raw pixels.
 		float xP = 0.0f;
 		float yP = 0.0f;
 		float xLocalP = 0.0f; // These change all the time.
@@ -304,7 +305,7 @@ public:
 		uint value = 0;
 		//string unicode = 0;
 		char* unicode;
-		
+
 		bool keyStates[keyStatesSize];
 		// Cleared every frame
 		bool pressedThisFrame[keyStatesSize];
@@ -318,9 +319,9 @@ public:
 	bool getKeyReleased(int keyValue) const; // If the key was released during this frame
 
 	void addTouchPoint(TouchPointState setState, int setId, float xPixels, float yPixels);
-	void osScrollEvent(float deltaX, float deltaY);
-	void osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode);
-	void osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int setButton,
+	void osScrollEvent(const Window& window, float deltaX, float deltaY);
+	void osKeyEvent(const Window& window, EventType setEventType, int setKey, int32_t setUnicode);
+	void osMouseEvent(const Window& window, EventType setEventType, int setButton,
 	float rawXPixels, float rawYPixels, float setAmount = 0.0f);
 
 	void connectMouseButtonPressEventHandler(std::function<void(const Input&)> set)

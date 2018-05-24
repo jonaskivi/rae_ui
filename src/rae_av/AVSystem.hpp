@@ -31,7 +31,7 @@ class AVSystem : public rae::ISystem
 public:
 	AVSystem(RenderSystem& renderSystem);
 
-	String name() override { return "AVSystem"; }
+	String name() const override { return "AVSystem"; }
 
 	AssetId loadAsset(String filepath);
 

@@ -7,38 +7,36 @@
 
 #include "loguru/loguru.hpp"
 #include "rae/core/Utils.hpp"
+#include "rae/core/Time.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/ui/Input.hpp"
 #include "rae/asset/AssetSystem.hpp"
 #include "rae/ui/DebugSystem.hpp"
+#include "rae/visual/Box.hpp"
 
 using namespace rae;
 
-static const int ReserveBoxes = 1000;
-
 rae::UISystem* rae::g_ui = nullptr;
 
-UISystem::UISystem(
+UIScene::UIScene(
+	const String& name,
 	const Time& time,
 	Input& input,
 	ScreenSystem& screenSystem,
-	AssetSystem& assetSystem,
 	DebugSystem& debugSystem) :
 		m_entitySystem("UISystem"),
-		m_transformSystem(time),
+		m_transformSystem(),
+		m_selectionSystem(m_transformSystem),
 		m_input(input),
 		m_screenSystem(screenSystem),
-		m_assetSystem(assetSystem),
-		m_debugSystem(debugSystem),
-		m_boxes(ReserveBoxes)
+		m_debugSystem(debugSystem)
 {
-	addTable(m_boxes);
+	addTable(m_windows);
 	addTable(m_texts);
 	addTable(m_buttons);
 	addTable(m_commands);
 	addTable(m_colors);
 	addTable(m_actives);
-	addTable(m_hovers);
 	addTable(m_viewports);
 	addTable(m_panels);
 	addTable(m_keylines);
@@ -49,11 +47,31 @@ UISystem::UISystem(
 	createDefaultTheme();
 
 	m_infoButtonId = createButton("Info",
-		vec3(350.0f, 93.0f, 0.0f),
-		vec3(69.0f, 6.0f, 1.0f),
-		[](){});
+	vec3(350.0f, 93.0f, 0.0f),
+	vec3(69.0f, 6.0f, 1.0f),
+	[](){});
 
 	//LOG_F("UISystem creating Info button: %i", m_infoButtonId);
+}
+
+UISystem::UISystem(
+	WindowSystem& windowSystem,
+	const Time& time,
+	Input& input,
+	ScreenSystem& screenSystem,
+	AssetSystem& assetSystem,
+	DebugSystem& debugSystem
+	) :
+		m_time(time),
+		m_input(input),
+		m_windowSystem(windowSystem),
+		m_screenSystem(screenSystem),
+		m_assetSystem(assetSystem),
+		m_debugSystem(debugSystem)
+{
+	// RAE_TODO reuse default theme across ui scenes: createDefaultTheme();
+
+	createUIScene("Default");
 
 	g_ui = this;
 }
@@ -63,7 +81,20 @@ UISystem::~UISystem()
 	g_ui = nullptr;
 }
 
-void UISystem::createDefaultTheme()
+UIScene& UISystem::createUIScene(const String& name)
+{
+	LOG_F(INFO, "Creating UIScene: %s", name.c_str());
+	m_uiScenes.emplace_back(name, m_time, m_input, m_screenSystem, m_debugSystem);
+	return m_uiScenes.back();
+}
+
+void UISystem::connectWindowToScene(Window& window, UIScene& uiScene)
+{
+	window.setUISceneIndex(getSceneIndex(uiScene));
+	uiScene.connectToWindow(window);
+}
+
+void UIScene::createDefaultTheme()
 {
 	m_buttonThemeColors.resize((size_t)ButtonThemeColorKey::Count);
 	m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background]		= Color(0.1f, 0.1f, 0.1f, 1.0f);
@@ -78,10 +109,25 @@ void UISystem::createDefaultTheme()
 
 	m_panelThemeColors.resize((size_t)PanelThemeColorKey::Count);
 	m_panelThemeColors[(size_t)PanelThemeColorKey::Background]	= Utils::createColor8bit(52, 61, 70, 255);
-	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]			= Utils::createColor8bit(52, 61, 70, 255);
+	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]		= Utils::createColor8bit(54, 68, 75, 235);
 }
 
 UpdateStatus UISystem::update()
+{
+	UpdateStatus status = UpdateStatus::NotChanged;
+	for (auto&& uiScene : m_uiScenes)
+	{
+		auto sceneStatus = uiScene.update();
+		if (sceneStatus != UpdateStatus::NotChanged)
+		{
+			status = sceneStatus;
+		}
+	}
+
+	return status;
+}
+
+UpdateStatus UIScene::update()
 {
 	static int frameCount = 0;
 
@@ -97,11 +143,11 @@ UpdateStatus UISystem::update()
 		auto& button = m_buttons.get(m_infoButtonId);
 		const auto& transform = m_transformSystem.getTransform(m_infoButtonId);
 		button.setText(
-			"Mouse:"
-			" raw x: " + Utils::toString(m_input.mouse.xP / m_screenSystem.window().screenPixelRatio())
-			+ " raw y: " + Utils::toString(m_input.mouse.yP / m_screenSystem.window().screenPixelRatio())
+			/*"Mouse:"
+			" raw x: " + Utils::toString(m_input.mouse.xP / m_windowSystem.mainWindow().screenPixelRatio())
+			+ " raw y: " + Utils::toString(m_input.mouse.yP / m_windowSystem.mainWindow().screenPixelRatio())*/
 
-			+ " xMM: " + Utils::toString(m_input.mouse.xMM)
+			" xMM: " + Utils::toString(m_input.mouse.xMM)
 			+ " yMM: " + Utils::toString(m_input.mouse.yMM)
 
 			+ " xP: " + Utils::toString(m_input.mouse.xP)
@@ -137,7 +183,7 @@ UpdateStatus UISystem::update()
 	return UpdateStatus::NotChanged;
 }
 
-void UISystem::doLayout()
+void UIScene::doLayout()
 {
 	query<StackLayout>(m_stackLayouts, [&](Id layoutId, StackLayout& layout)
 	{
@@ -149,7 +195,7 @@ void UISystem::doLayout()
 
 			const vec3& parentPos = m_transformSystem.getPosition(layoutId);
 			const Pivot& parentPivot = m_transformSystem.getPivot(layoutId);
-			Box parentBox = m_boxes.get(layoutId);
+			Box parentBox = m_transformSystem.getBox(layoutId);
 			parentBox.translate(parentPivot);
 
 			// RAE_TODO Some kind of margin: float marginMM = 6.0f;
@@ -158,7 +204,7 @@ void UISystem::doLayout()
 			{
 				vec3 pos = m_transformSystem.getPosition(childId);
 				const Pivot& pivot = m_transformSystem.getPivot(childId);
-				Box tbox = m_boxes.get(childId);
+				Box tbox = m_transformSystem.getBox(childId);
 				tbox.translate(pivot);
 
 				pos.x = (parentPos.x + parentBox.min().x) - tbox.min().x;// + marginMM;
@@ -180,31 +226,29 @@ void UISystem::doLayout()
 			auto& keyline = getKeyline(keylineLink.keylineId);
 			vec3 origPos = m_transformSystem.getPosition(id);
 
-			float posX = m_screenSystem.window(0).width() * keyline.relativePosition;
-
-			float posXmm = m_screenSystem.pixelsToMM(posX);
-			m_transformSystem.setPosition(id, vec3(posXmm, origPos.y, origPos.z));
+			float posX = m_transformSystem.getBox(m_rootId).dimensions().x * keyline.relativePosition;
+			m_transformSystem.setPosition(id, vec3(posX, origPos.y, origPos.z));
 		}
 	});
 }
 
-void UISystem::hover()
+void UIScene::hover()
 {
 	// hover boxes
 	for (Id id : m_entitySystem.entities())
 	{
 		if (m_transformSystem.hasTransform(id)
-			&& m_boxes.check(id))
+			&& m_transformSystem.hasBox(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Pivot& pivot = m_transformSystem.getPivot(id);
-			Box tbox = m_boxes.get(id);
+			Box tbox = m_transformSystem.getBox(id);
 			tbox.transform(transform);
 			tbox.translate(pivot);
 
 			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			{
-				setHovered(id, true);
+				m_selectionSystem.setHovered(id, true);
 
 				if (m_commands.check(id))
 				{
@@ -217,17 +261,17 @@ void UISystem::hover()
 			}
 			else
 			{
-				setHovered(id, false);
+				m_selectionSystem.setHovered(id, false);
 			}
 		}
 	}
 }
 
-void UISystem::render2D(NVGcontext* nanoVG)
+void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 {
 	/*
 	RAE_REMOVE
-	const auto& window = m_screenSystem.window();
+	const auto& window = m_windowSystem.window();
 
 	int windowWidth = window.width();
 	int windowHeight = window.height();
@@ -249,17 +293,43 @@ void UISystem::render2D(NVGcontext* nanoVG)
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
 	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
 
+	if (m_debugSystem.isEnabled())
+	{
+		// Debug rendering border for WindowEntities.
+		query<WindowEntity>(m_windows, [&](Id id)
+		{
+			if (m_transformSystem.hasTransform(id) and
+				m_transformSystem.hasBox(id))
+			{
+				const Transform& transform = m_transformSystem.getTransform(id);
+				const Box& box = m_transformSystem.getBox(id);
+				const Pivot& pivot = m_transformSystem.getPivot(id);
+
+				bool hasColor = m_colors.check(id);
+				bool hovered = m_selectionSystem.isHovered(id);
+
+				float cornerRadius = 0.0f;
+				float thicknessMM = 5.0f;
+				renderBorder(transform, box, pivot,
+					hovered ? Colors::magenta * 1.5f :
+					hasColor ? getColor(id) :
+					Colors::magenta * 0.5f,
+					cornerRadius, thicknessMM);
+			}
+		});
+	}
+
 	query<Viewport>(m_viewports, [&](Id id, const Viewport& viewport)
 	{
 		if (m_transformSystem.hasTransform(id) and
-			m_boxes.check(id))
+			m_transformSystem.hasBox(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
+			const Box& box = m_transformSystem.getBox(id);
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 
 			bool hasColor = m_colors.check(id);
-			bool hovered = m_hovers.check(id);
+			bool hovered = m_selectionSystem.isHovered(id);
 
 			renderBorder(transform, box, pivot,
 				hovered ? panelHoverColor :
@@ -271,14 +341,14 @@ void UISystem::render2D(NVGcontext* nanoVG)
 	query<Panel>(m_panels, [&](Id id, const Panel& panel)
 	{
 		if (m_transformSystem.hasTransform(id) and
-			m_boxes.check(id))
+			m_transformSystem.hasBox(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
+			const Box& box = m_transformSystem.getBox(id);
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 
 			bool hasColor = m_colors.check(id);
-			bool hovered = m_hovers.check(id);
+			bool hovered = m_selectionSystem.isHovered(id);
 
 			renderRectangle(transform, box, pivot,
 					hovered ? panelHoverColor :
@@ -290,15 +360,15 @@ void UISystem::render2D(NVGcontext* nanoVG)
 	query<Button>(m_buttons, [&](Id id, const Button& button)
 	{
 		if (m_transformSystem.hasTransform(id) and
-			m_boxes.check(id))
+			m_transformSystem.hasBox(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
+			const Box& box = m_transformSystem.getBox(id);
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 
 			bool hasColor = m_colors.check(id);
 			bool active = isActive(id);
-			bool hovered = m_hovers.check(id);
+			bool hovered = m_selectionSystem.isHovered(id);
 
 			renderButton(button.text(), transform, box, pivot,
 				(hovered and active ? buttonActiveHoverColor :
@@ -316,62 +386,62 @@ void UISystem::render2D(NVGcontext* nanoVG)
 	query<ImageLink>(m_imageLinks, [&](Id id, const ImageLink& imageLink)
 	{
 		if (m_transformSystem.hasTransform(id) and
-			m_boxes.check(id))
+			m_transformSystem.hasBox(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
+			const Box& box = m_transformSystem.getBox(id);
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 
-			renderImage(imageLink, transform, box, pivot);
+			renderImage(imageLink, transform, box, pivot, assetSystem);
 		}
 	});
 
-	query<Keyline>(m_keylines, [&](Id id, const Keyline& keyline)
+	if (m_debugSystem.isEnabled())
 	{
-		float fromX = m_screenSystem.window(0).width() * keyline.relativePosition;
-		float toX = fromX;
-		float fromY = 0.0f;
-		float toY = 800.0f;
+		query<Keyline>(m_keylines, [&](Id id, const Keyline& keyline)
+		{
+			float fromX = m_screenSystem.mmToPixels(
+				m_transformSystem.getBox(
+					m_rootId).dimensions().x * keyline.relativePosition);
+			float toX = fromX;
+			float fromY = 0.0f;
+			float toY = 800.0f;
 
-		renderLineNano(m_nanoVG, vec2(fromX, fromY), vec2(toX, toY), Colors::orange);
-	});
+			renderLineNano(m_nanoVG, vec2(fromX, fromY), vec2(toX, toY), Colors::orange);
+		});
 
-	query<Transform>(m_transformSystem.transforms(), [&](Id id, const Transform& transform)
-	{
-		float diameter = 2.0f;
-		renderCircle(transform, diameter, Colors::cyan);
-	});
+		query<Transform>(m_transformSystem.transforms(), [&](Id id, const Transform& transform)
+		{
+			float diameter = 2.0f;
+			renderCircle(transform, diameter, Colors::cyan);
+		});
+	}
 }
 
-Rectangle UISystem::convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const
+Rectangle UIScene::convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const
 {
 	vec3 dimensions = box.dimensions();
-	//float halfWidth = dimensions.x * 0.5f;
-	//float halfHeight = dimensions.y * 0.5f;
-
 	Box pivotedBox = box;
 	pivotedBox.translate(pivot);
 
-	const auto& window = m_screenSystem.window();
-
 	return Rectangle(
-		//m_screenSystem.mmToPixels(transform.position.x - halfWidth),
-		//m_screenSystem.mmToPixels(transform.position.y - halfHeight),
 		m_screenSystem.mmToPixels(transform.position.x + pivotedBox.left()),
 		m_screenSystem.mmToPixels(transform.position.y + pivotedBox.down()), // Aaargh, Y down vs Y up issue. That's why this is down. Or should it be up?
 		m_screenSystem.mmToPixels(dimensions.x),
 		m_screenSystem.mmToPixels(dimensions.y));
 }
 
-void UISystem::renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color)
+void UIScene::renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color,
+	float cornerRadius, float thickness)
 {
 	renderBorderNano(m_nanoVG,
 		convertToRectangle(transform, box, pivot),
-		0.0f, // cornerRadius
-		color);
+		color,
+		m_screenSystem.mmToPixels(cornerRadius),
+		thickness == 0.0f ? 1.0f : m_screenSystem.mmToPixels(thickness));
 }
 
-void UISystem::renderCircle(const Transform& transform, float diameter, const Color& color)
+void UIScene::renderCircle(const Transform& transform, float diameter, const Color& color)
 {
 	renderCircleNano(m_nanoVG,
 		vec2(m_screenSystem.mmToPixels(transform.position.x),
@@ -380,7 +450,7 @@ void UISystem::renderCircle(const Transform& transform, float diameter, const Co
 		color);
 }
 
-void UISystem::renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color)
+void UIScene::renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color)
 {
 	renderRectangleNano(m_nanoVG,
 		convertToRectangle(transform, box, pivot),
@@ -388,7 +458,7 @@ void UISystem::renderRectangle(const Transform& transform, const Box& box, const
 		color);
 }
 
-void UISystem::renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
+void UIScene::renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 	const Color& color, const Color& textColor)
 {
 	renderButtonNano(m_nanoVG, text,
@@ -398,16 +468,17 @@ void UISystem::renderButton(const String& text, const Transform& transform, cons
 		textColor);
 }
 
-void UISystem::renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot)
+void UIScene::renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
+const AssetSystem& assetSystem)
 {
-	const auto& image = m_assetSystem.getImage(imageLink);
+	const auto& image = assetSystem.getImage(imageLink);
 
 	auto rect = convertToRectangle(transform, box, pivot);
 
 	renderImageNano(m_nanoVG, image.imageId(), rect.x, rect.y, rect.width, rect.height);
 }
 
-void UISystem::renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
+void UIScene::renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
 			const Color& color)
 {
 	nvgSave(vg);
@@ -425,7 +496,7 @@ void UISystem::renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
 	nvgRestore(vg);
 }
 
-void UISystem::renderCircleNano(NVGcontext* vg, const vec2& position,
+void UIScene::renderCircleNano(NVGcontext* vg, const vec2& position,
 	float diameter, const Color& color)
 {
 	nvgSave(vg);
@@ -443,8 +514,12 @@ void UISystem::renderCircleNano(NVGcontext* vg, const vec2& position,
 	nvgRestore(vg);
 }
 
-void UISystem::renderBorderNano(NVGcontext* vg, const Rectangle& rectangle,
-	float cornerRadius, const Color& color)
+void UIScene::renderBorderNano(
+	NVGcontext* vg,
+	const Rectangle& rectangle,
+	const Color& color,
+	float cornerRadius,
+	float thickness)
 {
 	// No negatives please:
 	//if (w < 5.0f) w = 5.0f;
@@ -457,14 +532,14 @@ void UISystem::renderBorderNano(NVGcontext* vg, const Rectangle& rectangle,
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
 	nvgStrokeColor(vg, strokeColor);
-	nvgStrokeWidth(vg, 1.0f);
+	nvgStrokeWidth(vg, thickness);
 	nvgStroke(vg);
 
 	nvgRestore(vg);
 }
 
-void UISystem::renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
-	float cornerRadius, const Color& color)
+void UIScene::renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
+	float cornerRadius, const Color& color) const
 {
 	NVGpaint shadowPaint;
 	NVGpaint headerPaint;
@@ -499,7 +574,7 @@ void UISystem::renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
 	nvgRestore(vg);
 }
 
-void UISystem::renderWindowNano(NVGcontext* vg, const String& title, const Rectangle& rectangle,
+void UIScene::renderWindowNano(NVGcontext* vg, const String& title, const Rectangle& rectangle,
 							float cornerRadius, const Color& color)
 {
 	//float cornerRadius = 30.0f;
@@ -587,7 +662,7 @@ void UISystem::renderWindowNano(NVGcontext* vg, const String& title, const Recta
 	nvgRestore(vg);
 }
 
-void UISystem::renderButtonNano(NVGcontext* vg, const String& text, const Rectangle& rectangle,
+void UIScene::renderButtonNano(NVGcontext* vg, const String& text, const Rectangle& rectangle,
 							float cornerRadius, const Color& color, const Color& textColor)
 {
 	NVGpaint shadowPaint;
@@ -648,12 +723,32 @@ void UISystem::renderButtonNano(NVGcontext* vg, const String& text, const Rectan
 	nvgRestore(vg);
 }
 
-Id UISystem::createButton(const String& text, std::function<void()> handler)
+Id UIScene::connectToWindow(const Window& window)
+{
+	Id id = m_entitySystem.createEntity();
+	m_rootId = id;
+	m_windows.assign(id, WindowEntity());
+
+	vec3 position = vec3(0.0f, 0.0f, 0.0f);
+	m_transformSystem.addTransform(id, Transform(position));
+	updateWindowSize(window);
+	m_transformSystem.addPivot(id, Pivot(-1.0f, -1.0f, 0.0f));
+
+	return id;
+}
+
+void UIScene::updateWindowSize(const Window& window)
+{
+	vec3 halfExtents = m_screenSystem.pixelsToMM(vec3(window.width(), window.height(), 1.0f) / 2.0f);
+	m_transformSystem.addBox(m_rootId, Box(-(halfExtents), halfExtents));
+}
+
+Id UIScene::createButton(const String& text, std::function<void()> handler)
 {
 	return createButton(text, vec3(), vec3(32.0f, 16.0f, 1.0f), handler);
 }
 
-Id UISystem::createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler)
+Id UIScene::createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler)
 {
 	Id button = createButton(text, vec3(rectangle.x, rectangle.y, 0.0f), vec3(rectangle.width, rectangle.height, 1.0f),
 		handler);
@@ -661,25 +756,25 @@ Id UISystem::createButton(const String& text, const Rectangle& rectangle, std::f
 	return button;
 }
 
-Id UISystem::createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler)
+Id UIScene::createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(id, Box(-(halfExtents), halfExtents));
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addButton(id, Button(text));
 	addCommand(id, Command(handler));
 	return id;
 }
 
-Id UISystem::createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property)
+Id UIScene::createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(id, Box(-(halfExtents), halfExtents));
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addButton(id, Button(text));
 
 	// When button gets clicked, change property
@@ -694,7 +789,7 @@ Id UISystem::createToggleButton(const String& text, const vec3& position, const 
 	return id;
 }
 
-void UISystem::bindActive(Id id, Bool& property)
+void UIScene::bindActive(Id id, Bool& property)
 {
 	// Set current active
 	setActive(id, property);
@@ -708,91 +803,91 @@ void UISystem::bindActive(Id id, Bool& property)
 	});
 }
 
-Id UISystem::createTextBox(const String& text, const vec3& position, const vec3& extents)
+Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& extents)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 	m_transformSystem.setPosition(id, position);
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(id, Box(-(halfExtents), halfExtents));
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addText(id, text);
 	return id;
 }
 
-Id UISystem::createViewport(int sceneIndex, const vec3& position, const vec3& extents)
+Id UIScene::createViewport(int sceneIndex, const vec3& position, const vec3& extents)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(id, Box(-(halfExtents), halfExtents));
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addViewport(id, Viewport(sceneIndex));
 	return id;
 }
 
-void UISystem::addViewport(Id id, Viewport&& entity)
+void UIScene::addViewport(Id id, Viewport&& entity)
 {
 	m_viewports.assign(id, std::move(entity));
 }
 
-const Viewport& UISystem::getViewport(Id id)
+const Viewport& UIScene::getViewport(Id id)
 {
 	return m_viewports.get(id);
 }
 
-Rectangle UISystem::getViewportPixelRectangle(int sceneIndex)
+Rectangle UIScene::getViewportPixelRectangle(int sceneIndex) const
 {
 	Rectangle viewportRect;
-	query<Viewport>(m_viewports, [&](Id id, Viewport& viewport)
+	query<Viewport>(m_viewports, [&](Id id, const Viewport& viewport)
 	{
 		if (viewport.sceneIndex == sceneIndex and
 			m_transformSystem.hasTransform(id) and
-			m_boxes.check(id))
+			m_transformSystem.hasBox(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = getBox(id);
+			const Box& box = m_transformSystem.getBox(id);
 			viewportRect = convertToRectangle(transform, box, Pivots::Center);
 		}
 	});
 	return viewportRect;
 }
 
-Id UISystem::createPanel(const Rectangle& rectangle)
+Id UIScene::createPanel(const Rectangle& rectangle)
 {
 	Id entity = createPanel(vec3(rectangle.x, rectangle.y, 0.0f), vec3(rectangle.width, rectangle.height, 1.0f));
 	m_transformSystem.addPivot(entity, Pivots::TopLeft2D);
 	return entity;
 }
 
-Id UISystem::createPanel(const vec3& position, const vec3& extents)
+Id UIScene::createPanel(const vec3& position, const vec3& extents)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(id, Box(-(halfExtents), halfExtents));
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addPanel(id, Panel());
 	return id;
 }
 
-void UISystem::addPanel(Id id, Panel&& panel)
+void UIScene::addPanel(Id id, Panel&& panel)
 {
 	m_panels.assign(id, std::move(panel));
 }
 
-const Panel& UISystem::getPanel(Id id)
+const Panel& UIScene::getPanel(Id id)
 {
 	return m_panels.get(id);
 }
 
-void UISystem::addStackLayout(Id id)
+void UIScene::addStackLayout(Id id)
 {
 	m_stackLayouts.assign(id, StackLayout());
 }
 
 /*RAE_TODO owner or layoutChildren thing
-void UISystem::addToLayout(Id layoutId, Id childId)
+void UIScene::addToLayout(Id layoutId, Id childId)
 {
 	if (m_layouts.check(layoutId))
 	{
@@ -805,127 +900,110 @@ void UISystem::addToLayout(Id layoutId, Id childId)
 }
 */
 
-Id UISystem::createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents)
+Id UIScene::createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
 	vec3 halfExtents = extents / 2.0f;
-	addBox(id, Box(-(halfExtents), halfExtents));
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addImageLink(id, ImageLink(imageLink));
 	return id;
 }
 
-void UISystem::addImageLink(Id id, ImageLink entity)
+void UIScene::addImageLink(Id id, ImageLink entity)
 {
 	m_imageLinks.assign(id, std::move(entity));
 }
 
-const ImageLink& UISystem::getImageLink(Id id)
+const ImageLink& UIScene::getImageLink(Id id)
 {
 	return m_imageLinks.get(id);
 }
 
-Id UISystem::createKeyline(Keyline&& element)
+Id UIScene::createKeyline(Keyline&& element)
 {
 	Id id = m_entitySystem.createEntity();
 	addKeyline(id, std::move(element));
 	return id;
 }
 
-void UISystem::addKeyline(Id id, Keyline&& element)
+void UIScene::addKeyline(Id id, Keyline&& element)
 {
 	m_keylines.assign(id, std::move(element));
 }
 
-const Keyline& UISystem::getKeyline(Id id)
+const Keyline& UIScene::getKeyline(Id id)
 {
 	return m_keylines.get(id);
 }
 
-void UISystem::addKeylineLink(Id childId, Id keylineId) //TODO anchor
+void UIScene::addKeylineLink(Id childId, Id keylineId) //TODO anchor
 {
 	m_keylineLinks.assign(childId, KeylineLink(keylineId));
 }
 
-const KeylineLink& UISystem::getKeylineLink(Id id)
+const KeylineLink& UIScene::getKeylineLink(Id id)
 {
 	return m_keylineLinks.get(id);
 }
 
-void UISystem::addBox(Id id, Box&& box)
-{
-	m_boxes.assign(id, std::move(box));
-}
-
-const Box& UISystem::getBox(Id id)
-{
-	return m_boxes.get(id);
-}
-
-void UISystem::addText(Id id, const String& text)
+void UIScene::addText(Id id, const String& text)
 {
 	m_texts.assign(id, std::move(Text(text)));
 }
 
-void UISystem::addText(Id id, Text&& text)
+void UIScene::addText(Id id, Text&& text)
 {
 	m_texts.assign(id, std::move(text));
 }
 
-const Text& UISystem::getText(Id id)
+const Text& UIScene::getText(Id id)
 {
 	return m_texts.get(id);
 }
 
-void UISystem::addButton(Id id, Button&& element)
+void UIScene::addButton(Id id, Button&& element)
 {
 	m_buttons.assign(id, std::move(element));
 }
 
-const Button& UISystem::getButton(Id id)
+const Button& UIScene::getButton(Id id)
 {
 	return m_buttons.get(id);
 }
 
-void UISystem::addColor(Id id, Color&& element)
+void UIScene::addColor(Id id, Color&& element)
 {
 	m_colors.assign(id, std::move(element));
 }
 
-const Color& UISystem::getColor(Id id)
+const Color& UIScene::getColor(Id id)
 {
 	return m_colors.get(id);
 }
 
-void UISystem::addCommand(Id id, Command&& element)
+void UIScene::addCommand(Id id, Command&& element)
 {
 	m_commands.assign(id, std::move(element));
 }
 
-const Command& UISystem::getCommand(Id id)
+const Command& UIScene::getCommand(Id id)
 {
 	return m_commands.get(id);
 }
 
-void UISystem::setHovered(Id id, bool hovered)
-{
-	if (hovered)
-		m_hovers.assign(id, std::move(Hover()));
-	else m_hovers.remove(id);
-}
-
-bool UISystem::isHovered(Id id)
-{
-	return m_hovers.check(id);
-}
-
-void UISystem::setActive(Id id, bool active)
+void UIScene::setActive(Id id, bool active)
 {
 	m_actives.assign(id, std::move(Active(active)));
 }
 
-bool UISystem::isActive(Id id)
+bool UIScene::isActive(Id id)
 {
 	return m_actives.get(id);
+}
+
+void UISystem::render2D(UIScene& uiScene, NVGcontext* nanoVG)
+{
+	uiScene.render2D(nanoVG, m_assetSystem);
 }

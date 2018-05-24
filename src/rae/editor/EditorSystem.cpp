@@ -470,7 +470,7 @@ UpdateStatus EditorSystem::update()
 	return UpdateStatus::NotChanged; // for now.
 }
 
-void EditorSystem::render3D(const Scene& scene)
+void EditorSystem::render3D(const Scene& scene, const Window& window)
 {
 	const Camera& camera = scene.cameraSystem().currentCamera();
 	m_transformTool.render3D(camera, m_renderSystem, m_assetSystem);

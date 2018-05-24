@@ -24,12 +24,12 @@ void AssetLinkSystem::addMaterialLink(Id id, Id linkId)
 }
 
 Scene::Scene(
-	String name,
+	const String& name,
 	const Time& time,
 	Input& input) :
 		m_name(name),
 		m_entitySystem("SceneSystem"),
-		m_transformSystem(time),
+		m_transformSystem(),
 		m_selectionSystem(m_transformSystem),
 		m_cameraSystem(time, m_entitySystem, m_transformSystem, input)
 {
@@ -40,17 +40,6 @@ UpdateStatus Scene::update()
 	auto transformSystemStatus = m_transformSystem.update();
 	auto cameraSystemStatus = m_cameraSystem.update();
 	auto selectionSystemStatus = m_selectionSystem.update();
-
-	//LOG_F(INFO, "Scene::update().");
-
-	{
-		g_debugSystem->showDebugText("");
-		g_debugSystem->showDebugText("Scene: " + name());
-		g_debugSystem->showDebugText("Entities on scene: " + std::to_string(m_entitySystem.entityCount()));
-		g_debugSystem->showDebugText("Transforms: " + std::to_string(m_transformSystem.transformCount()));
-		g_debugSystem->showDebugText("");
-	}
-
 
 	// Return update status
 	if (transformSystemStatus != UpdateStatus::NotChanged)
@@ -174,7 +163,7 @@ SceneSystem::SceneSystem(
 	activateScene(0);
 }
 
-Scene& SceneSystem::createScene(String name)
+Scene& SceneSystem::createScene(const String& name)
 {
 	LOG_F(INFO, "Creating Scene: %s", name.c_str());
 	m_scenes.emplace_back(name, m_time, m_input);

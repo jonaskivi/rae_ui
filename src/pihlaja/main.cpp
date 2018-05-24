@@ -10,16 +10,8 @@
 #endif
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-GLFWwindow* window;
 
 #include "nanovg.h"
-
-#ifdef _WIN32
-#define NANOVG_GL3_IMPLEMENTATION
-#else
-#define NANOVG_GL2_IMPLEMENTATION
-#endif
-
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
@@ -38,66 +30,30 @@ GLFWwindow* window;
 
 Engine* g_engine = nullptr;
 
-void windowSizeCallback(GLFWwindow* window, int width, int height)
-{
-	if( g_engine == nullptr )
-		return;
-	g_engine->osEventResizeWindow(width, height);
-}
-
-void windowPixelSizeCallback(GLFWwindow* window, int width, int height)
-{
-	if( g_engine == nullptr )
-		return;
-	g_engine->osEventResizeWindowPixels(width, height);
-}
-
-void glfwOnMouseButton(GLFWwindow* set_window, int set_button, int set_action, int set_mods)
-{
-	if( g_engine == nullptr )
-		return;
-
-	double mx, my;
-	glfwGetCursorPos(set_window, &mx, &my);
-
-	//LOG_F(INFO, "glfwOnMouseButtonPress. x: %f y: %f", mx, my);
-	if(set_action == GLFW_PRESS)
-	{
-		g_engine->osMouseButtonPress(set_button, (float)mx, (float)my);
-	}
-	else if(set_action == GLFW_RELEASE)
-	{
-		g_engine->osMouseButtonRelease(set_button, (float)mx, (float)my);
-	}
-}
-
-void glfwOnMouseMotion(GLFWwindow* set_window, double set_x, double set_y)
-{
-	if( g_engine == nullptr )
-		return;
-
-	g_engine->osMouseMotion((float)set_x, (float)set_y);
-}
-
-void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if( g_engine == nullptr )
-		return;
-
-	g_engine->osKeyEvent(key, scancode, action, mods);
-}
-
-void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	if( g_engine == nullptr )
-		return;
-
-	g_engine->osScrollEvent((float)xoffset, (float)yoffset);	
-}
-
-int main(int argc, char** argv)
+int main(int argc, char* argv[])
 {
 	loguru::init(argc, argv);
+
+	for (int i = 1; i < argc; ++i)
+	{
+		std::string arg = argv[i];
+		if (arg == "--help" || arg == "-h")
+		{
+			std::cout << "Usage: " << argv[0] << " <OPTIONS>\n";
+			std::cout << "\t--help -h : This help screen.\n";
+			std::cout << "\t--version : Print out the version of the application and some of the libraries.\n";
+			return 0;
+		}
+		else if (arg == "--version")
+		{
+			std::cout << "Pihlaja version " << __DATE__ << "\n";
+			std::cout << "GLFW version "
+				<< GLFW_VERSION_MAJOR << "."
+				<< GLFW_VERSION_MINOR << "."
+				<< GLFW_VERSION_REVISION << "\n";
+			return 0;
+		}
+	}
 
 	try
 	{
@@ -123,86 +79,15 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	// Initialise GLFW
-	if( !glfwInit() )
 	{
-		LOG_F(ERROR, "Failed to initialize GLFW.");
-		return -1;
-	}
-
-	// Enable MSAA (multisample anti-aliasing)
-	glfwWindowHint(GLFW_SAMPLES, 4);
-
-	#ifndef _WIN32 // don't require this on win32, and works with more cards
-	// Set OpenGL version to 2.1
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-	#endif
-	
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
-
-	// Create window
-
-	GLFWmonitor* screen     = glfwGetPrimaryMonitor();
-	const GLFWvidmode* mode = glfwGetVideoMode(screen);
-
-	window = glfwCreateWindow(mode->width - 200, mode->height - 200, "Pihlaja", nullptr, nullptr);
-
-	if (window == nullptr)
-	{
-		LOG_F(ERROR, "Failed to open GLFW window.");
-		glfwTerminate();
-		return -1;
-	}
-
-	glfwMakeContextCurrent(window);
-
-	// Initialize GLEW
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK)
-	{
-		LOG_F(ERROR, "Failed to initialize GLEW.");
-		return -1;
-	}
-	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
-	glGetError();
-
-	glfwSwapInterval(0);
-
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
-	glfwSetWindowSizeCallback     (window, windowSizeCallback);
-	glfwSetFramebufferSizeCallback(window, windowPixelSizeCallback); // Support hi-dpi displays
-	glfwSetMouseButtonCallback    (window, glfwOnMouseButton);
-	glfwSetCursorPosCallback      (window, glfwOnMouseMotion);
-	glfwSetKeyCallback            (window, glfwKeyCallback);
-	glfwSetScrollCallback         (window, glfwScrollCallback);
-
-	NVGcontext* nanoVG;
-
-	#ifdef _WIN32
-		nanoVG = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-	#else
-		nanoVG = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-	#endif
-
-	if (nanoVG == nullptr)
-	{
-		LOG_F(ERROR, "Could not init nanovg.");
-		getchar();
-		exit(0);
-		assert(0);
-	}
-
-	{
-		Test2DCoordinates test2DCoordinates(window, nanoVG);
+		Test2DCoordinates test2DCoordinates;
 		g_engine = test2DCoordinates.getEngine();
 		test2DCoordinates.run();
 		g_engine = nullptr;
 	}
 
 	{
-		Pihlaja pihlaja(window, nanoVG);
+		Pihlaja pihlaja;
 		g_engine = pihlaja.getEngine();
 		pihlaja.run();
 		g_engine = nullptr;

@@ -60,7 +60,7 @@ DebugSystem::~DebugSystem()
 	g_debugSystem = nullptr;
 }
 
-void DebugSystem::render3D(const Scene& scene)
+void DebugSystem::render3D(const Scene& scene, const Window& window)
 {
 	const Camera& camera = scene.cameraSystem().currentCamera();
 
@@ -129,7 +129,7 @@ void DebugSystem::log(const String& text, const Color& color)
 	m_logTexts.emplace_back(DebugText(text, color));
 }
 
-void DebugSystem::render2D(NVGcontext* nanoVG)
+void DebugSystem::render2D(UIScene& uiScene, NVGcontext* nanoVG)
 {
 	const float lineHeight = 18.0f;
 

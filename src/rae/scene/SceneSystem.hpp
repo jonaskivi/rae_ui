@@ -12,6 +12,7 @@ namespace rae
 
 class Time;
 class AssetSystem;
+class UISystem;
 
 using MeshLink = Id;
 using MaterialLink = Id;
@@ -40,7 +41,7 @@ friend class SceneSystem;
 
 public:
 	Scene(
-		String name,
+		const String& name,
 		const Time& time,
 		Input& input);
 
@@ -90,10 +91,10 @@ public:
 		const Time& time,
 		Input& input);
 
-	String name() override { return "SceneSystem"; }
+	String name() const override { return "SceneSystem"; }
 	virtual UpdateStatus update() override;
 
-	Scene& createScene(String name = "Untitled");
+	Scene& createScene(const String& name = "Untitled");
 	void activateScene(int index);
 
 	bool hasActiveScene() const
@@ -103,10 +104,8 @@ public:
 		return false;
 	}
 
-	Scene& activeScene()
-	{
-		return m_scenes[m_activeSceneIdx];
-	}
+	const Scene& activeScene() const { return m_scenes[m_activeSceneIdx]; }
+	Scene& activeScene() { return m_scenes[m_activeSceneIdx]; }
 
 	bool hasScene(int index) const
 	{
@@ -115,9 +114,27 @@ public:
 		return false;
 	}
 
-	const Scene& getScene(int index) const
+	const Scene& defaultScene() const { return scene(0); }
+	Scene& defaultScene() { return scene(0); }
+
+	const Scene& scene(int index) const { return m_scenes[index]; }
+	Scene& scene(int index) { return m_scenes[index]; }
+
+	// Returns -1 if the scene was not found.
+	int getSceneIndex(const Scene& findScene)
 	{
-		return m_scenes[index];
+		int i = 0;
+		for (auto&& scene : m_scenes)
+		{
+			if (&findScene == &scene)
+			{
+				return i;
+			}
+			i++;
+		}
+		// RAE_TODO temp
+		assert(0);
+		return -1;
 	}
 
 private:

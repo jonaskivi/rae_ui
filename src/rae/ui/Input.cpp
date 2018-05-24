@@ -2,6 +2,7 @@
 
 #include "loguru/loguru.hpp"
 #include "rae/core/ScreenSystem.hpp"
+#include "rae/ui/WindowSystem.hpp"
 
 using namespace rae;
 
@@ -94,19 +95,19 @@ void Input::addTouchPoint(TouchPointState setState, int setId, float xPixels, fl
 	LOG_F(ERROR, "ERROR: Input::addTouchPoint. Touch ID not found. id: %i", setId);
 }
 
-void Input::osScrollEvent(float deltaX, float deltaY)
+void Input::osScrollEvent(const Window& window, float deltaX, float deltaY)
 {
 	m_changed = UpdateStatus::Changed;
 	isHandled = false;
 	eventType = EventType::Scroll;
-	
+
 	mouse.scrollX = deltaX;
 	mouse.scrollY = deltaY;
 
 	emitScrollEvent();
 }
 
-void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
+void Input::osKeyEvent(const Window& window, EventType setEventType, int setKey, int32_t setUnicode)
 {
 	//LOG_F(INFO, "Input.keyEvent() setKey: %i", setKey);
 
@@ -117,7 +118,7 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 
 	key.value = setKey;
 	//key.unicode = setUnicode;
-	
+
 	/*
 	version(gtk)
 	{
@@ -130,7 +131,7 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 		key.unicode = cast(dchar) setKey;
 	}
 	*/
-	
+
 	if (setEventType == EventType::KeyPress)
 	{
 		//LOG_F(INFO, "KEY_PRESS: %i unicode: %i", setKey, setUnicode);
@@ -155,7 +156,7 @@ void Input::osKeyEvent(EventType setEventType, int setKey, int32_t setUnicode)
 	emitKeyEvent();
 }
 
-void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int setButton,
+void Input::osMouseEvent(const Window& window, EventType setEventType, int setButton,
 	float rawXPixels, float rawYPixels, float setAmount)
 {
 	//assert(setButton >= 0); // "Mouse button is smaller than 0. Platform not supported yet."
@@ -170,7 +171,6 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	float xPixels = rawXPixels;
 	float yPixels = rawYPixels;
 
-	const auto& window = m_screenSystem.window();
 	float xCenterPixels = rawXPixels - (window.pixelWidth() * 0.5f);
 	float yCenterPixels = rawYPixels - (window.pixelHeight() * 0.5f);
 
@@ -186,12 +186,12 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	isHandled = false;
 	//eventWindow = setWindow;
 	eventType = setEventType;
-	
+
 	MouseButton mouseButton = intToMouseButton(setButton);
 	mouse.eventButton = mouseButton;
 
 	mouse.amount = setAmount;
-	
+
 	mouse.doubleClickButton = 0; // Zero this, we can only emit one double click button per event...
 	// Is that bad? Propably ok,
 	// as there can only be one eventButton per event as well.
@@ -216,7 +216,7 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 		//We measure the time between mouse button releases.
 		if( setButton == MouseButton.LEFT )
 		{
-		
+
 			if( doubleClickValid1 == true )
 			{
 				if( doubleClickTimer1.stop() <= 0.75 )//Currently 0.75 sec. TODO preferences in class Rae.
@@ -229,7 +229,7 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 				{
 					debug(mouse) Trace.formatln("Input.NO .... Double click LEFT." );
 				}
-				
+
 				doubleClickTimer1.start();
 			}
 			else
@@ -268,8 +268,8 @@ void Input::osMouseEvent(/*IRectangle* setWindow,*/ EventType setEventType, int 
 	mouse.xMM = m_screenSystem.pixelsToMM(rawXPixels);
 	mouse.yMM = m_screenSystem.pixelsToMM(rawYPixels);
 
-	mouse.xNormalizedWindow = m_screenSystem.xPixelsToNormalizedWindow(rawXPixels);
-	mouse.yNormalizedWindow = m_screenSystem.yPixelsToNormalizedWindow(rawYPixels);
+	mouse.xNormalizedWindow = window.xPixelsToNormalizedWindow(rawXPixels);
+	mouse.yNormalizedWindow = window.yPixelsToNormalizedWindow(rawYPixels);
 
 	if (eventType == EventType::MouseMotion)
 	{

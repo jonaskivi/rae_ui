@@ -9,35 +9,9 @@
 
 using namespace rae;
 
-void Window::osEventResizeWindow(int width, int height)
-{
-	m_width = width;
-	m_height = height;
-	m_screenPixelRatio = (float)m_pixelWidth / (float)m_width;
-}
-
-void Window::osEventResizeWindowPixels(int width, int height)
-{
-	m_pixelWidth = width;
-	m_pixelHeight = height;
-	m_screenPixelRatio = (float)m_pixelWidth / (float)m_width;
-}
-
-void ScreenSystem::osEventResizeWindow(int width, int height)
-{
-	m_windows[0].osEventResizeWindow(width, height);
-}
-
-void ScreenSystem::osEventResizeWindowPixels(int width, int height)
-{
-	m_windows[0].osEventResizeWindowPixels(width, height);
-}
-
-ScreenSystem::ScreenSystem(GLFWwindow* window)
+ScreenSystem::ScreenSystem()
 {
 	updateScreenInfo();
-
-	m_windows.emplace_back(window);
 }
 
 #ifdef version_cocoa
@@ -59,7 +33,7 @@ void ScreenSystem::updateScreenInfo()
 	#ifdef DebugScreenInfo
 		LOG_F(INFO, "ScreenSystem::updateScreenInfo() found %i screens.", screenCount);
 	#endif
-	
+
 	for( uint i = 0; i < screenCount; i++ )
 	{
 		NSScreen* screen = [screenArray objectAtIndex: i];
@@ -70,14 +44,14 @@ void ScreenSystem::updateScreenInfo()
 		screens.emplace_back(
 			i, screenRect.size.width, screenRect.size.height,
 			visibleRect.size.width, visibleRect.size.height);
-		
+
 		#ifdef DebugScreenInfo
 			LOG_F(INFO, "Screen [%i]: %ix%i : visibleArea: %ix%i", i, screenRect.size.width, screenRect.size.height,
 				visibleRect.size.width, visibleRect.size.height);
 		#endif
-		
+
 	}
-		
+
 	#ifdef DebugRae
 		LOG_F(INFO, "ScreenSystem::updateScreenInfo() END.");
 	#endif
@@ -93,6 +67,15 @@ void ScreenSystem::updateScreenInfo()
 		LOG_F(INFO, "ScreenSystem::updateScreenInfo() START.");
 	#endif
 
+	// Initialise GLFW
+	if (!glfwInit())
+	{
+		LOG_F(ERROR, "Failed to initialize GLFW.");
+		getchar();
+		exit(0);
+		return;
+	}
+
 	//If we happen to have some screens there already, we'll clear them first.
 	screens.clear();
 
@@ -102,7 +85,7 @@ void ScreenSystem::updateScreenInfo()
 	#ifdef DebugScreenInfo
 		LOG_F(INFO, "ScreenSystem::updateScreenInfo() found %i screens.", screenCount);
 	#endif
-	
+
 	for (int i = 0; i < screenCount; ++i)
 	{
 		const GLFWvidmode* videoMode = glfwGetVideoMode(monitors[i]);
@@ -131,9 +114,9 @@ void ScreenSystem::updateScreenInfo()
 				screen.pixelsPerCM(),
 				screen.dpi());
 		#endif
-		
+
 	}
-		
+
 	#ifdef DebugRae
 		LOG_F(INFO, "ScreenSystem::updateScreenInfo() END.");
 	#endif

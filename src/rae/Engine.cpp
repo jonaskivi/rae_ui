@@ -11,28 +11,32 @@
 
 using namespace rae;
 
-//RAE_TODO: Split this into Engine & ViewportSystem classes:
-// Engine just handles all the systems and their updates.
-// ViewportSystem handles 3D picking etc... ?
+Engine::Engine() :
+	Engine("Rae Application", -1, -1)
+{
+}
 
-Engine::Engine(GLFWwindow* glfwWindow, NVGcontext* nanoVG) :
-	m_screenSystem(glfwWindow),
+Engine::Engine(const String& applicationName, int mainWindowWidth, int mainWindowHeight) :
+	m_screenSystem(),
 	m_input(m_screenSystem),
+	m_windowSystem(m_input, applicationName, mainWindowWidth, mainWindowHeight),
 	m_debugSystem(),
-	m_assetSystem(m_time),
+	m_assetSystem(m_time, m_windowSystem.mainWindow().nanoVG()),
 	m_sceneSystem(m_time, m_input/*, m_assetSystem*/),
-	m_uiSystem(m_time, m_input, m_screenSystem, m_assetSystem, m_debugSystem),
-	m_rayTracer(m_time, m_assetSystem, m_sceneSystem),
-	m_renderSystem(nanoVG, m_time, glfwWindow, m_input, m_screenSystem,
-		m_assetSystem, m_uiSystem, m_sceneSystem,
+	m_uiSystem(m_windowSystem, m_time, m_input, m_screenSystem, m_assetSystem, m_debugSystem),
+	m_rayTracer(m_time, m_windowSystem, m_assetSystem, m_sceneSystem),
+	m_renderSystem(m_time, m_input, m_screenSystem,
+		m_windowSystem, m_assetSystem, m_uiSystem, m_sceneSystem,
 		m_rayTracer),
 	m_editorSystem(m_sceneSystem, m_renderSystem, m_assetSystem, m_input/*, m_uiSystem*/)
 {
 	m_time.initTime(glfwGetTime());
 
+	/* RAE_TODO HOW TO HANDLE INPUT:
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&Engine::onMouseEvent, this, _1));
 	m_input.connectKeyEventHandler(std::bind(&Engine::onKeyEvent, this, _1));
+	*/
 }
 
 void Engine::destroyEntity(Id id)
@@ -78,19 +82,15 @@ void Engine::run()
 		// It will take up too much CPU all the time, even when nothing is happening.
 		glfwWaitEvents(); //use this instead. It will sleep when no events are being received.
 
-		GLFWwindow* window = m_screenSystem.window(0).windowHandle();
-
 		while (m_running == true && update() == UpdateStatus::Changed)
 		{
-			// Swap buffers
-			glfwSwapBuffers(window);
-
 			glfwPollEvents();
 
-			if (glfwWindowShouldClose(window) != 0)
-			{
-				m_running = false;
-			}
+			// RAE_TODO reimplement window close support for multiple windows. Press ESC for now.
+			//if (glfwWindowShouldClose(windowHandle) != 0)
+			//{
+			//	m_running = false;
+			//}
 
 			m_time.setPreviousTime();
 		}
@@ -110,10 +110,10 @@ UpdateStatus Engine::update()
 
 	if (!m_destroyEntities.empty())
 	{
-		/*for (auto system : m_systems)
-		{
-			system->destroyEntities(m_destroyEntities);
-		}*/
+		//for (auto system : m_systems)
+		//{
+		//	system->destroyEntities(m_destroyEntities);
+		//}
 		m_sceneSystem.destroyEntities(m_destroyEntities);
 		m_destroyEntities.clear();
 	}
@@ -125,6 +125,22 @@ UpdateStatus Engine::update()
 			system->defragmentTables();
 		}
 		m_defragmentTables = false;
+	}
+
+	// Update window sizes to scenes
+	{
+		for (int i = 0; i < m_windowSystem.windowCount(); ++i)
+		{
+			auto&& window = m_windowSystem.window(i);
+
+			int uiSceneIndex = window.uiSceneIndex();
+			if (m_uiSystem.hasScene(uiSceneIndex))
+			{
+				UIScene& uiScene = m_uiSystem.scene(uiSceneIndex);
+				uiScene.updateWindowSize(window);
+			}
+		}
+
 	}
 
 	reactToInput(m_input);
@@ -143,41 +159,61 @@ UpdateStatus Engine::update()
 		}
 	}
 
-	m_renderSystem.beginFrame3D();
-
-	for (int i = 0; i < m_uiSystem.viewportCount(); ++i)
+	for (int i = 0; i < m_windowSystem.windowCount(); ++i)
 	{
-		Rectangle viewport = m_uiSystem.getViewportPixelRectangle(i);
+		auto&& window = m_windowSystem.window(i);
+		//LOG_F(INFO, "Window: %s sceneIndex: %i", window.name().c_str(), window.sceneIndex());
 
-		m_renderSystem.setViewport(viewport);
+		window.activateContext();
 
-		if (m_sceneSystem.hasScene(i))
+		int uiSceneIndex = window.uiSceneIndex();
+		//LOG_F(INFO, "window: %i uiSceneIndex: %i", i, uiSceneIndex);
+		if (m_uiSystem.hasScene(uiSceneIndex))
 		{
-			const Scene& scene = m_sceneSystem.getScene(i);
+			// RAE_TODO possibly const
+			UIScene& uiScene = m_uiSystem.scene(uiSceneIndex);
 
-			for (auto system : m_renderers3D)
+			m_renderSystem.beginFrame3D();
+
+			for (int i = 0; i < uiScene.viewportCount(); ++i)
+			{
+				Rectangle viewport = uiScene.getViewportPixelRectangle(i);
+
+				m_renderSystem.setViewport(viewport, window);
+
+				if (m_sceneSystem.hasScene(i))
+				{
+					const Scene& scene = m_sceneSystem.scene(i);
+
+					for (auto system : m_renderers3D)
+					{
+						if (system->isEnabled())
+						{
+							system->render3D(scene, window);
+						}
+					}
+				}
+			}
+
+			m_renderSystem.endFrame3D();
+
+			m_renderSystem.beginFrame2D(window);
+
+			for (auto system : m_renderers2D)
 			{
 				if (system->isEnabled())
 				{
-					system->render3D(scene);
+					system->render2D(uiScene, window.nanoVG());
 				}
 			}
+
+			m_renderSystem.endFrame2D(window);
 		}
+
+		window.swapBuffers();
+
+		//LOG_F(INFO, "FRAME END.");
 	}
-
-	m_renderSystem.endFrame3D();
-
-	m_renderSystem.beginFrame2D();
-	for (auto system : m_renderers2D)
-	{
-		if (system->isEnabled())
-		{
-			system->render2D(m_renderSystem.nanoVG());
-		}
-	}
-	m_renderSystem.endFrame2D();
-
-	//LOG_F(INFO, "FRAME END.");
 
 	for (auto system : m_systems)
 	{
@@ -199,88 +235,27 @@ void Engine::askForFrameUpdate()
 
 void Engine::osEventResizeWindow(int width, int height)
 {
-	// TODO could pass it straight to screenSystem and cameraSystem.
-	m_renderSystem.osEventResizeWindow(width, height);
+	if (!m_sceneSystem.hasActiveScene())
+		return;
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& cameraSystem = scene.cameraSystem();
+	cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
 void Engine::osEventResizeWindowPixels(int width, int height)
 {
-	// TODO could pass it straight to screenSystem and cameraSystem.
-	m_renderSystem.osEventResizeWindowPixels(width, height);
-}
-
-void Engine::osMouseButtonPress(int set_button, float set_xP, float set_yP)
-{
-	const auto& window = m_screenSystem.window();
-	// Have to scale input on retina screens:
-	set_xP = set_xP * window.screenPixelRatio();
-	set_yP = set_yP * window.screenPixelRatio();
-
-	//LOG_F(INFO, "osMouseButtonPress after screenPixelRatio: %f x: %f y: %f", window.screenPixelRatio(),
-	//	set_xP, set_yP);
-
-	float setAmount = 0.0f;
-	m_input.osMouseEvent(
-		EventType::MouseButtonPress,
-		set_button,
-		set_xP,
-		set_yP,
-		setAmount);
-}
-
-void Engine::osMouseButtonRelease(int set_button, float set_xP, float set_yP)
-{
-	const auto& window = m_screenSystem.window();
-	// Have to scale input on retina screens:
-	set_xP = set_xP * window.screenPixelRatio();
-	set_yP = set_yP * window.screenPixelRatio();
-
-	float setAmount = 0.0f;
-	m_input.osMouseEvent(
-		EventType::MouseButtonRelease,
-		set_button,
-		set_xP,
-		set_yP,
-		setAmount);
-}
-
-void Engine::osMouseMotion(float set_xP, float set_yP)
-{
-	const auto& window = m_screenSystem.window();
-	// Have to scale input on retina screens:
-	set_xP = set_xP * window.screenPixelRatio();
-	set_yP = set_yP * window.screenPixelRatio();
-
-	float setAmount = 0.0f;
-	m_input.osMouseEvent(
-		EventType::MouseMotion,
-		(int)MouseButton::Undefined,
-		set_xP,
-		set_yP,
-		setAmount);
-}
-
-void Engine::osScrollEvent(float scrollX, float scrollY)
-{
-	m_input.osScrollEvent(scrollX, scrollY);
-}
-
-void Engine::osKeyEvent(int key, int scancode, int action, int mods)
-{
-	// glfw mods are not handled at the moment
-	EventType eventType = EventType::Undefined;
-	if (action == GLFW_PRESS)
-		eventType = EventType::KeyPress;
-	else if (action == GLFW_RELEASE)
-		eventType = EventType::KeyRelease;
-
-	m_input.osKeyEvent(eventType, key, (int32_t)scancode);
+	if (!m_sceneSystem.hasActiveScene())
+		return;
+	Scene& scene = m_sceneSystem.activeScene();
+	auto& cameraSystem = scene.cameraSystem();
+	cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
 void Engine::onMouseEvent(const Input& input)
 {
 	if (!m_sceneSystem.hasActiveScene())
 		return;
+/*RAE_TODO RENDERPICKING WINDOW...
 
 	Scene& scene = m_sceneSystem.activeScene();
 	auto& selectionSystem = scene.selectionSystem();
@@ -289,7 +264,7 @@ void Engine::onMouseEvent(const Input& input)
 	{
 		if (input.mouse.eventButton == MouseButton::First)
 		{
-			const auto& window = m_screenSystem.window();
+			const auto& window = m_windowSystem.window();
 
 			//LOG_F(INFO, "mouse press: x: %f y: %f", input.mouse.x, input.mouse.y);
 			//LOG_F(INFO, "mouse press: xP: %f yP: %f", (int)m_screenSystem.heightToPixels(input.mouse.x) + (m_renderSystem.windowPixelWidth() / 2),
@@ -327,6 +302,7 @@ void Engine::onMouseEvent(const Input& input)
 			}
 		}
 	}
+	*/
 }
 
 void Engine::onKeyEvent(const Input& input)

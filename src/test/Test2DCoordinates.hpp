@@ -17,7 +17,7 @@ namespace rae
 class Test2DCoordinates : public rae::ISystem
 {
 public:
-	Test2DCoordinates(GLFWwindow* glfwWindow, NVGcontext* nanoVG = nullptr);
+	Test2DCoordinates();
 
 	String name() { return "Test2DCoordinates"; }
 
@@ -29,7 +29,7 @@ public:
 
 	void run();
 	UpdateStatus update() override;
-	void render2D(NVGcontext* nanoVG) override;
+	void render2D(UIScene& uiScene, NVGcontext* nanoVG) override;
 
 	void renderGrid(
 		NVGcontext* nanoVG,
@@ -42,6 +42,8 @@ public:
 	void defragmentTables() override {}
 
 protected:
+
+	void initUISecondWindow();
 
 	Engine m_engine;
 	UISystem& m_uiSystem;

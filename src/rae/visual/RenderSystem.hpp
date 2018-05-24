@@ -26,6 +26,7 @@ namespace rae
 
 class Time;
 class ScreenSystem;
+class WindowSystem;
 class SceneSystem;
 class UISystem;
 class AssetSystem;
@@ -35,6 +36,7 @@ class Mesh;
 struct Entity;
 class Input;
 struct Rectangle;
+class Window;
 
 enum class RenderMode
 {
@@ -48,20 +50,18 @@ class RenderSystem : public ISystem
 {
 public:
 	RenderSystem(
-		NVGcontext* nanoVG,
 		const Time& time,
-		GLFWwindow* setWindow,
 		Input& input,
 		ScreenSystem& screenSystem,
+		WindowSystem& windowSystem,
 		AssetSystem& assetSystem,
 		UISystem& uiSystem,
 		SceneSystem& sceneSystem,
 		RayTracer& rayTracer);
 	~RenderSystem();
 
-	String name() override { return "RenderSystem"; }
+	String name() const override { return "RenderSystem"; }
 
-	void initNanoVG(NVGcontext* nanoVG = nullptr);
 	void init();
 
 	void checkErrors(const char *file, int line);
@@ -69,17 +69,17 @@ public:
 	UpdateStatus update() override;
 
 	void beginFrame3D();
-	void setViewport(const Rectangle& viewport);
-	void render3D(const Scene& scene) override;
+	void setViewport(const Rectangle& viewport, const Window& window);
+	void render3D(const Scene& scene, const Window& window) override;
 	void endFrame3D();
 
-	void renderPicking();
-	void render2dBackground();
-	void renderRayTracerOutput();
+	void renderPicking(const Window& window);
+	void render2dBackground(const Window& window);
+	void renderRayTracerOutput(const Window& window);
 
-	void beginFrame2D();
-	void render2D(NVGcontext* nanoVG) override;
-	void endFrame2D();
+	void beginFrame2D(const Window& window);
+	void render2D(UIScene& uiScene, NVGcontext* nanoVG) override;
+	void endFrame2D(const Window& window);
 
 	// RAE_TODO TEMP:
 	void renderImageBuffer(NVGcontext* vg, ImageBuffer<uint8_t>& readBuffer,
@@ -116,24 +116,16 @@ public:
 
 	const String& fpsString() const { return m_fpsString; }
 
-	void osEventResizeWindow(int width, int height);
-	void osEventResizeWindowPixels(int width, int height);
-
-	NVGcontext* nanoVG() { return m_nanoVG; }
-
 protected:
 	BasicShader m_basicShader;
 	SingleColorShader m_singleColorShader;
 	PickingShader m_pickingShader;
 
-	GLFWwindow* m_window;
-
-	NVGcontext* m_nanoVG = nullptr;
-	
 	// dependencies
 	const Time&			m_time;
 	Input&				m_input;
 	ScreenSystem&		m_screenSystem;
+	WindowSystem&		m_windowSystem;
 	AssetSystem&		m_assetSystem;
 	UISystem&			m_uiSystem;
 	SceneSystem&		m_sceneSystem;

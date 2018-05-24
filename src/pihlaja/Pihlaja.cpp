@@ -1,7 +1,7 @@
 #include "pihlaja/Pihlaja.hpp"
 
-Pihlaja::Pihlaja(GLFWwindow* glfwWindow, NVGcontext* nanoVG) :
-	m_engine(glfwWindow, nanoVG),
+Pihlaja::Pihlaja() :
+	m_engine("Pihlaja"),
 	#ifdef USE_RAE_AV
 	m_avSystem(m_engine.renderSystem()),
 	#endif
@@ -62,7 +62,12 @@ Pihlaja::Pihlaja(GLFWwindow* glfwWindow, NVGcontext* nanoVG) :
 
 void Pihlaja::initUI()
 {
-	auto& ui = m_uiSystem;
+	auto& uiSystem = m_uiSystem;
+	auto& windowSystem = m_engine.windowSystem();
+
+	UIScene& ui = uiSystem.defaultScene();
+	uiSystem.connectWindowToScene(windowSystem.mainWindow(), ui);
+
 	auto& trans = ui.transformSystem();
 
 	// RAE_TODO: Convert from this strange centered virtual pixel coordinate system to
@@ -293,10 +298,36 @@ void Pihlaja::run()
 	m_engine.run();
 }
 
+void Pihlaja::updateDebugTexts()
+{
+	if (!m_engine.sceneSystem().hasActiveScene())
+		return;
+
+	Scene& scene = m_engine.sceneSystem().activeScene();
+	auto& transformSystem = scene.transformSystem();
+	auto& entitySystem = scene.entitySystem();
+
+	g_debugSystem->showDebugText("");
+	g_debugSystem->showDebugText("Scene: " + scene.name());
+	g_debugSystem->showDebugText("Esc to quit, R reset, F autofocus, H visualize focus, ", Colors::white);
+	g_debugSystem->showDebugText("VB focus distance, NM aperture, KL bounces, ", Colors::white);
+	g_debugSystem->showDebugText("G debug view, Tab UI, U fastmode", Colors::white);
+	g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows", Colors::white);
+	g_debugSystem->showDebugText("Y toggle resolution", Colors::white);
+	g_debugSystem->showDebugText("");
+	g_debugSystem->showDebugText("Entities on scene: " + std::to_string(entitySystem.entityCount()));
+	g_debugSystem->showDebugText("Transforms: " + std::to_string(transformSystem.transformCount()));
+	g_debugSystem->showDebugText("Meshes: " + std::to_string(m_assetSystem.meshCount()));
+	g_debugSystem->showDebugText("Materials: " + std::to_string(m_assetSystem.materialCount()));
+	g_debugSystem->showDebugText("");
+}
+
 // OpticalFlow version
 UpdateStatus Pihlaja::update()
 {
 	reactToInput(m_input);
+
+	updateDebugTexts();
 
 #ifdef USE_RAE_AV
 	if (not m_play and not m_needsFrameUpdate)
@@ -366,7 +397,7 @@ UpdateStatus Pihlaja::update()
 			screenImage.requestUpdate();
 		}
 		///////////NOT: m_opticalFlow.waitForData();
-		
+
 		//m_opticalFlow.copyMatToImage(m_opticalFlow.getoutput, screenImage);
 	}
 

@@ -1,19 +1,27 @@
 #include "rae/scene/TransformSystem.hpp"
 
-#include "rae/core/Time.hpp"
-
 using namespace rae;
 
 static const int ReserveTransforms = 1000;
+static const int ReserveBoxes = 1000;
 
-TransformSystem::TransformSystem(const Time& time) :
-	m_time(time),
+TransformSystem::TransformSystem() :
 	m_localTransforms(ReserveTransforms),
 	m_localTransformChanged(ReserveTransforms),
 	m_transforms(ReserveTransforms),
-	m_transformChanged(ReserveTransforms)
+	m_transformChanged(ReserveTransforms),
+	m_boxes(ReserveBoxes)
 {
+	addTable(m_localTransforms);
 	addTable(m_transforms);
+
+	addTable(m_parents);
+	addTable(m_childrens);
+
+	addTable(m_owners);
+	addTable(m_owneds);
+
+	addTable(m_boxes);
 }
 
 UpdateStatus TransformSystem::update()
@@ -22,12 +30,12 @@ UpdateStatus TransformSystem::update()
 	{
 		if (m_localTransforms.check(id))
 		{
-			if (hasHierarchy(id))
+			if (hasParent(id))
 			{
-				auto& hierarchy = getHierarchy(id);
-				if (hasTransform(hierarchy.parent()))
+				Id parentId = getParent(id);
+				if (hasTransform(parentId))
 				{
-					const auto& parentTransform = getTransform(hierarchy.parent());
+					const auto& parentTransform = getTransform(parentId);
 					auto& transform = getTransformPrivate(id);
 					transform.position = parentTransform.position + m_localTransforms.getF(id).position;
 				}
@@ -38,6 +46,19 @@ UpdateStatus TransformSystem::update()
 	m_parentChanged.clear();
 
 	return UpdateStatus::NotChanged;
+}
+
+void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> process)
+{
+	process(parentId);
+	if (hasChildren(parentId))
+	{
+		auto& children = getChildren(parentId);
+		for (auto&& id : children)
+		{
+			processHierarchy(id, process);
+		}
+	}
 }
 
 void TransformSystem::addTransform(Id id, Transform&& transform)
@@ -87,12 +108,11 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 	for (auto&& id : ids)
 	{
 		bool topLevel = true;
-		if (hasHierarchy(id))
+		if (hasParent(id))
 		{
-			auto& hierarchy = getHierarchy(id);
 			for (auto&& id2 : ids)
 			{
-				if (hierarchy.parent() == id2)
+				if (getParent(id) == id2)
 				{
 					topLevel = false;
 					break;
@@ -111,31 +131,42 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 		m_transforms.getF(id).position += delta;
 		m_transformChanged.assign(id, Changed());
 
-
-		if (hasHierarchy(id))
+		if (hasChildren(id))
 		{
-			auto& hierarchy = getHierarchy(id);
-			for (auto&& childId : hierarchy.children())
+			auto& children = getChildren(id);
+			for (auto&& childId : children)
 			{
 				translate(childId, delta);
 			}
 		}
+
 	}
 }
 
 void TransformSystem::addChild(Id parent, Id child)
 {
-	if (!hasHierarchy(parent))
-		addHierarchy(parent, Hierarchy());
+	if (!hasChildren(parent))
+	{
+		m_childrens.assign(parent, { child });
+	}
+	else
+	{
+		auto& childrenArray = m_childrens.getF(parent);
+		// Check for duplicates
+		for (auto&& id : childrenArray)
+		{
+			if (id == child)
+			{
+				LOG_F(ERROR, "Same child added multiple times to a parent.");
+				assert(0);
+				return;
+			}
+		}
+		childrenArray.emplace_back(child);
+	}
 
-	if (!hasHierarchy(child))
-		addHierarchy(child, Hierarchy());
-
-	auto& hierarchy = getHierarchy(parent);
-	hierarchy.addChild(child);
-
-	auto& hierarchy2 = getHierarchy(child);
-	hierarchy2.setParent(parent);
+	if (!hasParent(child))
+		m_parents.assign(child, Parent(parent));
 
 	m_childrenChanged.assign(parent, Changed());
 	m_parentChanged.assign(child, Changed());
@@ -146,48 +177,28 @@ void TransformSystem::setParent(Id child, Id parent)
 	addChild(parent, child);
 }
 
-void TransformSystem::addHierarchy(Id id, Hierarchy&& component)
-{
-	m_hierarchies.assign(id, std::move(component));
-}
-
-bool TransformSystem::hasHierarchy(Id id) const
-{
-	return m_hierarchies.check(id);
-}
-
-const Hierarchy& TransformSystem::getHierarchy(Id id) const
-{
-	return m_hierarchies.get(id);
-}
-
-Hierarchy& TransformSystem::getHierarchy(Id id)
-{
-	return m_hierarchies.get(id);
-}
-
 bool TransformSystem::hasParent(Id id) const
 {
-	if (not hasHierarchy(id))
+	if (not m_parents.check(id))
 		return false;
-	return (m_hierarchies.get(id).parent() != InvalidId);
+	return (m_parents.getF(id) != InvalidId);
 }
 
 Id TransformSystem::getParent(Id id) const
 {
-	return m_hierarchies.get(id).parent();
+	return m_parents.get(id);
 }
 
 bool TransformSystem::hasChildren(Id id) const
 {
-	if (not hasHierarchy(id))
+	if (not m_childrens.check(id))
 		return false;
-	return (m_hierarchies.get(id).children().size() > 0);
+	return (m_childrens.get(id).size() > 0);
 }
 
-const std::set<Id>& TransformSystem::getChildren(Id id)
+const Array<Id>& TransformSystem::getChildren(Id id)
 {
-	return m_hierarchies.get(id).children();
+	return m_childrens.get(id);
 }
 
 void TransformSystem::addPivot(Id id, const Pivot& pivot)
@@ -203,4 +214,19 @@ bool TransformSystem::hasPivot(Id id) const
 const Pivot& TransformSystem::getPivot(Id id) const
 {
 	return m_pivots.get(id);
+}
+
+bool TransformSystem::hasBox(Id id) const
+{
+	return m_boxes.check(id);
+}
+
+void TransformSystem::addBox(Id id, Box&& box)
+{
+	m_boxes.assign(id, std::move(box));
+}
+
+const Box& TransformSystem::getBox(Id id) const
+{
+	return m_boxes.get(id);
 }

@@ -10,6 +10,10 @@ struct Selected
 {
 };
 
+struct Hover
+{
+};
+
 class TransformSystem;
 
 class SelectionSystem : public ISystem
@@ -25,6 +29,9 @@ public:
 	void toggleSelected(Id id);
 	void setSelected(Id id, bool selected);
 	bool isSelected(Id id) const;
+
+	void setHovered(Id id, bool hovered);
+	bool isHovered(Id id);
 
 	Event<SelectionSystem&> onSelectionChanged;
 
@@ -44,7 +51,9 @@ protected:
 
 	void clearSelectionInternal();
 
-	Table<Selected> m_selected;
+	Table<Selected>		m_selected;
+	Table<Hover>		m_hovers;
+
 	Id m_pixelClickedId = InvalidId;
 };
 

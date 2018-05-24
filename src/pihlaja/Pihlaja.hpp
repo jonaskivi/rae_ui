@@ -30,9 +30,9 @@ enum class VideoRenderingState
 class Pihlaja : public rae::ISystem
 {
 public:
-	Pihlaja(GLFWwindow* glfwWindow, NVGcontext* nanoVG = nullptr);
+	Pihlaja();
 
-	String name() override { return "PihlajaSystem"; }
+	String name() const override { return "PihlajaSystem"; }
 
 	Engine* getEngine() { return &m_engine; }
 
@@ -45,6 +45,8 @@ public:
 	UpdateStatus update() override;
 	void destroyEntities(const Array<Id>& entities) override {}
 	void defragmentTables() override {}
+
+	void updateDebugTexts();
 
 	void rewind();
 	void togglePlay();

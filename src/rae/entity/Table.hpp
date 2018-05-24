@@ -51,7 +51,7 @@ public:
 		m_items.reserve(reserveSize);
 	}
 
-	int size()
+	int size() const
 	{
 		return (int)m_items.size();
 	}

@@ -25,6 +25,7 @@ namespace rae
 
 class Time;
 class AssetSystem;
+class WindowSystem;
 class SceneSystem;
 class Camera;
 class Material;
@@ -34,11 +35,12 @@ class RayTracer : public ISystem
 public:
 	RayTracer(
 		const Time& time,
+		WindowSystem& windowSystem,
 		AssetSystem& assetSystem,
 		SceneSystem& sceneSystem);
 	~RayTracer();
 
-	String name() override { return "RayTracer"; }
+	String name() const override { return "RayTracer"; }
 
 	void showScene(int number);
 	void clearScene();
@@ -56,7 +58,6 @@ public:
 	void renderSamples();
 	void updateImageBuffer();
 	void renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h);
-	void setNanoVG(NVGcontext* nanoVG);
 
 	void autoFocus();
 
@@ -110,7 +111,7 @@ protected:
 	int m_allAtOnceSamplesLimit = 2000;
 	int m_samplesLimit = 0;
 	int m_bouncesLimit = 50;
-	
+
 	int m_currentSample = 0;
 	double m_totalRayTracingTime = -1.0;
 
@@ -118,13 +119,14 @@ protected:
 	double m_startTime = -1.0;
 
 	const Time& m_time;
-	AssetSystem& m_assetSystem;
-	SceneSystem& m_sceneSystem;
-	Scene*		m_scene;
-	HitableList m_world;
-	BvhNode m_tree;
+	WindowSystem&	m_windowSystem;
+	AssetSystem&	m_assetSystem;
+	SceneSystem&	m_sceneSystem;
 
-	NVGcontext* m_nanoVG = nullptr;
+	Scene*			m_scene;
+	HitableList		m_world;
+	BvhNode			m_tree;
+
 	NVGpaint m_imgPaint;
 
 	bool m_renderThreadActive = true;

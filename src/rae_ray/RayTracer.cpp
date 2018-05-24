@@ -7,7 +7,7 @@
 #include "rae/core/Time.hpp"
 
 #include "rae/ui/DebugSystem.hpp"
-
+#include "rae/ui/WindowSystem.hpp"
 #include "rae/asset/AssetSystem.hpp"
 #include "rae/scene/SceneSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
@@ -20,10 +20,12 @@ using namespace rae;
 
 RayTracer::RayTracer(
 	const Time& time,
+	WindowSystem& windowSystem,
 	AssetSystem& assetSystem,
 	SceneSystem& sceneSystem) :
 		m_world(4),
 		m_time(time),
+		m_windowSystem(windowSystem),
 		m_assetSystem(assetSystem),
 		m_sceneSystem(sceneSystem),
 		m_renderThread(&RayTracer::updateRenderThread, this)
@@ -35,6 +37,9 @@ RayTracer::RayTracer(
 	m_smallUintBuffer.init(300, 150);
 	m_bigUintBuffer.init(1920, 1080);
 	m_uintBuffer = &m_smallUintBuffer;
+
+	m_smallUintBuffer.createImage(m_windowSystem.mainWindow().nanoVG());
+	m_bigUintBuffer.createImage(m_windowSystem.mainWindow().nanoVG());
 
 	//createSceneOne(m_world);
 	//createSceneFromBook(m_world);
@@ -121,7 +126,7 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 		new Sphere(vec3(0, -100.5f, -1), 100.0f,
 		new Lambertian(vec3(0.0f, 0.7f, 0.8f)))
 		);
-	
+
 	// Metal balls
 	world.add(
 		new Sphere(vec3(1, 0, 0), 0.5f,
@@ -174,7 +179,7 @@ void RayTracer::createSceneFromBook(HitableList& list)
 			float choose_mat = getRandom();
 			vec3 center(a + 0.9f * getRandom(), 0.2f, b + 0.9f * getRandom());
 			if ((center-vec3(4,0.2,0)).length() > 0.9f)
-			{ 
+			{
 				if (choose_mat < 0.8f)
 				{
 					// diffuse
@@ -251,16 +256,6 @@ void RayTracer::clear()
 	m_currentSample = 0;
 	m_totalRayTracingTime = -1.0;
 	m_startTime = -1.0f;
-}
-
-void RayTracer::setNanoVG(NVGcontext* nanoVG)
-{
-	assert(nanoVG != nullptr);
-
-	m_nanoVG = nanoVG;
-
-	m_smallUintBuffer.createImage(m_nanoVG);
-	m_bigUintBuffer.createImage(m_nanoVG);
 }
 
 std::string toString(const HitRecord& record)
@@ -510,7 +505,7 @@ void RayTracer::renderAllAtOnce()
 				{
 					float u = float(x + drand48()) / float(m_buffer->width());
 					float v = float(y + drand48()) / float(m_buffer->height());
-					
+
 					Ray ray = camera.getRay(u, v);
 					color += rayTrace(ray);
 				}
@@ -560,7 +555,7 @@ void RayTracer::renderSamples()
 					(float(m_currentSample) * m_buffer->getPixelColor3(x, y) + color) / float(m_currentSample + 1));
 			}
 		});
-		
+
 		m_currentSample++;
 		m_frameReady = true;
 	}
@@ -575,7 +570,7 @@ void RayTracer::writeToPng(String filename)
 void RayTracer::updateImageBuffer()
 {
 	std::lock_guard<std::mutex> lock(m_bufferMutex);
-	update8BitImageBuffer(*m_buffer, *m_uintBuffer, m_nanoVG);
+	update8BitImageBuffer(*m_buffer, *m_uintBuffer, m_windowSystem.mainWindow().nanoVG());
 }
 
 void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)

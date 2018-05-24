@@ -9,6 +9,8 @@ using namespace rae;
 SelectionSystem::SelectionSystem(TransformSystem& transformSystem) :
 	m_transformSystem(transformSystem)
 {
+	addTable(m_selected);
+	addTable(m_hovers);
 }
 
 bool SelectionSystem::isSelection() const
@@ -84,6 +86,18 @@ void SelectionSystem::setSelected(Id id, bool selected)
 bool SelectionSystem::isSelected(Id id) const
 {
 	return m_selected.check(id);
+}
+
+void SelectionSystem::setHovered(Id id, bool hovered)
+{
+	if (hovered)
+		m_hovers.assign(id, std::move(Hover()));
+	else m_hovers.remove(id);
+}
+
+bool SelectionSystem::isHovered(Id id)
+{
+	return m_hovers.check(id);
 }
 
 vec3 SelectionSystem::selectionPosition() const

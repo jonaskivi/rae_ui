@@ -21,7 +21,7 @@ class CameraSystem : public ISystem
 public:
 	CameraSystem(const Time& time, EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input);
 
-	String name() override { return "CameraSystem"; }
+	String name() const override { return "CameraSystem"; }
 
 	UpdateStatus update() override;
 

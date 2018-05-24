@@ -8,8 +8,9 @@
 
 using namespace rae;
 
-AssetSystem::AssetSystem(Time& time) :
+AssetSystem::AssetSystem(Time& time, NVGcontext* nanoVG) :
 	m_time(time),
+	m_nanoVG(nanoVG),
 	m_entitySystem("AssetSystem")
 {
 	LOG_F(INFO, "Init %s", name().c_str());
@@ -17,11 +18,6 @@ AssetSystem::AssetSystem(Time& time) :
 	addTable(m_meshes);
 	addTable(m_materials);
 	addTable(m_images);
-}
-
-void AssetSystem::setNanoVG(NVGcontext* nanoVG)
-{
-	m_nanoVG = nanoVG;
 }
 
 UpdateStatus AssetSystem::update()

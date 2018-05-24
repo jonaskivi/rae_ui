@@ -75,9 +75,9 @@ Maya, Right handed coordinate system
 Y-up, Z-out, X-right
 
 
-   +Y    
-    |    
-    |    
+   +Y
+    |
+    |
     |----+X
    /
   /
@@ -90,9 +90,9 @@ This is also Maya and OpenGL convention.
 2D-space:
 
 School books always have it like this:
-   +Y    
-    |    
-    |    
+   +Y
+    |
+    |
     |----+X
 
 But reading direction is Y-down. What to do here...
@@ -337,7 +337,7 @@ class Rectangle
 	vec3 size;
 };
 
-Hah, used vec3 instead. Now there's a class that looks logical. 
+Hah, used vec3 instead. Now there's a class that looks logical.
 
 class Box
 {
@@ -447,8 +447,74 @@ x LayoutPoint
 Parenting is one kind of layout!
 
 
+------------------------------------------------------------------------------------------------------------------------
 
+Scrap this:
 
+/*
+	query<WindowEntity>(m_windows, [&](Id windowId)
+	{
+		m_transformSystem.processHierarchy(windowId, [&](Id id)
+		{
+			if (m_panels.check(id) and
+				m_transformSystem.hasTransform(id) and
+				m_transformSystem.hasBox(id))
+			{
+				const Transform& transform = m_transformSystem.getTransform(id);
+				const Box& box = m_transformSystem.getBox(id);
+				const Pivot& pivot = m_transformSystem.getPivot(id);
+
+				bool hasColor = m_colors.check(id);
+				bool hovered = m_selectionSystem.isHovered(id);
+
+				renderRectangle(transform, box, pivot,
+						hovered ? panelHoverColor :
+						hasColor ? getColor(id) :
+						panelBackgroundColor);
+			}
+
+			if (m_buttons.check(id) and
+				m_transformSystem.hasTransform(id) and
+				m_transformSystem.hasBox(id))
+			{
+				const Button& button = getButton(id);
+				const Transform& transform = m_transformSystem.getTransform(id);
+				const Box& box = m_transformSystem.getBox(id);
+				const Pivot& pivot = m_transformSystem.getPivot(id);
+
+				bool hasColor = m_colors.check(id);
+				bool active = isActive(id);
+				bool hovered = m_selectionSystem.isHovered(id);
+
+				renderButton(button.text(), transform, box, pivot,
+					(hovered and active ? buttonActiveHoverColor :
+						hovered ? buttonHoverColor :
+						active ? buttonActiveColor :
+						hasColor ? getColor(id) :
+						buttonBackgroundColor),
+					(hovered and active ? buttonActiveHoverTextColor :
+						hovered ? buttonHoverTextColor :
+						active ? buttonActiveTextColor :
+						buttonTextColor));
+			}
+		});
+	});
+*/
+
+---------------------------------------------------------------------------------------------------------------
+
+2018.05.24
+
+	Scene has all the things we need in the UI scene too.
+	AssetLinkSystem has some unnecessary stuff, and we probably might not need CameraSystem. (But maybe we could use it...)
+	But lets move all UI Tables to ButtonSystem, LayoutSystem, UIPropertySystem? UISystem? CommonUISystem, UIUtilsSystem
+	Those could be members of Scene (or UIScene if we derive).
+	Or possibly UISystem could be a member of Scene and use its EntitySystem and TransformSystem, But
+	still have its own ButtonSystem and LayoutSystem etc.
+	Then viewports can be used to render either 3D or 2D versions of the same Scene.
+	Also then a single Scene can have both 3D and 2D objects if we want so.
+
+	Also dynamic system arrays could be interesting, but dependencies might be difficult.
 
 
 

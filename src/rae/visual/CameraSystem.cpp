@@ -16,12 +16,14 @@ CameraSystem::CameraSystem(const Time& time, EntitySystem& entitySystem, Transfo
 {
 	m_currentCamera = createCamera();
 
+	/* RAE_TODO HOW TO HANDLE INPUT:
 	using std::placeholders::_1;
 	m_input.connectMouseButtonPressEventHandler(std::bind(&CameraSystem::onMouseEvent, this, _1));
 	m_input.connectMouseButtonReleaseEventHandler(std::bind(&CameraSystem::onMouseEvent, this, _1));
 	m_input.connectMouseMotionEventHandler(std::bind(&CameraSystem::onMouseEvent, this, _1));
 	m_input.connectScrollEventHandler(std::bind(&CameraSystem::onMouseEvent, this, _1));
 	m_input.connectKeyEventHandler(std::bind(&CameraSystem::onKeyEvent, this, _1));
+	*/
 }
 
 void CameraSystem::onMouseEvent(const Input& input)

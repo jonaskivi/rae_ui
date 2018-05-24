@@ -24,7 +24,9 @@
 
 #include "rae/entity/EntitySystem.hpp"
 #include "rae/core/ScreenSystem.hpp"
+#include "rae/ui/WindowSystem.hpp"
 #include "rae/asset/AssetSystem.hpp"
+#include "rae/ui/WindowSystem.hpp"
 #include "rae/ui/UISystem.hpp"
 #include "rae/scene/SceneSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
@@ -32,47 +34,19 @@
 
 using namespace rae;
 
-int loadFonts(NVGcontext* vg)
-{
-	int font;
-	font = nvgCreateFont(vg, "sans", "./data/fonts/Roboto-Regular.ttf");
-	if (font == -1)
-	{
-		printf("Could not add font regular. File missing: ./data/fonts/Roboto-Regular.ttf\n");
-		return -1;
-	}
-
-	font = nvgCreateFont(vg, "sans-bold", "./data/fonts/Roboto-Bold.ttf");
-	if (font == -1)
-	{
-		printf("Could not add font bold. File missing: ./data/fonts/Roboto-Bold.ttf\n");
-		return -1;
-	}
-
-	font = nvgCreateFont(vg, "logo", "./data/fonts/coolvetica_pupu.ttf");
-	if (font == -1)
-	{
-		printf("Could not add font Avenir. File missing: ./data/fonts/coolvetica_pupu.ttf\n");
-		return -1;
-	}
-
-	return 0;
-}
-
 RenderSystem::RenderSystem(
-	NVGcontext* nanoVG,
 	const Time& time,
-	GLFWwindow* setWindow,
 	Input& input,
 	ScreenSystem& screenSystem,
+	WindowSystem& windowSystem,
 	AssetSystem& assetSystem,
 	UISystem& uiSystem,
 	SceneSystem& sceneSystem,
 	RayTracer& rayTracer) :
 		m_time(time),
-		m_window(setWindow),
 		m_input(input),
 		m_screenSystem(screenSystem),
+		m_windowSystem(windowSystem),
 		m_assetSystem(assetSystem),
 		m_uiSystem(uiSystem),
 		m_sceneSystem(sceneSystem),
@@ -83,8 +57,6 @@ RenderSystem::RenderSystem(
 	debugTransform = new Transform(vec3(0,0,0));
 	debugTransform2 = new Transform(vec3(0,0,0));
 
-	initNanoVG(nanoVG);
-
 	init();
 }
 
@@ -92,48 +64,7 @@ RenderSystem::~RenderSystem()
 {
 }
 
-void RenderSystem::initNanoVG(NVGcontext* nanoVG)
-{
-	LOG_F(INFO, "Init NanoVG");
-
-	if (nanoVG)
-	{
-		m_nanoVG = nanoVG;
-	}
-
-	if (m_nanoVG == nullptr)
-	{
-		LOG_F(ERROR, "Could not init nanovg.");
-		getchar();
-		exit(0);
-		assert(0);
-	}
-
-	int windowWidth;
-	int windowHeight;
-	int windowPixelWidth;
-	int windowPixelHeight;
-
-	glfwGetWindowSize(m_window, &windowWidth, &windowHeight);
-	glfwGetFramebufferSize(m_window, &windowPixelWidth, &windowPixelHeight);
-
-	m_screenSystem.osEventResizeWindow(windowWidth, windowHeight);
-	m_screenSystem.osEventResizeWindowPixels(windowPixelWidth, windowPixelHeight);
-
-	if (loadFonts(m_nanoVG) == -1)
-	{
-		LOG_F(ERROR, "Could not load fonts");
-		getchar();
-		exit(0);
-		assert(0);
-	}
-
-	m_rayTracer.setNanoVG(m_nanoVG);
-	m_assetSystem.setNanoVG(m_nanoVG);
-
-	//m_backgroundImage.load(m_nanoVG, "/Users/joonaz/Documents/jonas/opencv-3.2.0/samples/data/basketball1.png");
-	//m_backgroundImage.load(m_nanoVG, "/Users/joonaz/Dropbox/taustakuvat/apple_galaxy.jpg");
-}
+// RAE_TODO pass nanoVG context to raytracer
 
 void RenderSystem::init()
 {
@@ -141,7 +72,7 @@ void RenderSystem::init()
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS); 
+	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
 	// Init basic shader
@@ -194,9 +125,6 @@ UpdateStatus RenderSystem::update()
 		LOG_F(INFO, "RenderSystem::update().");
 	#endif
 
-	// RAE_TODO TEMP:
-	m_backgroundImage.update(m_nanoVG);
-
 	return UpdateStatus::NotChanged; // for now
 }
 
@@ -225,24 +153,22 @@ void RenderSystem::beginFrame3D()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void RenderSystem::setViewport(const Rectangle& viewport)
+void RenderSystem::setViewport(const Rectangle& viewport, const Window& window)
 {
-	//FULLSCREEN: const auto& window = m_screenSystem.window();
+	//FULLSCREEN: const auto& window = m_windowSystem.window();
 	// glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 
 	if (viewport.width == 0.0f)
 	{
-		const auto& window = m_screenSystem.window();
 		glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 	}
 	else
 	{
-		const auto& window = m_screenSystem.window();
 		glViewport(viewport.x, window.pixelHeight() - viewport.y - viewport.height, viewport.width, viewport.height);
 	}
 }
 
-void RenderSystem::render3D(const Scene& scene)
+void RenderSystem::render3D(const Scene& scene, const Window& window)
 {
 	if (!m_sceneSystem.hasActiveScene())
 		return;
@@ -258,7 +184,7 @@ void RenderSystem::render3D(const Scene& scene)
 		m_renderMode == RenderMode::RayTrace) &&
 		scene.isActive())
 	{
-		renderRayTracerOutput();
+		renderRayTracerOutput(window);
 	}
 
 	if (m_renderMode != RenderMode::MixedRayTraceRasterize &&
@@ -330,36 +256,13 @@ void RenderSystem::render3D(const Scene& scene)
 
 void RenderSystem::endFrame3D()
 {
-	if (!m_sceneSystem.hasActiveScene())
-		return;
-
-	Scene& scene = m_sceneSystem.activeScene();
-	auto& transformSystem = scene.transformSystem();
-	auto& entitySystem = scene.entitySystem();
-
-	{
-		g_debugSystem->showDebugText("");
-		g_debugSystem->showDebugText("Scene: " + scene.name());
-		g_debugSystem->showDebugText("Esc to quit, R reset, F autofocus, H visualize focus, ", Colors::white);
-		g_debugSystem->showDebugText("VB focus distance, NM aperture, KL bounces, ", Colors::white);
-		g_debugSystem->showDebugText("G debug view, Tab UI, U fastmode", Colors::white);
-		g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows", Colors::white);
-		g_debugSystem->showDebugText("Y toggle resolution", Colors::white);
-		g_debugSystem->showDebugText("");
-		g_debugSystem->showDebugText("Entities on scene: " + std::to_string(entitySystem.entityCount()));
-		g_debugSystem->showDebugText("Transforms: " + std::to_string(transformSystem.transformCount()));
-		g_debugSystem->showDebugText("Meshes: " + std::to_string(m_assetSystem.meshCount()));
-		g_debugSystem->showDebugText("Materials: " + std::to_string(m_assetSystem.materialCount()));
-		g_debugSystem->showDebugText("");
-	}
-
 	if (m_rayTracer.isEnabled())
 	{
 		m_rayTracer.updateDebugTexts();
 	}
 }
 
-void RenderSystem::renderPicking()
+void RenderSystem::renderPicking(const Window& window)
 {
 	if (!m_sceneSystem.hasActiveScene())
 		return;
@@ -371,13 +274,13 @@ void RenderSystem::renderPicking()
 
 	const Camera& camera = cameraSystem.currentCamera();
 
-	//FULLSCREEN: const auto& window = m_screenSystem.window();
+	//FULLSCREEN: const auto& window = m_windowSystem.window();
 	// glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 
 	//TODO sceneIndex:
-	Rectangle viewport = m_uiSystem.getViewportPixelRectangle(0);
+	Rectangle viewport = m_uiSystem.defaultScene().getViewportPixelRectangle(0);
 
-	setViewport(viewport);
+	setViewport(viewport, window);
 
 	// Clear the screen
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -488,65 +391,40 @@ void RenderSystem::renderMeshPicking(
 	mesh.render(m_pickingShader.getProgramId());
 }
 
-void RenderSystem::render2dBackground()
+void RenderSystem::render2dBackground(const Window& window)
 {
-	const auto& window = m_screenSystem.window();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
-	renderImageNano(m_nanoVG, m_backgroundImage.imageId(), 0.0f, 0.0f, (float)window.width(), (float)window.height());
-	nvgEndFrame(m_nanoVG);
+	nvgBeginFrame(window.nanoVG(), window.width(), window.height(), window.screenPixelRatio());
+	renderImageNano(window.nanoVG(), m_backgroundImage.imageId(), 0.0f, 0.0f, (float)window.width(), (float)window.height());
+	nvgEndFrame(window.nanoVG());
 }
 
-void RenderSystem::renderRayTracerOutput()
+void RenderSystem::renderRayTracerOutput(const Window& window)
 {
-	const auto& window = m_screenSystem.window();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
-	m_rayTracer.renderNanoVG(m_nanoVG, 0.0f, 0.0f, (float)window.width(), (float)window.height());
-	nvgEndFrame(m_nanoVG);
+	nvgBeginFrame(window.nanoVG(), window.width(), window.height(), window.screenPixelRatio());
+	m_rayTracer.renderNanoVG(window.nanoVG(), 0.0f, 0.0f, (float)window.width(), (float)window.height());
+	nvgEndFrame(window.nanoVG());
 }
 
-void RenderSystem::beginFrame2D()
+void RenderSystem::beginFrame2D(const Window& window)
 {
-	const auto& window = m_screenSystem.window();
 	glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	nvgBeginFrame(m_nanoVG, window.width(), window.height(), window.screenPixelRatio());
+	nvgBeginFrame(window.nanoVG(), window.width(), window.height(), window.screenPixelRatio());
 }
 
-void RenderSystem::render2D(NVGcontext* nanoVG)
+void RenderSystem::render2D(UIScene& uiScene, NVGcontext* nanoVG)
 {
 }
 
-void RenderSystem::endFrame2D()
+void RenderSystem::endFrame2D(const Window& window)
 {
-	nvgEndFrame(m_nanoVG);
+	nvgEndFrame(window.nanoVG());
 }
 
 void RenderSystem::clearImageRenderer()
 {
 	m_rayTracer.clear();
-}
-
-void RenderSystem::osEventResizeWindow(int width, int height)
-{
-	m_screenSystem.osEventResizeWindow(width, height);
-
-	if (!m_sceneSystem.hasActiveScene())
-		return;
-	Scene& scene = m_sceneSystem.activeScene();
-	auto& cameraSystem = scene.cameraSystem();
-	cameraSystem.setAspectRatio(float(width) / float(height));
-}
-
-void RenderSystem::osEventResizeWindowPixels(int width, int height)
-{
-	m_screenSystem.osEventResizeWindowPixels(width, height);
-
-	if (!m_sceneSystem.hasActiveScene())
-		return;
-	Scene& scene = m_sceneSystem.activeScene();
-	auto& cameraSystem = scene.cameraSystem();
-	cameraSystem.setAspectRatio(float(width) / float(height));
 }

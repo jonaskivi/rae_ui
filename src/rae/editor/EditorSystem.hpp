@@ -176,10 +176,10 @@ public:
 		AssetSystem& assetSystem,
 		Input& input);
 
-	String name() override { return "EditorSystem"; }
+	String name() const override { return "EditorSystem"; }
 
 	UpdateStatus update() override;
-	void render3D(const Scene& scene) override;
+	void render3D(const Scene& scene, const Window& window) override;
 
 protected:
 	SceneSystem&		m_sceneSystem;

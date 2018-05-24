@@ -2,8 +2,8 @@
 
 using namespace rae;
 
-Test2DCoordinates::Test2DCoordinates(GLFWwindow* glfwWindow, NVGcontext* nanoVG) :
-	m_engine(glfwWindow, nanoVG),
+Test2DCoordinates::Test2DCoordinates() :
+	m_engine("Test 2D Coordinates", 1920, 1080),
 	m_input(m_engine.input()),
 	m_uiSystem(m_engine.uiSystem())
 {
@@ -37,8 +37,17 @@ Test2DCoordinates::Test2DCoordinates(GLFWwindow* glfwWindow, NVGcontext* nanoVG)
 
 void Test2DCoordinates::initUI()
 {
-	auto& ui = m_uiSystem;
+	auto& uiSystem = m_uiSystem;
+	auto& windowSystem = m_engine.windowSystem();
+
+	UIScene& ui = uiSystem.defaultScene();
+	uiSystem.connectWindowToScene(windowSystem.mainWindow(), ui);
+
 	auto& trans = ui.transformSystem();
+
+	LOG_F(INFO, "Setting sceneIndex to: %i", uiSystem.getSceneIndex(ui));
+	LOG_F(INFO, "Set sceneIndex to: %i", windowSystem.mainWindow().uiSceneIndex());
+	assert(uiSystem.getSceneIndex(ui) == windowSystem.mainWindow().uiSceneIndex());
 
 	Id keyline1 = ui.createKeyline({ OrientationType::Vertical, 0.3f });
 
@@ -63,7 +72,7 @@ void Test2DCoordinates::initUI()
 			});
 
 	{
-		Id panel = ui.createPanel(Rectangle(100.0f, 40.0f, 58.0f, 75.0f));
+		Id panel = ui.createPanel(Rectangle(100.0f, 60.0f, 58.0f, 75.0f));
 
 		LOG_F(INFO, "Created panel id: %i", (int)panel);
 
@@ -75,18 +84,22 @@ void Test2DCoordinates::initUI()
 			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
 			[&]()
 			{
+				LOG_F(INFO, "Activate Test Button 1");
+				//windowSystem.createWindow("Test Second Window", 600, 300);
 			});
 
 		Id testButton2 = ui.createButton("Test Button 2",
 			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
 			[&]()
 			{
+				LOG_F(INFO, "Activate Test Button 2");
 			});
 
 		Id testButton3 = ui.createButton("Test Button 3",
 			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
 			[&]()
 			{
+				LOG_F(INFO, "Activate Test Button 3");
 			});
 
 		trans.addPivot(testButton3, Pivots::Center);
@@ -104,21 +117,81 @@ void Test2DCoordinates::initUI()
 		Id testButton4 = ui.createButton("Test Button 4",
 			[&]()
 			{
+				LOG_F(INFO, "Activate Test Button 4");
 			});
 
 		Id testButton5 = ui.createButton("Test Button 5",
 			[&]()
 			{
+				LOG_F(INFO, "Activate Test Button 5");
 			});
 
 		Id testButton6 = ui.createButton("Test Button 6",
 			[&]()
 			{
+				LOG_F(INFO, "Activate Test Button 6");
 			});
 
 		trans.addChild(panel2, testButton4);
 		trans.addChild(panel2, testButton5);
 		trans.addChild(panel2, testButton6);
+	}
+
+	initUISecondWindow();
+}
+
+void Test2DCoordinates::initUISecondWindow()
+{
+	const String windowName = "Test Second Window";
+
+	auto& uiSystem = m_uiSystem;
+	auto& windowSystem = m_engine.windowSystem();
+
+	Window& window = windowSystem.createWindow(windowName, 600, 300);
+
+	UIScene& ui = uiSystem.createUIScene(windowName);
+	uiSystem.connectWindowToScene(window, ui);
+
+	auto& trans = ui.transformSystem();
+
+	Id keyline1 = ui.createKeyline({ OrientationType::Vertical, 0.5f });
+
+	{
+		Id panel = ui.createPanel(Rectangle(100.0f, 60.0f, 58.0f, 75.0f));
+
+		LOG_F(INFO, "Created panel id: %i", (int)panel);
+
+		ui.addKeylineLink(panel, keyline1);
+
+		ui.addStackLayout(panel);
+
+		Id testButton1 = ui.createButton("Create Another Window",
+			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
+			[&]()
+			{
+				LOG_F(INFO, "Activate Create Another Window button");
+				initUISecondWindow();
+			});
+
+		Id testButton2 = ui.createButton("Test Button 8",
+			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
+			[&]()
+			{
+				LOG_F(INFO, "Activate Test Button 8");
+			});
+
+		Id testButton3 = ui.createButton("Test Button 9",
+			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
+			[&]()
+			{
+				LOG_F(INFO, "Activate Test Button 9");
+			});
+
+		trans.addPivot(testButton3, Pivots::Center);
+
+		trans.addChild(panel, testButton1);
+		trans.addChild(panel, testButton2);
+		trans.addChild(panel, testButton3);
 	}
 }
 
@@ -208,7 +281,7 @@ void Test2DCoordinates::renderGrid(NVGcontext* vg, float width, float height, fl
 	nvgRestore(vg);
 }
 
-void Test2DCoordinates::render2D(NVGcontext* vg)
+void Test2DCoordinates::render2D(UIScene& uiScene, NVGcontext* vg)
 {
 	// Pixel grid:
 	//renderGrid(vg, 1920.0f, 1080.0f);
@@ -217,7 +290,7 @@ void Test2DCoordinates::render2D(NVGcontext* vg)
 	renderGrid(vg, 1920.0f, 1080.0f, m_engine.screenSystem().mmToPixels(1.0f));
 
 	float cornerRadius = 0.0f;
-	m_uiSystem.renderRectangleNano(vg, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
+	uiScene.renderRectangleNano(vg, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
 		cornerRadius, Color(1.0f, 0.0f, 1.0f, 1.0f));
 
 	const float lineHeight = 45.0f;

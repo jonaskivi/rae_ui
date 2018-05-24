@@ -6,6 +6,7 @@
 namespace rae
 {
 
+// Deprecated. Use Parent and Children instead.
 class Hierarchy
 {
 public:

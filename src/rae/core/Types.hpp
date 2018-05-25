@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _WIN32
+#include <ciso646> // and or not keywords
+#endif
+
 #include <unordered_map>
 #include <vector>
 #include <string>

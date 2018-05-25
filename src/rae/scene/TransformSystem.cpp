@@ -166,7 +166,7 @@ void TransformSystem::addChild(Id parent, Id child)
 	}
 
 	if (!hasParent(child))
-		m_parents.assign(child, Parent(parent));
+		m_parents.assign(child, std::move(Parent(parent)));
 
 	m_childrenChanged.assign(parent, Changed());
 	m_parentChanged.assign(child, Changed());

@@ -1,6 +1,5 @@
 #include <cmath>
 #include <cassert>
-#include <ciso646>
 
 #include "rae/core/Random.hpp"
 
@@ -131,7 +130,7 @@ void Material::update(NVGcontext* vg, double time)
 
 	// Any alpha other than zero will fail for some FBO reason
 	glClearColor(m_color.r, m_color.g, m_color.b, 0.0f);
-	
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	nvgBeginFrame(vg, m_frameBufferImage.width(), m_frameBufferImage.height(), /*pixelRatio*/1.0f);
 
@@ -141,12 +140,12 @@ void Material::update(NVGcontext* vg, double time)
 			nvgCircle(vg,
 				float(m_frameBufferImage.width()) * 0.5f,
 				float(m_frameBufferImage.height()) * 0.5f, circle_size);
-		
+
 		if(m_type == 2)
 			nvgFillColor(vg, nvgRGBA(220, 45, 0, 200));
 		else if(m_type == 1)
 			nvgFillColor(vg, nvgRGBA(0, 220, 45, 200));
-		else nvgFillColor(vg, nvgRGBA(10, 145, 200, 200)); 
+		else nvgFillColor(vg, nvgRGBA(10, 145, 200, 200));
 
 		nvgFill(vg);
 

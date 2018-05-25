@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ciso646>
-
 #include "rae/core/Types.hpp"
 
 #include "core/Utils.hpp"

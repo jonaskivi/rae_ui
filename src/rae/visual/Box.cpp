@@ -1,6 +1,5 @@
 #include "rae/visual/Box.hpp"
 
-#include <ciso646>
 #include <algorithm>
 
 #include "rae/core/Utils.hpp"

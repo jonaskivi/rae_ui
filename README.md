@@ -16,14 +16,16 @@ Source code is found under "src/rae".
     git submodule update --init --recursive
     # and only after that run premake.
 
-    # on Linux (use premake4.4beta, not 4.3 which comes with Ubuntu 16.04):
+    # on Linux (use premake4.4beta if the default one doesn't work. I'm on Ubuntu 18.04 now.):
     premake4 gmake
     # I had to install the GL headers:
     sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libassimp-dev
     # Also had to install some X-libs:
     sudo apt-get install libxrandr-dev libxinerama-dev libxcursor-dev
-    # I installed GLFW3 and GLEW from source, and copied the libs to the lib_linux dir,
-    # and I also copied libassimp.so to the lib_linux dir, but you might not need to.
+    # I installed GLFW3 and GLEW from source, and copied the libs to the lib dir,
+    # and I also copied libassimp.so.4.1.0 to the lib dir, and then renamed it to libassimp.so
+    # (Will need to try to fix these build system issues at some point.)
+    # libnanovg.a is built just fine with premake.
     # And finally:
     make
     # cd into the bin directory and run:

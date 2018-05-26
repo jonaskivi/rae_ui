@@ -64,7 +64,7 @@ solution "pihlaja"
 
       configuration { "linux" }
          buildoptions { "-std=c++11" }
-         links {"X11","Xrandr", "Xxf86vm", "Xinerama", "Xcursor", "rt", "GL", "GLU", "pthread"}
+         links {"X11","Xrandr", "Xxf86vm", "Xinerama", "Xcursor", "dl", "rt", "GL", "GLU", "pthread"}
        
       configuration { "windows" }
          links {"glu32","opengl32", "gdi32", "winmm", "user32"}

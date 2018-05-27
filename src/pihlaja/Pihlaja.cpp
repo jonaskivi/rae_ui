@@ -12,7 +12,7 @@ Pihlaja::Pihlaja() :
 {
 	LOG_F(INFO, "Adding systems.");
 
-	m_engine.addSystem(m_engine.input());
+	m_engine.addBaseSystems();
 
 	m_engine.addSystem(m_engine.assetSystem());
 	m_engine.addSystem(m_engine.sceneSystem());

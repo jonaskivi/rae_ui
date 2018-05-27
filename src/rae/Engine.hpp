@@ -1,7 +1,10 @@
 #pragma once
 
+#include "core/version.hpp"
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#ifdef version_glfw
+	#include <GLFW/glfw3.h>
+#endif
 
 #include "rae/core/Types.hpp"
 #include "rae/core/Time.hpp"
@@ -47,6 +50,8 @@ public:
 	void defragmentTablesAsync();
 
 	void addSystem(ISystem& system);
+	// Adds windowSystem and input, possibly others.
+	void addBaseSystems();
 	void addRenderer3D(ISystem& system);
 	void addRenderer2D(ISystem& system);
 

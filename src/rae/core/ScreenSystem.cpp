@@ -3,6 +3,7 @@
 
 #include "loguru/loguru.hpp"
 
+#include <GL/glew.h>
 #ifdef version_glfw
 	#include <GLFW/glfw3.h>
 #endif

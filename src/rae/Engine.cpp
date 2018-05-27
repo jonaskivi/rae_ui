@@ -8,6 +8,7 @@
 #include "rae/scene/Transform.hpp"
 #include "rae/visual/Material.hpp"
 #include "rae/core/Random.hpp"
+#include "rae/ui/Window.hpp"
 
 using namespace rae;
 
@@ -52,6 +53,12 @@ void Engine::defragmentTablesAsync()
 void Engine::addSystem(ISystem& system)
 {
 	m_systems.push_back(&system);
+}
+
+void Engine::addBaseSystems()
+{
+	m_systems.push_back(&m_windowSystem);
+	m_systems.push_back(&m_input);
 }
 
 void Engine::addRenderer3D(ISystem& system)

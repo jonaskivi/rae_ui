@@ -1,7 +1,5 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-
 #include "rae/core/version.hpp"
 #include "rae/core/Types.hpp"
 #include "rae/core/ScreenInfo.hpp"

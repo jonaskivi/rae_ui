@@ -7,7 +7,7 @@ Test2DCoordinates::Test2DCoordinates() :
 	m_input(m_engine.input()),
 	m_uiSystem(m_engine.uiSystem())
 {
-	m_engine.addSystem(m_engine.input());
+	m_engine.addBaseSystems();
 
 	//m_engine.addSystem(m_engine.assetSystem());
 	//m_engine.addSystem(m_engine.sceneSystem());

@@ -49,6 +49,7 @@ SOFTWARE.
 #pragma once
 
 #include "core/version.hpp"
+#include <GL/glew.h>
 #ifdef version_glfw
 	#include <GLFW/glfw3.h>
 #endif

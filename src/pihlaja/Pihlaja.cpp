@@ -52,7 +52,12 @@ Pihlaja::Pihlaja() :
 	#ifdef USE_RAE_AV
 	//m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/MVI_9132.MOV");
 	//m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/glass/MVI_8882.MOV");
-	m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/test5.mov");
+
+	#ifdef __linux__
+		m_videoAssetId = m_avSystem.loadAsset("/home/joonaz/Videot/test4.mov");
+	#elif __APPLE__
+		m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/test4.mov");
+	#endif
 
 	////////m_hdrFlow.setExposureWeight(0.75f);
 	#endif

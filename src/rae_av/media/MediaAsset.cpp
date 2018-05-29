@@ -58,7 +58,7 @@ bool MediaAsset::load()
 	m_videoStreamIndex = -1;
 	for (int i = 0; i < m_formatContext->nb_streams; ++i)
 	{
-		if (m_formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+		if (m_formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
 		{
 			m_videoStreamIndex = i;
 			break;
@@ -72,10 +72,10 @@ bool MediaAsset::load()
 	}
 
 	// Get a pointer to the codec context for the video stream
-	m_codecContextOriginal = m_formatContext->streams[m_videoStreamIndex]->codec;
+	m_codecParameters = m_formatContext->streams[m_videoStreamIndex]->codecpar;
 
 	// Find the decoder for the video stream
-	AVCodec* pCodec = avcodec_find_decoder(m_codecContextOriginal->codec_id);
+	AVCodec* pCodec = avcodec_find_decoder(m_codecParameters->codec_id);
 	if (pCodec == nullptr)
 	{
 		LOG_F(ERROR, "Unsupported codec!");
@@ -84,11 +84,9 @@ bool MediaAsset::load()
 	// Copy context
 	m_codecContext = nullptr;
 	m_codecContext = avcodec_alloc_context3(pCodec);
-	if (avcodec_copy_context(m_codecContext, m_codecContextOriginal) != 0)
-	{
-		LOG_F(ERROR, "Could not copy codec context.");
-		return false;
-	}
+
+	avcodec_parameters_to_context(m_codecContext, m_codecParameters);
+
 	// Open codec
 	if (avcodec_open2(m_codecContext, pCodec, /*options*/nullptr) < 0)
 	{
@@ -108,13 +106,12 @@ bool MediaAsset::load()
 	}
 
 	// Determine required m_frameBuffer size and allocate m_frameBuffer
-	int numBytes = avpicture_get_size(AV_PIX_FMT_RGB24, m_codecContext->width, m_codecContext->height);
+	int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, m_codecContext->width, m_codecContext->height, 32);
 	m_frameBuffer = (uint8_t *)av_malloc(numBytes * sizeof(uint8_t));
 
 	// Assign appropriate parts of m_frameBuffer to image planes in m_frameRGB
-	// Note that m_frameRGB is an AVFrame, but AVFrame is a superset of AVPicture
-	avpicture_fill((AVPicture *)m_frameRGB, m_frameBuffer, AV_PIX_FMT_RGB24,
-		m_codecContext->width, m_codecContext->height);
+	av_image_fill_arrays(m_frameRGB->data, m_frameRGB->linesize, m_frameBuffer, AV_PIX_FMT_RGB24,
+		m_codecContext->width, m_codecContext->height, 32);
 
 	// initialize SWS context for software scaling
 	m_swsContext = sws_getContext(m_codecContext->width,
@@ -137,16 +134,31 @@ AVFrame* MediaAsset::pullFrame()
 	AVPacket packet;
 
 	int frameCount = 0;
+
+	int ret = 0;
 	while (frameFinished == 0 && av_read_frame(m_formatContext, &packet) >= 0)
 	{
 		// Is this a packet from the video stream?
 		if (packet.stream_index == m_videoStreamIndex)
 		{
-			// Decode video frame
-			if (avcodec_decode_video2(m_codecContext, m_frame, &frameFinished, &packet) <= 0)
+			do
 			{
-				LOG_F(ERROR, "Error while decoding stream.");
+				ret = avcodec_send_packet(m_codecContext, &packet);
+			} while(ret == AVERROR(EAGAIN));
+
+			if (ret == AVERROR_EOF || ret == AVERROR(EINVAL))
+			{
+				printf("AVERROR(EAGAIN): %d, AVERROR_EOF: %d, AVERROR(EINVAL): %d\n", AVERROR(EAGAIN), AVERROR_EOF, AVERROR(EINVAL));
+				printf("fe_read_frame: Frame getting error (%d)!\n", ret);
+				continue;
+				//return 0;
 			}
+
+			ret = avcodec_receive_frame(m_codecContext, m_frame);
+
+			// RAE_TODO check for errors in ret again.
+
+			frameFinished = true;
 
 			// Did we get a video frame?
 			if (frameFinished)
@@ -181,8 +193,7 @@ AVFrame* MediaAsset::pullFrame()
 			}
 		}
 
-		// Free the packet that was allocated by av_read_frame
-		av_free_packet(&packet);
+		av_packet_unref(&packet);
 	}
 
 	return m_frameRGB;
@@ -205,7 +216,7 @@ void MediaAsset::unload()
 
 	// Close the codecs
 	avcodec_close(m_codecContext);
-	avcodec_close(m_codecContextOriginal);
+	// Probably not needed to close codec parameters?: avcodec_close(m_codecParameters);
 
 	// Close the video file
 	avformat_close_input(&m_formatContext);

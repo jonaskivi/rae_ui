@@ -1,8 +1,11 @@
 #pragma once
 
 #ifdef USE_RAE_AV
+
+#define __STDC_CONSTANT_MACROS // Some strange C thing...
 extern "C"
 {
+	#include <libavutil/imgutils.h>
 	#include <libavcodec/avcodec.h>
 	#include <libavformat/avformat.h>
 	#include <libswscale/swscale.h>
@@ -41,7 +44,7 @@ protected:
 
 	AVFormatContext*		m_formatContext			= nullptr;
 	int						m_videoStreamIndex		= -1;
-	AVCodecContext*			m_codecContextOriginal	= nullptr;
+	AVCodecParameters*		m_codecParameters		= nullptr;
 	AVCodecContext*			m_codecContext			= nullptr;
 	AVFrame*				m_frame					= nullptr;
 	AVFrame*				m_frameRGB				= nullptr;

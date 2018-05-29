@@ -64,8 +64,31 @@ solution "pihlaja"
 
       configuration { "linux" }
          buildoptions { "-std=c++11" }
-         links {"X11","Xrandr", "Xxf86vm", "Xinerama", "Xcursor", "dl", "rt", "GL", "GLU", "pthread"}
-       
+         defines { "USE_RAE_AV" }
+         links
+         {
+            "X11","Xrandr", "Xxf86vm", "Xinerama", "Xcursor", "dl", "rt", "GL", "GLU", "pthread",
+            --"opencv_calib3d",
+            "opencv_core",
+            "opencv_imgcodecs",
+            "opencv_highgui",
+            "opencv_imgproc",
+            --"opencv_flann",
+            "opencv_features2d",
+            "opencv_video",
+            --"opencv_nonfree",
+            --"opencv_ml",
+            ---- "opencv_cudaarithm",
+            ---- "opencv_cudaoptflow",
+            -- opencv contrib stuff:
+            "opencv_optflow",
+            -- ffmpeg stuff:
+            "avutil",
+            "avcodec",
+            "avformat",
+            "swscale",
+         }
+
       configuration { "windows" }
          links {"glu32","opengl32", "gdi32", "winmm", "user32"}
 
@@ -133,12 +156,12 @@ solution "pihlaja"
          targetdir "lib"
          defines { "_GLFW_X11", "_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS" }
          buildoptions { "-pthread" }
-       
+
       configuration {"windows"}
          files { "external/glfw/src/*.c", "external/glfw/src/*.h" }
          includedirs { "external/glfw/src" }
          defines { "_GLFW_EGL", "_GLFW_WIN32", "_GLFW_USE_OPENGL" }
-       
+
       configuration {"Macosx"}
          files { "external/glfw/lib/cocoa/*.c", "external/glfw/lib/cocoa/*.h", "external/glfw/lib/cocoa/*.m" }
          includedirs { "external/glfw/lib/cocoa" }
@@ -153,9 +176,9 @@ solution "pihlaja"
 
       configuration "Release"
          defines { "NDEBUG" }
-         flags { "Optimize", "ExtraWarnings" }    
+         flags { "Optimize", "ExtraWarnings" }
 
-   -- GLEW Library         
+   -- GLEW Library
    project "glew"
       kind "StaticLib"
       language "C"
@@ -206,7 +229,7 @@ solution "pihlaja"
       language "C"
       targetdir "lib"
       files {"external/assimp/*.c", "external/assimp/*.h"}
-      
+
       configuration {"linux"}
          targetdir "lib"
 

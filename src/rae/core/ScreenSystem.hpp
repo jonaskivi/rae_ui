@@ -17,8 +17,12 @@ public:
 	// TODO: micro-optimize to multiplications:
 	float pixelsToHeight(float pixels) { return pixels / screenHeightP(); }; //RAE_TODO / m_windows[0].screenPixelRatio(); }
 
-	float mmToPixels(float mm) { return mm * pixelsPerMM(); };
+	float mmToPixels(float mm)       { return mm * pixelsPerMM(); };
+	vec2  mmToPixels(const vec2& mm) { return mm * pixelsPerMM(); };
+	vec3  mmToPixels(const vec3& mm) { return mm * pixelsPerMM(); };
+
 	float pixelsToMM(float pixels) { return pixels / pixelsPerMM(); };
+	vec2 pixelsToMM(const vec2& pixels) { return pixels / pixelsPerMM(); };
 	vec3 pixelsToMM(const vec3& pixels) { return pixels / pixelsPerMM(); };
 
 	float heightToAltPixels(float heightCoords) { return heightCoords * screenHeightP(); }

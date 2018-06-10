@@ -22,12 +22,30 @@ void WindowSystem::osEventResizeWindowPixels(GLFWwindow* windowHandle, int width
 	window(windowHandle)->osEventResizeWindowPixels(width, height);
 }
 
+void WindowSystem::osEventCursorEnter(GLFWwindow* windowHandle)
+{
+	auto* window2 = window(windowHandle);
+	window2->osMouseEvent(EventType::MouseEnter);
+}
+
+void WindowSystem::osEventCursorLeave(GLFWwindow* windowHandle)
+{
+	auto* window2 = window(windowHandle);
+	window2->osMouseEvent(EventType::MouseLeave);
+}
+
 void WindowSystem::osMouseButtonPress(GLFWwindow* windowHandle, int button, float xP, float yP)
 {
 	auto* window2 = window(windowHandle);
 	// Have to scale input on retina screens:
 	xP = xP * window2->screenPixelRatio();
 	yP = yP * window2->screenPixelRatio();
+
+	window2->osMouseEvent(
+		EventType::MouseButtonPress,
+		button,
+		xP,
+		yP);
 
 	//LOG_F(INFO, "osMouseButtonPress after screenPixelRatio: %f x: %f y: %f", window.screenPixelRatio(),
 	//	xP, yP);
@@ -49,6 +67,12 @@ void WindowSystem::osMouseButtonRelease(GLFWwindow* windowHandle, int button, fl
 	xP = xP * window2->screenPixelRatio();
 	yP = yP * window2->screenPixelRatio();
 
+	window2->osMouseEvent(
+		EventType::MouseButtonRelease,
+		button,
+		xP,
+		yP);
+
 	float setAmount = 0.0f;
 	m_input.osMouseEvent(
 		*window2,
@@ -65,6 +89,12 @@ void WindowSystem::osMouseMotion(GLFWwindow* windowHandle, float xP, float yP)
 	// Have to scale input on retina screens:
 	xP = xP * window2->screenPixelRatio();
 	yP = yP * window2->screenPixelRatio();
+
+	window2->osMouseEvent(
+		EventType::MouseMotion,
+		(int)MouseButton::Undefined,
+		xP,
+		yP);
 
 	float setAmount = 0.0f;
 	m_input.osMouseEvent(
@@ -97,6 +127,7 @@ void WindowSystem::osKeyEvent(GLFWwindow* windowHandle, int key, int scancode, i
 }
 
 WindowSystem::WindowSystem(Input& input, const String& mainWindowName, int mainWindowWidth, int mainWindowHeight) :
+	ISystem("WindowSystem"),
 	m_input(input)
 {
 	g_windowSystem = this;

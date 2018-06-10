@@ -12,6 +12,7 @@
 using namespace rae::av;
 
 AVSystem::AVSystem(RenderSystem& renderSystem) :
+	ISystem("AVSystem"),
 	m_renderSystem(renderSystem)
 {
 	av_register_all();

@@ -16,7 +16,6 @@ public:
 		const Time& time,
 		Input& input);
 
-	String name() const override { return "SceneSystem"; }
 	virtual UpdateStatus update() override;
 
 	Scene& createScene(const String& name = "Untitled");

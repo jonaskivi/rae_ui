@@ -32,8 +32,6 @@ class Pihlaja : public rae::ISystem
 public:
 	Pihlaja();
 
-	String name() const override { return "PihlajaSystem"; }
-
 	Engine* getEngine() { return &m_engine; }
 
 	void initUI();

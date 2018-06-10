@@ -18,8 +18,6 @@ class AssetSystem : public ISystem
 public:
 	AssetSystem(Time& time, NVGcontext* nanoVG);
 
-	String name() const override { return "AssetSystem"; }
-
 	UpdateStatus update() override;
 
 	void createTestAssets();

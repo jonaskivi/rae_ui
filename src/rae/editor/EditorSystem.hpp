@@ -176,8 +176,6 @@ public:
 		AssetSystem& assetSystem,
 		Input& input);
 
-	String name() const override { return "EditorSystem"; }
-
 	UpdateStatus update() override;
 	void render3D(const Scene& scene, const Window& window) override;
 

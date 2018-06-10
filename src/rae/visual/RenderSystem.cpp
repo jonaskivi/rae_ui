@@ -43,6 +43,7 @@ RenderSystem::RenderSystem(
 	UISystem& uiSystem,
 	SceneSystem& sceneSystem,
 	RayTracer& rayTracer) :
+		ISystem("RenderSystem"),
 		m_time(time),
 		m_input(input),
 		m_screenSystem(screenSystem),

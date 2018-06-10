@@ -164,10 +164,9 @@ public:
 		ScreenSystem& screenSystem,
 		DebugSystem& debugSystem);
 
-	String name() const override { return "Untitled"; }
-
 	TransformSystem&	transformSystem()	{ return m_transformSystem; }
 
+	void handleInput(const Array<InputEvent>& events);
 	UpdateStatus update() override;
 	void render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem);
 
@@ -221,7 +220,8 @@ public:
 	const Color& getColor(Id id);
 
 	void addCommand(Id id, Command&& element);
-	const Command& getCommand(Id id);
+	Command& getCommand(Id id);
+	const Command& getCommand(Id id) const;
 
 	void setActive(Id id, bool active);
 	bool isActive(Id id);
@@ -236,6 +236,9 @@ public:
 	void renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color,
 		float cornerRadius = 0.0f, float thickness = 0.0f);
 	void renderCircle(const Transform& transform, float diameter, const Color& color);
+	void renderCircle(const vec2& position, float diameter, const Color& color);
+	void renderArc(const vec2& origin, float fromAngleRad, float toAngleRad, float diameter,
+		float thickness, const Color& color);
 	void renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color);
 	void renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		const Color& color, const Color& textColor);
@@ -254,6 +257,8 @@ public:
 			float thickness = 1.0f);
 	void renderCircleNano(NVGcontext* vg, const vec2& position, float diameter,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
+	void renderArcNano(NVGcontext* vg, const vec2& origin, float fromAngleRad, float toAngleRad,
+		float diameter, float thickness, const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
 	void renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
 			float cornerRadius,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f)) const;
@@ -303,6 +308,10 @@ private:
 	Table<ImageLink>	m_imageLinks;
 
 	NVGcontext*			m_nanoVG;
+
+	// If we had events during this frame.
+	bool				m_hadEvents = false;
+	bool				m_mouseInside = false;
 };
 
 }

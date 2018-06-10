@@ -60,8 +60,6 @@ public:
 		RayTracer& rayTracer);
 	~RenderSystem();
 
-	String name() const override { return "RenderSystem"; }
-
 	void init();
 
 	void checkErrors(const char *file, int line);

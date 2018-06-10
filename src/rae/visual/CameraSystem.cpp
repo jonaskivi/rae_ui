@@ -9,6 +9,7 @@
 using namespace rae;
 
 CameraSystem::CameraSystem(const Time& time, EntitySystem& entitySystem, TransformSystem& transformSystem, Input& input) :
+	ISystem("CameraSystem"),
 	m_time(time),
 	m_entitySystem(entitySystem),
 	m_transformSystem(transformSystem),

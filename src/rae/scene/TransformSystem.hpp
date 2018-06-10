@@ -34,8 +34,6 @@ class TransformSystem : public ISystem
 public:
 	TransformSystem();
 
-	String name() const override { return "TransformSystem"; }
-
 	UpdateStatus update() override;
 
 	//UpdateStatus updateSceneGraph();

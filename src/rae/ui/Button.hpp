@@ -14,10 +14,24 @@ public:
 	Command() {}
 	Command(std::function<void()> handler);
 
+	void update()
+	{
+		if (m_shouldExecute)
+		{
+			m_shouldExecute = false;
+			execute();
+		}
+	}
+
 	void execute() const;
+	// Execute on next update
+	void executeAsync() { m_shouldExecute = true; }
 	void connectExecuteEventHandler(std::function<void()> handler);
 
 protected:
+
+	bool m_shouldExecute = false;
+
 	void emitExecuteEvent() const { for (auto&& event : m_executeEvent) event(); }
 	Array<std::function<void()>> m_executeEvent;
 };

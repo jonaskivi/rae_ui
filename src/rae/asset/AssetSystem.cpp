@@ -9,6 +9,7 @@
 using namespace rae;
 
 AssetSystem::AssetSystem(Time& time, NVGcontext* nanoVG) :
+	ISystem("AssetSystem"),
 	m_time(time),
 	m_nanoVG(nanoVG),
 	m_entitySystem("AssetSystem")

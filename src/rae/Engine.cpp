@@ -152,6 +152,22 @@ UpdateStatus Engine::update()
 
 	reactToInput(m_input);
 
+	// HandleInput func
+	{
+		for (int i = 0; i < m_windowSystem.windowCount(); ++i)
+		{
+			auto&& window = m_windowSystem.window(i);
+
+			int uiSceneIndex = window.uiSceneIndex();
+			if (m_uiSystem.hasScene(uiSceneIndex))
+			{
+				UIScene& uiScene = m_uiSystem.scene(uiSceneIndex);
+				uiScene.handleInput(window.events());
+				window.clearEvents();
+			}
+		}
+	}
+
 	UpdateStatus engineUpdateStatus = UpdateStatus::NotChanged;
 
 	//LOG_F(INFO, "FRAME START.");
@@ -166,60 +182,63 @@ UpdateStatus Engine::update()
 		}
 	}
 
-	for (int i = 0; i < m_windowSystem.windowCount(); ++i)
+	// Render func
 	{
-		auto&& window = m_windowSystem.window(i);
-		//LOG_F(INFO, "Window: %s sceneIndex: %i", window.name().c_str(), window.sceneIndex());
-
-		window.activateContext();
-
-		int uiSceneIndex = window.uiSceneIndex();
-		//LOG_F(INFO, "window: %i uiSceneIndex: %i", i, uiSceneIndex);
-		if (m_uiSystem.hasScene(uiSceneIndex))
+		for (int i = 0; i < m_windowSystem.windowCount(); ++i)
 		{
-			// RAE_TODO possibly const
-			UIScene& uiScene = m_uiSystem.scene(uiSceneIndex);
+			auto&& window = m_windowSystem.window(i);
+			//LOG_F(INFO, "Window: %s sceneIndex: %i", window.name().c_str(), window.sceneIndex());
 
-			m_renderSystem.beginFrame3D();
+			window.activateContext();
 
-			for (int i = 0; i < uiScene.viewportCount(); ++i)
+			int uiSceneIndex = window.uiSceneIndex();
+			//LOG_F(INFO, "window: %i uiSceneIndex: %i", i, uiSceneIndex);
+			if (m_uiSystem.hasScene(uiSceneIndex))
 			{
-				Rectangle viewport = uiScene.getViewportPixelRectangle(i);
+				// RAE_TODO possibly const
+				UIScene& uiScene = m_uiSystem.scene(uiSceneIndex);
 
-				m_renderSystem.setViewport(viewport, window);
+				m_renderSystem.beginFrame3D();
 
-				if (m_sceneSystem.hasScene(i))
+				for (int i = 0; i < uiScene.viewportCount(); ++i)
 				{
-					const Scene& scene = m_sceneSystem.scene(i);
+					Rectangle viewport = uiScene.getViewportPixelRectangle(i);
 
-					for (auto system : m_renderers3D)
+					m_renderSystem.setViewport(viewport, window);
+
+					if (m_sceneSystem.hasScene(i))
 					{
-						if (system->isEnabled())
+						const Scene& scene = m_sceneSystem.scene(i);
+
+						for (auto system : m_renderers3D)
 						{
-							system->render3D(scene, window);
+							if (system->isEnabled())
+							{
+								system->render3D(scene, window);
+							}
 						}
 					}
 				}
-			}
 
-			m_renderSystem.endFrame3D();
+				m_renderSystem.endFrame3D();
 
-			m_renderSystem.beginFrame2D(window);
+				m_renderSystem.beginFrame2D(window);
 
-			for (auto system : m_renderers2D)
-			{
-				if (system->isEnabled())
+				for (auto system : m_renderers2D)
 				{
-					system->render2D(uiScene, window.nanoVG());
+					if (system->isEnabled())
+					{
+						system->render2D(uiScene, window.nanoVG());
+					}
 				}
+
+				m_renderSystem.endFrame2D(window);
 			}
 
-			m_renderSystem.endFrame2D(window);
+			window.swapBuffers();
+
+			//LOG_F(INFO, "FRAME END.");
 		}
-
-		window.swapBuffers();
-
-		//LOG_F(INFO, "FRAME END.");
 	}
 
 	for (auto system : m_systems)

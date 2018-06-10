@@ -411,6 +411,7 @@ EditorSystem::EditorSystem(
 	RenderSystem& renderSystem,
 	AssetSystem& assetSystem,
 	Input& input) :
+		ISystem("EditorSystem"),
 		m_sceneSystem(sceneSystem),
 		m_renderSystem(renderSystem),
 		m_assetSystem(assetSystem),

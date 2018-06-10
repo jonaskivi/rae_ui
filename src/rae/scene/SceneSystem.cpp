@@ -9,6 +9,7 @@ using namespace rae;
 SceneSystem::SceneSystem(
 	const Time& time,
 	Input& input) :
+		ISystem("SceneSystem"),
 		m_time(time),
 		m_input(input)
 {

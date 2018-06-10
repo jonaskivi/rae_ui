@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rae/core/version.hpp"
+#include "rae/ui/Input.hpp"
 
 #include <GL/glew.h>
 #ifdef version_glfw
@@ -50,11 +51,17 @@ public:
 	float xPixelsToNormalizedWindow(float pixels) const { return pixels / pixelWidth(); }
 	float yPixelsToNormalizedWindow(float pixels) const { return pixels / pixelHeight(); }
 
+	void setUISceneIndex(int uiSceneIndex) { m_uiSceneIndex = uiSceneIndex; }
+	int uiSceneIndex() { return m_uiSceneIndex; }
+
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
 
-	void setUISceneIndex(int uiSceneIndex) { m_uiSceneIndex = uiSceneIndex; }
-	int uiSceneIndex() { return m_uiSceneIndex; }
+	void osMouseEvent(EventType eventType);
+	void osMouseEvent(EventType eventType, int button, float xP, float yP);
+
+	const Array<InputEvent>& events() { return m_events; }
+	void clearEvents() { m_events.clear(); }
 
 private:
 
@@ -75,6 +82,9 @@ private:
 	//float m_pixelsPerMM = 0.0f;
 
 	int m_uiSceneIndex = -1;
+
+	// Events to be handled.
+	Array<InputEvent> m_events;
 };
 
 }

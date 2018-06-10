@@ -30,7 +30,12 @@ public:
 	{
 	}
 
-	virtual String name() const { return "System name not set"; }
+	ISystem(const String& name) :
+		m_name(name)
+	{
+	}
+
+	virtual String name() const { return m_name; }
 
 	virtual UpdateStatus update() { return UpdateStatus::NotChanged; }
 	virtual void render3D(const Scene& scene, const Window& window) {};
@@ -69,6 +74,8 @@ public:
 	virtual void setIsEnabled(bool set) { m_isEnabled = set; }
 
 protected:
+
+	String m_name = "System name not set";
 
 	Array<ITable*> m_tables;
 

@@ -32,8 +32,6 @@ public:
 
 	~UISystem();
 
-	String name() const override { return "UISystem"; }
-
 	UIScene& createUIScene(const String& name = "Untitled");
 	void connectWindowToScene(Window& window, UIScene& uiScene);
 

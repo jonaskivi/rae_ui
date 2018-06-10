@@ -100,6 +100,11 @@ bool SelectionSystem::isHovered(Id id)
 	return m_hovers.check(id);
 }
 
+void SelectionSystem::clearHovers()
+{
+	m_hovers.clear();
+}
+
 vec3 SelectionSystem::selectionPosition() const
 {
 	vec3 pos;

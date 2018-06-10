@@ -1,6 +1,7 @@
 #include "pihlaja/Pihlaja.hpp"
 
 Pihlaja::Pihlaja() :
+	ISystem("PihlajaSystem"),
 	m_engine("Pihlaja"),
 	#ifdef USE_RAE_AV
 	m_avSystem(m_engine.renderSystem()),

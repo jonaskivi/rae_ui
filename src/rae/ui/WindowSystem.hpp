@@ -25,12 +25,14 @@ public:
 	WindowSystem(GLFWwindow* windowHandle, Input& input);
 	~WindowSystem();
 
-	virtual String name() const override { return "WindowSystem"; }
 	virtual UpdateStatus update() override;
 
 	// TODO multiwindow support
 	void osEventResizeWindow(GLFWwindow* windowHandle, int width, int height);
 	void osEventResizeWindowPixels(GLFWwindow* windowHandle, int width, int height);
+
+	void osEventCursorEnter(GLFWwindow* windowHandle);
+	void osEventCursorLeave(GLFWwindow* windowHandle);
 
 	void osMouseButtonPress(GLFWwindow* windowHandle, int button, float x, float y);
 	void osMouseButtonRelease(GLFWwindow* windowHandle, int button, float x, float y);

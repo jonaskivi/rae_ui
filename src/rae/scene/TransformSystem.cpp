@@ -6,6 +6,7 @@ static const int ReserveTransforms = 1000;
 static const int ReserveBoxes = 1000;
 
 TransformSystem::TransformSystem() :
+	ISystem("TransformSystem"),
 	m_localTransforms(ReserveTransforms),
 	m_localTransformChanged(ReserveTransforms),
 	m_transforms(ReserveTransforms),

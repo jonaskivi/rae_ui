@@ -25,6 +25,7 @@ UISystem::UISystem(
 	AssetSystem& assetSystem,
 	DebugSystem& debugSystem
 	) :
+		ISystem("UISystem"),
 		m_time(time),
 		m_input(input),
 		m_windowSystem(windowSystem),

@@ -32,6 +32,7 @@ public:
 
 	void setHovered(Id id, bool hovered);
 	bool isHovered(Id id);
+	void clearHovers();
 
 	Event<SelectionSystem&> onSelectionChanged;
 

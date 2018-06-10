@@ -6,6 +6,8 @@
 
 #ifdef _WIN32
 #define NANOVG_GL3_IMPLEMENTATION
+#elif __linux__
+#define NANOVG_GL3_IMPLEMENTATION
 #else
 #define NANOVG_GL2_IMPLEMENTATION
 #endif
@@ -14,6 +16,7 @@
 #include "nanovg_gl_utils.h"
 
 #include "rae/ui/WindowSystem.hpp"
+#include "rae/ui/DebugSystem.hpp"
 
 using namespace rae;
 
@@ -58,6 +61,15 @@ void glfwWindowPixelSizeCallback(GLFWwindow* window, int width, int height)
 	if (g_windowSystem == nullptr)
 		return;
 	g_windowSystem->osEventResizeWindowPixels(window, width, height);
+}
+
+void glfwCursorEnterCallback(GLFWwindow* window, int entered)
+{
+	if (g_windowSystem == nullptr)
+		return;
+	if (entered)
+		g_windowSystem->osEventCursorEnter(window);
+	else g_windowSystem->osEventCursorLeave(window);
 }
 
 void glfwOnMouseButton(GLFWwindow* window, int button, int action, int mods)
@@ -153,6 +165,7 @@ Window::Window(const String& name, int width, int height) :
 
 	glfwSetWindowSizeCallback     (m_windowHandle, glfwWindowSizeCallback);
 	glfwSetFramebufferSizeCallback(m_windowHandle, glfwWindowPixelSizeCallback); // Support hi-dpi displays
+	glfwSetCursorEnterCallback    (m_windowHandle, glfwCursorEnterCallback);
 	glfwSetMouseButtonCallback    (m_windowHandle, glfwOnMouseButton);
 	glfwSetCursorPosCallback      (m_windowHandle, glfwOnMouseMotion);
 	glfwSetKeyCallback            (m_windowHandle, glfwKeyCallback);
@@ -247,4 +260,14 @@ void Window::osEventResizeWindowPixels(int width, int height)
 	m_pixelWidth = width;
 	m_pixelHeight = height;
 	m_screenPixelRatio = (float)m_pixelWidth / (float)m_width;
+}
+
+void Window::osMouseEvent(EventType eventType)
+{
+	m_events.emplace_back(eventType);
+}
+
+void Window::osMouseEvent(EventType eventType, int button, float xP, float yP)
+{
+	m_events.emplace_back(eventType, xP, yP);
 }

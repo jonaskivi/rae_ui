@@ -86,25 +86,44 @@ enum class EventType
 	KeyPress,
 	KeyRelease,
 	KeyHold,
-	EnterNotify,
-	LeaveNotify,
+	MouseEnter,
+	MouseLeave,
 	Scroll
 };
 
 class ScreenSystem;
 class Window;
 
+struct InputEvent
+{
+	InputEvent(EventType type) :
+		eventType(type)
+	{
+	}
+
+	InputEvent(EventType type, float x, float y) :
+		eventType(type),
+		x(x),
+		y(y)
+	{
+	}
+
+	EventType eventType;
+
+	float x = 0.0f;
+	float y = 0.0f;
+};
+
 class Input : public ISystem
 {
 public:
 	Input(ScreenSystem& screenSystem) :
+		ISystem("InputSystem"),
 		m_screenSystem(screenSystem),
 		eventType(EventType::Undefined),
 		isHandled(false)
 	{
 	}
-
-	String name() const override { return "InputSystem"; }
 
 	UpdateStatus update() override
 	{
@@ -394,7 +413,6 @@ protected:
 	std::vector<std::function<void(const Input&)>> scrollEvent;
 	void emitKeyEvent() { for (auto&& event : keyEvent) event(*this); }
 	std::vector<std::function<void(const Input&)>> keyEvent;
-
 }; //end Input
 
 } // end Rae

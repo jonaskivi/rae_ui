@@ -23,6 +23,7 @@ RayTracer::RayTracer(
 	WindowSystem& windowSystem,
 	AssetSystem& assetSystem,
 	SceneSystem& sceneSystem) :
+		ISystem("RayTracer"),
 		m_world(4),
 		m_time(time),
 		m_windowSystem(windowSystem),

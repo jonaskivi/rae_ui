@@ -21,6 +21,7 @@ UIScene::UIScene(
 	Input& input,
 	ScreenSystem& screenSystem,
 	DebugSystem& debugSystem) :
+		ISystem(name),
 		m_entitySystem("UISystem"),
 		m_transformSystem(),
 		m_selectionSystem(m_transformSystem),
@@ -69,6 +70,48 @@ void UIScene::createDefaultTheme()
 	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]		= Utils::createColor8bit(54, 68, 75, 235);
 }
 
+void UIScene::handleInput(const Array<InputEvent>& events)
+{
+	m_hadEvents = !events.empty();
+
+	// RAE_TODO check 1st mouse button pressed // MouseButton::First
+	bool mouseClicked = false;
+	for (auto&& event : events)
+	{
+		if (event.eventType == EventType::MouseButtonRelease)
+		{
+			mouseClicked = true;
+			break;
+		}
+		else if (event.eventType == EventType::MouseEnter)
+		{
+			m_mouseInside = true;
+		}
+		else if (event.eventType == EventType::MouseLeave)
+		{
+			m_mouseInside = false;
+			// Need to clear hovers, so that none are left behind.
+			m_selectionSystem.clearHovers();
+		}
+	}
+
+	if (mouseClicked)
+	{
+		LOG_F(INFO, "mouseClicked on UIScene name: %s", name().c_str());
+
+		query<Button>(m_buttons, [&](Id id, const Button& button)
+		{
+			bool hovered = m_selectionSystem.isHovered(id);
+			if (hovered && m_commands.check(id))
+			{
+				auto& command = getCommand(id);
+				command.executeAsync();
+				//command.execute();
+			}
+		});
+	}
+}
+
 UpdateStatus UIScene::update()
 {
 	static int frameCount = 0;
@@ -77,7 +120,18 @@ UpdateStatus UIScene::update()
 
 	doLayout();
 
-	hover();
+	if (m_mouseInside && m_hadEvents)
+	{
+		hover();
+	}
+
+	// Execute async
+	{
+		query<Command>(m_commands, [&](Id id, Command& command)
+		{
+			command.update();
+		});
+	}
 
 	// debug rendering
 	if (m_buttons.check(m_infoButtonId))
@@ -191,15 +245,6 @@ void UIScene::hover()
 			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			{
 				m_selectionSystem.setHovered(id, true);
-
-				if (m_commands.check(id))
-				{
-					if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonRelease)
-					{
-						auto& command = getCommand(id);
-						command.execute();
-					}
-				}
 			}
 			else
 			{
@@ -357,6 +402,20 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 			float diameter = 2.0f;
 			renderCircle(transform, diameter, Colors::cyan);
 		});
+
+		if (m_mouseInside)
+		{
+			// Render mouse cursor as a circle (actually with arc function)
+			renderArc(
+				vec2(m_input.mouse.xMM, m_input.mouse.yMM),
+				0.0f,				// fromAngleRad
+				Math::TAU * 1.0f,	// toAngleRad
+				20.0f,				// diameter
+				1.0f,				// thickness
+				m_input.mouse.button(MouseButton::First) ?
+				Colors::red :
+				Colors::lightGray * Color(1.0f, 1.0f, 1.0f, 0.5f));
+		}
 	}
 }
 
@@ -385,11 +444,22 @@ void UIScene::renderBorder(const Transform& transform, const Box& box, const Piv
 
 void UIScene::renderCircle(const Transform& transform, float diameter, const Color& color)
 {
+	renderCircle(vec2(transform.position.x, transform.position.y), diameter, color);
+}
+
+void UIScene::renderCircle(const vec2& position, float diameter, const Color& color)
+{
 	renderCircleNano(m_nanoVG,
-		vec2(m_screenSystem.mmToPixels(transform.position.x),
-			 m_screenSystem.mmToPixels(transform.position.y)),
+		m_screenSystem.mmToPixels(position),
 		m_screenSystem.mmToPixels(diameter),
 		color);
+}
+
+void UIScene::renderArc(const vec2& origin, float fromAngleRad, float toAngleRad,
+	float diameter, float thickness, const Color& color)
+{
+	renderArcNano(m_nanoVG, m_screenSystem.mmToPixels(origin), fromAngleRad, toAngleRad,
+		m_screenSystem.mmToPixels(diameter), m_screenSystem.mmToPixels(thickness), color);
 }
 
 void UIScene::renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color)
@@ -452,6 +522,41 @@ void UIScene::renderCircleNano(NVGcontext* vg, const vec2& position,
 	//nvgStrokeColor(vg, strokeColor);
 	//nvgStrokeWidth(vg, 1.0f);
 	//nvgStroke(vg);
+
+	nvgRestore(vg);
+}
+
+void UIScene::renderArcNano(NVGcontext* vg, const vec2& origin, float fromAngleRad, float toAngleRad,
+	float diameter, float thickness, const Color& color)
+{
+	NVGcolor fillColor = nvgRGBAf(color.r, color.g, color.b, color.a);
+	//NVGcolor strokeColor = nvgRGBAf(0.0f, 0.0f, 0.0f, color.a);
+
+	vec2 arcVec1 = vec2(cos(fromAngleRad), sin(fromAngleRad));
+	vec2 arcVec2 = vec2(cos(toAngleRad), sin(toAngleRad));
+
+	vec2 radii = vec2((diameter * 0.5f) - thickness, diameter * 0.5f);
+
+	vec2 pos1 = origin + (arcVec1 * radii.x);
+	vec2 pos2 = origin + (arcVec1 * radii.y);
+
+	vec2 pos3 = origin + (arcVec2 * radii.x);
+	vec2 pos4 = origin + (arcVec2 * radii.y);
+
+	nvgSave(vg);
+	nvgBeginPath(vg);
+	nvgMoveTo(vg, pos1.x, pos1.y);
+	nvgLineTo(vg, pos2.x, pos2.y);
+	nvgArc(vg, origin.x, origin.y, radii.x, fromAngleRad, toAngleRad, NVG_CW);
+	nvgLineTo(vg, pos3.x, pos3.y);
+	nvgArc(vg, origin.x, origin.y, radii.y, toAngleRad, fromAngleRad, NVG_CCW);
+	nvgClosePath(vg);
+
+	//nvgStrokeColor(vg, strokeColor);
+	//nvgStroke(vg);
+
+	nvgFillColor(vg, fillColor);
+	nvgFill(vg);
 
 	nvgRestore(vg);
 }
@@ -930,7 +1035,12 @@ void UIScene::addCommand(Id id, Command&& element)
 	m_commands.assign(id, std::move(element));
 }
 
-const Command& UIScene::getCommand(Id id)
+Command& UIScene::getCommand(Id id)
+{
+	return m_commands.get(id);
+}
+
+const Command& UIScene::getCommand(Id id) const
 {
 	return m_commands.get(id);
 }

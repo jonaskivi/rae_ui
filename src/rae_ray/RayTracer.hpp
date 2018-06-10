@@ -40,8 +40,6 @@ public:
 		SceneSystem& sceneSystem);
 	~RayTracer();
 
-	String name() const override { return "RayTracer"; }
-
 	void showScene(int number);
 	void clearScene();
 

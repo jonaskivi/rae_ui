@@ -154,6 +154,16 @@ UpdateStatus Engine::update()
 
 	// HandleInput func
 	{
+		int grabbedSceneIndex = -1;
+		for (int i = 0; i < m_uiSystem.sceneCount(); ++i)
+		{
+			if (m_uiSystem.scene(i).isGrabbed())
+			{
+				grabbedSceneIndex = i;
+				break;
+			}
+		}
+
 		for (int i = 0; i < m_windowSystem.windowCount(); ++i)
 		{
 			auto&& window = m_windowSystem.window(i);
@@ -162,7 +172,13 @@ UpdateStatus Engine::update()
 			if (m_uiSystem.hasScene(uiSceneIndex))
 			{
 				UIScene& uiScene = m_uiSystem.scene(uiSceneIndex);
-				uiScene.handleInput(window.events());
+
+				// Handle scene input if nothing is grabbed, or if this scene is grabbed.
+				if (grabbedSceneIndex == -1 || grabbedSceneIndex == uiSceneIndex)
+				{
+					uiScene.handleInput(window.events());
+				}
+
 				window.clearEvents();
 			}
 		}

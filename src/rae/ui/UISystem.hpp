@@ -50,6 +50,7 @@ public:
 
 	const UIScene& scene(int index) const { return m_uiScenes[index]; }
 	UIScene& scene(int index) { return m_uiScenes[index]; }
+	int sceneCount() const { return (int)m_uiScenes.size(); }
 
 	// Returns -1 if the scene was not found.
 	int getSceneIndex(const UIScene& findScene)

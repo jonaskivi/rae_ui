@@ -73,6 +73,7 @@ void Test2DCoordinates::initUI()
 
 	{
 		Id panel = ui.createPanel(Rectangle(100.0f, 60.0f, 58.0f, 75.0f));
+		ui.addDraggable(panel);
 
 		LOG_F(INFO, "Created panel id: %i", (int)panel);
 
@@ -87,6 +88,7 @@ void Test2DCoordinates::initUI()
 				LOG_F(INFO, "Activate Test Button 1");
 				//windowSystem.createWindow("Test Second Window", 600, 300);
 			});
+		ui.addDraggable(testButton1);
 
 		Id testButton2 = ui.createButton("Test Button 2",
 			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
@@ -94,6 +96,7 @@ void Test2DCoordinates::initUI()
 			{
 				LOG_F(INFO, "Activate Test Button 2");
 			});
+		ui.addDraggable(testButton2);
 
 		Id testButton3 = ui.createButton("Test Button 3",
 			Rectangle(100.0f, 81.0f, 22.0f, 6.0f),
@@ -107,12 +110,15 @@ void Test2DCoordinates::initUI()
 		trans.addChild(panel, testButton1);
 		trans.addChild(panel, testButton2);
 		trans.addChild(panel, testButton3);
+
+		//trans.setScale(panel, 0.5f);
 	}
 
 	{
 		Id panel2 = ui.createPanel(
 			vec3(239.0f, 158.0f, 0.0f),
 			vec3(58.0f, 75.0f, 1.0f));
+		ui.addDraggable(panel2);
 
 		Id testButton4 = ui.createButton("Test Button 4",
 			[&]()

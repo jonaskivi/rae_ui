@@ -47,6 +47,10 @@ struct Rectangle
 	float height = 0.0f;
 };
 
+struct Draggable
+{
+};
+
 struct StackLayout
 {
 	StackLayout(){}
@@ -228,6 +232,8 @@ public:
 	// Make active follow property state with a two-way binding
 	void bindActive(Id id, Bool& property);
 
+	void addDraggable(Id id);
+
 // internal:
 
 	// Input in millimeters
@@ -269,6 +275,10 @@ public:
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f),
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 
+	bool isGrabbed() const { return m_grabbedId != InvalidId; }
+	void grab(Id id) { m_grabbedId = id; }
+	void clearGrab() { m_grabbedId = InvalidId; }
+
 private:
 
 	void createDefaultTheme();
@@ -307,11 +317,14 @@ private:
 
 	Table<ImageLink>	m_imageLinks;
 
+	Table<Draggable>	m_draggables;
+
 	NVGcontext*			m_nanoVG;
 
 	// If we had events during this frame.
 	bool				m_hadEvents = false;
 	bool				m_mouseInside = false;
+	Id					m_grabbedId = InvalidId;
 };
 
 }

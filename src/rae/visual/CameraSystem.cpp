@@ -37,8 +37,9 @@ void CameraSystem::onMouseEvent(const Input& input)
 		{
 			const float rotateSpeedMul = 5.0f;
 
-			camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
-			camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
+			// RAE_TODO Need to redo the speedMuls because xDeltaP used to be xDeltaHeightCoords from -1 to 1.
+			camera.rotateYaw(input.mouse.xDeltaP * -1.0f * rotateSpeedMul);
+			camera.rotatePitch(input.mouse.yDeltaP * -1.0f * rotateSpeedMul);
 		}
 	}
 	else if (input.eventType == EventType::MouseButtonPress)

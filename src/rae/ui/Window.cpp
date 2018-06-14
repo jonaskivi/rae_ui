@@ -269,5 +269,5 @@ void Window::osMouseEvent(EventType eventType)
 
 void Window::osMouseEvent(EventType eventType, int button, float xP, float yP)
 {
-	m_events.emplace_back(eventType, xP, yP);
+	m_events.emplace_back(eventType, Input::intToMouseButton(button), xP, yP);
 }

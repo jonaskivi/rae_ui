@@ -14,7 +14,7 @@ void Input::onFrameEnd()
 	key.clearFrame();
 
 	// Clear button events
-	for (int i = 0; i < 6; ++i)
+	for (int i = 0; i < (int)MouseButton::Count; ++i)
 	{
 		MouseButton iButton = intToMouseButton(i);
 		mouse.setButtonEvent(iButton, EventType::Undefined);
@@ -49,8 +49,6 @@ void Input::addTouchPoint(TouchPointState setState, int setId, float xPixels, fl
 	eventType = EventType::Touch;
 
 	//touch.addTouchPoint(setId, xPixels, yPixels);
-	float xHeight = m_screenSystem.pixelsToHeight(xPixels);
-	float yHeight = m_screenSystem.pixelsToHeight(yPixels);
 
 	#ifdef DebugTouch
 		LOG_F(INFO, "Input::addTouchPoint: x: %f y: %f", xPixels, yPixels);
@@ -72,23 +70,12 @@ void Input::addTouchPoint(TouchPointState setState, int setId, float xPixels, fl
 		{
 			touch.touchPoints[i].state = setState;
 
-			touch.touchPoints[i].xRelP = xPixels - touch.touchPoints[i].xP;
-			touch.touchPoints[i].yRelP = yPixels - touch.touchPoints[i].yP;
-			touch.touchPoints[i].xRel = xHeight - touch.touchPoints[i].x;
-			touch.touchPoints[i].yRel = yHeight - touch.touchPoints[i].y;
+			touch.touchPoints[i].xDeltaP = xPixels - touch.touchPoints[i].xP;
+			touch.touchPoints[i].yDeltaP = yPixels - touch.touchPoints[i].yP;
 
 			touch.touchPoints[i].xP = xPixels;
 			touch.touchPoints[i].yP = yPixels;
-			touch.touchPoints[i].x = xHeight;
-			touch.touchPoints[i].y = yHeight;
 
-			/*
-			//Do we need to init these?
-			touch.touchPoints[i].xLocalP = xPixels;
-			touch.touchPoints[i].yLocalP = yPixels;
-			touch.touchPoints[i].xLocal = xHeight;
-			touch.touchPoints[i].yLocal = yHeight;
-			*/
 			return;
 		}
 	}
@@ -161,23 +148,8 @@ void Input::osMouseEvent(const Window& window, EventType setEventType, int setBu
 {
 	//assert(setButton >= 0); // "Mouse button is smaller than 0. Platform not supported yet."
 
-	// Convert from topleft (0.0f -> width) to centered pixel coordinates.
-	/* OLD:
-	const auto& window = m_screenSystem.window();
-	float xPixels = rawXPixels - (window.pixelWidth() * 0.5f);
-	float yPixels = rawYPixels - (window.pixelHeight() * 0.5f);
-	*/
-
 	float xPixels = rawXPixels;
 	float yPixels = rawYPixels;
-
-	float xCenterPixels = rawXPixels - (window.pixelWidth() * 0.5f);
-	float yCenterPixels = rawYPixels - (window.pixelHeight() * 0.5f);
-
-	// TODO: possibly split coordinate conversion functions to m_windowSystem, which knows
-	// the conversion ratios per window.
-	float xHeight = m_screenSystem.pixelsToHeight(xCenterPixels);
-	float yHeight = m_screenSystem.pixelsToHeight(yCenterPixels);
 
 	//LOG_F(INFO, "Input::osMouseEvent: xPixels: %f yPixels: %f xHeight: %f yHeight: %f", xPixels, yPixels,
 	//	xHeight, yHeight);
@@ -206,8 +178,6 @@ void Input::osMouseEvent(const Window& window, EventType setEventType, int setBu
 		mouse.setButton(mouseButton, true);
 		mouse.xOnButtonPressP[setButton] = xPixels;
 		mouse.yOnButtonPressP[setButton] = yPixels;
-		mouse.xOnButtonPress[setButton] = xHeight;
-		mouse.yOnButtonPress[setButton] = yHeight;
 	}
 	else if (eventType == EventType::MouseButtonRelease)
 	{
@@ -248,25 +218,19 @@ void Input::osMouseEvent(const Window& window, EventType setEventType, int setBu
 		//LOG_F(INFO, "Input NO PRESS.");
 	//}
 
-	mouse.xRelP = xPixels - mouse.xP;
-	mouse.yRelP = yPixels - mouse.yP;
-	mouse.xRel = xHeight - mouse.x;
-	mouse.yRel = yHeight - mouse.y;
+	mouse.xDeltaP = xPixels - mouse.xP;
+	mouse.yDeltaP = yPixels - mouse.yP;
 
 	//
 
 	mouse.xP = xPixels;
 	mouse.yP = yPixels;
-	mouse.xLocalP = xPixels;
-	mouse.yLocalP = yPixels;
-
-	mouse.x = xHeight;
-	mouse.y = yHeight;
-	mouse.xLocal = xHeight;
-	mouse.yLocal = yHeight;
 
 	mouse.xMM = m_screenSystem.pixelsToMM(rawXPixels);
 	mouse.yMM = m_screenSystem.pixelsToMM(rawYPixels);
+
+	mouse.xDeltaMM = m_screenSystem.pixelsToMM(mouse.xDeltaP);
+	mouse.yDeltaMM = m_screenSystem.pixelsToMM(mouse.yDeltaP);
 
 	mouse.xNormalizedWindow = window.xPixelsToNormalizedWindow(rawXPixels);
 	mouse.yNormalizedWindow = window.yPixelsToNormalizedWindow(rawYPixels);

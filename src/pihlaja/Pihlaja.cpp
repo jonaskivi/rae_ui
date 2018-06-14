@@ -90,6 +90,7 @@ void Pihlaja::initUI()
 		m_screenImageAssetId,
 		vec3(300.0f, 210.0f, 0.0f),
 		vec3(150.0f, 80.0f, 1.0f));
+	ui.addDraggable(videoBufferImageBox);
 
 	int sceneIndex = 0;
 	Id viewport = ui.createViewport(sceneIndex,
@@ -100,10 +101,12 @@ void Pihlaja::initUI()
 	Id viewport2 = ui.createViewport(sceneIndex2,
 		vec3(385.0f, 80.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
+	ui.addDraggable(viewport2);
 
 	Id panel = ui.createPanel(
 		vec3(130.0f, 210.0f, 0.0f),
 		vec3(150.0f, 80.0f, 1.0f));
+	ui.addDraggable(panel);
 
 	ui.addStackLayout(panel);
 

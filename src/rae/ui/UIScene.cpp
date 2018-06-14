@@ -41,6 +41,7 @@ UIScene::UIScene(
 	addTable(m_keylineLinks);
 	addTable(m_stackLayouts);
 	addTable(m_imageLinks);
+	addTable(m_draggables);
 
 	createDefaultTheme();
 
@@ -74,30 +75,54 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 {
 	m_hadEvents = !events.empty();
 
-	// RAE_TODO check 1st mouse button pressed // MouseButton::First
-	bool mouseClicked = false;
+	if (not m_hadEvents)
+		return;
+
+	bool buttonClicked[(int)MouseButton::Count];
+	for (int i = 0; i < (int)MouseButton::Count; ++i)
+	{
+		buttonClicked[i] = false;
+	}
+
+	vec3 mouseDelta = vec3(0.0f, 0.0f, 0.0f);
+	//RAE_TODO NEED TO STORE THIS SOMEWHERE and not per scene? Probably Input class:
+	static vec3 previousMousePos = vec3(0.0f, 0.0f, 0.0f);
+
 	for (auto&& event : events)
 	{
 		if (event.eventType == EventType::MouseButtonRelease)
 		{
-			mouseClicked = true;
-			break;
+			if (event.mouseButton != MouseButton::Undefined)
+			{
+				buttonClicked[(int)event.mouseButton] = true;
+			}
+
+			if (event.mouseButton == MouseButton::First)
+			{
+				clearGrab();
+			}
 		}
-		else if (event.eventType == EventType::MouseEnter)
+		else if (not isGrabbed() && event.eventType == EventType::MouseEnter)
 		{
 			m_mouseInside = true;
 		}
-		else if (event.eventType == EventType::MouseLeave)
+		else if (not isGrabbed() && event.eventType == EventType::MouseLeave)
 		{
 			m_mouseInside = false;
 			// Need to clear hovers, so that none are left behind.
 			m_selectionSystem.clearHovers();
 		}
+		else if (event.eventType == EventType::MouseMotion)
+		{
+			vec3 newPos(event.x, event.y, 0.0f);
+			mouseDelta += newPos - previousMousePos;
+			previousMousePos = newPos;
+		}
 	}
 
-	if (mouseClicked)
+	if (buttonClicked[(int)MouseButton::First])
 	{
-		LOG_F(INFO, "mouseClicked on UIScene name: %s", name().c_str());
+		LOG_F(INFO, "firstMouseClicked on UIScene name: %s", name().c_str());
 
 		query<Button>(m_buttons, [&](Id id, const Button& button)
 		{
@@ -110,6 +135,41 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 			}
 		});
 	}
+
+	if (buttonClicked[(int)MouseButton::Middle])
+	{
+		LOG_F(INFO, "middleMouseClicked on UIScene name: %s", name().c_str());
+
+		query<Button>(m_buttons, [&](Id id, const Button& button)
+		{
+			bool hovered = m_selectionSystem.isHovered(id);
+			if (hovered)
+			{
+				m_selectionSystem.toggleSelected(id);
+			}
+		});
+	}
+
+	// Draggables
+	if (m_input.mouse.button(MouseButton::First))
+	{
+		Array<Id> ids;
+
+		query<Draggable>(m_draggables, [&](Id id)
+		{
+			bool hovered = m_selectionSystem.isHovered(id);
+			if (hovered)
+			{
+				ids.emplace_back(id);
+			}
+		});
+
+		if (not ids.empty())
+		{
+			grab(ids.front());
+			m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(mouseDelta));
+		}
+	}
 }
 
 UpdateStatus UIScene::update()
@@ -120,7 +180,7 @@ UpdateStatus UIScene::update()
 
 	doLayout();
 
-	if (m_mouseInside && m_hadEvents)
+	if (not isGrabbed() && m_mouseInside && m_hadEvents)
 	{
 		hover();
 	}
@@ -149,8 +209,6 @@ UpdateStatus UIScene::update()
 			+ " xP: " + Utils::toString(m_input.mouse.xP)
 			+ " yP: " + Utils::toString(m_input.mouse.yP)
 
-			+ " x: " + Utils::toString(m_input.mouse.x)
-			+ " y: " + Utils::toString(m_input.mouse.y)
 			//+ " frame: " + Utils::toString(frameCount)
 			+ "\nx: " + Utils::toString(transform.position.x)
 			+ "y: " + Utils::toString(transform.position.y)
@@ -354,8 +412,10 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 
 			bool hasColor = m_colors.check(id);
-			bool active = isActive(id);
+			bool active = isActive(id) || m_selectionSystem.isSelected(id);
 			bool hovered = m_selectionSystem.isHovered(id);
+			// More like a debug or editor feature
+			//bool selected = m_selectionSystem.isSelected(id);
 
 			renderButton(button.text(), transform, box, pivot,
 				(hovered and active ? buttonActiveHoverColor :
@@ -405,6 +465,17 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 
 		if (m_mouseInside)
 		{
+			auto mouseButtonColor = [this]() -> Color
+			{
+				if (m_input.mouse.button(MouseButton::First))
+					return Colors::red;
+				else if (m_input.mouse.button(MouseButton::Second))
+					return Colors::green;
+				else if (m_input.mouse.button(MouseButton::Middle))
+					return Colors::blue;
+				return Colors::lightGray * Color(1.0f, 1.0f, 1.0f, 0.5f);
+			};
+
 			// Render mouse cursor as a circle (actually with arc function)
 			renderArc(
 				vec2(m_input.mouse.xMM, m_input.mouse.yMM),
@@ -412,9 +483,7 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 				Math::TAU * 1.0f,	// toAngleRad
 				20.0f,				// diameter
 				1.0f,				// thickness
-				m_input.mouse.button(MouseButton::First) ?
-				Colors::red :
-				Colors::lightGray * Color(1.0f, 1.0f, 1.0f, 0.5f));
+				mouseButtonColor());
 		}
 	}
 }
@@ -1053,4 +1122,9 @@ void UIScene::setActive(Id id, bool active)
 bool UIScene::isActive(Id id)
 {
 	return m_actives.get(id);
+}
+
+void UIScene::addDraggable(Id id)
+{
+	m_draggables.assign(id, std::move(Draggable()));
 }

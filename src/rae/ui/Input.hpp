@@ -49,19 +49,9 @@ enum class TouchPointState
 // Notice that:
 // Gtk  MIDDLE = 2, RIGHT = 3
 // GLFW MIDDLE = 3, RIGHT = 2
+// Cocoa first = 1
+// GLFW first = 0
 
-#ifdef version_cocoa
-enum class MouseButton
-{
-	Undefined = 0,
-	First, // = 1,
-	Middle,
-	Second,
-	Fourth,
-	Fifth
-};
-#endif
-#ifdef version_glfw
 enum class MouseButton
 {
 	Undefined = -1,
@@ -69,9 +59,10 @@ enum class MouseButton
 	Second,
 	Middle,
 	Fourth,
-	Fifth
+	Fifth,
+	Sixth,
+	Count
 };
-#endif
 
 enum class EventType
 {
@@ -101,14 +92,16 @@ struct InputEvent
 	{
 	}
 
-	InputEvent(EventType type, float x, float y) :
+	InputEvent(EventType type, MouseButton button, float x, float y) :
 		eventType(type),
+		mouseButton(button),
 		x(x),
 		y(y)
 	{
 	}
 
 	EventType eventType;
+	MouseButton mouseButton = MouseButton::Undefined;
 
 	float x = 0.0f;
 	float y = 0.0f;
@@ -146,26 +139,30 @@ public:
 		{
 		}
 
-		bool button(MouseButton but) const
+		bool button(MouseButton button) const
 		{
-			return m_button[(int)but];
+			assert(int(button) != -1);
+			return m_button[(int)button];
 		}
 
-		void setButton(MouseButton but, bool set)
+		void setButton(MouseButton button, bool set)
 		{
-			m_button[(int)but] = set;
+			assert(int(button) != -1);
+			m_button[(int)button] = set;
 		}
 
 		MouseButton eventButton = MouseButton::Undefined;
 
-		EventType buttonEvent(MouseButton but) const
+		EventType buttonEvent(MouseButton button) const
 		{
-			return m_buttonEvent[(int)but];
+			assert(int(button) != -1);
+			return m_buttonEvent[(int)button];
 		}
 
-		void setButtonEvent(MouseButton but, EventType set)
+		void setButtonEvent(MouseButton button, EventType set)
 		{
-			m_buttonEvent[(int)but] = set;
+			assert(int(button) != -1);
+			m_buttonEvent[(int)button] = set;
 		}
 
 		// "normalized" from 0.0f to 1.0f
@@ -180,42 +177,30 @@ public:
 		float yNormalizedWindow = 0.0f;
 	public:
 		uint doubleClickButton = 0u;
-		// In height coordinates:
-		float x = 0.0f;
-		float y = 0.0f;
-		float xLocal = 0.0f; // These change all the time.
-		float yLocal = 0.0f;
-		float xRel = 0.0f;
-		float yRel = 0.0f;
-		float xRelLocal = 0.0f;
-		float yRelLocal = 0.0f;
+
 		// In pixels:
 		float xP = 0.0f;
 		float yP = 0.0f;
-		float xLocalP = 0.0f; // These change all the time.
-		float yLocalP = 0.0f;
-		float xRelP = 0.0f;
-		float yRelP = 0.0f;
-		float xRelLocalP = 0.0f;
-		float yRelLocalP = 0.0f;
+		float xDeltaP = 0.0f;
+		float yDeltaP = 0.0f;
 
 		// In millimeters
 		float xMM = 0.0f;
 		float yMM = 0.0f;
+		float xDeltaMM = 0.0f;
+		float yDeltaMM = 0.0f;
 
 		float amount = 0.0f;
 
 		// onButtonPress locations:
 		float xOnButtonPress[6]		= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		float yOnButtonPress[6]		= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float xRelOnButtonPress[6]	= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float yRelOnButtonPress[6]	= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 		// In pixels:
 		float xOnButtonPressP[6]	= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		float yOnButtonPressP[6]	= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float xRelOnButtonPressP[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float yRelOnButtonPressP[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float xDeltaOnButtonPressP[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float yDeltaOnButtonPressP[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 		// Scroll events:
 		float scrollX = 0.0f;
@@ -234,26 +219,11 @@ public:
 
 		TouchPointState state = TouchPointState::Undefined;
 
-		// Height coordinates, origin center of the window, but 1.0f is the height of the screen.
-		// Y-down. So for a centered fullscreen window, (0.0, 0.0) is the middle of the screen.
-		// (-0.5 * aspectRatio, -0.5) is top left corner. If the window is moved, the origin will move with it.
-		float x = 0.0f;
-		float y = 0.0f;
-		float xLocal = 0.0f; // These change all the time.
-		float yLocal = 0.0f;
-		float xRel = 0.0f;
-		float yRel = 0.0f;
-		float xRelLocal = 0.0f;
-		float yRelLocal = 0.0f;
 		// In pixels. Y-down. Origin in top-left of the window. Simple raw pixels.
 		float xP = 0.0f;
 		float yP = 0.0f;
-		float xLocalP = 0.0f; // These change all the time.
-		float yLocalP = 0.0f;
-		float xRelP = 0.0f;
-		float yRelP = 0.0f;
-		float xRelLocalP = 0.0f;
-		float yRelLocalP = 0.0f;
+		float xDeltaP = 0.0f;
+		float yDeltaP = 0.0f;
 
 		// In millimeters
 		float xMM = 0.0f;
@@ -368,10 +338,8 @@ public:
 		keyEvent.push_back(set);
 	}
 
-protected:
-
 	#ifdef version_cocoa
-	MouseButton intToMouseButton(int button)
+	static MouseButton intToMouseButton(int button)
 	{
 		switch(button)
 		{
@@ -382,11 +350,12 @@ protected:
 			case 3: return MouseButton::Middle;
 			case 4: return MouseButton::Fourth;
 			case 5: return MouseButton::Fifth;
+			case 6: return MouseButton::Sixth;
 		}
 	}
 	#endif
 	#ifdef version_glfw
-	MouseButton intToMouseButton(int button)
+	static MouseButton intToMouseButton(int button)
 	{
 		switch(button)
 		{
@@ -397,9 +366,12 @@ protected:
 			case 2: return MouseButton::Middle;
 			case 3: return MouseButton::Fourth;
 			case 4: return MouseButton::Fifth;
+			case 5: return MouseButton::Sixth;
 		}
 	}
 	#endif
+
+protected:
 
 	ScreenSystem& m_screenSystem;
 

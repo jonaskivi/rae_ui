@@ -10,12 +10,13 @@ namespace rae
 
 enum class AnimatorType
 {
-	SINE_IN,
-	SINE_OUT,
-	SINE_IN_OUT,
-	CUBIC_IN,
-	CUBIC_OUT,
-	CUBIC_IN_OUT
+	Smoothstep,
+	SineIn,
+	SineOut,
+	SineInOut,
+	CubicIn,
+	CubicOut,
+	CubicInOut
 };
 
 template<typename T> inline bool isCloseEnough(const T& target, const T& value)
@@ -36,7 +37,7 @@ template<> inline bool isCloseEnough<glm::vec3>(const glm::vec3& target, const g
 {
 	glm::vec3 temp = target - value;
 	float lengthSqr = glm::dot(temp, temp);
-	//if( (target - value).lengthSqr() < 0.00001f )
+	//if ((target - value).lengthSqr() < 0.00001f)
 	if (lengthSqr < 0.00001f)
 		return true;
 	return false;
@@ -46,32 +47,45 @@ template <typename T>
 class Animator
 {
 public:
-	
+
 	Animator() :
 		m_value(),
 		m_startValue(),
 		m_valueChange(),
 		m_startTime(0.0f),
 		m_duration(0.0f),
-		m_animatorType(AnimatorType::SINE_IN_OUT)
+		m_animatorType(AnimatorType::Smoothstep)
 	{
 	}
 
 	~Animator(){}
 
+	// Value must be between 0.0 - 1.0
+	float Smoothstep(float value)
+	{
+		return value * value * (3.0f - 2.0f * (value));
+	}
+
+	T SmoothstepEase(float time, T startValue, T valueChange, float duration)
+	{
+		float v = time / duration;
+		v = Smoothstep(v);
+		return (startValue * v) + ((startValue + valueChange) * (1.0f - v));
+	}
+
 	T sineEaseIn(float time, T startValue, T valueChange, float duration)
 	{
-		return -valueChange * cosf(time / duration * Math::QUARTER_TAU) + valueChange + startValue;
+		return -valueChange * cosf(time / duration * Math::QuarterTau) + valueChange + startValue;
 	}
 
 	T sineEaseOut(float time, T startValue, T valueChange, float duration)
 	{
-		return valueChange * sinf(time / duration * Math::QUARTER_TAU) + startValue;
+		return valueChange * sinf(time / duration * Math::QuarterTau) + startValue;
 	}
 
 	T sineEaseInOut(float time, T startValue, T valueChange, float duration)
 	{
-		return -valueChange / 2.0f * (cosf(Math::PI * time / duration) - 1.0f) + startValue;
+		return -valueChange / 2.0f * (cosf(Math::Pi * time / duration) - 1.0f) + startValue;
 	}
 
 	T cubicEaseIn(float time, T startValue, T valueChange, float duration)
@@ -89,75 +103,91 @@ public:
 	T cubicEaseInOut(float time, T startValue, T valueChange, float duration)
 	{
 		time /= duration / 2.0f;
-		if(time < 1.0f)
+		if (time < 1.0f)
 			return valueChange / 2.0f * time * time * time + startValue;
 		time -= 2.0f;
 		return valueChange / 2.0f * (time * time * time + 2.0f) + startValue;
 	}
 
-	void init(T startValue, T targetValue, float startTime, float duration, AnimatorType setType = AnimatorType::SINE_IN_OUT )
+	void init(
+		T startValue,
+		T targetValue,
+		float startTime,
+		float duration,
+		AnimatorType setType = AnimatorType::Smoothstep)
 	{
 		m_value = startValue;
 		m_startValue = startValue;
 		m_valueChange = targetValue - startValue;
 		m_startTime = startTime;
 		m_duration = duration;
-		if(m_duration == 0.0f)
+		if (m_duration == 0.0f)
+		{
 			m_duration = 5.0f;
+		}
 		m_animatorType = setType;
 	}
 
 	// A deferred init, which can be used to init without knowing the startTime. update() will finish initing.
-	void init(T startValue, T targetValue, float duration, AnimatorType setType = AnimatorType::SINE_IN_OUT )
+	void init(
+		T startValue,
+		T targetValue,
+		float duration,
+		AnimatorType setType = AnimatorType::Smoothstep)
 	{
 		m_value = startValue;
 		m_startValue = startValue;
 		m_valueChange = targetValue - startValue;
 		m_startTime = -5.0f; // Unknown at this point, so we set it to a magic value -5.0f.
 		m_duration = duration;
-		if(m_duration == 0.0f)
+		if (m_duration == 0.0f)
+		{
 			m_duration = 5.0f;
+		}
 		m_animatorType = setType;
 	}
 
 	// returns true if the Animator is still running.
 	bool update(float currentTime)
 	{
-		if( m_startTime == -5.0f )
+		if (m_startTime == -5.0f)
 		{
 			// Finalize the deferred init.
 			m_startTime = currentTime;
 		}
 
-		if( m_duration == 0.0f )
+		if (m_duration == 0.0f)
 			return false;
 
 		// Clamp to targetValue if we are finished
-		if( isFinished(currentTime) )
+		if (isFinished(currentTime))
 		{
-			finish( targetValue() );
+			finish(targetValue());
 			return true; // Return true one more time, so that the value is updated to target.
 		}
-		
-		switch(m_animatorType)
+
+		switch (m_animatorType)
 		{
-			case AnimatorType::SINE_IN:
+			case AnimatorType::Smoothstep:
+				m_value = SmoothstepEase(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
+				break;
+			case AnimatorType::SineIn:
 				m_value = sineEaseIn(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
 				break;
-			case AnimatorType::SINE_OUT:
+			case AnimatorType::SineOut:
 				m_value = sineEaseOut(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
 				break;
 			default:
-			case AnimatorType::SINE_IN_OUT:
+			case AnimatorType::SineInOut:
 				m_value = sineEaseInOut(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
 				break;
-			case AnimatorType::CUBIC_IN:
+			case AnimatorType::CubicIn:
 				m_value = cubicEaseIn(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
 				break;
-			case AnimatorType::CUBIC_OUT:
+			case AnimatorType::CubicOut:
 				m_value = cubicEaseOut(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
 				break;
-			case AnimatorType::CUBIC_IN_OUT:
+			case AnimatorType::CubicInOut:
 				m_value = cubicEaseInOut(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
 				break;
 		}
@@ -174,28 +204,26 @@ public:
 
 	bool isFinished() // Could also be called isTargetReached
 	{
-		if (m_duration == 0.0f || isCloseEnough<T>(targetValue(), m_value) )
-		{
+		if (m_duration == 0.0f || isCloseEnough<T>(targetValue(), m_value))
 			return true;
-		}
 		return false;
 	}
 
 	bool isFinished(float currentTime)
 	{
 		// First check if target is reached, then check if time has ended.
-		if (isCloseEnough<T>(targetValue(), m_value) )
+		if (isCloseEnough<T>(targetValue(), m_value))
 			return true;
 		return hasTimeEnded(currentTime);
 	}
 
 	bool hasTimeEnded(float currentTime)
 	{
-		if( currentTime > endTime() )
+		if (currentTime > endTime())
 			return true;
 		return false;
 	}
-	
+
 	const T& value() { return m_value; }
 	const T& startValue() { return m_startValue; }
 	T targetValue() { return m_startValue + m_valueChange; }

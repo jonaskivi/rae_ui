@@ -16,6 +16,8 @@
 #include "rae/editor/SelectionSystem.hpp"
 #include "rae/ui/WindowSystem.hpp"
 
+#include "rae/ui/UITypes.hpp"
+
 struct NVGcontext;
 
 namespace rae
@@ -27,136 +29,6 @@ class Input;
 class ScreenSystem;
 class AssetSystem;
 class DebugSystem;
-
-enum class OrientationType
-{
-	Horizontal,
-	Vertical
-};
-
-struct Rectangle
-{
-	Rectangle(){}
-	Rectangle(float x, float y, float width, float height) :
-		x(x), y(y), width(width), height(height)
-	{}
-
-	float x = 0.0f;
-	float y = 0.0f;
-	float width = 0.0f;
-	float height = 0.0f;
-};
-
-struct Draggable
-{
-};
-
-struct StackLayout
-{
-	StackLayout(){}
-
-	StackLayout(OrientationType orientationType) :
-		orientationType(orientationType)
-	{
-	}
-
-	OrientationType orientationType = OrientationType::Vertical;
-};
-
-struct Active
-{
-	Active(){}
-	Active(bool active) :
-		active(active)
-	{
-	}
-
-	operator bool&() { return active; }
-	operator bool() const { return active; }
-
-	bool active = false;
-};
-
-struct Text
-{
-	Text(){}
-	Text(const String& text) :
-		text(text)
-	{
-	}
-
-	operator String&() { return text; }
-	operator String() const { return text; }
-
-	String text;
-};
-
-struct Keyline
-{
-	Keyline(){}
-
-	Keyline(OrientationType orientationType, float relativePosition) :
-		orientationType(orientationType),
-		relativePosition(relativePosition)
-	{
-	}
-
-	OrientationType orientationType = OrientationType::Vertical;
-	float relativePosition = 0.5f;
-};
-
-struct KeylineLink
-{
-	KeylineLink(){}
-	KeylineLink(Id keylineId) :
-		keylineId(keylineId)
-	{
-	}
-
-	Id keylineId;
-};
-
-// This is a proxy entity for the actual window which lives in the WindowSystem
-struct WindowEntity
-{
-};
-
-struct Panel
-{
-};
-
-struct Viewport
-{
-	Viewport(){}
-	Viewport(int sceneIndex) :
-		sceneIndex(sceneIndex)
-	{}
-
-	int sceneIndex = 0;
-};
-
-using ImageLink = asset::Id;
-
-// RAE_TODO Move to ButtonSubsystem
-enum class ButtonThemeColorKey
-{
-	Background,
-	Hover,
-	Active,
-	ActiveHover,
-	Text,
-	HoverText,
-	ActiveText,
-	ActiveHoverText,
-	Count
-};
-
-enum class PanelThemeColorKey
-{
-	Background,
-	Hover,
-	Count
-};
 
 class UIScene : public ISystem
 {
@@ -252,28 +124,6 @@ public:
 		const AssetSystem& assetSystem);
 
 	Rectangle convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const;
-
-	// NanoVG takes input in pixels, and so do these helper functions:
-	void renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
-			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
-	void renderBorderNano(NVGcontext* vg,
-			const Rectangle& rectangle,
-			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f),
-			float cornerRadius = 0.0f,
-			float thickness = 1.0f);
-	void renderCircleNano(NVGcontext* vg, const vec2& position, float diameter,
-			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
-	void renderArcNano(NVGcontext* vg, const vec2& origin, float fromAngleRad, float toAngleRad,
-		float diameter, float thickness, const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
-	void renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
-			float cornerRadius,
-			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f)) const;
-	void renderWindowNano(NVGcontext* vg, const String& title, const Rectangle& rectangle,
-			float cornerRadius, const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
-	void renderButtonNano(NVGcontext* vg, const String& text, const Rectangle& rectangle,
-			float cornerRadius,
-			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f),
-			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 
 	bool isGrabbed() const { return m_grabbedId != InvalidId; }
 	void grab(Id id) { m_grabbedId = id; }

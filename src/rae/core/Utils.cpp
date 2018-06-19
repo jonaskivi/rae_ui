@@ -17,12 +17,12 @@ namespace Math
 
 float toRadians(float set_degrees)
 {
-	return set_degrees * Math::DEG_TO_RAD;
+	return set_degrees * Math::DegToRad;
 }
 
 float toDegrees(float set_radians)
 {
-	return set_radians * Math::RAD_TO_DEG;
+	return set_radians * Math::RadToDeg;
 }
 
 }
@@ -55,11 +55,11 @@ int randomInt(int low, int high)
 
 float randFloat(float a_min, float a_max)
 {
-	const float ooMax = 1.0f / (float)(RAND_MAX-1);		
+	const float ooMax = 1.0f / (float)(RAND_MAX-1);
 	float retValue = ( (float)rand() * ooMax * (a_max - a_min) + a_min);
 
 	assert(retValue >= a_min && retValue < a_max);
-	
+
 	return retValue;
 }
 

@@ -242,7 +242,7 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, Asset
 		float coneSize = m_gizmoSizeMultiplier;
 		coneTransform.scale = vec3(coneSize, coneSize * m_coneLengthMultiplier, coneSize) * gizmoCameraFactor;
 		coneTransform.rotation = coneTransform.rotation *
-			glm::angleAxis(-Math::TAU * 0.25f, vec3(0.0f, 0.0f, 1.0f));
+			glm::angleAxis(-Math::QuarterTau, vec3(0.0f, 0.0f, 1.0f));
 		coneTransform.position = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
 		renderSystem.renderMeshSingleColor(
 			camera,

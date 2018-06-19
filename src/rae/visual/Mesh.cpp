@@ -159,9 +159,9 @@ bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirectio
 		{
 			return false;
 		}
-		
+
 		float v = glm::dot(rayDirection, q);
-		
+
 		if (v < 0.0f || u + v > a)
 		{
 			return false;
@@ -288,7 +288,7 @@ void Mesh::generateCube()
 		glm::vec3(-boxSize,  boxSize, -boxSize), // 9
 		glm::vec3( boxSize,  boxSize, -boxSize), // 10
 		glm::vec3( boxSize, -boxSize, -boxSize), // 11
-		
+
 		glm::vec3( boxSize, -boxSize,  boxSize), // 12
 		glm::vec3( boxSize,  boxSize,  boxSize), // 13
 		glm::vec3(-boxSize,  boxSize,  boxSize), // 14
@@ -298,7 +298,7 @@ void Mesh::generateCube()
 		glm::vec3(-boxSize,  boxSize,  boxSize), // 17
 		glm::vec3(-boxSize,  boxSize, -boxSize), // 18
 		glm::vec3(-boxSize, -boxSize, -boxSize), // 19
-		
+
 		glm::vec3( boxSize, -boxSize, -boxSize), // 20
 		glm::vec3( boxSize,  boxSize, -boxSize), // 21
 		glm::vec3( boxSize,  boxSize,  boxSize), // 22
@@ -348,9 +348,9 @@ void Mesh::generateCube()
 
 	// 0--------1
 	//  \      /
-	//   3----2 
-	//       
-	//   5----6 
+	//   3----2
+	//
+	//   5----6
 	//  /      \
 	// 4--------7
 
@@ -403,18 +403,18 @@ void Mesh::generateCube()
 		glm::vec3( 1.0f,  0.0f,  0.0f)  // 3
 	};
 
-	
-	
+
+
 	m_indices =
 	{
 		//roof
 		0, 1, 2,
 		0, 2, 3,
-		
+
 		//floor
-		4, 5, 6, 
-		4, 6, 7, 
-		
+		4, 5, 6,
+		4, 6, 7,
+
 		//back
 		8, 9, 10,
 		8, 10, 11,
@@ -486,8 +486,8 @@ void Mesh::generateCone(int steps)
 	m_uvs.emplace_back(vec2(0.5f, 0.5f));
 	m_uvs.emplace_back(vec2(0.5f, 0.5f));
 
-	float stepAngle = Math::TAU / float(steps);
-	for (float angle = 0.0f; angle < Math::TAU; angle += stepAngle)
+	float stepAngle = Math::Tau / float(steps);
+	for (float angle = 0.0f; angle < Math::Tau; angle += stepAngle)
 	{
 		m_vertices.emplace_back(vec3(
 			sinf(angle),
@@ -571,7 +571,7 @@ void Mesh::computeFaceNormals()
 		v1[0] = a[0] - b[0];
 		v1[1] = a[1] - b[1];
 		v1[2] = a[2] - b[2];
-		
+
 		v2[0] = b[0] - c[0];
 		v2[1] = b[1] - c[1];
 		v2[2] = b[2] - c[2];
@@ -596,16 +596,16 @@ void Mesh::computeFaceNormals()
 			m_vertexNormals[(f1[0]*3)+1] = result[1];
 			m_vertexNormals[(f1[0]*3)+2] = result[2];
 		}
-		
+
 		if ((f1[1]*3)+2 < m_vertexNormals.length)
 		{
 			m_vertexNormals[(f1[1]*3)+0] = result[0];
 			m_vertexNormals[(f1[1]*3)+1] = result[1];
 			m_vertexNormals[(f1[1]*3)+2] = result[2];
 		}
-		
+
 		if ((f1[2]*3)+2 < m_vertexNormals.length)
-		{	
+		{
 			m_vertexNormals[(f1[2]*3)+0] = result[0];
 			m_vertexNormals[(f1[2]*3)+1] = result[1];
 			m_vertexNormals[(f1[2]*3)+2] = result[2];
@@ -710,7 +710,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 			uint f;
 			for (f = 0; f < mesh->mNumFaces; ++f)
 			{
-			
+
 			}
 
 			//LOG_F(INFO, "Faces: %i", f);
@@ -728,7 +728,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 
 		//LOG_F(INFO, "m_vertices: %i", mesh->mNumVertices);
 		//LOG_F(INFO, "faces: %i", mesh->mNumFaces);
-		
+
 		if (mesh->HasTextureCoords(0) == false)
 		{
 			//LOG_F(INFO, "No texture coordinates in mesh.");

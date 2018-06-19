@@ -16,11 +16,11 @@ namespace rae
 
 namespace Math
 {
-	const float TAU = 2.0f * (float)M_PI; // www.tauday.org
-	const float PI = (float)M_PI;
-	const float QUARTER_TAU = 0.5f * (float)M_PI;
-	const float RAD_TO_DEG = 360.0f / TAU;
-	const float DEG_TO_RAD = TAU / 360.0f;
+	const float Tau = 2.0f * (float)M_PI; // www.tauday.org
+	const float Pi = (float)M_PI;
+	const float QuarterTau = 0.5f * (float)M_PI;
+	const float RadToDeg = 360.0f / Tau;
+	const float DegToRad = Tau / 360.0f;
 
 	float toRadians(float set_degrees);
 	float toDegrees(float set_radians);

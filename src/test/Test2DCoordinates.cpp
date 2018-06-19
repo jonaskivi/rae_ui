@@ -1,5 +1,7 @@
 #include "test/Test2DCoordinates.hpp"
 
+#include "rae/ui/UIRenderer.hpp"
+
 using namespace rae;
 
 Test2DCoordinates::Test2DCoordinates() :
@@ -296,7 +298,7 @@ void Test2DCoordinates::render2D(UIScene& uiScene, NVGcontext* vg)
 	renderGrid(vg, 1920.0f, 1080.0f, m_engine.screenSystem().mmToPixels(1.0f));
 
 	float cornerRadius = 0.0f;
-	uiScene.renderRectangleNano(vg, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
+	UIRenderer::renderRectangleNano(vg, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
 		cornerRadius, Color(1.0f, 0.0f, 1.0f, 1.0f));
 
 	const float lineHeight = 45.0f;

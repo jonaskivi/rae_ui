@@ -7,6 +7,19 @@
 namespace rae
 {
 
+enum class ButtonThemeColorKey
+{
+	Background,
+	Hover,
+	Active,
+	ActiveHover,
+	Text,
+	HoverText,
+	ActiveText,
+	ActiveHoverText,
+	Count
+};
+
 /// A command holds a function that can be executed or undone.
 class Command
 {

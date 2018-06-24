@@ -135,7 +135,6 @@ Window::Window(const String& name, int width, int height) :
 
 	m_windowHandle = glfwCreateWindow(m_width, m_height, name.c_str(), nullptr, nullptr);
 
-
 	if (m_windowHandle == nullptr)
 	{
 		LOG_F(ERROR, "Failed to open GLFW window.");
@@ -171,8 +170,10 @@ Window::Window(const String& name, int width, int height) :
 	glfwSetKeyCallback            (m_windowHandle, glfwKeyCallback);
 	glfwSetScrollCallback         (m_windowHandle, glfwScrollCallback);
 
+	// Initialize pixel sizes
 	glfwGetWindowSize(m_windowHandle, &m_width, &m_height);
 	glfwGetFramebufferSize(m_windowHandle, &m_pixelWidth, &m_pixelHeight);
+	m_screenPixelRatio = (float)m_pixelWidth / (float)m_width;
 
 	// Init NanoVG
 	#ifdef NANOVG_GL3_IMPLEMENTATION

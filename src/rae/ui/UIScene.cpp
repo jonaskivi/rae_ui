@@ -44,7 +44,7 @@ UIScene::UIScene(
 	createDefaultTheme();
 
 	m_infoButtonId = createButton("Info",
-	vec3(350.0f, 93.0f, 0.0f),
+	vec3(100.0f, 40.0f, 0.0f),
 	vec3(69.0f, 6.0f, 1.0f),
 	[](){});
 

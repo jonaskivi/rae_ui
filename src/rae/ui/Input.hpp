@@ -107,6 +107,16 @@ struct InputEvent
 	float y = 0.0f;
 };
 
+struct InputState
+{
+	InputState()
+	{
+	}
+
+	bool buttonClicked[(int)MouseButton::Count] = { false, false, false, false, false, false };
+	vec3 mouseDelta = vec3(0.0f, 0.0f, 0.0f);
+};
+
 class Input : public ISystem
 {
 public:
@@ -139,13 +149,23 @@ public:
 		{
 		}
 
-		bool button(MouseButton button) const
+		bool anyButtonDown() const
+		{
+			for (int i = 0; i < (int)MouseButton::Count; ++i)
+			{
+				if (m_button[i])
+					return true;
+			}
+			return false;
+		}
+
+		bool isButtonDown(MouseButton button) const
 		{
 			assert(int(button) != -1);
 			return m_button[(int)button];
 		}
 
-		void setButton(MouseButton button, bool set)
+		void setButtonDown(MouseButton button, bool set)
 		{
 			assert(int(button) != -1);
 			m_button[(int)button] = set;
@@ -170,8 +190,8 @@ public:
 		float normalizedWindowY() { return yNormalizedWindow; }
 
 	protected:
-		bool m_button[6] = { false, false, false, false, false, false };
-		EventType m_buttonEvent[6]; // the event on this frame. Will be cleared on end of frame.
+		bool m_button[(int)MouseButton::Count] = { false, false, false, false, false, false };
+		EventType m_buttonEvent[(int)MouseButton::Count]; // the event on this frame. Will be cleared on end of frame.
 
 		float xNormalizedWindow = 0.0f;
 		float yNormalizedWindow = 0.0f;
@@ -193,14 +213,14 @@ public:
 		float amount = 0.0f;
 
 		// onButtonPress locations:
-		float xOnButtonPress[6]		= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float yOnButtonPress[6]		= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float xOnButtonPress[(int)MouseButton::Count] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float yOnButtonPress[(int)MouseButton::Count] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 		// In pixels:
-		float xOnButtonPressP[6]	= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float yOnButtonPressP[6]	= { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float xDeltaOnButtonPressP[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		float yDeltaOnButtonPressP[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float xOnButtonPressP[(int)MouseButton::Count]      = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float yOnButtonPressP[(int)MouseButton::Count]      = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float xDeltaOnButtonPressP[(int)MouseButton::Count] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		float yDeltaOnButtonPressP[(int)MouseButton::Count] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 		// Scroll events:
 		float scrollX = 0.0f;

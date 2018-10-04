@@ -339,7 +339,7 @@ HandleStatus TransformTool::handleInput(Input& input, const Camera& camera, Sele
 		{
 			m_translateGizmo.deactivate();
 		}
-		else if (input.mouse.button(MouseButton::First))
+		else if (input.mouse.isButtonDown(MouseButton::First))
 		{
 			vec3 delta = m_translateGizmo.activeAxisDelta(camera, m_mouseRay, m_previousMouseRay);
 
@@ -446,7 +446,7 @@ UpdateStatus EditorSystem::update()
 	{
 		if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
 		{
-			Id hoveredId = selectionSystem.hovered();
+			Id hoveredId = selectionSystem.pixelHovered();
 			// RAE_TODO: Needs to have a higher level function
 			// in Input where we can ask for modifier states for Control.
 			if (m_input.getKeyState(KeySym::Control_L) ||

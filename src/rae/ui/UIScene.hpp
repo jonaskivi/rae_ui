@@ -43,6 +43,7 @@ public:
 	TransformSystem&	transformSystem()	{ return m_transformSystem; }
 
 	void handleInput(const Array<InputEvent>& events);
+	void viewportHandleInput(const InputState& inputState);
 	UpdateStatus update() override;
 	void render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem);
 
@@ -63,7 +64,8 @@ public:
 	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
 	void addViewport(Id id, Viewport&& viewport);
-	const Viewport& getViewport(Id id);
+	const Viewport& getViewport(Id id) const;
+	Viewport& getViewport(Id id);
 	Rectangle getViewportPixelRectangle(int sceneIndex) const;
 
 	Id createPanel(const Rectangle& rectangle);

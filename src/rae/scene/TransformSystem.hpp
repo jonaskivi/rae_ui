@@ -79,6 +79,7 @@ public:
 		Box
 	}?
 	*/
+	const Table<Box>& boxes() const { return m_boxes; }
 	bool hasBox(Id id) const;
 	void addBox(Id id, Box&& box);
 	const Box& getBox(Id id) const;

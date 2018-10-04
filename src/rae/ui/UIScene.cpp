@@ -76,15 +76,15 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 	if (not m_hadEvents)
 		return;
 
-	bool buttonClicked[(int)MouseButton::Count];
-	for (int i = 0; i < (int)MouseButton::Count; ++i)
-	{
-		buttonClicked[i] = false;
-	}
+	InputState inputState;
 
-	vec3 mouseDelta = vec3(0.0f, 0.0f, 0.0f);
 	//RAE_TODO NEED TO STORE THIS SOMEWHERE and not per scene? Probably Input class:
 	static vec3 previousMousePos = vec3(0.0f, 0.0f, 0.0f);
+
+	if (isGrabbed() && not m_input.mouse.anyButtonDown())
+	{
+		clearGrab();
+	}
 
 	for (auto&& event : events)
 	{
@@ -92,12 +92,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 		{
 			if (event.mouseButton != MouseButton::Undefined)
 			{
-				buttonClicked[(int)event.mouseButton] = true;
-			}
-
-			if (event.mouseButton == MouseButton::First)
-			{
-				clearGrab();
+				inputState.buttonClicked[(int)event.mouseButton] = true;
 			}
 		}
 		else if (not isGrabbed() && event.eventType == EventType::MouseEnter)
@@ -113,61 +108,73 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 		else if (event.eventType == EventType::MouseMotion)
 		{
 			vec3 newPos(event.x, event.y, 0.0f);
-			mouseDelta += newPos - previousMousePos;
+			inputState.mouseDelta += newPos - previousMousePos;
 			previousMousePos = newPos;
 		}
 	}
 
-	if (buttonClicked[(int)MouseButton::First])
-	{
-		LOG_F(INFO, "firstMouseClicked on UIScene name: %s", name().c_str());
+	Id hovered = m_selectionSystem.hovered();
 
-		query<Button>(m_buttons, [&](Id id, const Button& button)
+	if (hovered != InvalidId)
+	{
+		if (inputState.buttonClicked[(int)MouseButton::First])
 		{
-			bool hovered = m_selectionSystem.isHovered(id);
-			if (hovered && m_commands.check(id))
+			LOG_F(INFO, "firstMouseClicked on UIScene name: %s", name().c_str());
+
+			if (m_buttons.check(hovered) && m_commands.check(hovered))
 			{
-				auto& command = getCommand(id);
+				auto& command = getCommand(hovered);
 				command.executeAsync();
-				//command.execute();
 			}
-		});
-	}
+		}
 
-	if (buttonClicked[(int)MouseButton::Middle])
-	{
-		LOG_F(INFO, "middleMouseClicked on UIScene name: %s", name().c_str());
-
-		query<Button>(m_buttons, [&](Id id, const Button& button)
+		if (inputState.buttonClicked[(int)MouseButton::Middle])
 		{
-			bool hovered = m_selectionSystem.isHovered(id);
-			if (hovered)
+			LOG_F(INFO, "middleMouseClicked on UIScene name: %s", name().c_str());
+
+			if (m_buttons.check(hovered))
 			{
-				m_selectionSystem.toggleSelected(id);
+				m_selectionSystem.toggleSelected(hovered);
 			}
-		});
-	}
+		}
 
-	// Draggables
-	if (m_input.mouse.button(MouseButton::First))
-	{
-		Array<Id> ids;
-
-		query<Draggable>(m_draggables, [&](Id id)
+		if (m_input.mouse.anyButtonDown())
 		{
-			bool hovered = m_selectionSystem.isHovered(id);
-			if (hovered)
+			grab(hovered);
+		}
+
+		// Draggables (this should actually work with selected, not with hovered.)
+		if (m_input.mouse.isButtonDown(MouseButton::First))
+		{
+			Array<Id> ids;
+
+			query<Draggable>(m_draggables, [&](Id id)
 			{
-				ids.emplace_back(id);
-			}
-		});
+				bool hovered = m_selectionSystem.isHovered(id);
+				if (hovered)
+				{
+					ids.emplace_back(id);
+				}
+			});
 
-		if (not ids.empty())
+			if (not ids.empty())
+			{
+				m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(inputState.mouseDelta));
+			}
+		}
+
+		if (m_viewports.check(hovered))
 		{
-			grab(ids.front());
-			m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(mouseDelta));
+			//Viewport& viewport = getViewport(hovered);
+			//viewport.handleInput(inputState);
+			viewportHandleInput(inputState);
 		}
 	}
+}
+
+void UIScene::viewportHandleInput(const InputState& inputState)
+{
+
 }
 
 UpdateStatus UIScene::update()
@@ -286,27 +293,32 @@ void UIScene::doLayout()
 
 void UIScene::hover()
 {
-	// hover boxes
-	for (Id id : m_entitySystem.entities())
+	// This is not a good way to hover. We should process the hierarchy instead of a flat list.
+
+	m_selectionSystem.clearHovers();
+
+	Id topMostId = InvalidId;
+
+	query<Box>(m_transformSystem.boxes(), [&](Id id, const Box& box)
 	{
-		if (m_transformSystem.hasTransform(id)
-			&& m_transformSystem.hasBox(id))
+		if (m_transformSystem.hasTransform(id))
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Pivot& pivot = m_transformSystem.getPivot(id);
-			Box tbox = m_transformSystem.getBox(id);
+			Box tbox = box;
 			tbox.transform(transform);
 			tbox.translate(pivot);
 
 			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			{
-				m_selectionSystem.setHovered(id, true);
-			}
-			else
-			{
-				m_selectionSystem.setHovered(id, false);
+				topMostId = id;
 			}
 		}
+	});
+
+	if (topMostId != InvalidId)
+	{
+		m_selectionSystem.setHovered(topMostId, true);
 	}
 }
 
@@ -465,11 +477,11 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 		{
 			auto mouseButtonColor = [this]() -> Color
 			{
-				if (m_input.mouse.button(MouseButton::First))
+				if (m_input.mouse.isButtonDown(MouseButton::First))
 					return Colors::red;
-				else if (m_input.mouse.button(MouseButton::Second))
+				else if (m_input.mouse.isButtonDown(MouseButton::Second))
 					return Colors::green;
-				else if (m_input.mouse.button(MouseButton::Middle))
+				else if (m_input.mouse.isButtonDown(MouseButton::Middle))
 					return Colors::blue;
 				return Colors::lightGray * Color(1.0f, 1.0f, 1.0f, 0.5f);
 			};
@@ -665,7 +677,12 @@ void UIScene::addViewport(Id id, Viewport&& entity)
 	m_viewports.assign(id, std::move(entity));
 }
 
-const Viewport& UIScene::getViewport(Id id)
+const Viewport& UIScene::getViewport(Id id) const
+{
+	return m_viewports.get(id);
+}
+
+Viewport& UIScene::getViewport(Id id)
 {
 	return m_viewports.get(id);
 }

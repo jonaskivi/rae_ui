@@ -91,8 +91,19 @@ bool SelectionSystem::isSelected(Id id) const
 void SelectionSystem::setHovered(Id id, bool hovered)
 {
 	if (hovered)
+	{
+		m_hoveredId = id;
 		m_hovers.assign(id, std::move(Hover()));
-	else m_hovers.remove(id);
+	}
+	else
+	{
+		if (id == m_hoveredId)
+		{
+			m_hoveredId = InvalidId;
+		}
+
+		m_hovers.remove(id);
+	}
 }
 
 bool SelectionSystem::isHovered(Id id)

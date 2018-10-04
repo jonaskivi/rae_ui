@@ -175,7 +175,7 @@ void Input::osMouseEvent(const Window& window, EventType setEventType, int setBu
 	else if (eventType == EventType::MouseButtonPress)
 	{
 		mouse.setButtonEvent(mouseButton, eventType);
-		mouse.setButton(mouseButton, true);
+		mouse.setButtonDown(mouseButton, true);
 		mouse.xOnButtonPressP[setButton] = xPixels;
 		mouse.yOnButtonPressP[setButton] = yPixels;
 	}
@@ -211,7 +211,7 @@ void Input::osMouseEvent(const Window& window, EventType setEventType, int setBu
 		}
 		*/
 		mouse.setButtonEvent(mouseButton, eventType);
-		mouse.setButton((MouseButton)setButton, false);
+		mouse.setButtonDown((MouseButton)setButton, false);
 	}
 	//else
 	//{

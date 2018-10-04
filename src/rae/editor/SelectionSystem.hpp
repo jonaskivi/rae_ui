@@ -43,7 +43,9 @@ public:
 	void setPixelClicked(Id id) { m_pixelClickedId = id; }
 
 	// RAE_TODO actually hovered instead of clicked
-	Id hovered() { return m_pixelClickedId; }
+	Id pixelHovered() { return m_pixelClickedId; }
+
+	Id hovered() { return m_hoveredId; }
 
 	void translateSelected(vec3 delta);
 
@@ -53,8 +55,11 @@ protected:
 	void clearSelectionInternal();
 
 	Table<Selected>		m_selected;
+
+	// Hovers are a mess currently. Trying to decide if we need multiple hovers or only one.
 	Table<Hover>		m_hovers;
 
+	Id m_hoveredId = InvalidId;
 	Id m_pixelClickedId = InvalidId;
 };
 

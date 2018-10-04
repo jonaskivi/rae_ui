@@ -33,7 +33,7 @@ void CameraSystem::onMouseEvent(const Input& input)
 
 	if (input.eventType == EventType::MouseMotion)
 	{
-		if (input.mouse.button(MouseButton::Second))
+		if (input.mouse.isButtonDown(MouseButton::Second))
 		{
 			const float rotateSpeedMul = 5.0f;
 

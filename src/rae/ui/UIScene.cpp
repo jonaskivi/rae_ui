@@ -76,10 +76,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 	if (not m_hadEvents)
 		return;
 
-	InputState inputState;
-
-	//RAE_TODO NEED TO STORE THIS SOMEWHERE and not per scene? Probably Input class:
-	static vec3 previousMousePos = vec3(0.0f, 0.0f, 0.0f);
+	m_inputState.clear();
 
 	if (isGrabbed() && not m_input.mouse.anyButtonDown())
 	{
@@ -92,7 +89,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 		{
 			if (event.mouseButton != MouseButton::Undefined)
 			{
-				inputState.buttonClicked[(int)event.mouseButton] = true;
+				m_inputState.buttonClicked[(int)event.mouseButton] = true;
 			}
 		}
 		else if (not isGrabbed() && event.eventType == EventType::MouseEnter)
@@ -107,9 +104,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 		}
 		else if (event.eventType == EventType::MouseMotion)
 		{
-			vec3 newPos(event.x, event.y, 0.0f);
-			inputState.mouseDelta += newPos - previousMousePos;
-			previousMousePos = newPos;
+			m_inputState.processMouseMotionEvent(event);
 		}
 	}
 
@@ -117,7 +112,28 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 	if (hovered != InvalidId)
 	{
-		if (inputState.buttonClicked[(int)MouseButton::First])
+		if (m_transformSystem.hasTransform(hovered))
+		{
+			const Box& box = m_transformSystem.getBox(hovered);
+			const Transform& transform = m_transformSystem.getTransform(hovered);
+			const Pivot& pivot = m_transformSystem.getPivot(hovered);
+			Box tbox = box;
+			tbox.transform(transform);
+			tbox.translate(pivot);
+
+			vec3 mousePositionMM = m_screenSystem.pixelsToMM(m_inputState.mousePosition);
+
+			LOG_F(INFO, "hovered 3D scene. mouse %f %f, tbox left:%f down:%f width: %f height: %f",
+				mousePositionMM.x, mousePositionMM.y,
+				tbox.left(), tbox.down(), tbox.width(), tbox.height());
+
+			m_inputState.localMousePositionNormalized = vec3(
+				(mousePositionMM.x - tbox.left()) / tbox.width(),
+				(mousePositionMM.y - tbox.down()) / tbox.height(), // Ugh, down is the new up. Fix this somehow. Z-up. Something about Y down Y up in UIs and in 3D.
+				0.0f);
+		}
+
+		if (m_inputState.buttonClicked[(int)MouseButton::First])
 		{
 			LOG_F(INFO, "firstMouseClicked on UIScene name: %s", name().c_str());
 
@@ -128,7 +144,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 			}
 		}
 
-		if (inputState.buttonClicked[(int)MouseButton::Middle])
+		if (m_inputState.buttonClicked[(int)MouseButton::Middle])
 		{
 			LOG_F(INFO, "middleMouseClicked on UIScene name: %s", name().c_str());
 
@@ -159,15 +175,18 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 			if (not ids.empty())
 			{
-				m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(inputState.mouseDelta));
+				m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(m_inputState.mouseDelta));
 			}
 		}
 
 		if (m_viewports.check(hovered))
 		{
-			//Viewport& viewport = getViewport(hovered);
-			//viewport.handleInput(inputState);
-			viewportHandleInput(inputState);
+			Viewport& viewport = getViewport(hovered);
+			m_eventsForSceneIndex = viewport.sceneIndex;
+		}
+		else
+		{
+			m_eventsForSceneIndex = -1;
 		}
 	}
 }

@@ -18,6 +18,11 @@ bool SelectionSystem::isSelection() const
 	return m_selected.count() > 0;
 }
 
+Array<Id> SelectionSystem::selectedIds() const
+{
+	return m_selected.ids();
+}
+
 void SelectionSystem::clearSelection()
 {
 	clearSelectionInternal();
@@ -108,11 +113,14 @@ void SelectionSystem::setHovered(Id id, bool hovered)
 
 bool SelectionSystem::isHovered(Id id)
 {
+	if (m_hoveredId == id)
+		return true;
 	return m_hovers.check(id);
 }
 
 void SelectionSystem::clearHovers()
 {
+	m_hoveredId = InvalidId;
 	m_hovers.clear();
 }
 

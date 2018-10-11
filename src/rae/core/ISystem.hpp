@@ -22,6 +22,7 @@ class Camera;
 class Scene;
 class UIScene;
 class Window;
+class RenderSystem;
 
 class ISystem
 {
@@ -38,7 +39,7 @@ public:
 	virtual String name() const { return m_name; }
 
 	virtual UpdateStatus update() { return UpdateStatus::NotChanged; }
-	virtual void render3D(const Scene& scene, const Window& window) {};
+	virtual void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) {};
 	virtual void render2D(UIScene& uiScene, NVGcontext* nanoVG) {}; // RAE_TODO Should be const
 	virtual void onFrameEnd()
 	{

@@ -60,7 +60,7 @@ DebugSystem::~DebugSystem()
 	g_debugSystem = nullptr;
 }
 
-void DebugSystem::render3D(const Scene& scene, const Window& window)
+void DebugSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem)
 {
 	const Camera& camera = scene.cameraSystem().currentCamera();
 
@@ -79,7 +79,7 @@ void DebugSystem::render3D(const Scene& scene, const Window& window)
 		m_lineMeshes.reserve(m_lines.size());
 	}
 
-	
+
 	for (int i = 0; i < (int)m_lines.size(); ++i)
 	{
 		auto&& line = m_lines[i];

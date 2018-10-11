@@ -28,8 +28,7 @@ Engine::Engine(const String& applicationName, int mainWindowWidth, int mainWindo
 	m_rayTracer(m_time, m_windowSystem, m_assetSystem, m_sceneSystem),
 	m_renderSystem(m_time, m_input, m_screenSystem,
 		m_windowSystem, m_assetSystem, m_uiSystem, m_sceneSystem,
-		m_rayTracer),
-	m_editorSystem(m_sceneSystem, m_renderSystem, m_assetSystem, m_input/*, m_uiSystem*/)
+		m_rayTracer)
 {
 	m_time.initTime(glfwGetTime());
 
@@ -177,6 +176,14 @@ UpdateStatus Engine::update()
 				if (grabbedSceneIndex == -1 || grabbedSceneIndex == uiSceneIndex)
 				{
 					uiScene.handleInput(window.events());
+
+					int eventsForScene = uiScene.eventsForSceneIndex();
+
+					if (m_sceneSystem.hasScene(eventsForScene))
+					{
+						Scene& scene = m_sceneSystem.scene(eventsForScene);
+						scene.handleInput(uiScene.inputState(), window.events()); // Should pass something like InputState.
+					}
 				}
 
 				window.clearEvents();
@@ -230,7 +237,7 @@ UpdateStatus Engine::update()
 						{
 							if (system->isEnabled())
 							{
-								system->render3D(scene, window);
+								system->render3D(scene, window, m_renderSystem);
 							}
 						}
 					}

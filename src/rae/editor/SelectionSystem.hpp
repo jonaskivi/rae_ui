@@ -22,6 +22,7 @@ public:
 	SelectionSystem(TransformSystem& transformSystem);
 
 	bool isSelection() const;
+	Array<Id> selectedIds() const;
 
 	void clearSelection();
 	void setSelection(const Array<Id>& ids);

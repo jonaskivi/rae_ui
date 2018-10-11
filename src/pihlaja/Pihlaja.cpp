@@ -18,13 +18,11 @@ Pihlaja::Pihlaja() :
 	m_engine.addSystem(m_engine.assetSystem());
 	m_engine.addSystem(m_engine.sceneSystem());
 
-	m_engine.addSystem(m_engine.editorSystem());
 	m_engine.addSystem(m_engine.uiSystem());
 	m_engine.addSystem(m_engine.rayTracer());
 	m_engine.addSystem(m_engine.renderSystem());
 
 	m_engine.addRenderer3D(m_engine.renderSystem());
-	m_engine.addRenderer3D(m_engine.editorSystem());
 	m_engine.addRenderer3D(m_engine.debugSystem());
 
 	m_engine.addRenderer2D(m_engine.uiSystem());
@@ -296,6 +294,7 @@ void Pihlaja::onKeyEvent(const Input& input)
 			//RAE_OLD case KeySym::_1: m_rayTracer.showScene(1); break;
 			//RAE_OLD case KeySym::_2: m_rayTracer.showScene(2); break;
 			//RAE_OLD case KeySym::_3: m_rayTracer.showScene(3); break;
+			case KeySym::_9:		m_engine.sceneSystem().activeScene().selectNextEntity();
 			default:
 				break;
 		}

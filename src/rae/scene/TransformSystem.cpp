@@ -64,7 +64,9 @@ void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> proc
 
 void TransformSystem::addTransform(Id id, Transform&& transform)
 {
-	m_localTransforms.assign(id, Transform());
+	Transform localTransform = transform;
+	//m_localTransforms.assign(id, Transform());
+	m_localTransforms.assign(id, std::move(localTransform));
 	m_transforms.assign(id, std::move(transform));
 	//m_transformChanged.assign(id, Changed());
 }

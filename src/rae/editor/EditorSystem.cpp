@@ -9,13 +9,10 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "rae/core/Utils.hpp"
-#include "rae/scene/SceneSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
 #include "rae/visual/Plane.hpp"
-#include "rae/asset/AssetSystem.hpp"
 #include "rae/editor/SelectionSystem.hpp"
-#include "rae/ui/Input.hpp"
 #include "rae/ui/DebugSystem.hpp"
 #include "rae/ui/UISystem.hpp"
 
@@ -150,11 +147,6 @@ LineGizmo::LineGizmo()
 	m_coneMesh.createVBOs();
 }
 
-void LineGizmo::setGizmoMaterialId(Id id)
-{
-	m_materialId = id;
-}
-
 bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 {
 	const float MinHoverDistance = 0.0f;
@@ -208,10 +200,8 @@ bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 	return false;
 }
 
-void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem)
+void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem) const
 {
-	auto& material = assetSystem.getMaterial(m_materialId);
-
 	vec4 transformedPosition = camera.getProjectionAndViewMatrix() * vec4(m_position, 1.0f);
 	float gizmoCameraFactor = transformedPosition.w * m_gizmoSizeMultiplier;
 
@@ -234,7 +224,6 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, Asset
 			camera,
 			transform,
 			color,
-			material,
 			m_lineMesh);
 
 		// Draw cone
@@ -248,7 +237,6 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem, Asset
 			camera,
 			coneTransform,
 			color,
-			material,
 			m_coneMesh);
 	}
 }
@@ -318,7 +306,11 @@ bool TransformTool::hover(const Ray& mouseRay, const Camera& camera)
 	return false;
 }
 
-HandleStatus TransformTool::handleInput(Input& input, const Camera& camera, SelectionSystem& selectionSystem)
+HandleStatus TransformTool::handleInput(
+	Input& input,
+	const InputState& inputState,
+	const Camera& camera,
+	SelectionSystem& selectionSystem)
 {
 	// RAE_TODO REMOVE:
 	//g_debugSystem->drawLine(m_translateGizmo.m_debugIntersectionLine);
@@ -330,7 +322,9 @@ HandleStatus TransformTool::handleInput(Input& input, const Camera& camera, Sele
 	m_translateGizmo.setPosition(selectionSystem.selectionPosition());
 
 	m_previousMouseRay = m_mouseRay;
-	m_mouseRay = camera.getExactRay(input.mouse.normalizedWindowX(), input.mouse.normalizedWindowY());
+	m_mouseRay = camera.getExactRay(
+		inputState.localMousePositionNormalized.x,
+		inputState.localMousePositionNormalized.y);
 
 	bool isActive = m_translateGizmo.isActive();
 	if (isActive)
@@ -364,7 +358,7 @@ HandleStatus TransformTool::handleInput(Input& input, const Camera& camera, Sele
 	return HandleStatus::NotHandled;
 }
 
-void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem)
+void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem) const
 {
 	if (m_translateGizmo.isVisible())
 	{
@@ -374,15 +368,10 @@ void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem, A
 		// but that resulted in a slowdown and jerky rendering
 		//glClear(GL_DEPTH_BUFFER_BIT);
 
-		m_translateGizmo.render3D(camera, renderSystem, assetSystem);
+		m_translateGizmo.render3D(camera, renderSystem);
 
 		glDepthFunc(GL_LEQUAL);
 	}
-}
-
-void TransformTool::setGizmoMaterialId(Id id)
-{
-	m_translateGizmo.setGizmoMaterialId(id);
 }
 
 void TransformTool::onSelectionChanged(SelectionSystem& selectionSystem)
@@ -407,40 +396,29 @@ void TransformTool::translateSelected(const vec3& delta, SelectionSystem& select
 }
 
 EditorSystem::EditorSystem(
-	SceneSystem& sceneSystem,
-	RenderSystem& renderSystem,
-	AssetSystem& assetSystem,
+	SelectionSystem& selectionSystem,
 	Input& input) :
 		ISystem("EditorSystem"),
-		m_sceneSystem(sceneSystem),
-		m_renderSystem(renderSystem),
-		m_assetSystem(assetSystem),
 		m_input(input)
 {
 	LOG_F(INFO, "Init %s", name().c_str());
-
-	Id gizmoMaterialID = m_assetSystem.createMaterial(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	m_transformTool.setGizmoMaterialId(gizmoMaterialID);
-
-	Scene& scene = m_sceneSystem.activeScene();
-	auto& selectionSystem = scene.selectionSystem();
 
 	using std::placeholders::_1;
 	selectionSystem.onSelectionChanged.connect(std::bind(
 		&TransformTool::onSelectionChanged, &m_transformTool, _1));
 }
 
-UpdateStatus EditorSystem::update()
+UpdateStatus EditorSystem::update(Scene& scene)
 {
-	if (!m_sceneSystem.hasActiveScene())
-		return UpdateStatus::NotChanged;
-
-	Scene& scene = m_sceneSystem.activeScene();
+	/* RAE_TODO THIS USED TO DO SOMETHING, BEFORE THE HANDLEINPUT InputState STUFF.
 	auto& selectionSystem = scene.selectionSystem();
 
-	HandleStatus transformToolStatus = m_transformTool.handleInput(m_input,
-																   scene.cameraSystem().currentCamera(),
-																   selectionSystem);
+	HandleStatus transformToolStatus =
+		m_transformTool.handleInput(
+			m_input,
+			m_inputState,
+			scene.cameraSystem().currentCamera(),
+			selectionSystem);
 
 	if (transformToolStatus == HandleStatus::NotHandled)
 	{
@@ -467,12 +445,117 @@ UpdateStatus EditorSystem::update()
 			}
 		}
 	}
+	*/
 
 	return UpdateStatus::NotChanged; // for now.
 }
 
-void EditorSystem::render3D(const Scene& scene, const Window& window)
+void EditorSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const
 {
 	const Camera& camera = scene.cameraSystem().currentCamera();
-	m_transformTool.render3D(camera, m_renderSystem, m_assetSystem);
+	m_transformTool.render3D(camera, renderSystem);
 }
+
+void EditorSystem::handleInput(const InputState& inputState, const Array<InputEvent>& events, Scene& scene)
+{
+	m_inputState = inputState;
+
+	bool hadEvents = !events.empty();
+
+	if (not hadEvents)
+		return;
+
+	if (inputState.buttonClicked[(int)MouseButton::First] == true)
+	{
+		LOG_F(INFO, "EditorSystem handleInput 1st button clicked. x:%f y:%f",
+			inputState.localMousePositionNormalized.x,
+			inputState.localMousePositionNormalized.y);
+	}
+
+	HandleStatus transformToolStatus =
+		m_transformTool.handleInput(m_input, inputState, scene.cameraSystem().currentCamera(), scene.selectionSystem());
+
+
+	if (transformToolStatus == HandleStatus::NotHandled)
+	{
+		hover(inputState, scene);
+
+		Id hoveredId = scene.selectionSystem().hovered();
+
+		if (hoveredId != InvalidId)
+		{
+			LOG_F(INFO, "EditorSystem handleInput Something was hovered. OMG.");
+		}
+
+		if (inputState.buttonClicked[(int)MouseButton::First])
+		{
+			// RAE_TODO: Needs to have a higher level function
+			// in Input where we can ask for modifier states for Control.
+			if (m_input.getKeyState(KeySym::Control_L) ||
+				m_input.getKeyState(KeySym::Control_R) ||
+				m_input.getKeyState(KeySym::Super_L) ||
+				m_input.getKeyState(KeySym::Super_R))
+			{
+				if (hoveredId != InvalidId)
+					scene.selectionSystem().toggleSelected(hoveredId);
+			}
+			else if (hoveredId == InvalidId)
+			{
+				scene.selectionSystem().clearSelection();
+			}
+			else
+			{
+				scene.selectionSystem().setSelection({ hoveredId });
+			}
+		}
+	}
+}
+
+void EditorSystem::hover(const InputState& inputState, Scene& scene)
+{
+	const float MinHoverDistance = 0.0f;
+	const float MaxHoverDistance = 900000.0f;
+
+	scene.selectionSystem().clearHovers();
+
+	Ray mouseRay = scene.cameraSystem()
+		.currentCamera()
+		.getExactRay(
+			inputState.localMousePositionNormalized.x,
+			inputState.localMousePositionNormalized.y);
+
+	Id topMostId = InvalidId;
+
+	query<Box>(scene.transformSystem().boxes(), [&](Id id, const Box& box)
+	{
+		if (scene.transformSystem().hasTransform(id))
+		{
+			const Transform& transform = scene.transformSystem().getTransform(id);
+			const Pivot& pivot = scene.transformSystem().getPivot(id);
+			Box tbox = box;
+			tbox.transform(transform);
+			tbox.translate(pivot);
+
+			//if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
+			if (tbox.hit(mouseRay, MinHoverDistance, MaxHoverDistance))
+			{
+				LOG_F(INFO, "hit box id: %i", (int)id);
+
+				topMostId = id;
+			}
+		}
+	});
+
+	if (topMostId != InvalidId)
+	{
+		LOG_F(INFO, "Hovered: id %i", (int)topMostId);
+		scene.selectionSystem().setHovered(topMostId, true);
+	}
+	else
+	{
+		LOG_F(INFO, "NO HOVER. x%f y%f",
+			inputState.localMousePositionNormalized.x,
+			inputState.localMousePositionNormalized.y);
+	}
+}
+

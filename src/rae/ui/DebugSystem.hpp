@@ -33,6 +33,7 @@ struct DebugText
 
 class Scene;
 class UIScene;
+class RenderSystem;
 
 class DebugSystem : public ISystem
 {
@@ -40,7 +41,7 @@ public:
 	DebugSystem();
 	~DebugSystem();
 
-	void render3D(const Scene& scene, const Window& window) override;
+	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
 	void render2D(UIScene& uiScene, NVGcontext* nanoVG) override;
 
 	void drawLine(const Array<vec3>& points, const Color& color);

@@ -113,8 +113,32 @@ struct InputState
 	{
 	}
 
+	void clear()
+	{
+		for (int i = 0; i < (int)MouseButton::Count; ++i)
+		{
+			buttonClicked[i] = false;
+		}
+		mouseDelta = vec3(0.0f, 0.0f, 0.0f);
+	}
+
+	void processMouseMotionEvent(const InputEvent& event)
+	{
+		// This can't work well. The previous pos is sometimes going to be on the otherside of the window etc.
+		// and that is going to generate really big mouseDelta on some frames. Unless leave and enter events
+		// are handled properly.
+		mousePosition = vec3(event.x, event.y, 0.0f);
+		mouseDelta += mousePosition - previousMousePosition;
+		previousMousePosition = mousePosition;
+	}
+
 	bool buttonClicked[(int)MouseButton::Count] = { false, false, false, false, false, false };
+	vec3 mousePosition = vec3(0.0f, 0.0f, 0.0f);
+	vec3 previousMousePosition = vec3(0.0f, 0.0f, 0.0f);
 	vec3 mouseDelta = vec3(0.0f, 0.0f, 0.0f);
+
+	// If we are hovering something in UIScene, this is the local coordinates of that UI element. From 0 to 1.
+	vec3 localMousePositionNormalized = vec3(0.0f, 0.0f, 0.0f);
 };
 
 class Input : public ISystem

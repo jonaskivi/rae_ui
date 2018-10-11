@@ -8,6 +8,7 @@
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Material.hpp"
 
+#include "rae/ui/Input.hpp"
 #include "rae/ui/DebugSystem.hpp"
 
 namespace rae
@@ -16,11 +17,11 @@ namespace rae
 class Camera;
 class CameraSystem;
 class scene;
-class SceneSystem;
 class RenderSystem;
-class AssetSystem;
 class SelectionSystem;
 class Input;
+struct InputEvent;
+struct InputState;
 class UISystem;
 
 enum class Axis
@@ -117,9 +118,7 @@ public:
 	LineGizmo();
 
 	bool hover(const Ray& mouseRay, const Camera& camera);
-	void render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem);
-
-	void setGizmoMaterialId(Id id);
+	void render3D(const Camera& camera, RenderSystem& renderSystem) const;
 
 	vec3 getActiveAxisVector() const;
 	vec3 activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay);// const;
@@ -138,7 +137,6 @@ protected:
 	float m_coneLengthMultiplier = 4.0f;
 	Mesh m_lineMesh;
 	Mesh m_coneMesh;
-	Id m_materialId;
 };
 
 class TranslateGizmo : public LineGizmo
@@ -150,11 +148,13 @@ public:
 class TransformTool
 {
 public:
-	HandleStatus handleInput(Input& input, const Camera& camera, SelectionSystem& selectionSystem);
+	HandleStatus handleInput(
+		Input& input,
+		const InputState& inputState,
+		const Camera& camera,
+		SelectionSystem& selectionSystem);
 	bool hover(const Ray& mouseRay, const Camera& camera);
-	void render3D(const Camera& camera, RenderSystem& renderSystem, AssetSystem& assetSystem);
-
-	void setGizmoMaterialId(Id id);
+	void render3D(const Camera& camera, RenderSystem& renderSystem) const;
 
 	void onSelectionChanged(SelectionSystem& selectionSystem);
 
@@ -171,19 +171,18 @@ class EditorSystem : public ISystem
 {
 public:
 	EditorSystem(
-		SceneSystem& sceneSystem,
-		RenderSystem& renderSystem,
-		AssetSystem& assetSystem,
+		SelectionSystem& selectionSystem,
 		Input& input);
 
-	UpdateStatus update() override;
-	void render3D(const Scene& scene, const Window& window) override;
+	UpdateStatus update(Scene& scene);
+	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const;
+	//void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
+	void handleInput(const InputState& inputState, const Array<InputEvent>& events, Scene& scene);
+	void hover(const InputState& inputState, Scene& scene);
 
 protected:
-	SceneSystem&		m_sceneSystem;
-	RenderSystem&		m_renderSystem;
-	AssetSystem&		m_assetSystem;
 	Input&				m_input;
+	InputState			m_inputState; // Storing this might be stupid. We only do it for update.
 
 	TransformTool		m_transformTool;
 };

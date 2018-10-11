@@ -169,7 +169,7 @@ void RenderSystem::setViewport(const Rectangle& viewport, const Window& window)
 	}
 }
 
-void RenderSystem::render3D(const Scene& scene, const Window& window)
+void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem)
 {
 	if (!m_sceneSystem.hasActiveScene())
 		return;
@@ -253,6 +253,8 @@ void RenderSystem::render3D(const Scene& scene, const Window& window)
 	*/
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	scene.editorSystem().render3D(scene, window, renderSystem);
 }
 
 void RenderSystem::endFrame3D()
@@ -351,7 +353,6 @@ void RenderSystem::renderMeshSingleColor(
 	const Camera& camera,
 	const Transform& transform,
 	const Color& color,
-	const Material& material,
 	const Mesh& mesh)
 {
 	m_singleColorShader.use();

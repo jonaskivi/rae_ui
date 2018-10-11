@@ -29,15 +29,14 @@ Id EntitySystem::createEntity()
 	return id;
 }
 
-Id EntitySystem::getNextId()
+bool EntitySystem::isAlive(Id id) const
 {
-	LOG_F(INFO, "getNextId. Going to increment.");
-
-	LOG_F(INFO, "getNextId. Going to inc: %i", (int)m_nextId);
-	++m_nextId;
-	LOG_F(INFO, "getNextId. Going to return: %i", (int)m_nextId);
-
-	return m_nextId;
+	auto it = std::find(m_entities.begin(), m_entities.end(), id);
+	if (it != m_entities.end())
+	{
+		return true;
+	}
+	return false;
 }
 
 void EntitySystem::destroyEntities(const Array<Id>& entities)
@@ -57,4 +56,15 @@ Id EntitySystem::biggestId() const
 			biggest = id;
 	}
 	return biggest;
+}
+
+Id EntitySystem::getNextId()
+{
+	LOG_F(INFO, "getNextId. Going to increment.");
+
+	LOG_F(INFO, "getNextId. Going to inc: %i", (int)m_nextId);
+	++m_nextId;
+	LOG_F(INFO, "getNextId. Going to return: %i", (int)m_nextId);
+
+	return m_nextId;
 }

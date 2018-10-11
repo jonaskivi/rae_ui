@@ -20,7 +20,6 @@
 #include "rae/ui/UISystem.hpp"
 #include "rae/ui/DebugSystem.hpp"
 #include "rae/visual/RenderSystem.hpp"
-#include "rae/editor/EditorSystem.hpp"
 #include "rae_ray/RayTracer.hpp"
 
 namespace rae
@@ -55,16 +54,15 @@ public:
 	void addRenderer3D(ISystem& system);
 	void addRenderer2D(ISystem& system);
 
-	Input& input() { return m_input; }
+	Input&        input()        { return m_input;        }
 	ScreenSystem& screenSystem() { return m_screenSystem; }
 	WindowSystem& windowSystem() { return m_windowSystem; }
-	DebugSystem& debugSystem() { return m_debugSystem; }
-	AssetSystem& assetSystem() { return m_assetSystem; }
-	SceneSystem& sceneSystem() { return m_sceneSystem; }
-	UISystem& uiSystem() { return m_uiSystem; }
-	RayTracer& rayTracer() { return m_rayTracer; }
+	DebugSystem&  debugSystem()  { return m_debugSystem;  }
+	AssetSystem&  assetSystem()  { return m_assetSystem;  }
+	SceneSystem&  sceneSystem()  { return m_sceneSystem;  }
+	UISystem&     uiSystem()     { return m_uiSystem;     }
+	RayTracer&    rayTracer()    { return m_rayTracer;    }
 	RenderSystem& renderSystem() { return m_renderSystem; }
-	EditorSystem& editorSystem() { return m_editorSystem; }
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
@@ -98,7 +96,6 @@ protected:
 	UISystem			m_uiSystem;
 	RayTracer			m_rayTracer;
 	RenderSystem		m_renderSystem;
-	EditorSystem		m_editorSystem;
 
 	Array<Id>			m_destroyEntities;
 	bool				m_defragmentTables = false;

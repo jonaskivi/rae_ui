@@ -7,12 +7,15 @@
 #include "rae/visual/CameraSystem.hpp"
 #include "rae/editor/SelectionSystem.hpp"
 #include "rae/asset/AssetLinkSystem.hpp"
+#include "rae/editor/EditorSystem.hpp"
 
 namespace rae
 {
 
 class Time;
 class AssetSystem;
+class Input;
+struct InputEvent;
 
 class Scene
 {
@@ -29,6 +32,8 @@ public:
 
 	UpdateStatus update();
 
+	void handleInput(const InputState& inputState, const Array<InputEvent>& events);
+
 	void createTestWorld(AssetSystem& assetSystem);
 	void createTestWorld2(AssetSystem& assetSystem);
 
@@ -38,17 +43,21 @@ public:
 	Id createCube(AssetSystem& assetSystem, const vec3& position, const Color& color);
 	Id createBunny(AssetSystem& assetSystem, const vec3& position, const Color& color);
 
+	void selectNextEntity();
+
 	const EntitySystem&		entitySystem()		const { return m_entitySystem; }
 	const CameraSystem&		cameraSystem()		const { return m_cameraSystem; }
 	const SelectionSystem&	selectionSystem()	const { return m_selectionSystem; }
 	const TransformSystem&	transformSystem()	const { return m_transformSystem; }
 	const AssetLinkSystem&	assetLinkSystem()	const { return m_assetLinkSystem; }
+	const EditorSystem&		editorSystem()		const { return m_editorSystem; }
 
 	EntitySystem&		entitySystem()		{ return m_entitySystem; }
 	CameraSystem&		cameraSystem()		{ return m_cameraSystem; }
 	SelectionSystem&	selectionSystem()	{ return m_selectionSystem; }
 	TransformSystem&	transformSystem()	{ return m_transformSystem; }
 	AssetLinkSystem&	assetLinkSystem()	{ return m_assetLinkSystem; }
+	EditorSystem&		editorSystem()		{ return m_editorSystem; }
 
 private:
 	void setIsActive(bool value) { m_isActive = value; }
@@ -61,6 +70,7 @@ private:
 	CameraSystem		m_cameraSystem;
 	SelectionSystem		m_selectionSystem;
 	AssetLinkSystem		m_assetLinkSystem;
+	EditorSystem		m_editorSystem;
 };
 
 }

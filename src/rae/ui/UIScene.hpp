@@ -67,6 +67,10 @@ public:
 	const Viewport& getViewport(Id id) const;
 	Viewport& getViewport(Id id);
 	Rectangle getViewportPixelRectangle(int sceneIndex) const;
+	// Which scene index had events this frame, if any. (-1 for none?)
+	int eventsForSceneIndex() { return m_eventsForSceneIndex; }
+	// The processed events for this frame in this scene.
+	const InputState& inputState() { return m_inputState; }
 
 	Id createPanel(const Rectangle& rectangle);
 	Id createPanel(const vec3& position, const vec3& extents);
@@ -177,6 +181,10 @@ private:
 	bool				m_hadEvents = false;
 	bool				m_mouseInside = false;
 	Id					m_grabbedId = InvalidId;
+
+	int					m_eventsForSceneIndex = -1;
+	// The events processed in this scene during this frame.
+	InputState			m_inputState;
 };
 
 }

@@ -50,6 +50,9 @@ public:
 		return m_max - m_min;
 	}
 
+	float width() { return right() - left(); }
+	float height() { return up() - down(); }
+
 	void transform(const Transform& tr);
 	void translate(const Pivot& pivot);
 

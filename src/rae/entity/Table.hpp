@@ -182,6 +182,16 @@ public:
 	const Array<Comp>& items() const { return m_items; }
 	Array<Comp>& items() { return m_items; }
 
+	Array<Id> ids() const
+	{
+		Array<Id> result;
+		query<Comp>(*this, [&](Id id)
+		{
+			result.emplace_back(id);
+		});
+		return result;
+	}
+
 	int count() const { return m_items.size(); }
 
 	// Check for existance of the component for the given Id

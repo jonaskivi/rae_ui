@@ -68,7 +68,7 @@ public:
 
 	void beginFrame3D();
 	void setViewport(const Rectangle& viewport, const Window& window);
-	void render3D(const Scene& scene, const Window& window) override;
+	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
 	void endFrame3D();
 
 	void renderPicking(const Window& window);
@@ -96,7 +96,6 @@ public:
 		const Camera& camera,
 		const Transform& transform,
 		const Color& color,
-		const Material& material,
 		const Mesh& mesh);
 
 	void renderMeshPicking(

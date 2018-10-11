@@ -21,6 +21,8 @@ public:
 	Id createEntity();
 	void destroyEntities(const Array<Id>& entities);
 
+	bool isAlive(Id id) const;
+
 	Id biggestId() const;
 	int entityCount() const { return (int)m_entities.size(); }
 	const Array<Id>& entities() const { return m_entities; }

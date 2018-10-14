@@ -15,6 +15,7 @@ namespace rae
 
 class Time;
 class Input;
+struct InputState;
 
 class CameraSystem : public ISystem
 {
@@ -23,7 +24,7 @@ public:
 
 	UpdateStatus update() override;
 
-	void onMouseEvent(const Input& input);
+	void onMouseEvent(const InputState& inputState);
 	void onKeyEvent(const Input& input);
 
 	void setNeedsUpdate() { currentCamera().setNeedsUpdate(); }

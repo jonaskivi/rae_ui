@@ -129,9 +129,10 @@ public:
 
 protected:
 
-	std::array<LineHandle, (int)Axis::Count> m_sortedLineHandles;
+	// Returns an array of sorted linehandles, based on their position from the camera.
+	std::array<LineHandle, (int)Axis::Count> sortLineHandles(float gizmoCameraFactor, const Camera& camera) const;
 
-	float m_gizmoSizeMultiplier = 0.075f;
+	float m_gizmoSizeMultiplier = 0.1f;
 	float m_hoverMarginMultiplier = 1.4f;
 	float m_hoverThicknessMultiplier = 3.0f;
 	float m_coneLengthMultiplier = 4.0f;

@@ -27,21 +27,21 @@ CameraSystem::CameraSystem(const Time& time, EntitySystem& entitySystem, Transfo
 	*/
 }
 
-void CameraSystem::onMouseEvent(const Input& input)
+void CameraSystem::onMouseEvent(const InputState& inputState)
 {
 	auto& camera = currentCamera();
 
-	if (input.eventType == EventType::MouseMotion)
+	//if (input.eventType == EventType::MouseMotion)
+	//{
+	if (inputState.mouse.isButtonDown(MouseButton::Second))
 	{
-		if (input.mouse.isButtonDown(MouseButton::Second))
-		{
-			const float rotateSpeedMul = 5.0f;
+		const float rotateSpeedMul = 0.01f;
 
-			// RAE_TODO Need to redo the speedMuls because xDeltaP used to be xDeltaHeightCoords from -1 to 1.
-			camera.rotateYaw(input.mouse.xDeltaP * -1.0f * rotateSpeedMul);
-			camera.rotatePitch(input.mouse.yDeltaP * -1.0f * rotateSpeedMul);
-		}
+		// RAE_TODO Need to redo the speedMuls because xDeltaP used to be xDeltaHeightCoords from -1 to 1.
+		camera.rotateYaw(inputState.mouse.delta.x * -1.0f * rotateSpeedMul);
+		camera.rotatePitch(inputState.mouse.delta.y * -1.0f * rotateSpeedMul);
 	}
+	/*}
 	else if (input.eventType == EventType::MouseButtonPress)
 	{
 	}
@@ -57,6 +57,7 @@ void CameraSystem::onMouseEvent(const Input& input)
 		const float scrollSpeedMul = -0.1f;
 		camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
 	}
+	*/
 }
 
 void CameraSystem::onKeyEvent(const Input& input)
@@ -81,7 +82,7 @@ Id CameraSystem::createCamera()
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
-	float fieldOfView = Math::toRadians(20.0f);
+	float fieldOfView = Math::toRadians(50.0f);
 	float aspect = 16.0f / 9.0f;
 	float aperture = 0.1f;
 	float focusDistance = 10.0f;

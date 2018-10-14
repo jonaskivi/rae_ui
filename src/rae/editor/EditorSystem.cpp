@@ -147,6 +147,31 @@ LineGizmo::LineGizmo()
 	m_coneMesh.createVBOs();
 }
 
+std::array<LineHandle, (int)Axis::Count> LineGizmo::sortLineHandles(
+	float gizmoCameraFactor,
+	const Camera& camera) const
+{
+	std::array<LineHandle, (int)Axis::Count> sortedLineHandles;
+
+	// Sort line handles
+	for (int i = 0; i < (int)Axis::Count; ++i)
+	{
+		sortedLineHandles[i].axisIndex = i;
+		sortedLineHandles[i].tipPosition = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
+		sortedLineHandles[i].distanceFromCamera =
+			glm::length(sortedLineHandles[i].tipPosition - camera.position());
+	}
+
+	// Sort from closest to farthest
+	std::sort(sortedLineHandles.begin(), sortedLineHandles.end(),
+		[](const LineHandle& a, const LineHandle& b)
+	{
+		return a.distanceFromCamera < b.distanceFromCamera;
+	});
+
+	return sortedLineHandles;
+}
+
 bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 {
 	const float MinHoverDistance = 0.0f;
@@ -155,21 +180,7 @@ bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 	vec4 transformedPosition = camera.getProjectionAndViewMatrix() * vec4(m_position, 1.0f);
 	float gizmoCameraFactor = transformedPosition.w * m_gizmoSizeMultiplier * m_hoverMarginMultiplier;
 
-	// Sort line handles
-	for (int i = 0; i < (int)Axis::Count; ++i)
-	{
-		m_sortedLineHandles[i].axisIndex = i;
-		m_sortedLineHandles[i].tipPosition = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
-		m_sortedLineHandles[i].distanceFromCamera =
-			glm::length(m_sortedLineHandles[i].tipPosition - camera.position());
-	}
-
-	// Sort from closest to farthest
-	std::sort(m_sortedLineHandles.begin(), m_sortedLineHandles.end(),
-		[](const LineHandle& a, const LineHandle& b)
-	{
-		return a.distanceFromCamera < b.distanceFromCamera;
-	});
+	auto sortedLineHandles = sortLineHandles(gizmoCameraFactor, camera);
 
 	// Clear hovers
 	for (int i = 0; i < (int)Axis::Count; ++i)
@@ -177,7 +188,7 @@ bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 		m_axisHovers[i] = false;
 	}
 
-	for (auto&& lineHandle : m_sortedLineHandles)
+	for (auto&& lineHandle : sortedLineHandles)
 	{
 		int i = lineHandle.axisIndex;
 
@@ -205,13 +216,15 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem) const
 	vec4 transformedPosition = camera.getProjectionAndViewMatrix() * vec4(m_position, 1.0f);
 	float gizmoCameraFactor = transformedPosition.w * m_gizmoSizeMultiplier;
 
+	auto sortedLineHandles = sortLineHandles(gizmoCameraFactor, camera);
+
 	const auto hoverColor = Utils::createColor8bit(255, 165, 0);
 	const auto activeColor = Utils::createColor8bit(255, 215, 0);
 
 	// Draw from farthest to closest, so iterate backwards
-	for (int index = m_sortedLineHandles.size()-1; index >= 0; --index)
+	for (int index = sortedLineHandles.size()-1; index >= 0; --index)
 	{
-		int i = m_sortedLineHandles[index].axisIndex;
+		int i = sortedLineHandles[index].axisIndex;
 
 		Color color = m_axisActives[i] ? activeColor : (m_axisHovers[i] ? hoverColor : axisColor(Axis(i)));
 
@@ -323,8 +336,8 @@ HandleStatus TransformTool::handleInput(
 
 	m_previousMouseRay = m_mouseRay;
 	m_mouseRay = camera.getExactRay(
-		inputState.localMousePositionNormalized.x,
-		inputState.localMousePositionNormalized.y);
+		inputState.mouse.localPositionNormalized.x,
+		inputState.mouse.localPositionNormalized.y);
 
 	bool isActive = m_translateGizmo.isActive();
 	if (isActive)
@@ -465,11 +478,11 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 	if (not hadEvents)
 		return;
 
-	if (inputState.buttonClicked[(int)MouseButton::First] == true)
+	if (inputState.mouse.buttonClicked[(int)MouseButton::First] == true)
 	{
 		LOG_F(INFO, "EditorSystem handleInput 1st button clicked. x:%f y:%f",
-			inputState.localMousePositionNormalized.x,
-			inputState.localMousePositionNormalized.y);
+			inputState.mouse.localPositionNormalized.x,
+			inputState.mouse.localPositionNormalized.y);
 	}
 
 	HandleStatus transformToolStatus =
@@ -487,7 +500,7 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 			LOG_F(INFO, "EditorSystem handleInput Something was hovered. OMG.");
 		}
 
-		if (inputState.buttonClicked[(int)MouseButton::First])
+		if (inputState.mouse.buttonClicked[(int)MouseButton::First])
 		{
 			// RAE_TODO: Needs to have a higher level function
 			// in Input where we can ask for modifier states for Control.
@@ -508,6 +521,8 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 				scene.selectionSystem().setSelection({ hoveredId });
 			}
 		}
+
+		scene.cameraSystem().onMouseEvent(inputState);
 	}
 }
 
@@ -521,8 +536,8 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 	Ray mouseRay = scene.cameraSystem()
 		.currentCamera()
 		.getExactRay(
-			inputState.localMousePositionNormalized.x,
-			inputState.localMousePositionNormalized.y);
+			inputState.mouse.localPositionNormalized.x,
+			inputState.mouse.localPositionNormalized.y);
 
 	Id topMostId = InvalidId;
 
@@ -554,8 +569,8 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 	else
 	{
 		LOG_F(INFO, "NO HOVER. x%f y%f",
-			inputState.localMousePositionNormalized.x,
-			inputState.localMousePositionNormalized.y);
+			inputState.mouse.localPositionNormalized.x,
+			inputState.mouse.localPositionNormalized.y);
 	}
 }
 

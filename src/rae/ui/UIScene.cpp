@@ -71,41 +71,30 @@ void UIScene::createDefaultTheme()
 
 void UIScene::handleInput(const Array<InputEvent>& events)
 {
-	m_hadEvents = !events.empty();
+	m_inputState.hadEvents = !events.empty();
 
-	if (not m_hadEvents)
+	if (not m_inputState.hadEvents)
 		return;
 
 	m_inputState.clear();
 
-	if (isGrabbed() && not m_input.mouse.anyButtonDown())
+	if (m_inputState.isGrabbed() && not m_input.mouse.anyButtonDown())
 	{
-		clearGrab();
+		m_inputState.clearGrab();
 	}
 
-	for (auto&& event : events)
+	// Copy global mouse button state, because the window state is not always up to date.
+	for (int i = 0; i < (int)MouseButton::Count; ++i)
 	{
-		if (event.eventType == EventType::MouseButtonRelease)
-		{
-			if (event.mouseButton != MouseButton::Undefined)
-			{
-				m_inputState.buttonClicked[(int)event.mouseButton] = true;
-			}
-		}
-		else if (not isGrabbed() && event.eventType == EventType::MouseEnter)
-		{
-			m_mouseInside = true;
-		}
-		else if (not isGrabbed() && event.eventType == EventType::MouseLeave)
-		{
-			m_mouseInside = false;
-			// Need to clear hovers, so that none are left behind.
-			m_selectionSystem.clearHovers();
-		}
-		else if (event.eventType == EventType::MouseMotion)
-		{
-			m_inputState.processMouseMotionEvent(event);
-		}
+		m_inputState.mouse.buttonState[i] = m_input.mouse.isButtonDown((MouseButton)i);
+	}
+
+	m_inputState.handleEvents(events);
+
+	if (not m_inputState.isGrabbed() && not m_inputState.mouseInside)
+	{
+		// Need to clear hovers, so that none are left behind.
+		m_selectionSystem.clearHovers();
 	}
 
 	Id hovered = m_selectionSystem.hovered();
@@ -121,19 +110,19 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 			tbox.transform(transform);
 			tbox.translate(pivot);
 
-			vec3 mousePositionMM = m_screenSystem.pixelsToMM(m_inputState.mousePosition);
+			vec3 mousePositionMM = m_screenSystem.pixelsToMM(m_inputState.mouse.position);
 
 			LOG_F(INFO, "hovered 3D scene. mouse %f %f, tbox left:%f down:%f width: %f height: %f",
 				mousePositionMM.x, mousePositionMM.y,
 				tbox.left(), tbox.down(), tbox.width(), tbox.height());
 
-			m_inputState.localMousePositionNormalized = vec3(
+			m_inputState.mouse.localPositionNormalized = vec3(
 				(mousePositionMM.x - tbox.left()) / tbox.width(),
 				(mousePositionMM.y - tbox.down()) / tbox.height(), // Ugh, down is the new up. Fix this somehow. Z-up. Something about Y down Y up in UIs and in 3D.
 				0.0f);
 		}
 
-		if (m_inputState.buttonClicked[(int)MouseButton::First])
+		if (m_inputState.mouse.buttonClicked[(int)MouseButton::First])
 		{
 			LOG_F(INFO, "firstMouseClicked on UIScene name: %s", name().c_str());
 
@@ -144,7 +133,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 			}
 		}
 
-		if (m_inputState.buttonClicked[(int)MouseButton::Middle])
+		if (m_inputState.mouse.buttonClicked[(int)MouseButton::Middle])
 		{
 			LOG_F(INFO, "middleMouseClicked on UIScene name: %s", name().c_str());
 
@@ -154,13 +143,13 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 			}
 		}
 
-		if (m_input.mouse.anyButtonDown())
+		if (m_inputState.mouse.anyButtonDown())
 		{
-			grab(hovered);
+			m_inputState.grab(hovered);
 		}
 
 		// Draggables (this should actually work with selected, not with hovered.)
-		if (m_input.mouse.isButtonDown(MouseButton::First))
+		if (m_inputState.mouse.isButtonDown(MouseButton::First))
 		{
 			Array<Id> ids;
 
@@ -175,7 +164,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 			if (not ids.empty())
 			{
-				m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(m_inputState.mouseDelta));
+				m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(m_inputState.mouse.delta));
 			}
 		}
 
@@ -204,7 +193,7 @@ UpdateStatus UIScene::update()
 
 	doLayout();
 
-	if (not isGrabbed() && m_mouseInside && m_hadEvents)
+	if (not m_inputState.isGrabbed() && m_inputState.mouseInside && m_inputState.hadEvents)
 	{
 		hover();
 	}
@@ -492,7 +481,7 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 			renderCircle(transform, diameter, Colors::cyan);
 		});
 
-		if (m_mouseInside)
+		if (m_inputState.isGrabbed() || m_inputState.mouseInside)
 		{
 			auto mouseButtonColor = [this]() -> Color
 			{

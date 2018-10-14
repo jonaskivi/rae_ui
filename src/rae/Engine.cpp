@@ -156,7 +156,7 @@ UpdateStatus Engine::update()
 		int grabbedSceneIndex = -1;
 		for (int i = 0; i < m_uiSystem.sceneCount(); ++i)
 		{
-			if (m_uiSystem.scene(i).isGrabbed())
+			if (m_uiSystem.scene(i).inputState().isGrabbed())
 			{
 				grabbedSceneIndex = i;
 				break;
@@ -172,17 +172,22 @@ UpdateStatus Engine::update()
 			{
 				UIScene& uiScene = m_uiSystem.scene(uiSceneIndex);
 
-				// Handle scene input if nothing is grabbed, or if this scene is grabbed.
+				// Handle UI scene input if nothing is grabbed, or if this UI scene is grabbed.
 				if (grabbedSceneIndex == -1 || grabbedSceneIndex == uiSceneIndex)
 				{
 					uiScene.handleInput(window.events());
 
-					int eventsForScene = uiScene.eventsForSceneIndex();
+					int eventsForSceneIndex = uiScene.eventsForSceneIndex();
 
-					if (m_sceneSystem.hasScene(eventsForScene))
+					if (m_sceneSystem.hasScene(eventsForSceneIndex))
 					{
-						Scene& scene = m_sceneSystem.scene(eventsForScene);
-						scene.handleInput(uiScene.inputState(), window.events()); // Should pass something like InputState.
+						Scene& scene = m_sceneSystem.scene(eventsForSceneIndex);
+						scene.handleInput(uiScene.inputState(), window.events());
+
+						if (scene.checkIfNeedsToBeActiveScene())
+						{
+							m_sceneSystem.activateScene(eventsForSceneIndex);
+						}
 					}
 				}
 

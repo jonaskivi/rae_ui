@@ -131,10 +131,6 @@ public:
 
 	Rectangle convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const;
 
-	bool isGrabbed() const { return m_grabbedId != InvalidId; }
-	void grab(Id id) { m_grabbedId = id; }
-	void clearGrab() { m_grabbedId = InvalidId; }
-
 private:
 
 	void createDefaultTheme();
@@ -176,11 +172,6 @@ private:
 	Table<Draggable>	m_draggables;
 
 	NVGcontext*			m_nanoVG;
-
-	// If we had events during this frame.
-	bool				m_hadEvents = false;
-	bool				m_mouseInside = false;
-	Id					m_grabbedId = InvalidId;
 
 	int					m_eventsForSceneIndex = -1;
 	// The events processed in this scene during this frame.

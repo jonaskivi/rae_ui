@@ -107,6 +107,7 @@ struct InputEvent
 	float y = 0.0f;
 };
 
+// This is actually the processed/combined events of a UI scene during one frame, and some persistent input state.
 struct InputState
 {
 	InputState()
@@ -115,11 +116,37 @@ struct InputState
 
 	void clear()
 	{
-		for (int i = 0; i < (int)MouseButton::Count; ++i)
+		mouse.clear();
+	}
+
+	void handleEvents(const Array<InputEvent>& events)
+	{
+		for (auto&& event : events)
 		{
-			buttonClicked[i] = false;
+			if (event.eventType == EventType::MouseButtonRelease)
+			{
+				if (event.mouseButton != MouseButton::Undefined)
+				{
+					mouse.buttonClicked[(int)event.mouseButton] = true;
+				}
+			}
+			else if (/*not isGrabbed() &&*/ event.eventType == EventType::MouseEnter)
+			{
+				mouseInside = true;
+			}
+			else if (/*not isGrabbed() &&*/ event.eventType == EventType::MouseLeave)
+			{
+				mouseInside = false;
+			}
+			else if (event.eventType == EventType::MouseMotion)
+			{
+				processMouseMotionEvent(event);
+			}
+			else if (event.eventType == EventType::Scroll)
+			{
+				processScrollEvent(event);
+			}
 		}
-		mouseDelta = vec3(0.0f, 0.0f, 0.0f);
 	}
 
 	void processMouseMotionEvent(const InputEvent& event)
@@ -127,18 +154,75 @@ struct InputState
 		// This can't work well. The previous pos is sometimes going to be on the otherside of the window etc.
 		// and that is going to generate really big mouseDelta on some frames. Unless leave and enter events
 		// are handled properly.
-		mousePosition = vec3(event.x, event.y, 0.0f);
-		mouseDelta += mousePosition - previousMousePosition;
-		previousMousePosition = mousePosition;
+		mouse.position = vec3(event.x, event.y, 0.0f);
+		mouse.delta += mouse.position - mouse.previousPosition;
+		mouse.previousPosition = mouse.position;
 	}
 
-	bool buttonClicked[(int)MouseButton::Count] = { false, false, false, false, false, false };
-	vec3 mousePosition = vec3(0.0f, 0.0f, 0.0f);
-	vec3 previousMousePosition = vec3(0.0f, 0.0f, 0.0f);
-	vec3 mouseDelta = vec3(0.0f, 0.0f, 0.0f);
+	void processScrollEvent(const InputEvent& event)
+	{
+		//mouse.scroll
+	}
 
-	// If we are hovering something in UIScene, this is the local coordinates of that UI element. From 0 to 1.
-	vec3 localMousePositionNormalized = vec3(0.0f, 0.0f, 0.0f);
+	struct Mouse
+	{
+		void clear()
+		{
+			for (int i = 0; i < (int)MouseButton::Count; ++i)
+			{
+				buttonClicked[i] = false;
+			}
+
+			delta  = vec3(0.0f, 0.0f, 0.0f);
+			scroll = vec2(0.0f, 0.0f);
+		}
+
+		bool anyButtonDown() const
+		{
+			for (int i = 0; i < (int)MouseButton::Count; ++i)
+			{
+				if (buttonState[i])
+					return true;
+			}
+			return false;
+		}
+
+		bool isButtonDown(MouseButton button) const
+		{
+			return buttonState[(int)button];
+		}
+
+		bool wasButtonClicked(MouseButton button) const
+		{
+			return buttonClicked[(int)button];
+		}
+
+		// Currently this is really wasButtonReleased...
+		bool buttonClicked[(int)MouseButton::Count] = { false, false, false, false, false, false };
+		bool buttonState[(int)MouseButton::Count]   = { false, false, false, false, false, false };
+
+		vec3 position         = vec3(0.0f, 0.0f, 0.0f);
+		vec3 previousPosition = vec3(0.0f, 0.0f, 0.0f);
+		vec3 delta            = vec3(0.0f, 0.0f, 0.0f);
+		vec2 scroll           = vec2(0.0f, 0.0f);
+
+		// If we are hovering something in UIScene, this is the local coordinates of that UI element. From 0 to 1.
+		vec3 localPositionNormalized = vec3(0.0f, 0.0f, 0.0f);
+	};
+
+	Mouse mouse;
+
+	// If the UI scene had events during this frame.
+	bool	hadEvents = false;
+	// If the mouse position is inside the window where this UI scene is.
+	bool	mouseInside = false;
+
+	bool isGrabbed() const { return m_grabbedId != InvalidId; }
+	void grab(Id id) { m_grabbedId = id; }
+	void clearGrab() { m_grabbedId = InvalidId; }
+
+protected:
+	Id		m_grabbedId = InvalidId;
 };
 
 class Input : public ISystem

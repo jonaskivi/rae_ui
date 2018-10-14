@@ -57,4 +57,12 @@ UpdateStatus SceneSystem::update()
 		return UpdateStatus::NotChanged;
 
 	return activeScene().update();
+
+	// Update all scenes version:
+	//UpdateStatus status;
+	//for (int i = 0; i < (int)m_scenes.size(); ++i)
+	//{
+	//	status = m_scenes[i].update();
+	//}
+	//return status;
 }

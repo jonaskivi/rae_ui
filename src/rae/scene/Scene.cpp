@@ -43,6 +43,11 @@ UpdateStatus Scene::update()
 
 void Scene::handleInput(const InputState& inputState, const Array<InputEvent>& events)
 {
+	if (inputState.mouse.anyButtonDown())
+	{
+		m_needsToBeActiveScene = true;
+	}
+
 	m_editorSystem.handleInput(inputState, events, *this);
 }
 

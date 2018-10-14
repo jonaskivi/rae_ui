@@ -59,10 +59,18 @@ public:
 	AssetLinkSystem&	assetLinkSystem()	{ return m_assetLinkSystem; }
 	EditorSystem&		editorSystem()		{ return m_editorSystem; }
 
+	bool checkIfNeedsToBeActiveScene()
+	{
+		bool result = m_needsToBeActiveScene;
+		m_needsToBeActiveScene = false;
+		return result;
+	}
+
 private:
 	void setIsActive(bool value) { m_isActive = value; }
 
 	bool m_isActive = false;
+	bool m_needsToBeActiveScene = false; // Some kind of messaging system would be better than this bool.
 	String m_name;
 
 	EntitySystem		m_entitySystem;

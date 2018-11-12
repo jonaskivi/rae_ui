@@ -238,7 +238,9 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 				LOG_F(INFO, "MeshLink is: %i", assetLinkSystem.meshLinks().get(id));
 			#endif
 
-			renderMesh(camera, transform, white, *material, mesh, selectionSystem.isSelected(id));
+			renderMesh(camera, transform, white, *material, mesh,
+				selectionSystem.isPartOfSelection(id),
+				selectionSystem.isHovered(id));
 		}
 	});
 
@@ -318,7 +320,8 @@ void RenderSystem::renderMesh(
 	const Color& color,
 	const Material& material,
 	const Mesh& mesh,
-	bool isSelected)
+	bool isSelected,
+	bool isHovered)
 {
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
@@ -335,7 +338,15 @@ void RenderSystem::renderMesh(
 	glm::vec3 lightPos = glm::vec3(5.0f, 4.0f, 5.0f);
 	m_basicShader.pushLightPosition(lightPos);
 
-	if (isSelected)
+	if (isHovered && isSelected)
+	{
+		m_basicShader.pushTempBlendColor(Color(0.2f, 4.0f, 4.0f, 1.0f));
+	}
+	else if (isHovered)
+	{
+		m_basicShader.pushTempBlendColor(Color(1.5f, 1.5f, 1.5f, 1.0f));
+	}
+	else if (isSelected)
 	{
 		m_basicShader.pushTempBlendColor(Color(0.0f, 2.0f, 2.0f, 1.0f));
 	}

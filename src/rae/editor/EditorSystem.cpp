@@ -423,8 +423,14 @@ EditorSystem::EditorSystem(
 
 UpdateStatus EditorSystem::update(Scene& scene)
 {
-	/* RAE_TODO THIS USED TO DO SOMETHING, BEFORE THE HANDLEINPUT InputState STUFF.
 	auto& selectionSystem = scene.selectionSystem();
+	if (selectionSystem.isSelection())
+	{
+		Box selectionAabb = selectionSystem.selectionAABB();
+		g_debugSystem->drawLineBox(selectionAabb, Colors::cyan);
+	}
+
+	/* RAE_TODO THIS USED TO DO SOMETHING, BEFORE THE HANDLEINPUT InputState STUFF.
 
 	HandleStatus transformToolStatus =
 		m_transformTool.handleInput(

@@ -6,8 +6,21 @@
 namespace rae
 {
 
-Transform::Transform(const vec3& position) :
+Transform::Transform(vec3 const& position) :
 	position(position)
+{
+}
+
+Transform::Transform(vec3 const& position, qua const& rotation) :
+	position(position),
+	rotation(rotation)
+{
+}
+
+Transform::Transform(vec3 const& position, qua const& rotation, vec3 const& scale) :
+	position(position),
+	rotation(rotation),
+	scale(scale)
 {
 }
 

@@ -46,6 +46,7 @@ public:
 
 	void drawLine(const Array<vec3>& points, const Color& color);
 	void drawLine(const Line& line);
+	void drawLineBox(const Box& box, const Color& color);
 
 	void showDebugText(const String& text);
 	void showDebugText(const String& text, const Color& color);

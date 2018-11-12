@@ -86,7 +86,7 @@ void Engine::run()
 	{
 		//glfwPollEvents(); // Don't use this here, it's for games. Use it in the inner loop if something is updating.
 		// It will take up too much CPU all the time, even when nothing is happening.
-		glfwWaitEvents(); //use this instead. It will sleep when no events are being received.
+		glfwWaitEvents(); // Use this instead. It will sleep when no events are being received.
 
 		while (m_running == true && update() == UpdateStatus::Changed)
 		{

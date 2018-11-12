@@ -109,6 +109,25 @@ void DebugSystem::drawLine(const Line& line)
 	m_lines.emplace_back(line);
 }
 
+void DebugSystem::drawLineBox(const Box& box, const Color& color)
+{
+	drawLine(
+	{
+		box.corner(0),
+		box.corner(1),
+		box.corner(3),
+		box.corner(2),
+		box.corner(0),
+		box.corner(3),
+		box.corner(7),
+		box.corner(6),
+		box.corner(4),
+		box.corner(5),
+		box.corner(7),
+		box.corner(1)
+	}, color);
+}
+
 void DebugSystem::showDebugText(const String& text)
 {
 	showDebugText(text, m_defaultTextColor);

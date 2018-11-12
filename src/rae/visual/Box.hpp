@@ -64,6 +64,23 @@ public:
 	float up() const { return m_max.y; }
 	float down() const { return m_min.y; }
 
+	// Return corner point
+	vec3 corner(int i) const
+	{
+		switch(i)
+		{
+			default:
+			case 0: return m_min;
+			case 1: return vec3(m_max.x, m_min.y, m_min.z);
+			case 2: return vec3(m_min.x, m_max.y, m_min.z);
+			case 3: return vec3(m_max.x, m_max.y, m_min.z);
+			case 4: return vec3(m_min.x, m_min.y, m_max.z);
+			case 5: return vec3(m_max.x, m_min.y, m_max.z);
+			case 6: return vec3(m_min.x, m_max.y, m_max.z);
+			case 7: return m_max;
+		}
+	}
+
 	// 3D hit test
 	bool hit(const Ray& ray, float minDistance, float maxDistance) const;
 	// 2D hit test

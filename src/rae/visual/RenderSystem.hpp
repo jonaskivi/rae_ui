@@ -90,7 +90,8 @@ public:
 		const Color& color,
 		const Material& material,
 		const Mesh& mesh,
-		bool isSelected);
+		bool isSelected,
+		bool isHovered);
 
 	void renderMeshSingleColor(
 		const Camera& camera,

@@ -3,6 +3,7 @@
 #include "loguru/loguru.hpp"
 #include "rae/scene/TransformSystem.hpp"
 #include "rae/entity/Table.hpp"
+#include "rae/visual/Box.hpp"
 
 using namespace rae;
 
@@ -33,6 +34,7 @@ void SelectionSystem::clearSelection()
 void SelectionSystem::clearSelectionInternal()
 {
 	m_selected.clear();
+	m_selectedByParent.clear();
 }
 
 void SelectionSystem::setSelection(const Array<Id>& ids)
@@ -42,6 +44,10 @@ void SelectionSystem::setSelection(const Array<Id>& ids)
 	for (auto&& id : ids)
 	{
 		m_selected.assign(id, std::move(Selected()));
+		m_transformSystem.processHierarchy(id, [this](Id id)
+		{
+			m_selectedByParent.assign(id, std::move(Selected()));
+		});
 	}
 
 	if (ids.size() > 1)
@@ -61,11 +67,19 @@ void SelectionSystem::toggleSelected(Id id)
 	if (isSelected(id))
 	{
 		m_selected.remove(id);
+		m_transformSystem.processHierarchy(id, [this](Id id)
+		{
+			m_selectedByParent.remove(id);
+		});
 		LOG_F(INFO, "Deselected id: %i selection table: %i", id, m_selected.count());
 	}
 	else
 	{
 		m_selected.assign(id, std::move(Selected()));
+		m_transformSystem.processHierarchy(id, [this](Id id)
+		{
+			m_selectedByParent.assign(id, std::move(Selected()));
+		});
 		LOG_F(INFO, "Selected id: %i selection table: %i", id, m_selected.count());
 	}
 
@@ -77,11 +91,19 @@ void SelectionSystem::setSelected(Id id, bool selected)
 	if (selected)
 	{
 		m_selected.assign(id, std::move(Selected()));
+		m_transformSystem.processHierarchy(id, [this](Id id)
+		{
+			m_selectedByParent.assign(id, std::move(Selected()));
+		});
 		LOG_F(INFO, "Selected id: %i selection table: %i", id, m_selected.count());
 	}
 	else
 	{
 		m_selected.remove(id);
+		m_transformSystem.processHierarchy(id, [this](Id id)
+		{
+			m_selectedByParent.remove(id);
+		});
 		LOG_F(INFO, "Deselected id: %i selection table: %i", id, m_selected.count());
 	}
 
@@ -93,12 +115,21 @@ bool SelectionSystem::isSelected(Id id) const
 	return m_selected.check(id);
 }
 
+bool SelectionSystem::isPartOfSelection(Id id) const
+{
+	return m_selectedByParent.check(id);
+}
+
 void SelectionSystem::setHovered(Id id, bool hovered)
 {
 	if (hovered)
 	{
 		m_hoveredId = id;
-		m_hovers.assign(id, std::move(Hover()));
+
+		m_transformSystem.processHierarchy(id, [this](Id id)
+		{
+			m_hovers.assign(id, std::move(Hover()));
+		});
 	}
 	else
 	{
@@ -107,11 +138,14 @@ void SelectionSystem::setHovered(Id id, bool hovered)
 			m_hoveredId = InvalidId;
 		}
 
-		m_hovers.remove(id);
+		m_transformSystem.processHierarchy(id, [this](Id id)
+		{
+			m_hovers.remove(id);
+		});
 	}
 }
 
-bool SelectionSystem::isHovered(Id id)
+bool SelectionSystem::isHovered(Id id) const
 {
 	if (m_hoveredId == id)
 		return true;
@@ -133,6 +167,16 @@ vec3 SelectionSystem::selectionPosition() const
 	});
 
 	return vec3(pos.x / m_selected.count(), pos.y / m_selected.count(), pos.z / m_selected.count());
+}
+
+Box SelectionSystem::selectionAABB() const
+{
+	Box aabb;
+	query<Selected>(m_selected, [&](Id id)
+	{
+		aabb.grow(m_transformSystem.getPosition(id));
+	});
+	return aabb;
 }
 
 void SelectionSystem::translateSelected(vec3 delta)

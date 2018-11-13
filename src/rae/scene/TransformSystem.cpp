@@ -233,3 +233,11 @@ const Box& TransformSystem::getBox(Id id) const
 {
 	return m_boxes.get(id);
 }
+
+Box TransformSystem::getAABBWorldSpace(Id id) const
+{
+	auto box = getBox(id);
+	box.translate(getPivot(id));
+	box.transform(getTransform(id));
+	return box;
+}

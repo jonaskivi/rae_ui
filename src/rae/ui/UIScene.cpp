@@ -112,9 +112,9 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 			vec3 mousePositionMM = m_screenSystem.pixelsToMM(m_inputState.mouse.position);
 
-			LOG_F(INFO, "hovered 3D scene. mouse %f %f, tbox left:%f down:%f width: %f height: %f",
-				mousePositionMM.x, mousePositionMM.y,
-				tbox.left(), tbox.down(), tbox.width(), tbox.height());
+			//LOG_F(INFO, "hovered 3D scene. mouse %f %f, tbox left:%f down:%f width: %f height: %f",
+			//	mousePositionMM.x, mousePositionMM.y,
+			//	tbox.left(), tbox.down(), tbox.width(), tbox.height());
 
 			m_inputState.mouse.localPositionNormalized = vec3(
 				(mousePositionMM.x - tbox.left()) / tbox.width(),
@@ -124,7 +124,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 		if (m_inputState.mouse.buttonClicked[(int)MouseButton::First])
 		{
-			LOG_F(INFO, "firstMouseClicked on UIScene name: %s", name().c_str());
+			//LOG_F(INFO, "firstMouseClicked on UIScene name: %s", name().c_str());
 
 			if (m_buttons.check(hovered) && m_commands.check(hovered))
 			{
@@ -135,7 +135,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 		if (m_inputState.mouse.buttonClicked[(int)MouseButton::Middle])
 		{
-			LOG_F(INFO, "middleMouseClicked on UIScene name: %s", name().c_str());
+			//LOG_F(INFO, "middleMouseClicked on UIScene name: %s", name().c_str());
 
 			if (m_buttons.check(hovered))
 			{

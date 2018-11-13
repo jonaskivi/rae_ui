@@ -111,6 +111,8 @@ void DebugSystem::drawLine(const Line& line)
 
 void DebugSystem::drawLineBox(const Box& box, const Color& color)
 {
+	// 4 is the minimum amount of lines for the edges of the cube.
+	// https://math.stackexchange.com/questions/253253/tracing-the-edges-of-a-cube-with-the-minimum-pencil-lifts
 	drawLine(
 	{
 		box.corner(0),
@@ -118,13 +120,26 @@ void DebugSystem::drawLineBox(const Box& box, const Color& color)
 		box.corner(3),
 		box.corner(2),
 		box.corner(0),
-		box.corner(3),
-		box.corner(7),
-		box.corner(6),
 		box.corner(4),
 		box.corner(5),
 		box.corner(7),
-		box.corner(1)
+		box.corner(6),
+		box.corner(4)
+	}, color);
+	drawLine(
+	{
+		box.corner(2),
+		box.corner(6)
+	}, color);
+	drawLine(
+	{
+		box.corner(3),
+		box.corner(7)
+	}, color);
+	drawLine(
+	{
+		box.corner(1),
+		box.corner(5)
 	}, color);
 }
 

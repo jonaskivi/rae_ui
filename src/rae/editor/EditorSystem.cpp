@@ -486,9 +486,9 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 
 	if (inputState.mouse.buttonClicked[(int)MouseButton::First] == true)
 	{
-		LOG_F(INFO, "EditorSystem handleInput 1st button clicked. x:%f y:%f",
-			inputState.mouse.localPositionNormalized.x,
-			inputState.mouse.localPositionNormalized.y);
+		//LOG_F(INFO, "EditorSystem handleInput 1st button clicked. x:%f y:%f",
+		//	inputState.mouse.localPositionNormalized.x,
+		//	inputState.mouse.localPositionNormalized.y);
 	}
 
 	HandleStatus transformToolStatus =
@@ -503,7 +503,7 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 
 		if (hoveredId != InvalidId)
 		{
-			LOG_F(INFO, "EditorSystem handleInput Something was hovered. OMG.");
+			//LOG_F(INFO, "EditorSystem handleInput Something was hovered. OMG.");
 		}
 
 		if (inputState.mouse.buttonClicked[(int)MouseButton::First])
@@ -560,7 +560,7 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 			//if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			if (tbox.hit(mouseRay, MinHoverDistance, MaxHoverDistance))
 			{
-				LOG_F(INFO, "hit box id: %i", (int)id);
+				//LOG_F(INFO, "hit box id: %i", (int)id);
 
 				topMostId = id;
 			}
@@ -569,14 +569,14 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 
 	if (topMostId != InvalidId)
 	{
-		LOG_F(INFO, "Hovered: id %i", (int)topMostId);
+		//LOG_F(INFO, "Hovered: id %i", (int)topMostId);
 		scene.selectionSystem().setHovered(topMostId, true);
 	}
 	else
 	{
-		LOG_F(INFO, "NO HOVER. x%f y%f",
-			inputState.mouse.localPositionNormalized.x,
-			inputState.mouse.localPositionNormalized.y);
+		//LOG_F(INFO, "NO HOVER. x%f y%f",
+		//	inputState.mouse.localPositionNormalized.x,
+		//	inputState.mouse.localPositionNormalized.y);
 	}
 }
 

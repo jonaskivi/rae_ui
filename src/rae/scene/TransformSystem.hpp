@@ -84,6 +84,8 @@ public:
 	void addBox(Id id, Box&& box);
 	const Box& getBox(Id id) const;
 
+	Box getAABBWorldSpace(Id id) const;
+
 private:
 
 	Transform& getTransformPrivate(Id id);

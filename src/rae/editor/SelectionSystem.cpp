@@ -172,10 +172,20 @@ vec3 SelectionSystem::selectionPosition() const
 Box SelectionSystem::selectionAABB() const
 {
 	Box aabb;
-	query<Selected>(m_selected, [&](Id id)
+
+	query<Selected>(m_selectedByParent, [&](Id id)
 	{
-		aabb.grow(m_transformSystem.getPosition(id));
+		if (m_transformSystem.hasBox(id))
+		{
+			auto box = m_transformSystem.getAABBWorldSpace(id);
+			aabb.grow(box);
+		}
+		else if (m_transformSystem.hasTransform(id))
+		{
+			aabb.grow(m_transformSystem.getPosition(id));
+		}
 	});
+
 	return aabb;
 }
 

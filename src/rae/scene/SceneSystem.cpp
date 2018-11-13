@@ -40,7 +40,7 @@ void SceneSystem::activateScene(int index)
 	deactivateAllScenes();
 	m_activeSceneIdx = index;
 	activeScene().setIsActive(true);
-	LOG_F(INFO, "Active Scene set to %i %s", m_activeSceneIdx, activeScene().m_entitySystem.owner().c_str());
+	//LOG_F(INFO, "Active Scene set to %i %s", m_activeSceneIdx, activeScene().m_entitySystem.owner().c_str());
 }
 
 void SceneSystem::deactivateAllScenes()

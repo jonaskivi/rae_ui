@@ -9,12 +9,13 @@ namespace rae
 class Ray;
 struct Transform;
 
+// An Axis-aligned box (AABB)
 class Box
 {
 public:
 	Box() :
 		m_min(FLT_MAX, FLT_MAX, FLT_MAX),
-		m_max(FLT_MIN, FLT_MIN, FLT_MIN)
+		m_max(-FLT_MAX, -FLT_MAX, -FLT_MAX)
 	{
 	}
 
@@ -27,7 +28,7 @@ public:
 	void clear()
 	{
 		m_min = vec3(FLT_MAX, FLT_MAX, FLT_MAX);
-		m_max = vec3(FLT_MIN, FLT_MIN, FLT_MIN);
+		m_max = vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 	}
 
 	bool valid()
@@ -63,6 +64,20 @@ public:
 	float right() const { return m_max.x; }
 	float up() const { return m_max.y; }
 	float down() const { return m_min.y; }
+
+	// Corners of the AABB box in a right handed Z-up coordinate system.
+	//    Z
+	//            1,1,1
+	//    6---------7
+	//    |\        |\
+	//    | \       | \
+	//    |  4---------5
+	//  Y |  |      |  |
+	//    2 -|- - - 3  |
+	//     \ |       \ |
+	//      \|        \|
+	//       0---------1   X
+	//   -1,-1,-1
 
 	// Return corner point
 	vec3 corner(int i) const

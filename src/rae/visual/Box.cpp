@@ -22,19 +22,13 @@ void Box::grow(const Box& set)
 
 void Box::grow(vec3 set)
 {
-	if(m_min.x > set.x)
-		m_min.x = set.x;
-	if(m_min.y > set.y)
-		m_min.y = set.y;
-	if(m_min.z > set.z)
-		m_min.z = set.z;
+	m_min.x = std::min(m_min.x, set.x);
+	m_min.y = std::min(m_min.y, set.y);
+	m_min.z = std::min(m_min.z, set.z);
 
-	if(m_max.x < set.x)
-		m_max.x = set.x;
-	if(m_max.y < set.y)
-		m_max.y = set.y;
-	if(m_max.z < set.z)
-		m_max.z = set.z;
+	m_max.x = std::max(m_max.x, set.x);
+	m_max.y = std::max(m_max.y, set.y);
+	m_max.z = std::max(m_max.z, set.z);
 }
 
 void Box::transform(const Transform& tr)

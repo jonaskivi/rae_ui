@@ -60,7 +60,7 @@ Color createColor8bit(float r, float g, float b, float a = 255.0f);
 String toString(bool set);
 String toString(float value); // A string with four decimal places
 String toString(int value);
-String toString(glm::vec3 position);
+String toString(glm::vec3 const& position);
 
 }
 

@@ -164,7 +164,7 @@ String toString(int value)
 	return std::to_string(value);
 }
 
-String toString(glm::vec3 position)
+String toString(glm::vec3 const& position)
 {
 	String ret = "x: ";
 	ret += Utils::toString(position.x);

@@ -128,12 +128,15 @@ Id Scene::createRandomCubeEntity(AssetSystem& assetSystem)
 
 Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const Color& color)
 {
-	vec3 halfExtents = vec3(3.5f, 0.5f, 0.5f);
+	//vec3 halfExtents = vec3(3.5f, 0.5f, 0.5f);
+	vec3 halfExtents = vec3(0.5f, 0.5f, 0.5f);
+	qua rotation = qua();
+	//qua rotation = qua(vec3(0.0f, Math::toRadians(45.0f), 0.0f));
 
 	Id id = m_entitySystem.createEntity();
 	//LOG_F(INFO, "createCube id: %i", id);
 	// The desired API:
-	m_transformSystem.addTransform(id, Transform(position, qua(vec3(0.0f, Math::toRadians(45.0f), 0.0f)), halfExtents));
+	m_transformSystem.addTransform(id, Transform(position, rotation, halfExtents));
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	m_transformSystem.addPivot(id, Pivots::Center);
 	//m_geometrySystem.setMesh(entity, m_meshID);

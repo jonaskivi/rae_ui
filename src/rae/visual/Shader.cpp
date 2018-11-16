@@ -182,7 +182,6 @@ void BasicShader::prepareUniforms()
 	m_viewMatrixUni			= glGetUniformLocation(m_programId, "viewMatrix");
 	m_modelMatrixUni		= glGetUniformLocation(m_programId, "modelMatrix");
 	m_lightPositionUni		= glGetUniformLocation(m_programId, "lightPosition_worldspace");
-	m_tempBlendColorUni		= glGetUniformLocation(m_programId, "tempBlendColor");
 	m_textureUni			= glGetUniformLocation(m_programId, "textureSampler");
 }
 
@@ -199,11 +198,6 @@ void BasicShader::pushModelMatrix(const mat4& matrix)
 void BasicShader::pushLightPosition(const vec3& position)
 {
 	glUniform3f(m_lightPositionUni, position.x, position.y, position.z);
-}
-
-void BasicShader::pushTempBlendColor(const Color& color)
-{
-	glUniform3f(m_tempBlendColorUni, color.x, color.y, color.z);
 }
 
 void BasicShader::pushTexture(const Material& material)
@@ -250,6 +244,22 @@ void SingleColorShader::prepareUniforms()
 }
 
 void SingleColorShader::pushColor(const Color& color)
+{
+	glUniform3f(m_colorUni, color.x, color.y, color.z);
+}
+
+OutlineShader::OutlineShader() :
+	ModelViewMatrixShader("./data/shaders/outline.vert", "./data/shaders/single_color.frag")
+{
+}
+
+void OutlineShader::prepareUniforms()
+{
+	ModelViewMatrixShader::prepareUniforms();
+	m_colorUni = glGetUniformLocation(m_programId, "lineColor");
+}
+
+void OutlineShader::pushColor(const Color& color)
 {
 	glUniform3f(m_colorUni, color.x, color.y, color.z);
 }

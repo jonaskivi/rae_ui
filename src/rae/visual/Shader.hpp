@@ -54,14 +54,12 @@ public:
 	void pushViewMatrix(const mat4& matrix);
 	void pushModelMatrix(const mat4& matrix);
 	void pushLightPosition(const vec3& position);
-	void pushTempBlendColor(const Color& color);
 	void pushTexture(const Material& material);
 
 private:
 	GLuint m_viewMatrixUni;
 	GLuint m_modelMatrixUni;
 	GLuint m_lightPositionUni;
-	GLuint m_tempBlendColorUni;
 	GLuint m_textureUni;
 };
 
@@ -81,6 +79,18 @@ class SingleColorShader : public ModelViewMatrixShader
 {
 public:
 	SingleColorShader();
+	virtual void prepareUniforms() override;
+
+	void pushColor(const Color& color);
+
+private:
+	GLuint m_colorUni;
+};
+
+class OutlineShader : public ModelViewMatrixShader
+{
+public:
+	OutlineShader();
 	virtual void prepareUniforms() override;
 
 	void pushColor(const Color& color);

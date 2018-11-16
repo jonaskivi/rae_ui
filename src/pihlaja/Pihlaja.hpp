@@ -85,6 +85,6 @@ protected:
 	bool					m_evenFrames = true;
 
 	int		m_frameCount = 0;
-	Bool	m_play = true;
+	Bool	m_play = false;
 	Bool	m_needsFrameUpdate = true; //false for hdrflow?
 };

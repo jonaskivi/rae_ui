@@ -54,6 +54,9 @@ public:
 
 	void translateSelected(vec3 delta);
 
+	const Table<Selected>& selectedByParent() const { return m_selectedByParent; }
+	const Table<Hover>& hovers() const { return m_hovers; }
+
 protected:
 	TransformSystem& m_transformSystem;
 

@@ -71,6 +71,9 @@ public:
 	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
 	void endFrame3D();
 
+	void renderMeshes(const Scene& scene);
+	void renderOutline(const Scene& scene);
+
 	void renderPicking(const Window& window);
 	void render2dBackground(const Window& window);
 	void renderRayTracerOutput(const Window& window);
@@ -87,13 +90,16 @@ public:
 	void renderMesh(
 		const Camera& camera,
 		const Transform& transform,
-		const Color& color,
 		const Material& material,
-		const Mesh& mesh,
-		bool isSelected,
-		bool isHovered);
+		const Mesh& mesh);
 
 	void renderMeshSingleColor(
+		const Camera& camera,
+		const Transform& transform,
+		const Color& color,
+		const Mesh& mesh);
+
+	void renderMeshOutline(
 		const Camera& camera,
 		const Transform& transform,
 		const Color& color,
@@ -117,6 +123,7 @@ public:
 protected:
 	BasicShader m_basicShader;
 	SingleColorShader m_singleColorShader;
+	OutlineShader m_outlineShader;
 	PickingShader m_pickingShader;
 
 	// dependencies
@@ -136,7 +143,7 @@ protected:
 	double	m_fpsTimer = 0.0;
 	String	m_fpsString = "fps:";
 
-	RenderMode	m_renderMode = RenderMode::MixedRayTraceRasterize;
+	RenderMode	m_renderMode = RenderMode::Rasterize;
 
 	ImageBuffer<uint8_t> m_backgroundImage;
 };

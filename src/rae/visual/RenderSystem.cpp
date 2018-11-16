@@ -76,7 +76,6 @@ void RenderSystem::init()
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
-	// Init basic shader
 	if (m_basicShader.load() == 0)
 	{
 		exit(0);
@@ -84,13 +83,17 @@ void RenderSystem::init()
 
 	m_basicShader.use();
 
-	// Init picking shader
 	if (m_pickingShader.load() == 0)
 	{
 		exit(0);
 	}
 
 	if (m_singleColorShader.load() == 0)
+	{
+		exit(0);
+	}
+
+	if (m_outlineShader.load() == 0)
 	{
 		exit(0);
 	}
@@ -176,11 +179,6 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 
 	//LOG_F(INFO, "Render.");
 
-	const Camera& camera = scene.cameraSystem().currentCamera();
-	auto& transformSystem = scene.transformSystem();
-	auto& selectionSystem = scene.selectionSystem();
-	auto& assetLinkSystem = scene.assetLinkSystem();
-
 	if ((m_renderMode == RenderMode::MixedRayTraceRasterize ||
 		m_renderMode == RenderMode::RayTrace) &&
 		scene.isActive())
@@ -209,16 +207,77 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	const Color white(1.0f, 1.0f, 1.0f, 1.0f);
+	renderMeshes(scene);
+	renderOutline(scene);
 
+	scene.editorSystem().render3D(scene, window, renderSystem);
+}
+
+void RenderSystem::endFrame3D()
+{
+	if (m_rayTracer.isEnabled())
+	{
+		m_rayTracer.updateDebugTexts();
+	}
+}
+
+void RenderSystem::renderMeshes(const Scene& scene)
+{
 	//debug
 	Mesh* debugMesh = nullptr;
 	Material* debugMaterial = nullptr;
 
+	const Camera& camera = scene.cameraSystem().currentCamera();
+	auto& transformSystem = scene.transformSystem();
+	auto& selectionSystem = scene.selectionSystem();
+	auto& assetLinkSystem = scene.assetLinkSystem();
+
+	glDisable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF); // All fragments should update the stencil buffer.
+	glStencilMask(0x00);
+
 	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
 	{
+		bool selected = selectionSystem.isPartOfSelection(id);
+		bool hovered = selectionSystem.isHovered(id);
+
+		if (not selected && not hovered)
+		{
+			Material* material = nullptr;
+
+			if (m_assetSystem.isMaterial(id))
+				material = &m_assetSystem.getMaterial(id);
+			else if (assetLinkSystem.m_materialLinks.check(id))
+				material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
+
+			if (transformSystem.hasTransform(id) &&
+				material)
+			{
+				const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
+				const Transform& transform = transformSystem.getTransform(id);
+
+				//debugMaterial = &material;
+				//debugMesh = &mesh;
+
+				#ifdef RAE_DEBUG
+					LOG_F(INFO, "Going to render Mesh. id: %i", id);
+					LOG_F(INFO, "MeshLink is: %i", assetLinkSystem.meshLinks().get(id));
+				#endif
+
+				renderMesh(camera, transform, *material, mesh);
+			}
+		}
+	});
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF); // All fragments should update the stencil buffer.
+	glStencilMask(0xFF); // Enable writing to the stencil buffer.
+
+	query<Selected>(selectionSystem.selectedByParent(), [&](Id id)
+	{
 		Material* material = nullptr;
-		const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
 
 		if (m_assetSystem.isMaterial(id))
 			material = &m_assetSystem.getMaterial(id);
@@ -228,19 +287,41 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 		if (transformSystem.hasTransform(id) &&
 			material)
 		{
+			const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
 			const Transform& transform = transformSystem.getTransform(id);
 
-			//debugMaterial = &material;
-			//debugMesh = &mesh;
+			bool selected = true;
+			bool hovered = selectionSystem.isHovered(id);
 
-			#ifdef RAE_DEBUG
-				LOG_F(INFO, "Going to render Mesh. id: %i", id);
-				LOG_F(INFO, "MeshLink is: %i", assetLinkSystem.meshLinks().get(id));
-			#endif
+			renderMesh(camera, transform, *material, mesh);
+		}
+	});
 
-			renderMesh(camera, transform, white, *material, mesh,
-				selectionSystem.isPartOfSelection(id),
-				selectionSystem.isHovered(id));
+	// RAE_TODO This is pretty stupid. We need a separate query for hovers. We should try to combine hover and selected
+	// queries so we can do this in one step.
+	query<Hover>(selectionSystem.hovers(), [&](Id id)
+	{
+		bool selected = selectionSystem.isPartOfSelection(id);
+		if (not selected)
+		{
+			Material* material = nullptr;
+
+			if (m_assetSystem.isMaterial(id))
+				material = &m_assetSystem.getMaterial(id);
+			else if (assetLinkSystem.m_materialLinks.check(id))
+				material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
+
+			if (transformSystem.hasTransform(id) &&
+				material)
+			{
+				const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
+				const Transform& transform = transformSystem.getTransform(id);
+
+				bool selected = true;
+				bool hovered = selectionSystem.isHovered(id);
+
+				renderMesh(camera, transform, *material, mesh);
+			}
 		}
 	});
 
@@ -255,16 +336,42 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 	*/
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	scene.editorSystem().render3D(scene, window, renderSystem);
 }
 
-void RenderSystem::endFrame3D()
+void RenderSystem::renderOutline(const Scene& scene)
 {
-	if (m_rayTracer.isEnabled())
+	const Camera& camera = scene.cameraSystem().currentCamera();
+	auto& transformSystem = scene.transformSystem();
+	auto& selectionSystem = scene.selectionSystem();
+	auto& assetLinkSystem = scene.assetLinkSystem();
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00); // Disable writing to the stencil buffer.
+	glDisable(GL_DEPTH_TEST);
+
+	//const auto hoverColor = Utils::createColor8bit(255, 165, 0);
+	//const auto activeColor = Utils::createColor8bit(255, 215, 0);
+	const auto hoverColor = Utils::createColor8bit(0, 255, 165);
+	const auto activeColor = Utils::createColor8bit(0, 255, 255);
+
+	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
 	{
-		m_rayTracer.updateDebugTexts();
-	}
+		bool selected = selectionSystem.isPartOfSelection(id);
+		bool hovered = selectionSystem.isHovered(id);
+		if ((selected || hovered) && transformSystem.hasTransform(id))
+		{
+			const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
+			Transform transform = transformSystem.getTransform(id);
+			//transform.scale = transform.scale * 1.2f;
+
+			renderMeshOutline(camera, transform, hovered ? hoverColor : activeColor, mesh);
+		}
+	});
+
+	glStencilMask(0xFF);
+	glDisable(GL_STENCIL_TEST);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void RenderSystem::renderPicking(const Window& window)
@@ -317,11 +424,8 @@ void RenderSystem::renderPicking(const Window& window)
 void RenderSystem::renderMesh(
 	const Camera& camera,
 	const Transform& transform,
-	const Color& color,
 	const Material& material,
-	const Mesh& mesh,
-	bool isSelected,
-	bool isHovered)
+	const Mesh& mesh)
 {
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
@@ -337,23 +441,6 @@ void RenderSystem::renderMesh(
 
 	glm::vec3 lightPos = glm::vec3(5.0f, 4.0f, 5.0f);
 	m_basicShader.pushLightPosition(lightPos);
-
-	if (isHovered && isSelected)
-	{
-		m_basicShader.pushTempBlendColor(Color(0.2f, 4.0f, 4.0f, 1.0f));
-	}
-	else if (isHovered)
-	{
-		m_basicShader.pushTempBlendColor(Color(1.5f, 1.5f, 1.5f, 1.0f));
-	}
-	else if (isSelected)
-	{
-		m_basicShader.pushTempBlendColor(Color(0.0f, 2.0f, 2.0f, 1.0f));
-	}
-	else
-	{
-		m_basicShader.pushTempBlendColor(color);
-	}
 
 	m_basicShader.pushTexture(material);
 
@@ -380,6 +467,28 @@ void RenderSystem::renderMeshSingleColor(
 	m_singleColorShader.pushColor(color);
 
 	mesh.render(m_singleColorShader.getProgramId());
+}
+
+void RenderSystem::renderMeshOutline(
+	const Camera& camera,
+	const Transform& transform,
+	const Color& color,
+	const Mesh& mesh)
+{
+	m_outlineShader.use();
+
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+	mat4 rotationMatrix = glm::toMat4(transform.rotation);
+	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+	mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+	// The model-view-projection matrix
+	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
+
+	m_outlineShader.pushModelViewMatrix(combinedMatrix);
+	m_outlineShader.pushColor(color);
+
+	mesh.render(m_outlineShader.getProgramId());
 }
 
 void RenderSystem::renderMeshPicking(

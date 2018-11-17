@@ -477,6 +477,9 @@ void RenderSystem::renderMeshOutline(
 {
 	m_outlineShader.use();
 
+	const float t_outlineMultiplier = 0.005f;
+	float screenSizeFactor = camera.screenSizeFactor(transform.position) * t_outlineMultiplier;
+
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
 	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
@@ -487,8 +490,9 @@ void RenderSystem::renderMeshOutline(
 
 	m_outlineShader.pushModelViewMatrix(combinedMatrix);
 	m_outlineShader.pushColor(color);
+	m_outlineShader.pushScreenSizeFactor(screenSizeFactor);
 
-	mesh.render(m_outlineShader.getProgramId());
+	mesh.renderForOutline(m_outlineShader.getProgramId());
 }
 
 void RenderSystem::renderMeshPicking(

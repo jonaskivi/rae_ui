@@ -213,8 +213,7 @@ bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 
 void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem) const
 {
-	vec4 transformedPosition = camera.getProjectionAndViewMatrix() * vec4(m_position, 1.0f);
-	float gizmoCameraFactor = transformedPosition.w * m_gizmoSizeMultiplier;
+	float gizmoCameraFactor = camera.screenSizeFactor(m_position) * m_gizmoSizeMultiplier;
 
 	auto sortedLineHandles = sortLineHandles(gizmoCameraFactor, camera);
 

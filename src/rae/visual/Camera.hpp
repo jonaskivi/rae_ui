@@ -38,6 +38,9 @@ public:
 	const glm::mat4& viewMatrix() const { return m_viewMatrix; }
 	const glm::mat4& projectionMatrix() const { return m_projectionMatrix; }
 
+	// Returns a constant screen size multiplier for the given position.
+	float screenSizeFactor(const vec3& position) const;
+
 	// return true if frustum was updated
 	bool update(double time);
 

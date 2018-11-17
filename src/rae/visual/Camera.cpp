@@ -68,7 +68,7 @@ void Camera::calculateFrustum()
 	{
 		m_direction = vec3(
 			cos(m_pitchAngle) * cos(m_yawAngle),
-			cos(m_pitchAngle) * sin(m_yawAngle), 
+			cos(m_pitchAngle) * sin(m_yawAngle),
 			sin(m_pitchAngle)
 		);
 
@@ -82,11 +82,11 @@ void Camera::calculateFrustum()
 	else if (m_coordinatesUp == CoordinatesUp::Y)
 	{
 		m_direction = vec3(
-			cos(m_pitchAngle) * sin(m_yawAngle), 
+			cos(m_pitchAngle) * sin(m_yawAngle),
 			sin(m_pitchAngle),
 			cos(m_pitchAngle) * cos(m_yawAngle)
 		);
-		
+
 		// Right vector
 		m_right = glm::vec3(
 			sin(m_yawAngle - 3.14f/2.0f),
@@ -114,7 +114,7 @@ void Camera::calculateFrustum()
 
 	float halfWidth = m_aspectRatio * halfHeight;
 	w = glm::normalize(m_position - (m_position + m_direction));
-	
+
 	// Normal way: m_topLeftCorner = m_position - (halfWidth * m_right) + (halfHeight * m_up) - w;
 	m_topLeftCorner =
 		m_position
@@ -128,11 +128,17 @@ void Camera::calculateFrustum()
 		- (halfHeight * m_focusDistance * m_up)
 		- (m_focusDistance * w);
 	*/
-	
+
 	m_horizontal = 2.0f * halfWidth * m_focusDistance * m_right;
 	m_vertical = 2.0f * halfHeight * m_focusDistance * m_up;
 
 	m_needsUpdate = false;
+}
+
+float Camera::screenSizeFactor(const vec3& position) const
+{
+	vec4 transformedPosition = getProjectionAndViewMatrix() * vec4(position, 1.0f);
+	return transformedPosition.w;
 }
 
 bool Camera::update(double time)
@@ -166,7 +172,7 @@ void Camera::moveForward(float delta)
 	{
 		m_needsUpdate = true;
 		m_position += delta * m_direction * cameraSpeed();
-	}	
+	}
 }
 
 void Camera::moveBackward(float delta)
@@ -175,7 +181,7 @@ void Camera::moveBackward(float delta)
 	{
 		m_needsUpdate = true;
 		m_position -= delta * m_direction * cameraSpeed();
-	}	
+	}
 }
 
 void Camera::moveRight(float delta)
@@ -184,7 +190,7 @@ void Camera::moveRight(float delta)
 	{
 		m_needsUpdate = true;
 		m_position += delta * m_right * cameraSpeed();
-	}	
+	}
 }
 
 void Camera::moveLeft(float delta)
@@ -193,7 +199,7 @@ void Camera::moveLeft(float delta)
 	{
 		m_needsUpdate = true;
 		m_position -= delta * m_right * cameraSpeed();
-	}	
+	}
 }
 
 void Camera::moveUp(float delta)
@@ -202,7 +208,7 @@ void Camera::moveUp(float delta)
 	{
 		m_needsUpdate = true;
 		m_position += delta * m_up * cameraSpeed();
-	}	
+	}
 }
 
 void Camera::moveDown(float delta)
@@ -211,7 +217,7 @@ void Camera::moveDown(float delta)
 	{
 		m_needsUpdate = true;
 		m_position -= delta * m_up * cameraSpeed();
-	}	
+	}
 }
 
 void Camera::rotateYaw(double delta_time, float dir)

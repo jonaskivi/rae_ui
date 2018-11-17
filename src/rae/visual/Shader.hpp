@@ -94,9 +94,11 @@ public:
 	virtual void prepareUniforms() override;
 
 	void pushColor(const Color& color);
+	void pushScreenSizeFactor(float screenSizeFactor);
 
 private:
 	GLuint m_colorUni;
+	GLfloat m_screenSizeFactorUni;
 };
 
 }

@@ -257,9 +257,15 @@ void OutlineShader::prepareUniforms()
 {
 	ModelViewMatrixShader::prepareUniforms();
 	m_colorUni = glGetUniformLocation(m_programId, "lineColor");
+	m_screenSizeFactorUni = glGetUniformLocation(m_programId, "screenSizeFactor");
 }
 
 void OutlineShader::pushColor(const Color& color)
 {
 	glUniform3f(m_colorUni, color.x, color.y, color.z);
+}
+
+void OutlineShader::pushScreenSizeFactor(float screenSizeFactor)
+{
+	glUniform1f(m_screenSizeFactorUni, screenSizeFactor);
 }

@@ -5,6 +5,8 @@
 #include "GL/glew.h"
 #include "loguru/loguru.hpp"
 
+#include <glm/gtx/vector_angle.hpp>
+
 #include "rae/core/Utils.hpp"
 #include "rae/visual/Material.hpp"
 
@@ -89,6 +91,11 @@ void Mesh::createVBOs(GLenum usage)
 	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
 	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], usage);
 
+	if (!m_normalsForOutline.empty() && m_outlineNormalBufferId == 0)
+		glGenBuffers(1, &m_outlineNormalBufferId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_outlineNormalBufferId);
+	glBufferData(GL_ARRAY_BUFFER, m_normalsForOutline.size() * sizeof(glm::vec3), &m_normalsForOutline[0], usage);
+
 	if (m_indexBufferId == 0)
 		glGenBuffers(1, &m_indexBufferId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
@@ -126,6 +133,12 @@ void Mesh::freeVBOs()
 	glDeleteBuffers(1, &m_uvBufferId);
 	glDeleteBuffers(1, &m_normalBufferId);
 	glDeleteBuffers(1, &m_indexBufferId);
+
+	if (m_outlineNormalBufferId != 0)
+	{
+		glDeleteBuffers(1, &m_outlineNormalBufferId);
+		m_outlineNormalBufferId = 0;
+	}
 
 	m_vertexBufferId	= 0;
 	m_uvBufferId		= 0;
@@ -434,6 +447,7 @@ void Mesh::generateCube()
 
 	computeAabb();
 	computeFaceNormals();
+	computeOutlineNormals();
 
 	//LOG_F("size of: m_vertices: %i size of m_indices: %i", (int)m_vertices.size(), (int)m_indices.size());
 }
@@ -476,6 +490,7 @@ void Mesh::generateSphere(float radius, int rings, int sectors)
 	}
 
 	computeFaceNormals();
+	computeOutlineNormals();
 	computeAabb();
 }
 
@@ -524,13 +539,194 @@ void Mesh::generateCone(int steps)
 	m_indices.emplace_back(2);
 
 	computeFaceNormals();
+	computeOutlineNormals();
 	computeAabb();
+}
+
+void Mesh::computeOutlineNormals()
+{
+	m_normalsForOutline.clear();
+
+	m_normalsForOutline = computeSmoothNormals();
+}
+
+/* RAE_TODO draft:
+void Mesh::removeDuplicateVertices()
+{
+	struct UniqueVec
+	{
+		UniqueVec(const vec3 value, int index) :
+			value(value)
+		{
+			indices.emplace_back(index);
+		}
+
+		vec3 value;
+		Array<int> indices;
+	};
+
+	Array<UniqueVertex> uniqueVertices;
+
+	for (int i = 0; i < (int)m_vertices.size(); ++i)
+	{
+		bool isUnique = true;
+		for (int j = 0; j < (int)uniqueVertices.size(); ++j)
+		{
+			auto&& uniqueVec = uniqueVertices[j];
+			if (Utils::isEqualVec(m_vertices[i], uniqueVec.value))
+			{
+				uniqueVec.indices.emplace_back(i);
+				isUnique = false;
+				break;
+			}
+		}
+
+		if (isUnique)
+		{
+			uniqueVertices.emplace_back(m_vertices[i], i);
+		}
+	}
+}
+*/
+
+Array<vec3> Mesh::computeSmoothNormals()
+{
+	Array<vec3> normals;
+	normals.reserve((int)m_vertices.size());
+	for (int i = 0; i < (int)m_vertices.size(); ++i)
+	{
+		normals.emplace_back(0.0f, 1.0f, 0.0f);
+	}
+
+	// Find duplicate vecs from the faces. Get angle weigths for each normal, and add them together.
+
+	struct UniqueVec
+	{
+		UniqueVec(const vec3& value, int vertexIndex, const vec3& normal, float angleWeight) :
+			value(value)
+		{
+			vertexIndices.emplace_back(vertexIndex);
+			vertexNormals.emplace_back(normal);
+			angleWeights.emplace_back(angleWeight);
+		}
+
+		vec3 value;
+		Array<int> vertexIndices;
+		Array<vec3> vertexNormals;
+		Array<float> angleWeights;
+		vec3 finalNormal;
+	};
+
+	Array<UniqueVec> uniqueVertices;
+
+	auto addToPossiblyUniqueVectors = [&uniqueVertices](
+		const vec3& value,
+		int vertexIndex,
+		const vec3& normal,
+		float angleWeight)
+	{
+		bool isUnique = true;
+		for (int j = 0; j < (int)uniqueVertices.size(); ++j)
+		{
+			auto&& uniqueVec = uniqueVertices[j];
+			if (Utils::isEqualVec(value, uniqueVec.value))
+			{
+				uniqueVec.vertexIndices.emplace_back(vertexIndex);
+				uniqueVec.vertexNormals.emplace_back(normal);
+				uniqueVec.angleWeights.emplace_back(angleWeight);
+
+				isUnique = false;
+				break;
+			}
+		}
+
+		if (isUnique)
+		{
+			uniqueVertices.emplace_back(value, vertexIndex, normal, angleWeight);
+		}
+	};
+
+	vec3 a;
+	vec3 b;
+	vec3 c;
+
+	vec3 v1;
+	vec3 v2;
+
+	vec3 u;
+	vec3 v;
+	vec3 result;
+
+	for (int i = 0; i < (int)m_indices.size(); i = i + 3)
+	{
+		a = m_vertices[m_indices[i]];
+		b = m_vertices[m_indices[i+1]];
+		c = m_vertices[m_indices[i+2]];
+
+		v1[0] = a[0] - b[0];
+		v1[1] = a[1] - b[1];
+		v1[2] = a[2] - b[2];
+
+		v2[0] = b[0] - c[0];
+		v2[1] = b[1] - c[1];
+		v2[2] = b[2] - c[2];
+
+		// Cross product:
+		result[0] = v1[1] * v2[2] - v1[2] * v2[1];
+		result[1] = v1[2] * v2[0] - v1[0] * v2[2];
+		result[2] = v1[0] * v2[1] - v1[1] * v2[0];
+
+		// Normalizing here will ignore the surface area of the triangle.
+		//result = glm::normalize(result);
+
+		m_normals[m_indices[i]] = result;
+		m_normals[m_indices[i+1]] = result;
+		m_normals[m_indices[i+2]] = result;
+
+		float angleA = glm::angle(glm::normalize(b - a), glm::normalize(c - a));
+		float angleB = glm::angle(glm::normalize(c - b), glm::normalize(a - b));
+		float angleC = glm::angle(glm::normalize(a - c), glm::normalize(b - c));
+
+		addToPossiblyUniqueVectors(a, m_indices[i], result, angleA);
+		addToPossiblyUniqueVectors(b, m_indices[i+1], result, angleB);
+		addToPossiblyUniqueVectors(c, m_indices[i+2], result, angleC);
+	}
+
+	// Process
+	for (int j = 0; j < (int)uniqueVertices.size(); ++j)
+	{
+		auto&& uniqueVec = uniqueVertices[j];
+		uniqueVec.finalNormal = vec3(0,0,0);
+
+		//RAE_TODO assert
+		if ((int)uniqueVec.vertexNormals.size() != (int)uniqueVec.angleWeights.size())
+		{
+			LOG_F(INFO, "Error: computeSmoothNormals. uniqueVec. vertexNormals should be the same size as angleWeights.");
+			continue; // Should assert here.
+		}
+
+		for (int k = 0; k < (int)uniqueVec.vertexNormals.size(); ++k)
+		{
+			uniqueVec.finalNormal += uniqueVec.vertexNormals[k] * uniqueVec.angleWeights[k];
+		}
+
+		uniqueVec.finalNormal = glm::normalize(uniqueVec.finalNormal);
+
+		// Copy to normals
+		for (int k = 0; k < (int)uniqueVec.vertexIndices.size(); ++k)
+		{
+			normals[uniqueVec.vertexIndices[k]] = uniqueVec.finalNormal;
+		}
+	}
+
+	return normals;
 }
 
 void Mesh::computeFaceNormals()
 {
 	// TEMP just enough normals to get by:
 	m_normals.clear();
+
 	for (int i = 0; i < (int)m_vertices.size(); ++i)
 	{
 		m_normals.emplace_back(0.0f, 1.0f, 0.0f);
@@ -547,7 +743,7 @@ void Mesh::computeFaceNormals()
 	vec3 v;
 	vec3 result;
 
-	for (uint i = 0; i < (int)m_indices.size(); i = i + 3)
+	for (int i = 0; i < (int)m_indices.size(); i = i + 3)
 	{
 		/*a = m_vertices[m_indices[i]];
 		b = m_vertices[m_indices[i+1]];
@@ -842,6 +1038,80 @@ void Mesh::render(uint shaderProgramId) const
 		0,					// stride
 		(void*)0			// array buffer offset
 	);
+
+	// Index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+
+	glDrawElements(
+		GL_TRIANGLES,
+		(GLsizei)m_indices.size(),
+		GL_UNSIGNED_SHORT,
+		(void*)0
+	);
+
+	glDisableVertexAttribArray(vertexPositionId);
+	glDisableVertexAttribArray(vertexUvId);
+	glDisableVertexAttribArray(vertexNormalId);
+}
+
+void Mesh::renderForOutline(uint shaderProgramId) const
+{
+	// Get a handle for our buffers
+	GLuint vertexPositionId		= glGetAttribLocation(shaderProgramId, "inPosition");
+	GLuint vertexUvId			= glGetAttribLocation(shaderProgramId, "inUV");
+	GLuint vertexNormalId		= glGetAttribLocation(shaderProgramId, "inNormal");
+
+	// m_vertices
+	glEnableVertexAttribArray(vertexPositionId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	glVertexAttribPointer(
+		vertexPositionId,	// The attribute we want to configure
+		3,					// size
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
+
+	// m_UVs
+	glEnableVertexAttribArray(vertexUvId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_uvBufferId);
+	glVertexAttribPointer(
+		vertexUvId,			// The attribute we want to configure
+		2,					// size : U+V => 2
+		GL_FLOAT,			// type
+		GL_FALSE,			// normalized?
+		0,					// stride
+		(void*)0			// array buffer offset
+	);
+
+	// m_normals
+	if (!m_normalsForOutline.empty())
+	{
+		glEnableVertexAttribArray(vertexNormalId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_outlineNormalBufferId);
+		glVertexAttribPointer(
+			vertexNormalId,		// The attribute we want to configure
+			3,					// size
+			GL_FLOAT,			// type
+			GL_FALSE,			// normalized?
+			0,					// stride
+			(void*)0			// array buffer offset
+		);
+	}
+	else
+	{
+		glEnableVertexAttribArray(vertexNormalId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
+		glVertexAttribPointer(
+			vertexNormalId,		// The attribute we want to configure
+			3,					// size
+			GL_FLOAT,			// type
+			GL_FALSE,			// normalized?
+			0,					// stride
+			(void*)0			// array buffer offset
+		);
+	}
 
 	// Index buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);

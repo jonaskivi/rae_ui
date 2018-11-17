@@ -48,10 +48,13 @@ public:
 	//end // ASSIMP
 
 	void render(uint shaderProgramId) const;
+	void renderForOutline(uint shaderProgramId) const;
 	void renderLines(uint shaderProgramId) const;
 	int triangleCount() const { return int(m_indices.size()) / 3; }
 	void computeAabb();
 	void computeFaceNormals();
+	Array<vec3> computeSmoothNormals();
+	void computeOutlineNormals();
 
 protected:
 
@@ -64,12 +67,17 @@ protected:
 	Array<vec3> m_vertices;
 	Array<vec2> m_uvs;
 	Array<vec3> m_normals;
+	// Some models have flat normals, and those don't work so well with outlines. These are smooth normals just for
+	// outline rendering. We might not have them, so the outline renderer will check that and use the regular normals
+	// in that case.
+	Array<vec3> m_normalsForOutline;
 	Array<GLushort> m_indices;
 
-	GLuint m_vertexBufferId	= 0;
-	GLuint m_uvBufferId		= 0;
-	GLuint m_normalBufferId	= 0;
-	GLuint m_indexBufferId	= 0;
+	GLuint m_vertexBufferId        = 0;
+	GLuint m_uvBufferId            = 0;
+	GLuint m_normalBufferId        = 0;
+	GLuint m_outlineNormalBufferId = 0;
+	GLuint m_indexBufferId         = 0;
 
 	Box m_aabb;
 	Material* m_material; // RAE_TODO make better, don't use pointer. Use component ID.

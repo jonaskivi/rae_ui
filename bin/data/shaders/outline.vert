@@ -7,8 +7,9 @@ attribute vec3 inNormal;
 
 // Constant data
 uniform mat4 modelViewProjectionMatrix;
+uniform float screenSizeFactor;
 
 void main()
 {
-	gl_Position = modelViewProjectionMatrix * vec4(inPosition + (inNormal * 0.03), 1.0);
+	gl_Position = modelViewProjectionMatrix * vec4(inPosition + (inNormal * screenSizeFactor), 1.0);
 }

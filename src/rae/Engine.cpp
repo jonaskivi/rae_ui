@@ -108,8 +108,8 @@ UpdateStatus Engine::update()
 	if (!m_sceneSystem.hasActiveScene())
 		return UpdateStatus::NotChanged;
 
-	Scene& scene = m_sceneSystem.activeScene();
-	auto& entitySystem = scene.entitySystem();
+	Scene& activeScene = m_sceneSystem.activeScene();
+	auto& entitySystem = activeScene.entitySystem();
 
 	// Measure speed
 	m_time.setTime(glfwGetTime());
@@ -187,6 +187,7 @@ UpdateStatus Engine::update()
 						if (scene.checkIfNeedsToBeActiveScene())
 						{
 							m_sceneSystem.activateScene(eventsForSceneIndex);
+							uiScene.activateViewportForSceneIndex(eventsForSceneIndex);
 						}
 					}
 				}

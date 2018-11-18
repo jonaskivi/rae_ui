@@ -42,13 +42,6 @@ UIScene::UIScene(
 	addTable(m_draggables);
 
 	createDefaultTheme();
-
-	m_infoButtonId = createButton("Info",
-	vec3(100.0f, 40.0f, 0.0f),
-	vec3(69.0f, 6.0f, 1.0f),
-	[](){});
-
-	//LOG_F("UISystem creating Info button: %i", m_infoButtonId);
 }
 
 void UIScene::createDefaultTheme()
@@ -65,8 +58,12 @@ void UIScene::createDefaultTheme()
 	m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHoverText]	= Color(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_panelThemeColors.resize((size_t)PanelThemeColorKey::Count);
-	m_panelThemeColors[(size_t)PanelThemeColorKey::Background]	= Utils::createColor8bit(52, 61, 70, 255);
-	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]		= Utils::createColor8bit(54, 68, 75, 235);
+	m_panelThemeColors[(size_t)PanelThemeColorKey::Background]	= Utils::createColor8bit(54, 68, 75, 235);
+	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]		= Utils::createColor8bit(52, 61, 70, 255);
+
+	m_viewportThemeColors.resize((size_t)ViewportThemeColorKey::Count);
+	m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line]			= Utils::createColor8bit(64, 64, 64, 255);
+	m_viewportThemeColors[(size_t)ViewportThemeColorKey::LineActive]	= Utils::createColor8bit(135, 135, 135, 255);
 }
 
 void UIScene::handleInput(const Array<InputEvent>& events)
@@ -206,45 +203,6 @@ UpdateStatus UIScene::update()
 		});
 	}
 
-	// debug rendering
-	if (m_buttons.check(m_infoButtonId))
-	{
-		auto& button = m_buttons.get(m_infoButtonId);
-		const auto& transform = m_transformSystem.getTransform(m_infoButtonId);
-		button.setText(
-			/*"Mouse:"
-			" raw x: " + Utils::toString(m_input.mouse.xP / m_windowSystem.mainWindow().screenPixelRatio())
-			+ " raw y: " + Utils::toString(m_input.mouse.yP / m_windowSystem.mainWindow().screenPixelRatio())*/
-
-			" xMM: " + Utils::toString(m_input.mouse.xMM)
-			+ " yMM: " + Utils::toString(m_input.mouse.yMM)
-
-			+ " xP: " + Utils::toString(m_input.mouse.xP)
-			+ " yP: " + Utils::toString(m_input.mouse.yP)
-
-			//+ " frame: " + Utils::toString(frameCount)
-			+ "\nx: " + Utils::toString(transform.position.x)
-			+ "y: " + Utils::toString(transform.position.y)
-			+ "z: " + Utils::toString(transform.position.z)
-			);
-	}
-
-	// TEMP DEBUG
-	/*
-	if (m_transformSystem.hasTransform(m_infoButtonId))
-	{
-		auto& transform = m_transformSystem.getTransform(m_infoButtonId);
-		if (m_input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
-		{
-			//LOG_F(INFO, "UISystem::render settings stuff mouse.x: %f mouse.y: %f",
-			//	m_input.mouse.x, m_input.mouse.y);
-
-			transform.setTarget(vec3(m_input.mouse.x, m_input.mouse.y, 0.0f), 1.0f);
-			//LOG_F(INFO, "Click %i", frameCount);
-		}
-	}
-	*/
-
 	frameCount++;
 
 	return UpdateStatus::NotChanged;
@@ -356,6 +314,9 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
 	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
 
+	const Color& viewportLineColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line];
+	const Color& viewportLineActiveColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::LineActive];
+
 	if (m_debugSystem.isEnabled())
 	{
 		// Debug rendering border for WindowEntities.
@@ -392,12 +353,12 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 
 			bool hasColor = m_colors.check(id);
-			bool hovered = m_selectionSystem.isHovered(id);
+			//bool hovered = m_selectionSystem.isHovered(id);
 
 			renderBorder(transform, box, pivot,
-				hovered ? panelHoverColor :
+				viewport.active ? viewportLineActiveColor :
 				hasColor ? getColor(id) :
-				panelBackgroundColor);
+				viewportLineColor);
 		}
 	});
 
@@ -710,6 +671,21 @@ Rectangle UIScene::getViewportPixelRectangle(int sceneIndex) const
 		}
 	});
 	return viewportRect;
+}
+
+void UIScene::activateViewportForSceneIndex(int sceneIndex)
+{
+	query<Viewport>(m_viewports, [&](Id id, Viewport& viewport)
+	{
+		if (viewport.sceneIndex == sceneIndex)
+		{
+			viewport.active = true;
+		}
+		else
+		{
+			viewport.active = false;
+		}
+	});
 }
 
 Id UIScene::createPanel(const Rectangle& rectangle)

@@ -483,6 +483,8 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 	if (not hadEvents)
 		return;
 
+	scene.selectionSystem().clearHovers();
+
 	if (inputState.mouse.buttonClicked[(int)MouseButton::First] == true)
 	{
 		//LOG_F(INFO, "EditorSystem handleInput 1st button clicked. x:%f y:%f",
@@ -490,11 +492,21 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 		//	inputState.mouse.localPositionNormalized.y);
 	}
 
-	HandleStatus transformToolStatus =
-		m_transformTool.handleInput(m_input, inputState, scene.cameraSystem().currentCamera(), scene.selectionSystem());
+	// Don't handle transform tool when second mouse button is down. It handles camera movement.
+	bool cameraInput = inputState.mouse.isButtonDown(MouseButton::Second);
 
+	HandleStatus transformToolStatus = HandleStatus::NotHandled;
 
-	if (transformToolStatus == HandleStatus::NotHandled)
+	if (cameraInput == false)
+	{
+		transformToolStatus =
+			m_transformTool.handleInput(m_input,
+				inputState,
+				scene.cameraSystem().currentCamera(),
+				scene.selectionSystem());
+	}
+
+	if (cameraInput == false && transformToolStatus == HandleStatus::NotHandled)
 	{
 		hover(inputState, scene);
 
@@ -526,7 +538,10 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 				scene.selectionSystem().setSelection({ hoveredId });
 			}
 		}
+	}
 
+	if (transformToolStatus == HandleStatus::NotHandled)
+	{
 		scene.cameraSystem().onMouseEvent(inputState);
 	}
 }
@@ -535,8 +550,6 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 {
 	const float MinHoverDistance = 0.0f;
 	const float MaxHoverDistance = 900000.0f;
-
-	scene.selectionSystem().clearHovers();
 
 	Ray mouseRay = scene.cameraSystem()
 		.currentCamera()

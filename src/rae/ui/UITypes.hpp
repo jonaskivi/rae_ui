@@ -110,6 +110,7 @@ struct Viewport
 	{}
 
 	int sceneIndex = 0;
+	bool active = false;
 };
 
 using ImageLink = asset::Id;
@@ -118,6 +119,13 @@ enum class PanelThemeColorKey
 {
 	Background,
 	Hover,
+	Count
+};
+
+enum class ViewportThemeColorKey
+{
+	Line,
+	LineActive,
 	Count
 };
 

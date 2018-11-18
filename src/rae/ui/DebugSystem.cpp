@@ -62,6 +62,9 @@ DebugSystem::~DebugSystem()
 
 void DebugSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem)
 {
+	if (not scene.isActive())
+		return;
+
 	const Camera& camera = scene.cameraSystem().currentCamera();
 
 	m_singleColorShader.use();

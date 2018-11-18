@@ -71,6 +71,7 @@ public:
 	int eventsForSceneIndex() { return m_eventsForSceneIndex; }
 	// The processed events for this frame in this scene.
 	const InputState& inputState() { return m_inputState; }
+	void activateViewportForSceneIndex(int sceneIndex);
 
 	Id createPanel(const Rectangle& rectangle);
 	Id createPanel(const vec3& position, const vec3& extents);
@@ -143,8 +144,6 @@ private:
 	ScreenSystem&		m_screenSystem;
 	DebugSystem&		m_debugSystem;
 
-	Id					m_infoButtonId = InvalidId;
-
 	// The root WindowEntity
 	Id					m_rootId = InvalidId;
 
@@ -159,6 +158,7 @@ private:
 	Table<Active>		m_actives;
 
 	Table<Viewport>		m_viewports;
+	Array<Color>		m_viewportThemeColors;
 	Table<Panel>		m_panels;
 	Array<Color>		m_panelThemeColors;
 

@@ -350,10 +350,8 @@ void RenderSystem::renderOutline(const Scene& scene)
 	glStencilMask(0x00); // Disable writing to the stencil buffer.
 	glDisable(GL_DEPTH_TEST);
 
-	//const auto hoverColor = Utils::createColor8bit(255, 165, 0);
-	//const auto activeColor = Utils::createColor8bit(255, 215, 0);
-	const auto hoverColor = Utils::createColor8bit(0, 255, 165);
-	const auto activeColor = Utils::createColor8bit(0, 255, 255);
+	const auto hoverColor = Utils::createColor8bit(255, 165, 0);
+	const auto activeColor = Utils::createColor8bit(0, 255, 165);
 
 	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
 	{

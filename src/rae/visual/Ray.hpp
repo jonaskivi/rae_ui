@@ -17,9 +17,11 @@ public:
 		m_direction = direction;
 	}
 
-	vec3 origin() const { return m_origin; }
-	vec3 direction() const { return m_direction; }
+	const vec3& origin() const { return m_origin; }
+	const vec3& direction() const { return m_direction; }
 	void setDirection(vec3 direction) { m_direction = direction; }
+	void setOrigin(vec3 origin) { m_origin = origin; }
+	void moveOrigin(vec3 delta) { m_origin += delta; }
 	vec3 pointAtParameter(float t) const { return m_origin + t * m_direction; }
 
 protected:

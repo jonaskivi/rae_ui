@@ -6,12 +6,12 @@
 
 using namespace rae;
 
-Sphere::~Sphere()
+OldSphere::~OldSphere()
 {
 	delete material; // Hmm. Currently no shared materials... TODO memory management.
 }
 
-bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
+bool OldSphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
 {
 	vec3 oc = ray.origin() - center;
 	float a = glm::dot(ray.direction(), ray.direction());
@@ -33,7 +33,7 @@ bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) co
 	return false;
 }
 
-Box Sphere::getAabb(float t0, float t1) const
+Box OldSphere::getAabb(float t0, float t1) const
 {
 	vec3 cornerVec = vec3(radius, radius, radius);
 	return Box(center - cornerVec, center + cornerVec);

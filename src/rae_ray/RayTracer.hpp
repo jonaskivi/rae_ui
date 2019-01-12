@@ -30,6 +30,28 @@ class SceneSystem;
 class Camera;
 class Material;
 
+using VolumeParent = Id;
+using VolumeChildren = Array<Id>;
+
+#define circleArea(r) (PI*r*r)
+
+class VolumeHierarchySystem
+{
+public:
+
+	bool hasParent(Id id) const;
+	Id getParent(Id id) const;
+	bool hasChildren(Id id) const;
+	void addChild(Id parent, Id child);
+
+	const Table<VolumeParent>& volumeParents() const { return m_parents; }
+	const Table<VolumeChildren>& volumeChildren() const { return m_childrens; }
+
+private:
+	Table<VolumeParent>		m_parents;
+	Table<VolumeChildren>	m_childrens;
+};
+
 class RayTracer : public ISystem
 {
 public:
@@ -56,6 +78,7 @@ public:
 	void renderSamples();
 	void updateImageBuffer();
 	void renderNanoVG(NVGcontext* vg,  float x, float y, float w, float h);
+	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const;
 
 	void autoFocus();
 
@@ -84,6 +107,7 @@ public:
 	void minusBounces(int delta = 1);
 
 	void onCameraChanged(const Camera& camera);
+	void onSelectionChanged(SelectionSystem& selectionSystem);
 
 protected:
 

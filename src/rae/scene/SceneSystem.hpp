@@ -17,6 +17,7 @@ public:
 		Input& input);
 
 	virtual UpdateStatus update() override;
+	virtual void onFrameEnd() override;
 
 	Scene& createScene(const String& name = "Untitled");
 	void activateScene(int index);

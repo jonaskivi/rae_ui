@@ -14,17 +14,17 @@ struct HitRecord;
 class Material;
 class Aabb;
 
-class Sphere : public Hitable
+class OldSphere : public Hitable
 {
 public:
-	Sphere(){}
-	Sphere(vec3 setCenter, float setRadius, Material* setMaterial)
+	OldSphere(){}
+	OldSphere(vec3 setCenter, float setRadius, Material* setMaterial)
 		: center(setCenter),
 		radius(setRadius),
 		material(setMaterial)
 	{}
 
-	~Sphere();
+	~OldSphere();
 
 	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const;
 	virtual Box getAabb(float t0, float t1) const;

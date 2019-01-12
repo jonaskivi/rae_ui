@@ -49,6 +49,7 @@ public:
 	int materialCount() { return m_materials.size(); }
 
 	Id getCubeMeshId() { return m_cubeMeshId; }
+	Id getSphereMeshId() { return m_sphereMeshId; }
 	Id getTestMaterialId() { return m_testMaterialId; }
 	Id getAnimatingMaterialId() { return m_animatingMaterialId; }
 	Id getBunnyMeshId() { return m_bunnyMeshId; }
@@ -67,6 +68,7 @@ protected:
 
 	// Some test assets
 	Id m_cubeMeshId = InvalidId;
+	Id m_sphereMeshId = InvalidId;
 	Id m_testMaterialId = InvalidId;
 	Id m_animatingMaterialId = InvalidId;
 

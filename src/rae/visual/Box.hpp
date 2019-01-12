@@ -51,6 +51,17 @@ public:
 		return m_max - m_min;
 	}
 
+	vec3 halfDimensions() const
+	{
+		return dimensions() * 0.5f;
+	}
+
+	float radius() const
+	{
+		vec3 hd = halfDimensions();
+		return std::max(hd.x, std::max(hd.y, hd.z));
+	}
+
 	float width() { return right() - left(); }
 	float height() { return up() - down(); }
 

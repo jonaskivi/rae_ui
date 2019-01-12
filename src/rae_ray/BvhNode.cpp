@@ -104,3 +104,18 @@ Box BvhNode::getAabb(float t0, float t1) const
 {
 	return m_aabb;
 }
+
+void BvhNode::iterate(std::function<void(const Box&)> process) const
+{
+	process(m_aabb);
+
+	if (m_left)
+	{
+		m_left->iterate(process);
+	}
+
+	if (m_right)
+	{
+		m_right->iterate(process);
+	}
+}

@@ -23,6 +23,7 @@ Pihlaja::Pihlaja() :
 	m_engine.addSystem(m_engine.renderSystem());
 
 	m_engine.addRenderer3D(m_engine.renderSystem());
+	m_engine.addRenderer3D(m_engine.rayTracer()); // This is just the debug rendering.
 	m_engine.addRenderer3D(m_engine.debugSystem());
 
 	m_engine.addRenderer2D(m_engine.uiSystem());

@@ -41,6 +41,14 @@ UpdateStatus Scene::update()
 	return UpdateStatus::NotChanged;
 }
 
+void Scene::onFrameEnd()
+{
+	m_transformSystem.onFrameEnd();
+	m_cameraSystem.onFrameEnd();
+	m_selectionSystem.onFrameEnd();
+	m_editorSystem.onFrameEnd();
+}
+
 void Scene::handleInput(const InputState& inputState, const Array<InputEvent>& events)
 {
 	if (inputState.mouse.anyButtonDown())
@@ -55,10 +63,18 @@ void Scene::createTestWorld(AssetSystem& assetSystem)
 {
 	LOG_F(INFO, "Creating test world to scene: %s", m_name.c_str());
 
-	createAddObjectButton(assetSystem);
+	auto sphere0 = createSphere(assetSystem, glm::vec3(0.0f, 0.0f, -100.5f), 100.0f, glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
 
-	auto bunny1 = createBunny(assetSystem, glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec4(1.0f, 0.2f, 0.8f, 0.0f));
-	auto cube1 = createCube(assetSystem, glm::vec3(3.0f, 2.0f, 1.0f), glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
+	auto sphere1 = createSphere(assetSystem, glm::vec3(0.0f, 2.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
+	auto cube2 = createCube(assetSystem, glm::vec3(0.0f, 3.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
+	auto sphere3 = createSphere(assetSystem, glm::vec3(0.0f, 4.25f, 0.0f), 0.5f, glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
+	auto sphere4 = createSphere(assetSystem, glm::vec3(5.15f, 6.0f, 1.0f), 1.0f, glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+
+	auto bunny1 = createBunny(assetSystem, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+
+	m_transformSystem.addChild(bunny1, sphere1);
+	m_transformSystem.addChild(bunny1, cube2);
+	m_transformSystem.addChild(bunny1, sphere3);
 }
 
 void Scene::createTestWorld2(AssetSystem& assetSystem)
@@ -67,18 +83,16 @@ void Scene::createTestWorld2(AssetSystem& assetSystem)
 
 	//createAddObjectButton(); // at index 1
 
-	auto cube0 = createCube(assetSystem, glm::vec3(0.0f, 0.0f, -10.0f), glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
+	auto sphere0 = createSphere(assetSystem, glm::vec3(0.0f, 0.0f, -100.5f), 100.0f, glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
 
-	auto cube1 = createCube(assetSystem, glm::vec3(3.0f, 0.0f, 2.0f), glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
-	auto cube2 = createCube(assetSystem, glm::vec3(-1.5f, 1.0f, -1.0f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
-	auto cube3 = createCube(assetSystem, glm::vec3(-3.0f, 1.0f, -2.0f), glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
-	auto cube4 = createCube(assetSystem, glm::vec3(-5.15f, 3.0f, -4.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+	auto sphere5 = createSphere(assetSystem, glm::vec3(0.0f, 1.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
+	auto sphere1 = createSphere(assetSystem, glm::vec3(0.0f, 2.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
+	auto cube2   = createCube  (assetSystem, glm::vec3(0.0f, 1.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
+	auto sphere3 = createSphere(assetSystem, glm::vec3(-1.0f, 2.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
+	auto sphere4 = createSphere(assetSystem, glm::vec3(5.15f, 6.0f, 1.0f), 1.0f, glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
 
-	auto bunny1 = createBunny(assetSystem, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
-
-	m_transformSystem.addChild(bunny1, cube1);
-	m_transformSystem.addChild(bunny1, cube2);
-	m_transformSystem.addChild(bunny1, cube3);
+	m_transformSystem.addChild(sphere1, cube2);
+	m_transformSystem.addChild(sphere1, sphere3);
 }
 
 Id Scene::createAddObjectButton(AssetSystem& assetSystem)
@@ -126,18 +140,18 @@ Id Scene::createRandomCubeEntity(AssetSystem& assetSystem)
 	return id;
 }
 
-Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const Color& color)
+Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, const Color& color)
 {
-	//vec3 halfExtents = vec3(3.5f, 0.5f, 0.5f);
-	vec3 halfExtents = vec3(0.5f, 0.5f, 0.5f);
 	qua rotation = qua();
 	//qua rotation = qua(vec3(0.0f, Math::toRadians(45.0f), 0.0f));
 
 	Id id = m_entitySystem.createEntity();
 	//LOG_F(INFO, "createCube id: %i", id);
 	// The desired API:
-	m_transformSystem.addTransform(id, Transform(position, rotation, halfExtents));
-	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
+	// Scale must be halfExtents * 2.0f, because with 1.0 scale we end up with halfExtents 0.5f.
+	m_transformSystem.addTransform(id, Transform(position, rotation, halfExtents * 2.0f));
+	// Hmm. What is the relation between scale and Box size? Currently we multiply Box size with Scale.
+	m_transformSystem.addBox(id, Box(vec3(-0.5f), vec3(0.5f)));
 	m_transformSystem.addPivot(id, Pivots::Center);
 	//m_geometrySystem.setMesh(entity, m_meshID);
 	//m_materialSystem.setMaterial(entity, color);
@@ -146,6 +160,25 @@ Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const Color
 	//////////m_assetSystem.addMaterial(id, Material(color));
 	m_assetLinkSystem.addMaterialLink(id, assetSystem.getTestMaterialId());
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getCubeMeshId());
+
+	return id;
+}
+
+Id Scene::createSphere(AssetSystem& assetSystem, const vec3& position, float radius, const Color& color)
+{
+	vec3 halfExtents = vec3(radius, radius, radius);
+	qua rotation = qua();
+
+	Id id = m_entitySystem.createEntity();
+	// Scale must be halfExtents * 2.0f, because with 1.0 scale we end up with halfExtents 0.5f.
+	m_transformSystem.addTransform(id, Transform(position, rotation, halfExtents * 2.0f));
+	// Hmm. What is the relation between scale and Box size? Currently we multiply Box size with Scale.
+	m_transformSystem.addBox(id, Box(vec3(-0.5f), vec3(0.5f)));
+	m_transformSystem.addPivot(id, Pivots::Center);
+	m_transformSystem.addSphere(id);
+
+	m_assetLinkSystem.addMaterialLink(id, assetSystem.getTestMaterialId());
+	m_assetLinkSystem.addMeshLink(id, assetSystem.getSphereMeshId());
 
 	return id;
 }

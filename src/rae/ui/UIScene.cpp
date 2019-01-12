@@ -317,32 +317,6 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 	const Color& viewportLineColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line];
 	const Color& viewportLineActiveColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::LineActive];
 
-	if (m_debugSystem.isEnabled())
-	{
-		// Debug rendering border for WindowEntities.
-		query<WindowEntity>(m_windows, [&](Id id)
-		{
-			if (m_transformSystem.hasTransform(id) and
-				m_transformSystem.hasBox(id))
-			{
-				const Transform& transform = m_transformSystem.getTransform(id);
-				const Box& box = m_transformSystem.getBox(id);
-				const Pivot& pivot = m_transformSystem.getPivot(id);
-
-				bool hasColor = m_colors.check(id);
-				bool hovered = m_selectionSystem.isHovered(id);
-
-				float cornerRadius = 0.0f;
-				float thicknessMM = 5.0f;
-				renderBorder(transform, box, pivot,
-					hovered ? Colors::magenta * 1.5f :
-					hasColor ? getColor(id) :
-					Colors::magenta * 0.5f,
-					cornerRadius, thicknessMM);
-			}
-		});
-	}
-
 	query<Viewport>(m_viewports, [&](Id id, const Viewport& viewport)
 	{
 		if (m_transformSystem.hasTransform(id) and
@@ -424,6 +398,29 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 
 	if (m_debugSystem.isEnabled())
 	{
+		// Debug rendering border for WindowEntities.
+		query<WindowEntity>(m_windows, [&](Id id)
+		{
+			if (m_transformSystem.hasTransform(id) and
+				m_transformSystem.hasBox(id))
+			{
+				const Transform& transform = m_transformSystem.getTransform(id);
+				const Box& box = m_transformSystem.getBox(id);
+				const Pivot& pivot = m_transformSystem.getPivot(id);
+
+				bool hasColor = m_colors.check(id);
+				bool hovered = m_selectionSystem.isHovered(id);
+
+				float cornerRadius = 0.0f;
+				float thicknessMM = 5.0f;
+				renderBorder(transform, box, pivot,
+					hovered ? Colors::magenta * 1.5f :
+					hasColor ? getColor(id) :
+					Colors::magenta * 0.5f,
+					cornerRadius, thicknessMM);
+			}
+		});
+
 		query<Keyline>(m_keylines, [&](Id id, const Keyline& keyline)
 		{
 			float fromX = m_screenSystem.mmToPixels(
@@ -464,6 +461,26 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 				1.0f,				// thickness
 				mouseButtonColor());
 		}
+
+		// Debug hover visualization
+		query<Hover>(m_selectionSystem.hovers(), [&](Id id)
+		{
+			if (m_transformSystem.hasTransform(id) and
+				m_transformSystem.hasBox(id))
+			{
+				const Transform& transform = m_transformSystem.getTransform(id);
+				const Box& box = m_transformSystem.getBox(id);
+				const Pivot& pivot = m_transformSystem.getPivot(id);
+
+				bool hasColor = m_colors.check(id);
+				bool hovered = m_selectionSystem.isHovered(id);
+
+				float cornerRadius = 0.0f;
+				float thicknessMM = 1.0f;
+				renderBorder(transform, box, pivot,
+					Colors::magenta, cornerRadius, thicknessMM);
+			}
+		});
 	}
 }
 

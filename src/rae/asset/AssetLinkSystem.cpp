@@ -17,3 +17,8 @@ void AssetLinkSystem::addMaterialLink(Id id, Id linkId)
 {
 	m_materialLinks.assign(id, std::move(linkId));
 }
+
+const MeshLink& AssetLinkSystem::getMeshLink(Id id) const
+{
+	return m_meshLinks.get(id);
+}

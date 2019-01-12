@@ -18,6 +18,54 @@
 
 using namespace rae;
 
+bool VolumeHierarchySystem::hasParent(Id id) const
+{
+	if (not m_parents.check(id))
+		return false;
+	return (m_parents.getF(id) != InvalidId);
+}
+
+Id VolumeHierarchySystem::getParent(Id id) const
+{
+	return m_parents.get(id);
+}
+
+bool VolumeHierarchySystem::hasChildren(Id id) const
+{
+	if (not m_childrens.check(id))
+		return false;
+	return (m_childrens.get(id).size() > 0);
+}
+
+void VolumeHierarchySystem::addChild(Id parent, Id child)
+{
+	if (!hasChildren(parent))
+	{
+		m_childrens.assign(parent, { child });
+	}
+	else
+	{
+		auto& childrenArray = m_childrens.getF(parent);
+		// Check for duplicates
+		for (auto&& id : childrenArray)
+		{
+			if (id == child)
+			{
+				LOG_F(ERROR, "Same child added multiple times to a parent.");
+				assert(0);
+				return;
+			}
+		}
+		childrenArray.emplace_back(child);
+	}
+
+	if (!hasParent(child))
+		m_parents.assign(child, std::move(Parent(parent)));
+
+	//m_childrenChanged.assign(parent, Changed());
+	//m_parentChanged.assign(child, Changed());
+}
+
 RayTracer::RayTracer(
 	const Time& time,
 	WindowSystem& windowSystem,
@@ -47,7 +95,11 @@ RayTracer::RayTracer(
 
 	// RAE_TODO
 	using std::placeholders::_1;
-	sceneSystem.activeScene().cameraSystem().connectCameraUpdatedEventHandler(std::bind(&RayTracer::onCameraChanged, this, _1));
+	sceneSystem.activeScene().cameraSystem().connectCameraUpdatedEventHandler(
+		std::bind(&RayTracer::onCameraChanged, this, _1));
+
+	sceneSystem.activeScene().selectionSystem().onSelectionChanged.connect(
+		std::bind(&RayTracer::onSelectionChanged, this, _1));
 }
 
 RayTracer::~RayTracer()
@@ -58,6 +110,7 @@ RayTracer::~RayTracer()
 
 void RayTracer::updateScene(const Scene& scene)
 {
+	/* RAE_TODO possibly remove this, because we don't want BVH to be done like this:
 	const Camera& camera = scene.cameraSystem().currentCamera();
 	const auto& transformSystem = scene.transformSystem();
 	const auto& selectionSystem = scene.selectionSystem();
@@ -78,19 +131,20 @@ void RayTracer::updateScene(const Scene& scene)
 		{
 			const Transform& transform = transformSystem.getTransform(id);
 
-			#ifdef RAE_DEBUG
+			//#ifdef RAE_DEBUG
 				LOG_F(INFO, "Adding Mesh to raytracer. id: %i", id);
-				LOG_F(INFO, "MeshLink is: %i", assetLinkSystem.m_meshLinks.get(id));
-			#endif
+				//LOG_F(INFO, "MeshLink is: %i", assetLinkSystem.m_meshLinks.get(id));
+			//#endif
 
 			m_world.add(
-				new Sphere(transform.position, 0.5f,
+				new OldSphere(transform.position, 0.5f,
 				new Lambertian(material->color3()))
 				);
 		}
 	});
 
 	m_tree.init(m_world.list(), 0, 0);
+	*/
 }
 
 void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
@@ -107,43 +161,43 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 
 	// A big light
 	world.add(
-		new Sphere(vec3(0.0f, 6.0f, -1.0f), 2.0f,
+		new OldSphere(vec3(0.0f, 6.0f, -1.0f), 2.0f,
 		new Light(vec3(4.0f, 4.0f, 4.0f)))
 		);
 
 	// A small light
 	world.add(
-		new Sphere(vec3(3.85, 2.3, -0.15f), 0.2f,
+		new OldSphere(vec3(3.85, 2.3, -0.15f), 0.2f,
 		new Light(vec3(16.0f, 16.0f, 16.0f)))
 		);
 
 	// A ball
 	world.add(
-		new Sphere(vec3(0, 0.3, -2), 0.5f,
+		new OldSphere(vec3(0, 0.3, -2), 0.5f,
 		new Lambertian(vec3(0.8f, 0.3f, 0.3f)))
 		);
 	// The planet
 	world.add(
-		new Sphere(vec3(0, -100.5f, -1), 100.0f,
+		new OldSphere(vec3(0, -100.5f, -1), 100.0f,
 		new Lambertian(vec3(0.0f, 0.7f, 0.8f)))
 		);
 
 	// Metal balls
 	world.add(
-		new Sphere(vec3(1, 0, 0), 0.5f,
+		new OldSphere(vec3(1, 0, 0), 0.5f,
 		new Metal(vec3(0.8f, 0.6f, 0.2f), /*roughness*/0.0f))
 		);
 	world.add(
-		new Sphere(vec3(-1.5f, 0.65f, 0.5), 0.4f,
+		new OldSphere(vec3(-1.5f, 0.65f, 0.5), 0.4f,
 		new Metal(vec3(0.8f, 0.4f, 0.8f), /*roughness*/0.3f))
 		);
 	// Dielectric, glass ball
 	world.add(
-		new Sphere(vec3(-1, 0, 1), 0.5f,
+		new OldSphere(vec3(-1, 0, 1), 0.5f,
 		new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f))
 		);
 	world.add(
-		new Sphere(vec3(-3.15f, 0.1f, -5), 0.6f,
+		new OldSphere(vec3(-3.15f, 0.1f, -5), 0.6f,
 		new Lambertian(vec3(0.05f, 0.2f, 0.8f)))
 		);
 
@@ -171,7 +225,7 @@ void RayTracer::createSceneFromBook(HitableList& list)
 	camera.setFocusDistance(17.29f);
 	*/
 
-	list.add( new Sphere(vec3(0,-1000,0), 1000, new Lambertian(vec3(0.5, 0.5, 0.5))) );
+	list.add( new OldSphere(vec3(0,-1000,0), 1000, new Lambertian(vec3(0.5, 0.5, 0.5))) );
 
 	for (int a = -11; a < 11; a++)
 	{
@@ -184,26 +238,26 @@ void RayTracer::createSceneFromBook(HitableList& list)
 				if (choose_mat < 0.8f)
 				{
 					// diffuse
-					list.add( new Sphere(center, 0.2f, new Lambertian(vec3( getRandom()*getRandom(), getRandom()*getRandom(), getRandom()*getRandom()))));
+					list.add( new OldSphere(center, 0.2f, new Lambertian(vec3( getRandom()*getRandom(), getRandom()*getRandom(), getRandom()*getRandom()))));
 				}
 				else if (choose_mat < 0.95f)
 				{
 					// metal
-					list.add( new Sphere(center, 0.2f,
+					list.add( new OldSphere(center, 0.2f,
 							new Metal(vec3(0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom())), /*roughness*/ 0.5f*getRandom())));
 				}
 				else
 				{
 					// glass
-					list.add( new Sphere(center, 0.2f, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
+					list.add( new OldSphere(center, 0.2f, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
 				}
 			}
 		}
 	}
 
-	list.add( new Sphere(vec3(0, 1, 0), 1.0, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
-	list.add( new Sphere(vec3(-4, 1, 0), 1.0, new Lambertian(vec3(0.0, 0.2, 0.9))) );
-	list.add( new Sphere(vec3(4, 1, 0), 1.0, new Metal(vec3(0.7, 0.6, 0.5), 0.0)) );
+	list.add( new OldSphere(vec3(0, 1, 0), 1.0, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
+	list.add( new OldSphere(vec3(-4, 1, 0), 1.0, new Lambertian(vec3(0.0, 0.2, 0.9))) );
+	list.add( new OldSphere(vec3(4, 1, 0), 1.0, new Metal(vec3(0.7, 0.6, 0.5), 0.0)) );
 
 	m_tree.init(list.list(), 0, 0);
 }
@@ -244,6 +298,13 @@ void RayTracer::onCameraChanged(const Camera& camera)
 	requestClear();
 }
 
+void RayTracer::onSelectionChanged(SelectionSystem& selectionSystem)
+{
+	//Ugh: if (camera.shouldWeAutoFocus())
+		autoFocus();
+	requestClear();
+}
+
 void RayTracer::requestClear()
 {
 	m_requestClear = true;
@@ -269,21 +330,101 @@ std::string toString(const HitRecord& record)
 
 void RayTracer::autoFocus()
 {
-	// Get a ray to middle of the screen and focus there
-	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
-	Ray ray = camera.getExactRay(0.5f, 0.5f);
-	HitRecord record;
-	if (m_tree.hit(ray, 0.001f, FLT_MAX, record))
+	auto& scene = m_sceneSystem.activeScene();
+	auto& transformSystem = scene.transformSystem();
+	auto& assetLinkSystem = scene.assetLinkSystem();
+	Camera& camera = scene.cameraSystem().currentCamera();
+
+	if (scene.selectionSystem().isSelection())
 	{
-		debugHitRecord = record;
-		camera.animateFocusPosition(record.point, camera.focusSpeed());
+		auto selectedIds = scene.selectionSystem().selectedIds();
+		const Transform& transform = transformSystem.getTransform(selectedIds.front());
+
+		camera.animateFocusPosition(transform.position, camera.focusSpeed());
+	}
+	else
+	{
+		// Get a ray to middle of the screen and focus there
+		Ray ray = camera.getExactRay(0.5f, 0.5f);
+		HitRecord finalRecord;
+
+		auto sphereHitFunc = [](
+			const vec3& position,
+			float radius,
+			Material* material,
+			const Ray& ray,
+			float t_min,
+			float t_max,
+			HitRecord& record) -> bool
+		{
+			vec3 oc = ray.origin() - position;
+			float a = glm::dot(ray.direction(), ray.direction());
+			float b = glm::dot(oc, ray.direction());
+			float c = glm::dot(oc, oc) - radius * radius;
+			float discriminant = b * b - a * c;
+			if (discriminant > 0)
+			{
+				float temp = (-b - sqrt(discriminant)) / a;
+				if (temp < t_max && temp > t_min)
+				{
+					record.t = temp;
+					record.point = ray.pointAtParameter(record.t);
+					record.normal = (record.point - position) / radius;
+					record.material = material;
+					return true;
+				}
+			}
+			return false;
+		};
+
+		bool hit = false;
+
+		float closestSoFar = rayMaxLength();
+
+		query<Box>(transformSystem.boxes(), [&](Id id, const Box& box)
+		{
+			HitRecord record;
+
+			const Transform& transform = transformSystem.getTransform(id);
+
+			Material* defaultMaterial = nullptr;
+
+			Ray rayInLocalSpace = ray;
+			rayInLocalSpace.moveOrigin(-transform.position);
+
+			// This is pretty random. So we check if it's a Sphere or a Mesh... and do hit testing on those... yeah. Need to refactor.
+			if ((transformSystem.hasSphere(id)
+				&& sphereHitFunc(transform.position, box.radius(), defaultMaterial, ray, 0.001f, closestSoFar, record))
+				||
+				(not transformSystem.hasSphere(id) && assetLinkSystem.hasMeshLink(id) && m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(rayInLocalSpace, 0.001f, closestSoFar, record)))
+			{
+				closestSoFar = record.t;
+				finalRecord = record;
+
+				hit = true;
+			}
+
+
+			//mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+			//mat4 rotationMatrix = glm::toMat4(transform.rotation);
+			//mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+			//mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+			// The model-view-projection matrix
+			//glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
+		});
+
+		if (hit)
+		{
+			debugHitRecord = finalRecord;
+			camera.animateFocusPosition(finalRecord.point, camera.focusSpeed());
+		}
 	}
 }
 
 vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 {
-	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
-	HitRecord record;
+	/* RAE_TODO possibly remove:
 	if (m_tree.hit(ray, 0.001f, rayMaxLength(), record))
 	{
 		// Visualize focus distance with a line
@@ -317,6 +458,154 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 			return record.material->color3();
 		}
 	}
+	*/
+
+	//scene.transformSystem().processHierarchy();
+
+	auto& scene = m_sceneSystem.activeScene();
+
+	Camera& camera = scene.cameraSystem().currentCamera();
+	HitRecord finalRecord;
+
+	auto& transformSystem = scene.transformSystem();
+	auto& assetLinkSystem = scene.assetLinkSystem();
+
+	Lambertian lambertianMaterial1(vec3(0.0f, 0.3f, 1.0f));
+	Lambertian lambertianMaterial2(vec3(1.0f, 1.0f, 1.0f));
+	Lambertian lambertianMaterial3(vec3(0.9f, 0.4f, 0.2f));
+	Lambertian lambertianMaterial4(vec3(0.8f, 0.9f, 0.1f));
+	Dielectric glassMaterial(vec3(0.8f, 0.5f, 0.3f), 1.5f);
+
+	Array<Material*> tempMaterials =
+	{
+		&lambertianMaterial1,
+		&lambertianMaterial2,
+		&lambertianMaterial3,
+		&lambertianMaterial4,
+		&glassMaterial
+	};
+
+	auto sphereHitFunc = [](
+		const vec3& position,
+		float radius,
+		Material* material,
+		const Ray& ray,
+		float t_min,
+		float t_max,
+		HitRecord& record) -> bool
+	{
+		vec3 oc = ray.origin() - position;
+		float a = glm::dot(ray.direction(), ray.direction());
+		float b = glm::dot(oc, ray.direction());
+		float c = glm::dot(oc, oc) - radius * radius;
+		float discriminant = b * b - a * c;
+		if (discriminant > 0)
+		{
+			float temp = (-b - sqrt(discriminant)) / a;
+			if (temp < t_max && temp > t_min)
+			{
+				record.t = temp;
+				record.point = ray.pointAtParameter(record.t);
+				record.normal = (record.point - position) / radius;
+				record.material = material;
+				return true;
+			}
+		}
+		return false;
+	};
+
+	vec3 resultColor = vec3(0,0,0);
+	bool hit = false;
+	bool needsScatter = false;
+	Ray scattered;
+
+	float closestSoFar = rayMaxLength();
+
+	query<Box>(transformSystem.boxes(), [&](Id id, const Box& box)
+	{
+		HitRecord record;
+
+		const Transform& transform = transformSystem.getTransform(id);
+
+		//LOG_F(INFO, "raytrace box: %i", (int)id);
+
+		Material* defaultMaterial = tempMaterials[int(id) % int(tempMaterials.size())];
+
+		Ray rayInLocalSpace = ray;
+		rayInLocalSpace.moveOrigin(-transform.position);
+
+		// This is pretty random. So we check if it's a Sphere or a Mesh... and do hit testing on those... yeah. Need to refactor.
+		if ((transformSystem.hasSphere(id)
+			&& sphereHitFunc(transform.position, box.radius() * transform.scale.x, defaultMaterial, ray, 0.001f, closestSoFar, record))
+			||
+			(not transformSystem.hasSphere(id) && assetLinkSystem.hasMeshLink(id) && m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(rayInLocalSpace, 0.001f, closestSoFar, record)))
+		{
+			bool hitLine = false;
+
+			closestSoFar = record.t;
+			finalRecord = record;
+
+			hit = true;
+
+			//LOG_F(INFO, "raytrace box: %i HIT", (int)id);
+
+			// Visualize focus distance with a line
+			if (m_isVisualizeFocusDistance)
+			{
+				float hitDistance = glm::length(record.point - camera.position());
+				if (Utils::isEqual(camera.focusDistance(), hitDistance, 0.01f) == true)
+				{
+					hitLine = true;
+					resultColor = vec3(0,1,1); // cyan line
+				}
+			}
+
+			if (not hitLine)
+			{
+				// Normal raytracing
+				if (isFastMode() == false)
+				{
+					vec3 attenuation;
+					vec3 emitted = record.material->emitted(record.point);
+
+					if (depth < m_bouncesLimit && record.material->scatter(ray, record, attenuation, scattered))
+					{
+						needsScatter = true;
+						resultColor = emitted + attenuation;
+					}
+					else
+					{
+						resultColor = emitted;
+					}
+				}
+				else // FastMode returns just the material color
+				{
+					resultColor = record.material->color3();
+				}
+			}
+		}
+
+
+		//mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+		//mat4 rotationMatrix = glm::toMat4(transform.rotation);
+		//mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+		//mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+		// The model-view-projection matrix
+		//glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
+	});
+
+	if (hit)
+	{
+		if (needsScatter)
+		{
+			// RAE_TODO get rid of this recursion:
+			resultColor *= rayTrace(scattered, depth + 1);
+		}
+
+		return resultColor;
+	}
+
 	return sky(ray);
 }
 
@@ -324,14 +613,24 @@ vec3 RayTracer::sky(const Ray& ray)
 {
 	vec3 unitDirection = glm::normalize(ray.direction());
 	float t = 0.5f * (unitDirection.y + 1.0f);
-	//return (1.0f - t) * vec3(0.3f, 0.4f, 1.0f) + t * vec3(0.7f, 0.8f, 1.0f);
-	return (1.0f - t) * vec3(0.0f, 0.0f, 0.0f) + t * vec3(0.05f, 0.05f, 0.05f);
+	return (1.0f - t) * vec3(0.3f, 0.4f, 1.0f) + t * vec3(0.7f, 0.8f, 1.0f);
+	//return (1.0f - t) * vec3(0.0f, 0.0f, 0.0f) + t * vec3(0.05f, 0.05f, 0.05f);
 }
 
 //#define RENDER_ALL_AT_ONCE
 
 UpdateStatus RayTracer::update()
 {
+	if (m_sceneSystem.activeScene().transformSystem().hasAnyTransformChanged())
+	{
+		requestClear();
+	}
+
+	m_tree.iterate([](const Box& box)
+	{
+		g_debugSystem->drawLineBox(box, Colors::blue);
+	});
+
 	if (!m_isEnabled)
 		return UpdateStatus::Disabled;
 
@@ -598,4 +897,8 @@ void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)
 	nvgFill(vg);
 
 	nvgRestore(vg);
+}
+
+void RayTracer::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const
+{
 }

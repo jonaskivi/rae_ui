@@ -19,6 +19,9 @@ public:
 	void addMeshLink(Id id, Id linkId);
 	void addMaterialLink(Id id, Id linkId);
 
+	bool hasMeshLink(Id id) const { return m_meshLinks.check(id); }
+	const MeshLink& getMeshLink(Id id) const;
+
 	const Table<MeshLink>&		meshLinks()		const { return m_meshLinks; }
 	const Table<MaterialLink>&	materialLinks() const { return m_materialLinks; }
 

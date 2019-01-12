@@ -66,3 +66,11 @@ UpdateStatus SceneSystem::update()
 	//}
 	//return status;
 }
+
+void SceneSystem::onFrameEnd()
+{
+	if (!hasActiveScene())
+		return;
+
+	activeScene().onFrameEnd();
+}

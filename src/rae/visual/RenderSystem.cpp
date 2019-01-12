@@ -186,29 +186,29 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 		renderRayTracerOutput(window);
 	}
 
-	if (m_renderMode != RenderMode::MixedRayTraceRasterize &&
-		m_renderMode != RenderMode::Rasterize)
+	if (m_renderMode == RenderMode::MixedRayTraceRasterize ||
+		m_renderMode == RenderMode::Rasterize)
 	{
-		return;
+		m_basicShader.use();
+
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+
+		bool isWireframeMode = false;
+		if (!isWireframeMode)
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		else
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+
+		renderMeshes(scene);
+		// Optimally would like to also render outline for raytraced output, but currently it isn't possible.
+		// Maybe we could just raytrace it?
+		renderOutline(scene);
 	}
-
-	m_basicShader.use();
-
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-
-	bool isWireframeMode = false;
-	if (!isWireframeMode)
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-	else
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-
-	renderMeshes(scene);
-	renderOutline(scene);
 
 	scene.editorSystem().render3D(scene, window, renderSystem);
 }

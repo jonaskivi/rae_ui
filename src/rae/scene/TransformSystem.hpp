@@ -29,12 +29,19 @@ using Children = Array<Id>;
 using Owner = Id;
 using Owned = Array<Id>;
 
+struct Sphere
+{
+};
+
 class TransformSystem : public ISystem
 {
 public:
 	TransformSystem();
 
 	UpdateStatus update() override;
+	void onFrameEnd() override;
+
+	bool hasAnyTransformChanged() const;
 
 	//UpdateStatus updateSceneGraph();
 
@@ -84,6 +91,11 @@ public:
 	void addBox(Id id, Box&& box);
 	const Box& getBox(Id id) const;
 
+	const Table<Sphere>& spheres() const { return m_spheres; }
+	bool hasSphere(Id id) const;
+	void addSphere(Id id);
+	const Sphere& getSphere(Id id) const;
+
 	Box getAABBWorldSpace(Id id) const;
 
 private:
@@ -108,6 +120,8 @@ private:
 	Table<Pivot>		m_pivots;
 
 	Table<Box>			m_boxes;
+	// This is just an additional component to recognize spheres for RayTracer. They can also have a Box component.
+	Table<Sphere>		m_spheres;
 };
 
 }

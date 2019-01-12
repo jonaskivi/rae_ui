@@ -31,6 +31,7 @@ public:
 	bool isActive() const { return m_isActive; }
 
 	UpdateStatus update();
+	void onFrameEnd();
 
 	void handleInput(const InputState& inputState, const Array<InputEvent>& events);
 
@@ -40,7 +41,8 @@ public:
 	Id createAddObjectButton(AssetSystem& assetSystem);
 	Id createRandomBunnyEntity(AssetSystem& assetSystem);
 	Id createRandomCubeEntity(AssetSystem& assetSystem);
-	Id createCube(AssetSystem& assetSystem, const vec3& position, const Color& color);
+	Id createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, const Color& color);
+	Id createSphere(AssetSystem& assetSystem, const vec3& position, float radius, const Color& color);
 	Id createBunny(AssetSystem& assetSystem, const vec3& position, const Color& color);
 
 	void selectNextEntity();

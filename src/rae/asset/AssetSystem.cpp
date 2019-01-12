@@ -41,6 +41,7 @@ void AssetSystem::createTestAssets()
 	LOG_F(INFO, "Creating test assets.");
 
 	m_cubeMeshId = createCubeMesh();
+	m_sphereMeshId = createSphereMesh();
 	m_testMaterialId = createMaterial(Color(0.2f, 0.5f, 0.7f, 0.0f));
 	m_animatingMaterialId = createAnimatingMaterial(Color(0.0f, 0.0f, 0.1f, 0.0f));
 

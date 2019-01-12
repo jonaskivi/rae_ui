@@ -51,10 +51,11 @@ public:
 		m_items.reserve(reserveSize);
 	}
 
-	int size() const
-	{
-		return (int)m_items.size();
-	}
+	// Hmm, get rid of one of these...
+	int size() const { return (int)m_items.size(); }
+	int count() const { return (int)m_items.size(); }
+
+	bool empty() const { return (int)m_items.size() <= 0; }
 
 	void assign(Id id, Comp&& comp)
 	{
@@ -191,8 +192,6 @@ public:
 		});
 		return result;
 	}
-
-	int count() const { return m_items.size(); }
 
 	// Check for existance of the component for the given Id
 	bool check(Id id) const

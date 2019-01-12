@@ -49,6 +49,18 @@ UpdateStatus TransformSystem::update()
 	return UpdateStatus::NotChanged;
 }
 
+void TransformSystem::onFrameEnd()
+{
+	ISystem::onFrameEnd();
+
+	m_transformChanged.clear();
+}
+
+bool TransformSystem::hasAnyTransformChanged() const
+{
+	return not m_transformChanged.empty();
+}
+
 void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> process)
 {
 	process(parentId);
@@ -232,6 +244,21 @@ void TransformSystem::addBox(Id id, Box&& box)
 const Box& TransformSystem::getBox(Id id) const
 {
 	return m_boxes.get(id);
+}
+
+bool TransformSystem::hasSphere(Id id) const
+{
+	return m_spheres.check(id);
+}
+
+void TransformSystem::addSphere(Id id)
+{
+	m_spheres.assign(id, std::move(Sphere()));
+}
+
+const Sphere& TransformSystem::getSphere(Id id) const
+{
+	return m_spheres.get(id);
 }
 
 Box TransformSystem::getAABBWorldSpace(Id id) const

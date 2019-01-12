@@ -422,6 +422,8 @@ EditorSystem::EditorSystem(
 
 UpdateStatus EditorSystem::update(Scene& scene)
 {
+	// It is actually strange that this selection rendering is in update. But we'll have to fix this later, probably
+	// when debugSystem becomes aware of the scenes and viewports.
 	auto& selectionSystem = scene.selectionSystem();
 	if (selectionSystem.isSelection())
 	{

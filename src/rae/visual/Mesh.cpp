@@ -211,9 +211,12 @@ bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirectio
 	return true;
 }
 
-bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
+bool Mesh::hit(const vec3& position, const Ray& ray, float t_min, float t_max, HitRecord& record) const
 {
-	if (m_aabb.hit(ray, t_min, t_max) == false)
+	Ray rayInLocalPosition = ray;
+	rayInLocalPosition.moveOrigin(-position);
+
+	if (m_aabb.hit(rayInLocalPosition, t_min, t_max) == false)
 		return false;
 
 	vec3 v0, v1, v2;
@@ -226,9 +229,11 @@ bool Mesh::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) cons
 	{
 		getTriangle(i, v0, v1, v2);
 
-		if (rayTriangleIntersection(ray.origin(), ray.direction(), v0, v1, v2, hitDistance, u, v)
-			&& hitDistance < t_max
-			&& hitDistance > t_min)
+		if (rayTriangleIntersection(
+			rayInLocalPosition.origin(),
+			rayInLocalPosition.direction(), v0, v1, v2, hitDistance, u, v)
+				&& hitDistance < t_max
+				&& hitDistance > t_min)
 		{
 			isHit = true;
 			record.t = hitDistance;

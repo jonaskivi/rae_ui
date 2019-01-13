@@ -93,7 +93,7 @@ RayTracer::RayTracer(
 	//createSceneOne(m_world);
 	//createSceneFromBook(m_world);
 
-	// RAE_TODO
+	// RAE_TODO these currently attach only to the activeScene, which means scene2 is not getting these callbacks.
 	using std::placeholders::_1;
 	sceneSystem.activeScene().cameraSystem().connectCameraUpdatedEventHandler(
 		std::bind(&RayTracer::onCameraChanged, this, _1));
@@ -389,14 +389,13 @@ void RayTracer::autoFocus()
 
 			Material* defaultMaterial = nullptr;
 
-			Ray rayInLocalSpace = ray;
-			rayInLocalSpace.moveOrigin(-transform.position);
-
 			// This is pretty random. So we check if it's a Sphere or a Mesh... and do hit testing on those... yeah. Need to refactor.
 			if ((transformSystem.hasSphere(id)
-				&& sphereHitFunc(transform.position, box.radius(), defaultMaterial, ray, 0.001f, closestSoFar, record))
+				&& sphereHitFunc(transform.position, box.radius() * transform.scale.x, defaultMaterial, ray, 0.001f, closestSoFar, record))
 				||
-				(not transformSystem.hasSphere(id) && assetLinkSystem.hasMeshLink(id) && m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(rayInLocalSpace, 0.001f, closestSoFar, record)))
+				(not transformSystem.hasSphere(id) &&
+				assetLinkSystem.hasMeshLink(id) &&
+				m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
 			{
 				closestSoFar = record.t;
 				finalRecord = record;
@@ -531,14 +530,13 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 
 		Material* defaultMaterial = tempMaterials[int(id) % int(tempMaterials.size())];
 
-		Ray rayInLocalSpace = ray;
-		rayInLocalSpace.moveOrigin(-transform.position);
-
 		// This is pretty random. So we check if it's a Sphere or a Mesh... and do hit testing on those... yeah. Need to refactor.
 		if ((transformSystem.hasSphere(id)
 			&& sphereHitFunc(transform.position, box.radius() * transform.scale.x, defaultMaterial, ray, 0.001f, closestSoFar, record))
 			||
-			(not transformSystem.hasSphere(id) && assetLinkSystem.hasMeshLink(id) && m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(rayInLocalSpace, 0.001f, closestSoFar, record)))
+			(not transformSystem.hasSphere(id) &&
+			assetLinkSystem.hasMeshLink(id) &&
+			m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
 		{
 			bool hitLine = false;
 

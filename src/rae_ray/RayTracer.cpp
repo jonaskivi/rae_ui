@@ -79,6 +79,8 @@ RayTracer::RayTracer(
 		m_sceneSystem(sceneSystem),
 		m_renderThread(&RayTracer::updateRenderThread, this)
 {
+	setIsEnabled(false);
+
 	m_smallBuffer.init(300, 150);
 	m_bigBuffer.init(1920, 1080);
 	m_buffer = &m_smallBuffer;
@@ -92,14 +94,6 @@ RayTracer::RayTracer(
 
 	//createSceneOne(m_world);
 	//createSceneFromBook(m_world);
-
-	// RAE_TODO these currently attach only to the activeScene, which means scene2 is not getting these callbacks.
-	using std::placeholders::_1;
-	sceneSystem.activeScene().cameraSystem().connectCameraUpdatedEventHandler(
-		std::bind(&RayTracer::onCameraChanged, this, _1));
-
-	sceneSystem.activeScene().selectionSystem().onSelectionChanged.connect(
-		std::bind(&RayTracer::onSelectionChanged, this, _1));
 }
 
 RayTracer::~RayTracer()
@@ -288,21 +282,6 @@ void RayTracer::clearScene()
 	m_world.clear();
 	m_sceneSystem.activeScene().cameraSystem().setNeedsUpdate();
 	clear();
-}
-
-void RayTracer::onCameraChanged(const Camera& camera)
-{
-	if (camera.shouldWeAutoFocus())
-		autoFocus();
-
-	requestClear();
-}
-
-void RayTracer::onSelectionChanged(SelectionSystem& selectionSystem)
-{
-	//Ugh: if (camera.shouldWeAutoFocus())
-		autoFocus();
-	requestClear();
 }
 
 void RayTracer::requestClear()
@@ -516,6 +495,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 	vec3 resultColor = vec3(0,0,0);
 	bool hit = false;
 	bool needsScatter = false;
+	bool hitLine = false;
 	Ray scattered;
 
 	float closestSoFar = rayMaxLength();
@@ -538,7 +518,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 			assetLinkSystem.hasMeshLink(id) &&
 			m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
 		{
-			bool hitLine = false;
+			bool hitLineLocal = false;
 
 			closestSoFar = record.t;
 			finalRecord = record;
@@ -554,17 +534,20 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 				if (Utils::isEqual(camera.focusDistance(), hitDistance, 0.01f) == true)
 				{
 					hitLine = true;
+					hitLineLocal = true;
 					resultColor = vec3(0,1,1); // cyan line
 				}
 			}
 
-			if (not hitLine)
+			if (not hitLineLocal)
 			{
 				// Normal raytracing
 				if (isFastMode() == false)
 				{
 					vec3 attenuation;
 					vec3 emitted = record.material->emitted(record.point);
+
+					hitLine = false;
 
 					if (depth < m_bouncesLimit && record.material->scatter(ray, record, attenuation, scattered))
 					{
@@ -595,7 +578,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 
 	if (hit)
 	{
-		if (needsScatter)
+		if (needsScatter && not hitLine)
 		{
 			// RAE_TODO get rid of this recursion:
 			resultColor *= rayTrace(scattered, depth + 1);
@@ -619,8 +602,11 @@ vec3 RayTracer::sky(const Ray& ray)
 
 UpdateStatus RayTracer::update()
 {
-	if (m_sceneSystem.activeScene().transformSystem().hasAnyTransformChanged())
+	if (m_sceneSystem.activeScene().transformSystem().hasAnyTransformChanged() ||
+		m_sceneSystem.activeScene().cameraSystem().hasCameraUpdated() ||
+		m_sceneSystem.activeScene().selectionSystem().hasSelectionChanged())
 	{
+		autoFocus();
 		requestClear();
 	}
 

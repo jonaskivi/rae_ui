@@ -24,6 +24,8 @@ public:
 
 	UpdateStatus update() override;
 
+	void onFrameEnd() override;
+
 	void onMouseEvent(const InputState& inputState);
 	void onKeyEvent(const Input& input);
 
@@ -40,6 +42,8 @@ public:
 
 	void connectCameraUpdatedEventHandler(std::function<void(const Camera&)> handler);
 
+	bool hasCameraUpdated() const { return m_cameraUpdated; }
+
 private:
 	const Time& m_time;
 	EntitySystem& m_entitySystem;
@@ -51,6 +55,7 @@ private:
 
 	void emitCameraUpdatedEvent();
 	std::vector<std::function<void(const Camera&)>> cameraUpdatedEvent;
+	bool m_cameraUpdated = false;
 };
 
 }

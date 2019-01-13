@@ -39,6 +39,7 @@ public:
 	void clearHovers();
 
 	Event<SelectionSystem&> onSelectionChanged;
+	bool hasSelectionChanged() const;
 
 	// The average position of all selected entities
 	vec3 selectionPosition() const;

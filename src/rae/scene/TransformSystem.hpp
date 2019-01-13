@@ -39,11 +39,8 @@ public:
 	TransformSystem();
 
 	UpdateStatus update() override;
-	void onFrameEnd() override;
 
 	bool hasAnyTransformChanged() const;
-
-	//UpdateStatus updateSceneGraph();
 
 	void processHierarchy(Id parentId, std::function<void(Id)> process);
 
@@ -103,10 +100,8 @@ private:
 	Transform& getTransformPrivate(Id id);
 
 	Table<Transform>	m_localTransforms;
-	Table<Changed>		m_localTransformChanged;
 
 	Table<Transform>	m_transforms;
-	Table<Changed>		m_transformChanged;
 
 	Table<Parent>		m_parents;
 	Table<Changed>		m_parentChanged;

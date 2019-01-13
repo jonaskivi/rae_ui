@@ -8,9 +8,7 @@ static const int ReserveBoxes = 1000;
 TransformSystem::TransformSystem() :
 	ISystem("TransformSystem"),
 	m_localTransforms(ReserveTransforms),
-	m_localTransformChanged(ReserveTransforms),
 	m_transforms(ReserveTransforms),
-	m_transformChanged(ReserveTransforms),
 	m_boxes(ReserveBoxes)
 {
 	addTable(m_localTransforms);
@@ -49,16 +47,9 @@ UpdateStatus TransformSystem::update()
 	return UpdateStatus::NotChanged;
 }
 
-void TransformSystem::onFrameEnd()
-{
-	ISystem::onFrameEnd();
-
-	m_transformChanged.clear();
-}
-
 bool TransformSystem::hasAnyTransformChanged() const
 {
-	return not m_transformChanged.empty();
+	return m_transforms.isAnyUpdated();
 }
 
 void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> process)
@@ -77,10 +68,8 @@ void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> proc
 void TransformSystem::addTransform(Id id, Transform&& transform)
 {
 	Transform localTransform = transform;
-	//m_localTransforms.assign(id, Transform());
 	m_localTransforms.assign(id, std::move(localTransform));
 	m_transforms.assign(id, std::move(transform));
-	//m_transformChanged.assign(id, Changed());
 }
 
 bool TransformSystem::hasTransform(Id id) const
@@ -100,8 +89,8 @@ Transform& TransformSystem::getTransformPrivate(Id id)
 
 void TransformSystem::setPosition(Id id, const vec3& position)
 {
-	m_transforms.get(id).position = position;
-	m_transformChanged.assign(id, Changed());
+	m_transforms.assign(id, position);
+	// Should measure if this is faster than assign or not: m_transforms.get(id).position = position;
 }
 
 const vec3& TransformSystem::getPosition(Id id)
@@ -113,7 +102,7 @@ void TransformSystem::translate(Id id, vec3 delta)
 {
 	// Note: doesn't check if Id exists. Will crash/cause stuff if used unwisely.
 	m_transforms.getF(id).position += delta;
-	m_transformChanged.assign(id, Changed());
+	m_transforms.setUpdatedF(id);
 }
 
 void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
@@ -144,7 +133,7 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 	for (auto&& id : topLevelIds)
 	{
 		m_transforms.getF(id).position += delta;
-		m_transformChanged.assign(id, Changed());
+		m_transforms.setUpdatedF(id);
 
 		if (hasChildren(id))
 		{

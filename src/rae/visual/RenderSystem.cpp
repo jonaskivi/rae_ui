@@ -476,7 +476,9 @@ void RenderSystem::renderMeshOutline(
 	m_outlineShader.use();
 
 	const float t_outlineMultiplier = 0.005f;
-	float screenSizeFactor = camera.screenSizeFactor(transform.position) * t_outlineMultiplier;
+	float screenSizeFactor = camera.screenSizeFactor(transform.position)
+		* t_outlineMultiplier
+		* (1.0f / transform.scale.x); // Compensate for the effect of transform scale.
 
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);

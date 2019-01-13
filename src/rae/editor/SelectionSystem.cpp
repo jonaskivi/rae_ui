@@ -158,6 +158,11 @@ void SelectionSystem::clearHovers()
 	m_hovers.clear();
 }
 
+bool SelectionSystem::hasSelectionChanged() const
+{
+	return m_selected.isAnyUpdated();
+}
+
 vec3 SelectionSystem::selectionPosition() const
 {
 	vec3 pos;

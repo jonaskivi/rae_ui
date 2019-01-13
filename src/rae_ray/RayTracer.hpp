@@ -106,9 +106,6 @@ public:
 	void plusBounces(int delta = 1);
 	void minusBounces(int delta = 1);
 
-	void onCameraChanged(const Camera& camera);
-	void onSelectionChanged(SelectionSystem& selectionSystem);
-
 protected:
 
 	bool m_isInfoText = true;

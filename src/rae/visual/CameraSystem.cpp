@@ -120,6 +120,8 @@ void CameraSystem::emitCameraUpdatedEvent()
 	{
 		handler(camera);
 	}
+
+	m_cameraUpdated = true;
 }
 
 UpdateStatus CameraSystem::update()
@@ -164,7 +166,7 @@ UpdateStatus CameraSystem::update()
 
 	UpdateStatus cameraUpdated = UpdateStatus::NotChanged;
 
-	if (m_input.getKeyPressed(KeySym::F))
+	if (m_input.getKeyPressed(KeySym::U))
 	{
 		camera.toggleContinuousAutoFocus();
 		cameraUpdated = UpdateStatus::Changed;
@@ -183,4 +185,11 @@ UpdateStatus CameraSystem::update()
 	g_debugSystem->showDebugText("Camera position: " + Utils::toString(camera.position()), Colors::magenta);
 
 	return cameraUpdated;
+}
+
+void CameraSystem::onFrameEnd()
+{
+	ISystem::onFrameEnd();
+
+	m_cameraUpdated = false;
 }

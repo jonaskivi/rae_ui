@@ -317,9 +317,9 @@ void Pihlaja::updateDebugTexts()
 
 	g_debugSystem->showDebugText("");
 	g_debugSystem->showDebugText("Scene: " + scene.name());
-	g_debugSystem->showDebugText("Esc to quit, R reset, F autofocus, H visualize focus, ", Colors::white);
+	g_debugSystem->showDebugText("Esc to quit, Raytracer mode: U autofocus, H visualize focus, ", Colors::white);
 	g_debugSystem->showDebugText("VB focus distance, NM aperture, KL bounces, ", Colors::white);
-	g_debugSystem->showDebugText("G debug view, Tab UI, U fastmode", Colors::white);
+	g_debugSystem->showDebugText("G debug view, Tab UI", Colors::white);
 	g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows", Colors::white);
 	g_debugSystem->showDebugText("Y toggle resolution", Colors::white);
 	g_debugSystem->showDebugText("");

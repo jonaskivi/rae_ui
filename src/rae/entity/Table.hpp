@@ -62,7 +62,7 @@ public:
 		if (check(id))
 		{
 			m_items[m_idMap[id]] = std::move(comp);
-			m_updated[m_idMap[id]] = true;
+			setUpdatedF(id);
 
 			//LOG_F(INFO, "Table: Entity already exists, replacing: %i", id);
 			return;
@@ -85,7 +85,9 @@ public:
 			m_freeItems.pop_back();
 			m_idMap[id] = freeIndex;
 			m_items[freeIndex] = std::move(comp);
+			// setUpdated free index:
 			m_updated[freeIndex] = true;
+			m_anyUpdated = true;
 
 			//LOG_F(INFO, "Table: Re-used existing entity: id: %i at freeindex: %i", id, freeIndex);
 			return;
@@ -95,7 +97,9 @@ public:
 		m_idMap[index] = (int)m_items.size();
 
 		m_items.emplace_back(std::move(comp));
+		// setUpdated new entity
 		m_updated.emplace_back(true);
+		m_anyUpdated = true;
 
 		//LOG_F(INFO, "Table: Created a completely new object: %i idMap.size: %i", id, (int)m_idMap.size());
 	}
@@ -106,6 +110,7 @@ public:
 		m_idMap.clear();
 		m_freeItems.clear();
 		m_updated.clear(); // It is a bit wrong to clear the updated here, but we can't do anything else either.
+		m_anyUpdated = true; // And this might be unexpected or not.
 	}
 
 	void remove(Id id)
@@ -237,6 +242,7 @@ public:
 	void onFrameEnd() override
 	{
 		clearUpdated();
+		m_anyUpdated = false;
 	}
 
 	// The updated flags should be cleared at the end of each frame
@@ -246,6 +252,11 @@ public:
 		{
 			value = false;
 		}
+	}
+
+	bool isAnyUpdated() const
+	{
+		return m_anyUpdated;
 	}
 
 	bool isUpdated(Id id) const
@@ -260,6 +271,21 @@ public:
 		return m_updated[m_idMap[id]];
 	}
 
+	void setUpdated(Id id)
+	{
+		if (check(id))
+		{
+			m_updated[m_idMap[id]] = true;
+			m_anyUpdated = true;
+		}
+	}
+
+	void setUpdatedF(Id id)
+	{
+		m_updated[m_idMap[id]] = true;
+		m_anyUpdated = true;
+	}
+
 	friend void query<Comp>(Table<Comp>& table, std::function<void(Id, Comp&)> process);
 	friend void query<Comp>(Table<Comp>& table, std::function<void(Id)> process);
 	friend void query<Comp>(const Table<Comp>& table, std::function<void(Id, const Comp&)> process);
@@ -272,6 +298,7 @@ protected:
 	Array<int> m_idMap; // Size is the required size of Ids, so it will contain all the Ids in the World.
 	Array<int> m_freeItems;
 
+	bool m_anyUpdated = false;
 	Array<bool_t> m_updated; // Size is the same as m_items, so only required number of components.
 };
 

@@ -3,6 +3,8 @@
 #include "rae/core/Types.hpp"
 #include "rae/scene/Transform.hpp"
 
+#include <algorithm>
+
 namespace rae
 {
 

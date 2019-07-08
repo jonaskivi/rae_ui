@@ -561,6 +561,8 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 
 	Id topMostId = InvalidId;
 
+	float closestDistance = FLT_MAX;
+
 	query<Box>(scene.transformSystem().boxes(), [&](Id id, const Box& box)
 	{
 		if (scene.transformSystem().hasTransform(id))
@@ -576,7 +578,14 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 			{
 				//LOG_F(INFO, "hit box id: %i", (int)id);
 
-				topMostId = id;
+				float distance =
+					glm::length(transform.position - mouseRay.origin());
+
+				if (distance < closestDistance)
+				{
+					closestDistance = distance;
+					topMostId = id;
+				}
 			}
 		}
 	});

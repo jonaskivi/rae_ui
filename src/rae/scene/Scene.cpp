@@ -63,14 +63,14 @@ void Scene::createTestWorld(AssetSystem& assetSystem)
 {
 	LOG_F(INFO, "Creating test world to scene: %s", m_name.c_str());
 
-	auto sphere0 = createSphere(assetSystem, glm::vec3(0.0f, 0.0f, -100.5f), 100.0f, glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
+	auto sphere0 = createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, Color(0.8f, 0.3f, 0.3f, 0.0f));
 
-	auto sphere1 = createSphere(assetSystem, glm::vec3(0.0f, 2.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
-	auto cube2 = createCube(assetSystem, glm::vec3(0.0f, 3.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
-	auto sphere3 = createSphere(assetSystem, glm::vec3(0.0f, 4.25f, 0.0f), 0.5f, glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
-	auto sphere4 = createSphere(assetSystem, glm::vec3(5.15f, 6.0f, 1.0f), 1.0f, glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+	auto sphere1 = createSphere(assetSystem, vec3(0.0f, 2.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
+	auto cube2   = createCube(assetSystem,   vec3(0.0f, 3.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), Color(0.8f, 0.4f, 0.8f, 0.0f));
+	auto sphere3 = createSphere(assetSystem, vec3(0.0f, 4.25f, 0.0f), 0.5f, Color(0.8f, 0.5f, 0.3f, 0.0f));
+	auto sphere4 = createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, Color(0.05f, 0.2f, 0.8f, 0.0f));
 
-	auto bunny1 = createBunny(assetSystem, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+	auto bunny1 = createBunny(assetSystem, vec3(0.0f, 0.0f, 0.0f), Color(0.05f, 0.2f, 0.8f, 0.0f));
 
 	m_transformSystem.addChild(bunny1, sphere1);
 	m_transformSystem.addChild(bunny1, cube2);
@@ -83,13 +83,13 @@ void Scene::createTestWorld2(AssetSystem& assetSystem)
 
 	//createAddObjectButton(); // at index 1
 
-	auto sphere0 = createSphere(assetSystem, glm::vec3(0.0f, 0.0f, -100.5f), 100.0f, glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
+	auto sphere0 = createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
 
-	auto sphere5 = createSphere(assetSystem, glm::vec3(0.0f, 1.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
-	auto sphere1 = createSphere(assetSystem, glm::vec3(0.0f, 2.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.6f, 0.2f, 0.0f));
-	auto cube2   = createCube  (assetSystem, glm::vec3(0.0f, 1.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), glm::vec4(0.8f, 0.4f, 0.8f, 0.0f));
-	auto sphere3 = createSphere(assetSystem, glm::vec3(-1.0f, 2.0f, 0.0f), 0.5f, glm::vec4(0.8f, 0.5f, 0.3f, 0.0f));
-	auto sphere4 = createSphere(assetSystem, glm::vec3(5.15f, 6.0f, 1.0f), 1.0f, glm::vec4(0.05f, 0.2f, 0.8f, 0.0f));
+	auto sphere5 = createSphere(assetSystem, vec3(0.0f, 1.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
+	auto sphere1 = createSphere(assetSystem, vec3(0.0f, 2.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
+	auto cube2   = createCube  (assetSystem, vec3(0.0f, 1.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), Color(0.8f, 0.4f, 0.8f, 0.0f));
+	auto sphere3 = createSphere(assetSystem, vec3(-1.0f, 2.0f, 0.0f), 0.5f, Color(0.8f, 0.5f, 0.3f, 0.0f));
+	auto sphere4 = createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, Color(0.05f, 0.2f, 0.8f, 0.0f));
 
 	m_transformSystem.addChild(sphere1, cube2);
 	m_transformSystem.addChild(sphere1, sphere3);

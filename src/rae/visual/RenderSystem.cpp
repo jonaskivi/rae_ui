@@ -233,9 +233,6 @@ void RenderSystem::renderMeshes(const Scene& scene)
 	auto& assetLinkSystem = scene.assetLinkSystem();
 
 	glDisable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF); // All fragments should update the stencil buffer.
-	glStencilMask(0x00);
 
 	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
 	{
@@ -271,7 +268,7 @@ void RenderSystem::renderMeshes(const Scene& scene)
 	});
 
 	glEnable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF); // All fragments should update the stencil buffer.
 	glStencilMask(0xFF); // Enable writing to the stencil buffer.
 
@@ -289,9 +286,6 @@ void RenderSystem::renderMeshes(const Scene& scene)
 		{
 			const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
 			const Transform& transform = transformSystem.getTransform(id);
-
-			bool selected = true;
-			bool hovered = selectionSystem.isHovered(id);
 
 			renderMesh(camera, transform, *material, mesh);
 		}
@@ -316,9 +310,6 @@ void RenderSystem::renderMeshes(const Scene& scene)
 			{
 				const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
 				const Transform& transform = transformSystem.getTransform(id);
-
-				bool selected = true;
-				bool hovered = selectionSystem.isHovered(id);
 
 				renderMesh(camera, transform, *material, mesh);
 			}

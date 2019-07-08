@@ -91,10 +91,13 @@ void Mesh::createVBOs(GLenum usage)
 	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferId);
 	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], usage);
 
-	if (!m_normalsForOutline.empty() && m_outlineNormalBufferId == 0)
-		glGenBuffers(1, &m_outlineNormalBufferId);
-	glBindBuffer(GL_ARRAY_BUFFER, m_outlineNormalBufferId);
-	glBufferData(GL_ARRAY_BUFFER, m_normalsForOutline.size() * sizeof(glm::vec3), &m_normalsForOutline[0], usage);
+	if (!m_normalsForOutline.empty())
+	{
+		if (m_outlineNormalBufferId == 0)
+			glGenBuffers(1, &m_outlineNormalBufferId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_outlineNormalBufferId);
+		glBufferData(GL_ARRAY_BUFFER, m_normalsForOutline.size() * sizeof(glm::vec3), &m_normalsForOutline[0], usage);
+	}
 
 	if (m_indexBufferId == 0)
 		glGenBuffers(1, &m_indexBufferId);

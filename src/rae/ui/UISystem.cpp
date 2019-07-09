@@ -48,8 +48,8 @@ UISystem::~UISystem()
 UIScene& UISystem::createUIScene(const String& name)
 {
 	LOG_F(INFO, "Creating UIScene: %s", name.c_str());
-	m_uiScenes.emplace_back(name, m_time, m_input, m_screenSystem, m_debugSystem);
-	return m_uiScenes.back();
+	m_uiScenes.emplace_back(std::make_unique<UIScene>(name, m_time, m_input, m_screenSystem, m_debugSystem));
+	return *m_uiScenes.back();
 }
 
 void UISystem::connectWindowToScene(Window& window, UIScene& uiScene)
@@ -63,7 +63,7 @@ UpdateStatus UISystem::update()
 	UpdateStatus status = UpdateStatus::NotChanged;
 	for (auto&& uiScene : m_uiScenes)
 	{
-		auto sceneStatus = uiScene.update();
+		auto sceneStatus = uiScene->update();
 		if (sceneStatus != UpdateStatus::NotChanged)
 		{
 			status = sceneStatus;

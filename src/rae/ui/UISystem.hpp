@@ -48,8 +48,8 @@ public:
 	const UIScene& defaultScene() const { return scene(0); }
 	UIScene& defaultScene() { return scene(0); }
 
-	const UIScene& scene(int index) const { return m_uiScenes[index]; }
-	UIScene& scene(int index) { return m_uiScenes[index]; }
+	const UIScene& scene(int index) const { return *m_uiScenes[index]; }
+	UIScene& scene(int index) { return *m_uiScenes[index]; }
 	int sceneCount() const { return (int)m_uiScenes.size(); }
 
 	// Returns -1 if the scene was not found.
@@ -58,7 +58,7 @@ public:
 		int i = 0;
 		for (auto&& scene : m_uiScenes)
 		{
-			if (&findScene == &scene)
+			if (&findScene == scene.get())
 			{
 				return i;
 			}
@@ -80,8 +80,7 @@ private:
 	AssetSystem&		m_assetSystem;
 	DebugSystem&		m_debugSystem;
 
-	//RAE_TODO RENAME TO m_scenes
-	Array<UIScene>		m_uiScenes;
+	Array<UniquePtr<UIScene>>		m_uiScenes;
 };
 
 extern UISystem* g_ui;

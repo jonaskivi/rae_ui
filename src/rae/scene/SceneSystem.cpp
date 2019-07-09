@@ -15,8 +15,6 @@ SceneSystem::SceneSystem(
 {
 	LOG_F(INFO, "Init %s", name().c_str());
 
-	m_scenes.reserve(4);
-
 	// We must always have a scene
 	createScene("Default");
 	activateScene(0);
@@ -25,8 +23,8 @@ SceneSystem::SceneSystem(
 Scene& SceneSystem::createScene(const String& name)
 {
 	LOG_F(INFO, "Creating Scene: %s", name.c_str());
-	m_scenes.emplace_back(name, m_time, m_input);
-	return m_scenes.back();
+	m_scenes.emplace_back(std::make_unique<Scene>(name, m_time, m_input));
+	return *m_scenes.back();
 }
 
 void SceneSystem::activateScene(int index)
@@ -47,7 +45,7 @@ void SceneSystem::deactivateAllScenes()
 {
 	for (auto&& scene : m_scenes)
 	{
-		scene.setIsActive(false);
+		scene->setIsActive(false);
 	}
 }
 

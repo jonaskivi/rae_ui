@@ -29,8 +29,8 @@ public:
 		return false;
 	}
 
-	const Scene& activeScene() const { return m_scenes[m_activeSceneIdx]; }
-	Scene& activeScene() { return m_scenes[m_activeSceneIdx]; }
+	const Scene& activeScene() const { return *m_scenes[m_activeSceneIdx]; }
+	Scene& activeScene() { return *m_scenes[m_activeSceneIdx]; }
 
 	bool hasScene(int index) const
 	{
@@ -42,8 +42,8 @@ public:
 	const Scene& defaultScene() const { return scene(0); }
 	Scene& defaultScene() { return scene(0); }
 
-	const Scene& scene(int index) const { return m_scenes[index]; }
-	Scene& scene(int index) { return m_scenes[index]; }
+	const Scene& scene(int index) const { return *m_scenes[index]; }
+	Scene& scene(int index) { return *m_scenes[index]; }
 
 	// Returns -1 if the scene was not found.
 	int getSceneIndex(const Scene& findScene)
@@ -51,7 +51,7 @@ public:
 		int i = 0;
 		for (auto&& scene : m_scenes)
 		{
-			if (&findScene == &scene)
+			if (&findScene == scene.get())
 			{
 				return i;
 			}
@@ -68,8 +68,8 @@ private:
 	const Time&			m_time;
 	Input&				m_input;
 
-	Array<Scene>		m_scenes;
-	int					m_activeSceneIdx = 0;
+	Array<UniquePtr<Scene>>	m_scenes;
+	int						m_activeSceneIdx = 0;
 };
 
 }

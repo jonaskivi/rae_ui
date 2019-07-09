@@ -244,10 +244,13 @@ void Pihlaja::reactToInput(const Input& input)
 	}
 	*/
 
+	/*
 	if (input.getKeyState(KeySym::P))
 	{
+		// This will crash in many cases, because reallocating tables doesn't work correctly.
 		m_engine.defragmentTablesAsync(); //RAE_TODO SceneSystem!
 	}
+	*/
 
 	// TODO use KeySym::Page_Up
 	if (input.getKeyState(KeySym::K)) { m_engine.rayTracer().minusBounces(); }
@@ -289,7 +292,7 @@ void Pihlaja::onKeyEvent(const Input& input)
 				break;
 				*/
 			//RAE_OLD case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
-			//RAE_OLD case KeySym::U: m_rayTracer.toggleFastMode(); break;
+			case KeySym::P: m_engine.rayTracer().toggleFastMode(); break;
 			//RAE_OLD case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;
 			//RAE_OLD case KeySym::_1: m_rayTracer.showScene(1); break;
 			//RAE_OLD case KeySym::_2: m_rayTracer.showScene(2); break;

@@ -67,6 +67,7 @@ struct bool_t
 template < class T, class Allocator = std::allocator<T> >
 using Array = std::vector<T, Allocator>;
 using String = std::string;
+template<class T> using UniquePtr = std::unique_ptr<T>;
 
 template<
 	class Key,

@@ -1,5 +1,7 @@
 #include "rae/scene/SceneSystem.hpp"
 
+#include <memory>
+
 #include "rae/core/Time.hpp"
 #include "rae/asset/AssetSystem.hpp"
 #include "rae/ui/DebugSystem.hpp"

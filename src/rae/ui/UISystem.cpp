@@ -1,5 +1,7 @@
 #include "rae/ui/UISystem.hpp"
 
+#include <memory>
+
 #include "nanovg.h"
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"

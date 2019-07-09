@@ -11,6 +11,8 @@
 
 #include "rae/core/Types.hpp"
 
+#include "rae/core/make_unique.hpp"
+
 namespace rae
 {
 

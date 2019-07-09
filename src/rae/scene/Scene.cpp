@@ -70,11 +70,11 @@ void Scene::createTestWorld(AssetSystem& assetSystem)
 	auto sphere3 = createSphere(assetSystem, vec3(0.0f, 4.25f, 0.0f), 0.5f, Color(0.8f, 0.5f, 0.3f, 0.0f));
 	auto sphere4 = createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, Color(0.05f, 0.2f, 0.8f, 0.0f));
 
-	auto bunny1 = createBunny(assetSystem, vec3(0.0f, 0.0f, 0.0f), Color(0.05f, 0.2f, 0.8f, 0.0f));
+	m_transformSystem.addChild(sphere4, sphere1);
+	m_transformSystem.addChild(sphere4, cube2);
+	m_transformSystem.addChild(sphere4, sphere3);
 
-	m_transformSystem.addChild(bunny1, sphere1);
-	m_transformSystem.addChild(bunny1, cube2);
-	m_transformSystem.addChild(bunny1, sphere3);
+	auto bunny1 = createBunny(assetSystem, vec3(0.0f, 0.0f, 0.0f), Color(0.05f, 0.2f, 0.8f, 0.0f));
 }
 
 void Scene::createTestWorld2(AssetSystem& assetSystem)

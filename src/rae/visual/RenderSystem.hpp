@@ -73,6 +73,7 @@ public:
 
 	void renderMeshes(const Scene& scene);
 	void renderOutline(const Scene& scene);
+	void renderNormals(const Scene& scene);
 
 	void renderPicking(const Window& window);
 	void render2dBackground(const Window& window);
@@ -105,6 +106,12 @@ public:
 		const Color& color,
 		const Mesh& mesh);
 
+	void renderMeshNormals(
+		const Camera& camera,
+		const Transform& transform,
+		const Color& color,
+		const Mesh& mesh);
+
 	void renderMeshPicking(
 		const Camera& camera,
 		const Transform& transform,
@@ -117,6 +124,8 @@ public:
 	{
 		return m_renderMode = (RenderMode) Utils::wrapEnum(((int)m_renderMode) + 1, (int)RenderMode::Count);
 	}
+
+	bool toggleRenderNormals() { return m_renderNormals = !m_renderNormals; }
 
 	const String& fpsString() const { return m_fpsString; }
 
@@ -144,6 +153,7 @@ protected:
 	String	m_fpsString = "fps:";
 
 	RenderMode	m_renderMode = RenderMode::Rasterize;
+	bool m_renderNormals = false;
 
 	ImageBuffer<uint8_t> m_backgroundImage;
 };

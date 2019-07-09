@@ -208,6 +208,11 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 		// Optimally would like to also render outline for raytraced output, but currently it isn't possible.
 		// Maybe we could just raytrace it?
 		renderOutline(scene);
+
+		if (m_renderNormals)
+		{
+			renderNormals(scene);
+		}
 	}
 
 	scene.editorSystem().render3D(scene, window, renderSystem);
@@ -363,6 +368,34 @@ void RenderSystem::renderOutline(const Scene& scene)
 	glEnable(GL_DEPTH_TEST);
 }
 
+void RenderSystem::renderNormals(const Scene& scene)
+{
+	const Camera& camera = scene.cameraSystem().currentCamera();
+	auto& transformSystem = scene.transformSystem();
+	auto& selectionSystem = scene.selectionSystem();
+	auto& assetLinkSystem = scene.assetLinkSystem();
+
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+
+	const auto normalColor = Utils::createColor8bit(255, 0, 255);
+
+	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
+	{
+		bool selected = selectionSystem.isPartOfSelection(id);
+		if (selected && transformSystem.hasTransform(id))
+		{
+			const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
+			Transform transform = transformSystem.getTransform(id);
+			//transform.scale = transform.scale * 1.2f;
+
+			renderMeshNormals(camera, transform, normalColor, mesh);
+		}
+	});
+
+	glEnable(GL_DEPTH_TEST);
+}
+
 void RenderSystem::renderPicking(const Window& window)
 {
 	if (!m_sceneSystem.hasActiveScene())
@@ -484,6 +517,52 @@ void RenderSystem::renderMeshOutline(
 	m_outlineShader.pushScreenSizeFactor(screenSizeFactor);
 
 	mesh.renderForOutline(m_outlineShader.getProgramId());
+}
+
+void RenderSystem::renderMeshNormals(
+	const Camera& camera,
+	const Transform& transform,
+	const Color& color,
+	const Mesh& mesh)
+{
+	/* RAE_TODO some more efficient way to render the normals.
+	m_singleColorShader.use();
+
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+	mat4 rotationMatrix = glm::toMat4(transform.rotation);
+	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+	mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+	// The model-view-projection matrix
+	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix() * modelMatrix;
+
+	m_singleColorShader.pushModelViewMatrix(combinedMatrix);
+	m_singleColorShader.pushColor(color);
+	*/
+
+	const Array<vec3>& vertices = mesh.vertices();
+	const Array<vec3>& normals = mesh.normals();
+
+	// Assert if vertices and normals count doesn't match?
+
+	const float VisualizeNormalsLength = 0.1f;
+
+	for (int i = 0; i < (int)vertices.size() && i < (int)normals.size(); ++i)
+	{
+		vec3 transformedPos = transform.position + vertices[i];
+		vec3 normalTip = transformedPos + (normals[i] * VisualizeNormalsLength);
+
+		// This is not the most optimal way of drawing the normals.
+		g_debugSystem->drawLine({ transformedPos, normalTip }, color);
+
+		/* // Something like this could also work, but we should store the Mesh.
+		Mesh lineMesh;
+
+		lineMesh.generateLinesFromVertices({ vertices[i], normalTip });
+		lineMesh.createVBOs(GL_DYNAMIC_DRAW);
+		lineMesh.renderLines(m_singleColorShader.getProgramId());
+		*/
+	}
 }
 
 void RenderSystem::renderMeshPicking(

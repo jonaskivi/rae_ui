@@ -82,7 +82,6 @@ void DebugSystem::render3D(const Scene& scene, const Window& window, RenderSyste
 		m_lineMeshes.reserve(m_lines.size());
 	}
 
-
 	for (int i = 0; i < (int)m_lines.size(); ++i)
 	{
 		auto&& line = m_lines[i];

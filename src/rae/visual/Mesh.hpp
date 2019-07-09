@@ -58,6 +58,9 @@ public:
 	Array<vec3> computeSmoothNormals();
 	void computeOutlineNormals();
 
+	const Array<vec3>& vertices() const { return m_vertices; }
+	const Array<vec3>& normals() const { return m_normals; }
+
 protected:
 
 	bool rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirection,

@@ -274,6 +274,7 @@ void Pihlaja::onKeyEvent(const Input& input)
 				break;
 			case KeySym::F1:		m_engine.debugSystem().toggleIsEnabled(); break;
 			case KeySym::F2:		m_uiSystem.toggleIsEnabled(); break;
+			case KeySym::F3:		m_engine.renderSystem().toggleRenderNormals(); break;
 			case KeySym::_1:		m_engine.sceneSystem().activateScene(0); break;
 			case KeySym::_2:		m_engine.sceneSystem().activateScene(1); break;
 			case KeySym::_3:		m_evenFrames = true; break;

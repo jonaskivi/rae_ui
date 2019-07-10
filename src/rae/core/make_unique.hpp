@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#if !defined WINDOWS && __cplusplus < 201200
+#if !defined _WIN32 && __cplusplus < 201200
 
 #include <cstddef>
 #include <type_traits>

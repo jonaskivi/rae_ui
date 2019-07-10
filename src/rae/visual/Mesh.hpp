@@ -21,6 +21,13 @@ namespace rae
 
 class Material;
 
+enum class WindingOrder
+{
+	CounterClockwise,
+	Clockwise
+	// Not supported yet: TwoSided
+};
+
 class Mesh : public Hitable
 {
 public:
@@ -61,6 +68,10 @@ public:
 	const Array<vec3>& vertices() const { return m_vertices; }
 	const Array<vec3>& normals() const { return m_normals; }
 
+	WindingOrder windingOrder() const { return m_windingOrder; }
+	GLenum glWindingOrder() const { return m_windingOrder == WindingOrder::CounterClockwise ? GL_CCW : GL_CW; }
+	void setWindingOrder(WindingOrder value) { m_windingOrder = value; }
+
 protected:
 
 	bool rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirection,
@@ -83,6 +94,8 @@ protected:
 	GLuint m_normalBufferId        = 0;
 	GLuint m_outlineNormalBufferId = 0;
 	GLuint m_indexBufferId         = 0;
+
+	WindingOrder m_windingOrder = WindingOrder::CounterClockwise;
 
 	Box m_aabb;
 	Material* m_material; // RAE_TODO make better, don't use pointer. Use component ID.

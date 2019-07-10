@@ -230,7 +230,14 @@ bool Mesh::hit(const vec3& position, const Ray& ray, float t_min, float t_max, H
 
 	for (int i = 0; i < triangleCount(); ++i)
 	{
-		getTriangle(i, v0, v1, v2);
+		if (m_windingOrder == WindingOrder::CounterClockwise)
+		{
+			getTriangle(i, v0, v1, v2);
+		}
+		else // A bit of a hack to flip winding order here.
+		{
+			getTriangle(i, v0, v2, v1);
+		}
 
 		if (rayTriangleIntersection(
 			rayInLocalPosition.origin(),

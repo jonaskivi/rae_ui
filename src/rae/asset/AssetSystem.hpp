@@ -25,7 +25,7 @@ public:
 	Id createCubeMesh();
 	Id createSphereMesh();
 
-	Id createMesh(const String& filename);
+	Id createMesh(const String& filename, WindingOrder windingOrder = WindingOrder::CounterClockwise);
 	Id createMaterial(const Color& color);
 	Id createAnimatingMaterial(const Color& color);
 

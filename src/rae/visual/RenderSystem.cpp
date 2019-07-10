@@ -193,6 +193,7 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 
 		bool isWireframeMode = false;
 		if (!isWireframeMode)
@@ -449,6 +450,8 @@ void RenderSystem::renderMesh(
 	const Material& material,
 	const Mesh& mesh)
 {
+	glFrontFace(mesh.glWindingOrder());
+
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
 	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);

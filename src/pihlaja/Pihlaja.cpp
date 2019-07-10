@@ -294,7 +294,7 @@ void Pihlaja::onKeyEvent(const Input& input)
 				*/
 			//RAE_OLD case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
 			case KeySym::P: m_engine.rayTracer().toggleFastMode(); break;
-			//RAE_OLD case KeySym::H: m_rayTracer.toggleVisualizeFocusDistance(); break;
+			case KeySym::H: m_engine.rayTracer().toggleVisualizeFocusDistance(); break;
 			//RAE_OLD case KeySym::_1: m_rayTracer.showScene(1); break;
 			//RAE_OLD case KeySym::_2: m_rayTracer.showScene(2); break;
 			//RAE_OLD case KeySym::_3: m_rayTracer.showScene(3); break;

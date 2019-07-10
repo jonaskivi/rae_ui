@@ -45,7 +45,7 @@ void AssetSystem::createTestAssets()
 	m_testMaterialId = createMaterial(Color(0.2f, 0.5f, 0.7f, 0.0f));
 	m_animatingMaterialId = createAnimatingMaterial(Color(0.0f, 0.0f, 0.1f, 0.0f));
 
-	m_bunnyMeshId = createMesh("./data/models/bunny.obj");
+	m_bunnyMeshId = createMesh("./data/models/bunny.obj", WindingOrder::Clockwise);
 	m_bunnyMaterialId = createMaterial(Color(0.7f, 0.3f, 0.1f, 0.0f));
 }
 
@@ -77,7 +77,7 @@ Id AssetSystem::createSphereMesh()
 	return id;
 }
 
-Id AssetSystem::createMesh(const String& filename)
+Id AssetSystem::createMesh(const String& filename, WindingOrder windingOrder)
 {
 	LOG_F(INFO, "Creating asset entity and mesh for: %s", filename.c_str());
 	Id id = m_entitySystem.createEntity();
@@ -86,6 +86,7 @@ Id AssetSystem::createMesh(const String& filename)
 	addMesh(id, std::move(mesh));
 
 	Mesh& mesh2 = getMesh(id);
+	mesh2.setWindingOrder(windingOrder);
 	mesh2.loadModel(filename);
 	return id;
 }

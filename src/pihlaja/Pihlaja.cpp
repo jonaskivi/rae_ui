@@ -93,6 +93,7 @@ void Pihlaja::initUI()
 		vec3(385.0f, 80.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
 	ui.addDraggable(videoBufferImageBox);
+	ui.addMaximizerAndButton(videoBufferImageBox);
 	#endif
 
 	int sceneIndex = 0;

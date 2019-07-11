@@ -81,6 +81,7 @@ public:
 
 	void addStackLayout(Id id);
 
+	void addMaximizerAndButton(Id id);
 	void addMaximizer(Id id);
 	void toggleMaximizer(Id id);
 	void updateMaximizers();

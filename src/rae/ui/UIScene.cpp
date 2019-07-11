@@ -338,6 +338,19 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 		}
 	});
 
+	query<ImageLink>(m_imageLinks, [&](Id id, const ImageLink& imageLink)
+	{
+		if (m_transformSystem.hasTransform(id) and
+			m_transformSystem.hasBox(id))
+		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = m_transformSystem.getBox(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
+
+			renderImage(imageLink, transform, box, pivot, assetSystem);
+		}
+	});
+
 	query<Panel>(m_panels, [&](Id id, const Panel& panel)
 	{
 		if (m_transformSystem.hasTransform(id) and
@@ -382,19 +395,6 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 					hovered ? buttonHoverTextColor :
 					active ? buttonActiveTextColor :
 					buttonTextColor));
-		}
-	});
-
-	query<ImageLink>(m_imageLinks, [&](Id id, const ImageLink& imageLink)
-	{
-		if (m_transformSystem.hasTransform(id) and
-			m_transformSystem.hasBox(id))
-		{
-			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = m_transformSystem.getBox(id);
-			const Pivot& pivot = m_transformSystem.getPivot(id);
-
-			renderImage(imageLink, transform, box, pivot, assetSystem);
 		}
 	});
 
@@ -664,17 +664,7 @@ Id UIScene::createAdvancedViewport(int sceneIndex, const vec3& position, const v
 {
 	Id viewport = createViewport(sceneIndex, position, extents);
 
-	addMaximizer(viewport);
-
-	Id maximizeButton = createButton("+", // Maximize icon: "🗖",
-		vec3(0.0f, 35.0f, 0.0f),
-		vec3(6.0f, 6.0f, 1.0f),
-		[&, viewport]()
-		{
-			toggleMaximizer(viewport);
-		});
-	m_transformSystem.addChild(viewport, maximizeButton);
-	addStackLayout(viewport);
+	addMaximizerAndButton(viewport);
 }
 
 void UIScene::addViewport(Id id, Viewport&& entity)
@@ -770,6 +760,21 @@ void UIScene::addToLayout(Id layoutId, Id childId)
 	}
 }
 */
+
+void UIScene::addMaximizerAndButton(Id id)
+{
+	addMaximizer(id);
+
+	Id maximizeButton = createButton("+", // Maximize icon: "🗖",
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(6.0f, 6.0f, 1.0f),
+		[&, id]()
+		{
+			toggleMaximizer(id);
+		});
+	m_transformSystem.addChild(id, maximizeButton);
+	addStackLayout(id);
+}
 
 void UIScene::addMaximizer(Id id)
 {

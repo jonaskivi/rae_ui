@@ -625,5 +625,5 @@ void RenderSystem::endFrame2D(const Window& window)
 
 void RenderSystem::clearImageRenderer()
 {
-	m_rayTracer.clear();
+	m_rayTracer.requestClear();
 }

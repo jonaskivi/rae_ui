@@ -74,7 +74,7 @@ public:
 
 protected:
 	int m_channels = 4; // needs to be 4 for rgba with nanovg create image func
-	
+
 	int m_width = 0;
 	int m_height = 0;
 
@@ -83,12 +83,16 @@ protected:
 
 // Only for uint8_t:
 	String m_filename;
-	
+
 	int m_imageId = -1; // NanoVG imageId
 	bool m_needsUpdate = false; // When set to true, the image will be created (if needed) and updated to nanovg.
 };
 
 void renderImageNano(NVGcontext* vg, int imageId, float x, float y, float w, float h);
+
+void copy8BitImageBuffer(
+	const ImageBuffer<float>& colorImageSource,
+	ImageBuffer<uint8_t>& uintImageTarget);
 
 void update8BitImageBuffer(
 	const ImageBuffer<float>& colorImageSource,

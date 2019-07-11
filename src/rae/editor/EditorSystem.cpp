@@ -422,13 +422,22 @@ EditorSystem::EditorSystem(
 
 UpdateStatus EditorSystem::update(Scene& scene)
 {
+	const auto hoverColor = Utils::createColor8bit(255, 165, 0);
+	const auto selectedColor = Utils::createColor8bit(0, 255, 165);
+
 	// It is actually strange that this selection rendering is in update. But we'll have to fix this later, probably
 	// when debugSystem becomes aware of the scenes and viewports.
 	auto& selectionSystem = scene.selectionSystem();
 	if (selectionSystem.isSelection())
 	{
 		Box selectionAabb = selectionSystem.selectionAABB();
-		g_debugSystem->drawLineBox(selectionAabb, Colors::cyan);
+		g_debugSystem->drawLineBox(selectionAabb, selectedColor);
+	}
+
+	if (selectionSystem.isAnyHovered())
+	{
+		Box selectionAabb = selectionSystem.hoveredAABB();
+		g_debugSystem->drawLineBox(selectionAabb, hoverColor);
 	}
 
 	/* RAE_TODO THIS USED TO DO SOMETHING, BEFORE THE HANDLEINPUT InputState STUFF.

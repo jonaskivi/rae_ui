@@ -37,6 +37,7 @@ public:
 	void setHovered(Id id, bool hovered);
 	void setHoveredHierarchy(Id id, bool hovered);
 	bool isHovered(Id id) const;
+	bool isAnyHovered() const;
 	void clearHovers();
 
 	Event<SelectionSystem&> onSelectionChanged;
@@ -45,6 +46,7 @@ public:
 	// The average position of all selected entities
 	vec3 selectionPosition() const;
 	Box selectionAABB() const;
+	Box hoveredAABB() const;
 
 	void clearPixelClicked() { m_pixelClickedId = InvalidId; }
 	void setPixelClicked(Id id) { m_pixelClickedId = id; }

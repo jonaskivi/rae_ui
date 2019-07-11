@@ -650,24 +650,18 @@ UpdateStatus RayTracer::update()
 		}
 	#else
 
-		// Hopefully temporary: Render first frame always on main thread.
-		if (m_currentSample == 0)
-		{
-			renderSamples();
-		}
-
 		if (m_frameReady == true)
 		{
 			updateImageBuffer();
 			m_frameReady = false;
 		}
+		else if (m_currentSample == 0)
+		{
+			// A silly hack to copy the buffer always when sample count is 0. This keeps the update fluid
+			// when moving the camera.
+			updateImageBuffer();
+		}
 	#endif
-
-	if (m_requestClear)
-	{
-		clear();
-		m_requestClear = false;
-	}
 
 	m_totalRayTracingTime = m_time.time() - m_startTime;
 
@@ -678,7 +672,22 @@ void RayTracer::updateRenderThread()
 {
 	while (m_renderThreadActive)
 	{
-		if (m_buffer && m_frameReady == false && m_currentSample > 0)
+		/*
+		// Crashes for some reason, but ideally we'd want this to be in this thread too.
+		if (m_buffer && m_requestToggleBuffer)
+		{
+			toggleBufferQuality();
+			m_requestToggleBuffer = false;
+		}
+		*/
+
+		if (m_buffer && m_requestClear)
+		{
+			clear();
+			m_requestClear = false;
+		}
+
+		if (m_buffer && m_frameReady == false)
 		{
 			std::lock_guard<std::mutex> lock(m_bufferMutex);
 			renderSamples();
@@ -727,6 +736,11 @@ void RayTracer::updateDebugTexts()
 		+ std::to_string(focusPos.z));
 }
 
+void RayTracer::requestToggleBufferQuality()
+{
+	m_requestToggleBuffer = true;
+}
+
 void RayTracer::toggleBufferQuality()
 {
 	{
@@ -735,15 +749,22 @@ void RayTracer::toggleBufferQuality()
 		{
 			m_buffer = &m_bigBuffer;
 		}
-		else m_buffer = &m_smallBuffer;
+		else
+		{
+			m_buffer = &m_smallBuffer;
+		}
 
 		if (m_uintBuffer == &m_smallUintBuffer)
 		{
 			m_uintBuffer = &m_bigUintBuffer;
 		}
-		else m_uintBuffer = &m_smallUintBuffer;
+		else
+		{
+			m_uintBuffer = &m_smallUintBuffer;
+		}
+
+		requestClear();
 	}
-	clear();
 }
 
 float RayTracer::rayMaxLength()
@@ -818,7 +839,8 @@ void RayTracer::renderSamples()
 
 	if (m_samplesLimit == 0 || m_currentSample < m_samplesLimit)
 	{
-		Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
+		// Take a copy of the camera so that it doesn't wobble.
+		Camera camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
 		// Single threaded
 		//for (int j = 0; j < m_buffer->height; ++j)
@@ -853,8 +875,12 @@ void RayTracer::writeToPng(String filename)
 
 void RayTracer::updateImageBuffer()
 {
-	std::lock_guard<std::mutex> lock(m_bufferMutex);
-	update8BitImageBuffer(*m_buffer, *m_uintBuffer, m_windowSystem.mainWindow().nanoVG());
+	{
+		std::lock_guard<std::mutex> lock(m_bufferMutex);
+		copy8BitImageBuffer(*m_buffer, *m_uintBuffer);
+	}
+
+	m_uintBuffer->updateToNanoVG(m_windowSystem.mainWindow().nanoVG());
 }
 
 void RayTracer::renderNanoVG(NVGcontext* vg, float x, float y, float w, float h)

@@ -86,8 +86,9 @@ public:
 	vec3 sky(const Ray& ray);
 
 	void requestClear(); // Ask for buffer and rendering state to be cleared on start of next update.
-	void clear();
-	void toggleBufferQuality();
+	void requestToggleBufferQuality();
+	void toggleBufferQuality(); // ideally protected, but request doesn't work currently.
+
 	bool isFastMode() { return m_isFastMode; }
 	void toggleFastMode() { m_isFastMode = !m_isFastMode; }
 	float rayMaxLength();
@@ -108,6 +109,8 @@ public:
 
 protected:
 
+	void clear();
+
 	bool m_isInfoText = true;
 	bool m_isFastMode = false;
 	bool m_isVisualizeFocusDistance = true;
@@ -116,6 +119,8 @@ protected:
 
 	std::mutex				m_bufferMutex;
 	std::atomic<bool>		m_frameReady;
+	std::atomic<bool>		m_requestClear;
+	std::atomic<bool>		m_requestToggleBuffer;
 
 	ImageBuffer<float>		m_smallBuffer;
 	ImageBuffer<float>		m_bigBuffer;
@@ -124,8 +129,6 @@ protected:
 	ImageBuffer<uint8_t>	m_smallUintBuffer;
 	ImageBuffer<uint8_t>	m_bigUintBuffer;
 	ImageBuffer<uint8_t>*	m_uintBuffer = nullptr;
-
-	bool m_requestClear;
 
 	int m_allAtOnceSamplesLimit = 2000;
 	int m_samplesLimit = 0;

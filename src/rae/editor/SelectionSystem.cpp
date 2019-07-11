@@ -170,6 +170,11 @@ bool SelectionSystem::isHovered(Id id) const
 	return m_hovers.check(id);
 }
 
+bool SelectionSystem::isAnyHovered() const
+{
+	return m_hovers.count() > 0;
+}
+
 void SelectionSystem::clearHovers()
 {
 	m_hoveredId = InvalidId;
@@ -197,6 +202,26 @@ Box SelectionSystem::selectionAABB() const
 	Box aabb;
 
 	query<Selected>(m_selectedByParent, [&](Id id)
+	{
+		if (m_transformSystem.hasBox(id))
+		{
+			auto box = m_transformSystem.getAABBWorldSpace(id);
+			aabb.grow(box);
+		}
+		else if (m_transformSystem.hasTransform(id))
+		{
+			aabb.grow(m_transformSystem.getPosition(id));
+		}
+	});
+
+	return aabb;
+}
+
+Box SelectionSystem::hoveredAABB() const
+{
+	Box aabb;
+
+	query<Hover>(m_hovers, [&](Id id)
 	{
 		if (m_transformSystem.hasBox(id))
 		{

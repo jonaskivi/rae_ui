@@ -240,10 +240,9 @@ void rae::renderImageNano(NVGcontext* vg, int imageId, float x, float y, float w
 	nvgRestore(vg);
 }
 
-void rae::update8BitImageBuffer(
+void rae::copy8BitImageBuffer(
 	const ImageBuffer<float>& colorImageSource,
-	ImageBuffer<uint8_t>& uintImageTarget,
-	NVGcontext* vg)
+	ImageBuffer<uint8_t>& uintImageTarget)
 {
 	assert(colorImageSource.width() == uintImageTarget.width());//, "Image sizes must match.");
 	assert(colorImageSource.height() == uintImageTarget.height());//, "Image sizes must match.");
@@ -263,9 +262,19 @@ void rae::update8BitImageBuffer(
 					);
 			}
 		});
-
-		uintImageTarget.updateToNanoVG(vg);
 	}
+}
+
+void rae::update8BitImageBuffer(
+	const ImageBuffer<float>& colorImageSource,
+	ImageBuffer<uint8_t>& uintImageTarget,
+	NVGcontext* vg)
+{
+	assert(colorImageSource.width() == uintImageTarget.width());//, "Image sizes must match.");
+	assert(colorImageSource.height() == uintImageTarget.height());//, "Image sizes must match.");
+
+	copy8BitImageBuffer(colorImageSource, uintImageTarget);
+	uintImageTarget.updateToNanoVG(vg);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

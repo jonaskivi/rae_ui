@@ -63,6 +63,7 @@ public:
 
 	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
+	Id createAdvancedViewport(int sceneIndex, const vec3& position, const vec3& extents);
 	void addViewport(Id id, Viewport&& viewport);
 	const Viewport& getViewport(Id id) const;
 	Viewport& getViewport(Id id);
@@ -79,6 +80,10 @@ public:
 	const Panel& getPanel(Id id);
 
 	void addStackLayout(Id id);
+
+	void addMaximizer(Id id);
+	void toggleMaximizer(Id id);
+	void updateMaximizers();
 
 	Id createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents);
 	void addImageLink(Id id, ImageLink imageLink);
@@ -166,6 +171,7 @@ private:
 	Table<KeylineLink>	m_keylineLinks;
 
 	Table<StackLayout>	m_stackLayouts;
+	Table<Maximizer>	m_maximizers;
 
 	Table<ImageLink>	m_imageLinks;
 

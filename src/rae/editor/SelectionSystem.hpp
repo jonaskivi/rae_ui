@@ -35,6 +35,7 @@ public:
 	bool isPartOfSelection(Id id) const; // Also including selectedByParent.
 
 	void setHovered(Id id, bool hovered);
+	void setHoveredHierarchy(Id id, bool hovered);
 	bool isHovered(Id id) const;
 	void clearHovers();
 

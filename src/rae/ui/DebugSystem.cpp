@@ -63,7 +63,10 @@ DebugSystem::~DebugSystem()
 void DebugSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem)
 {
 	if (not scene.isActive())
+	{
+		m_lines.clear();
 		return;
+	}
 
 	const Camera& camera = scene.cameraSystem().currentCamera();
 
@@ -163,6 +166,12 @@ void DebugSystem::log(const String& text)
 void DebugSystem::log(const String& text, const Color& color)
 {
 	m_logTexts.emplace_back(DebugText(text, color));
+}
+
+void DebugSystem::updateWhenDisabled()
+{
+	m_lines.clear();
+	m_debugTexts.clear();
 }
 
 void DebugSystem::render2D(UIScene& uiScene, NVGcontext* nanoVG)

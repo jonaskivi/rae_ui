@@ -41,6 +41,8 @@ public:
 	DebugSystem();
 	~DebugSystem();
 
+	void updateWhenDisabled() override;
+
 	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
 	void render2D(UIScene& uiScene, NVGcontext* nanoVG) override;
 

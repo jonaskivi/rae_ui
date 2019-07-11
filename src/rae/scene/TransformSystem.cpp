@@ -230,6 +230,16 @@ void TransformSystem::addBox(Id id, Box&& box)
 	m_boxes.assign(id, std::move(box));
 }
 
+void TransformSystem::setBox(Id id, Box&& box)
+{
+	m_boxes.assign(id, std::move(box));
+}
+
+void TransformSystem::setBox(Id id, const Box& box)
+{
+	m_boxes.assign(id, box);
+}
+
 const Box& TransformSystem::getBox(Id id) const
 {
 	return m_boxes.get(id);

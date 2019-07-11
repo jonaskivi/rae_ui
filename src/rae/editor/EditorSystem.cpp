@@ -593,7 +593,7 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 	if (topMostId != InvalidId)
 	{
 		//LOG_F(INFO, "Hovered: id %i", (int)topMostId);
-		scene.selectionSystem().setHovered(topMostId, true);
+		scene.selectionSystem().setHoveredHierarchy(topMostId, true);
 	}
 	else
 	{

@@ -209,6 +209,10 @@ UpdateStatus Engine::update()
 			engineUpdateStatus = (updateStatus == UpdateStatus::Changed) ? UpdateStatus::Changed : engineUpdateStatus;
 			//LOG_F(INFO, "%s update: %s", system->name(), bool(updateStatus == UpdateStatus::Changed) ? "true" : "false");
 		}
+		else
+		{
+			system->updateWhenDisabled();
+		}
 	}
 
 	// Render func

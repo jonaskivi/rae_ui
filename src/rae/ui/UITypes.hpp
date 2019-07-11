@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rae/core/Types.hpp"
+#include "rae/visual/Box.hpp"
 
 namespace rae
 {
@@ -38,6 +39,22 @@ struct StackLayout
 	}
 
 	OrientationType orientationType = OrientationType::Vertical;
+};
+
+enum class MaximizerState
+{
+	Normal,
+	Maximized
+};
+
+// A maximizer is a sort of layout helper, which has two states: Normal and maximized.
+// When changing to maximized state, it stores the entity's previous transform. Useful for example
+// to maximize a viewport within a window.
+struct Maximizer
+{
+	MaximizerState maximizerState = MaximizerState::Normal;
+	vec3 storedNormalStatePosition;
+	Box storedNormalStateBox;
 };
 
 struct Active

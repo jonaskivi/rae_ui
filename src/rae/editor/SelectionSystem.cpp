@@ -125,6 +125,24 @@ void SelectionSystem::setHovered(Id id, bool hovered)
 	if (hovered)
 	{
 		m_hoveredId = id;
+		m_hovers.assign(id, std::move(Hover()));
+	}
+	else
+	{
+		if (id == m_hoveredId)
+		{
+			m_hoveredId = InvalidId;
+		}
+
+		m_hovers.remove(id);
+	}
+}
+
+void SelectionSystem::setHoveredHierarchy(Id id, bool hovered)
+{
+	if (hovered)
+	{
+		m_hoveredId = id;
 
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{

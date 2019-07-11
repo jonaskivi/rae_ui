@@ -255,6 +255,8 @@ void UIScene::doLayout()
 			m_transformSystem.setPosition(id, vec3(posX, origPos.y, origPos.z));
 		}
 	});
+
+	updateMaximizers();
 }
 
 void UIScene::hover()
@@ -658,6 +660,23 @@ Id UIScene::createViewport(int sceneIndex, const vec3& position, const vec3& ext
 	return id;
 }
 
+Id UIScene::createAdvancedViewport(int sceneIndex, const vec3& position, const vec3& extents)
+{
+	Id viewport = createViewport(sceneIndex, position, extents);
+
+	addMaximizer(viewport);
+
+	Id maximizeButton = createButton("+", // Maximize icon: "🗖",
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(6.0f, 6.0f, 1.0f),
+		[&, viewport]()
+		{
+			toggleMaximizer(viewport);
+		});
+	m_transformSystem.addChild(viewport, maximizeButton);
+	addStackLayout(viewport);
+}
+
 void UIScene::addViewport(Id id, Viewport&& entity)
 {
 	m_viewports.assign(id, std::move(entity));
@@ -751,6 +770,58 @@ void UIScene::addToLayout(Id layoutId, Id childId)
 	}
 }
 */
+
+void UIScene::addMaximizer(Id id)
+{
+	m_maximizers.assign(id, Maximizer());
+}
+
+void UIScene::toggleMaximizer(Id id)
+{
+	auto& maximizer = m_maximizers.get(id);
+	if (maximizer.maximizerState == MaximizerState::Normal)
+	{
+		maximizer.storedNormalStatePosition = m_transformSystem.getPosition(id);
+		maximizer.storedNormalStateBox = m_transformSystem.getBox(id);
+		maximizer.maximizerState = MaximizerState::Maximized;
+	}
+	else
+	{
+		maximizer.maximizerState = MaximizerState::Normal;
+		m_transformSystem.setBox(id, maximizer.storedNormalStateBox);
+		m_transformSystem.setPosition(id, maximizer.storedNormalStatePosition);
+	}
+}
+
+void UIScene::updateMaximizers()
+{
+	int windowWidth = 100.0f;
+	int windowHeight = 100.0f;
+
+	// Get any window size. Most likely we should have only one window.
+	query<WindowEntity>(m_windows, [&](Id id)
+	{
+		if (m_transformSystem.hasTransform(id) and
+			m_transformSystem.hasBox(id))
+		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = m_transformSystem.getBox(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
+
+			windowWidth = box.width();
+			windowHeight = box.height();
+		}
+	});
+
+	query<Maximizer>(m_maximizers, [&](Id id, const Maximizer& maximizer)
+	{
+		if (maximizer.maximizerState == MaximizerState::Maximized)
+		{
+			m_transformSystem.setBox(id, Box(vec3(0.0f, 0.0f, 0.0f), vec3(windowWidth, windowHeight, 1.0f)));
+			m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
+		}
+	});
+}
 
 Id UIScene::createImageBox(asset::Id imageLink, const vec3& position, const vec3& extents)
 {

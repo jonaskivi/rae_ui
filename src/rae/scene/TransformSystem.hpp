@@ -86,6 +86,8 @@ public:
 	const Table<Box>& boxes() const { return m_boxes; }
 	bool hasBox(Id id) const;
 	void addBox(Id id, Box&& box);
+	void setBox(Id id, Box&& box);
+	void setBox(Id id, const Box& box);
 	const Box& getBox(Id id) const;
 
 	const Table<Sphere>& spheres() const { return m_spheres; }

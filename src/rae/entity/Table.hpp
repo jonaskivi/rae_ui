@@ -104,6 +104,53 @@ public:
 		//LOG_F(INFO, "Table: Created a completely new object: %i idMap.size: %i", id, (int)m_idMap.size());
 	}
 
+	void assign(Id id, const Comp& comp)
+	{
+		if (check(id))
+		{
+			m_items[m_idMap[id]] = std::move(comp);
+			setUpdatedF(id);
+
+			//LOG_F(INFO, "Table: Entity already exists, replacing: %i", id);
+			return;
+		}
+
+		// Reserve enough space in idMap to hold the id.
+		//LOG_F(INFO, "Creating id: %i size: %i", id, (int)m_idMap.size());
+		int index = (int)id;
+		while ((int)m_idMap.size() <= index)
+		{
+			m_idMap.emplace_back(InvalidIndex);
+			//LOG_F(INFO, "Created: %i", (int)m_idMap.size());
+		}
+		//LOG_F(INFO, "Size after: %i", (int)m_idMap.size());
+
+		// Find next free place
+		if (m_freeItems.size() > 0)
+		{
+			int freeIndex = m_freeItems.back();
+			m_freeItems.pop_back();
+			m_idMap[id] = freeIndex;
+			m_items[freeIndex] = std::move(comp);
+			// setUpdated free index:
+			m_updated[freeIndex] = true;
+			m_anyUpdated = true;
+
+			//LOG_F(INFO, "Table: Re-used existing entity: id: %i at freeindex: %i", id, freeIndex);
+			return;
+		}
+
+		// else we need to create a new one.
+		m_idMap[index] = (int)m_items.size();
+
+		m_items.emplace_back(std::move(comp));
+		// setUpdated new entity
+		m_updated.emplace_back(true);
+		m_anyUpdated = true;
+
+		//LOG_F(INFO, "Table: Created a completely new object: %i idMap.size: %i", id, (int)m_idMap.size());
+	}
+
 	void clear()
 	{
 		m_items.clear();

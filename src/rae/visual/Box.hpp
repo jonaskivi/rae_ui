@@ -64,8 +64,8 @@ public:
 		return std::max(hd.x, std::max(hd.y, hd.z));
 	}
 
-	float width() { return right() - left(); }
-	float height() { return up() - down(); }
+	float width() const { return right() - left(); }
+	float height() const { return up() - down(); }
 
 	void transform(const Transform& tr);
 	void translate(const Pivot& pivot);

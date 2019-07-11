@@ -22,6 +22,8 @@ Pihlaja::Pihlaja() :
 	m_engine.addSystem(m_engine.rayTracer());
 	m_engine.addSystem(m_engine.renderSystem());
 
+	m_engine.addSystem(m_engine.debugSystem());
+
 	m_engine.addRenderer3D(m_engine.renderSystem());
 	m_engine.addRenderer3D(m_engine.rayTracer()); // This is just the debug rendering.
 	m_engine.addRenderer3D(m_engine.debugSystem());
@@ -85,19 +87,21 @@ void Pihlaja::initUI()
 
 	m_screenImageAssetId = m_assetSystem.createImage(1920, 1080);
 
+	#ifndef _WIN32
 	Id videoBufferImageBox = ui.createImageBox(
 		m_screenImageAssetId,
 		vec3(385.0f, 80.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
 	ui.addDraggable(videoBufferImageBox);
+	#endif
 
 	int sceneIndex = 0;
-	Id viewport = ui.createViewport(sceneIndex,
+	Id viewport = ui.createAdvancedViewport(sceneIndex,
 		vec3(130.0f, 80.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
 
 	int sceneIndex2 = 1;
-	Id viewport2 = ui.createViewport(sceneIndex2,
+	Id viewport2 = ui.createAdvancedViewport(sceneIndex2,
 		vec3(130.0f, 235.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
 
@@ -105,9 +109,19 @@ void Pihlaja::initUI()
 		vec3(385.0f, 210.0f, 0.0f),
 		vec3(250.0f, 100.0f, 1.0f));
 	ui.addDraggable(panel);
-
+	ui.addMaximizer(panel);
 	ui.addStackLayout(panel);
 
+	Id panelMaximizeButton = ui.createButton("Maximize",
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
+		[&, panel]()
+		{
+			ui.toggleMaximizer(panel);
+		});
+	trans.addChild(panel, panelMaximizeButton);
+
+	#ifndef _WIN32
 	Id playButtonId = ui.createToggleButton("Play",
 		vec3(0.0f, 35.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
@@ -119,6 +133,7 @@ void Pihlaja::initUI()
 		vec3(50.0f, 10.0f, 1.0f),
 		std::bind(&Pihlaja::rewind, this));
 	trans.addChild(panel, rewindButton);
+	#endif
 
 	Id debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
 		vec3(0.0f, 38.0f, 0.0f),
@@ -321,10 +336,11 @@ void Pihlaja::updateDebugTexts()
 
 	g_debugSystem->showDebugText("");
 	g_debugSystem->showDebugText("Scene: " + scene.name());
-	g_debugSystem->showDebugText("Esc to quit, Raytracer mode: U autofocus, H visualize focus, ", Colors::white);
+	g_debugSystem->showDebugText("Esc to quit, F1 Toggle debug info", Colors::white);
+	g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows", Colors::white);
+	g_debugSystem->showDebugText("Raytracer mode: U autofocus, H visualize focus, ", Colors::white);
 	g_debugSystem->showDebugText("VB focus distance, NM aperture, KL bounces, ", Colors::white);
 	g_debugSystem->showDebugText("G debug view, Tab UI", Colors::white);
-	g_debugSystem->showDebugText("Movement: Second mouse button, WASDQE, Arrows", Colors::white);
 	g_debugSystem->showDebugText("Y toggle resolution", Colors::white);
 	g_debugSystem->showDebugText("");
 	g_debugSystem->showDebugText("Entities on scene: " + std::to_string(entitySystem.entityCount()));

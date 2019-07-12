@@ -133,6 +133,8 @@ public:
 	void renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color);
 	void renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		const Color& color, const Color& textColor);
+	void renderText(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
+		const Color& color);
 	void renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
 		const AssetSystem& assetSystem);
 

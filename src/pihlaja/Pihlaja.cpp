@@ -96,6 +96,38 @@ void Pihlaja::initUI()
 	ui.addMaximizerAndButton(videoBufferImageBox);
 	#endif
 
+	Id videoControls = ui.createPanel(
+		vec3(440.0f, 190.0f, 0.0f),
+		vec3(100.0f, 50.0f, 1.0f));
+	ui.addDraggable(videoControls);
+	ui.addStackLayout(videoControls);
+
+	Id videoControlsText = ui.createTextBox("Video Controls",
+		vec3(0.0f, 38.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f));
+		trans.addChild(videoControls, videoControlsText);
+
+	Id playButton = ui.createToggleButton("Play",
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
+		m_play);
+	trans.addChild(videoControls, playButton);
+
+	Id rewindButton = ui.createButton("Rewind",
+		vec3(0.0f, 35.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f),
+		std::bind(&Pihlaja::rewind, this));
+	trans.addChild(videoControls, rewindButton);
+
+	#ifdef _WIN32
+		Id noVideoText = ui.createTextBox("No video playback on Windows for now.",
+		vec3(0.0f, 38.0f, 0.0f),
+		vec3(100.0f, 10.0f, 1.0f));
+		trans.addChild(videoControls, noVideoText);
+	#endif
+
+	// Viewports
+
 	int sceneIndex = 0;
 	Id viewport = ui.createAdvancedViewport(sceneIndex,
 		vec3(130.0f, 80.0f, 0.0f),
@@ -106,12 +138,19 @@ void Pihlaja::initUI()
 		vec3(130.0f, 235.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
 
+	// Raytracer Controls
+
 	Id panel = ui.createPanel(
-		vec3(385.0f, 210.0f, 0.0f),
-		vec3(250.0f, 100.0f, 1.0f));
+		vec3(320.0f, 210.0f, 0.0f),
+		vec3(120.0f, 100.0f, 1.0f));
 	ui.addDraggable(panel);
 	ui.addMaximizer(panel);
 	ui.addStackLayout(panel);
+
+	Id panelTitleText = ui.createTextBox("Controls",
+		vec3(0.0f, 38.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f));
+	trans.addChild(panel, panelTitleText);
 
 	Id panelMaximizeButton = ui.createButton("Maximize",
 		vec3(0.0f, 35.0f, 0.0f),
@@ -121,25 +160,6 @@ void Pihlaja::initUI()
 			ui.toggleMaximizer(panel);
 		});
 	trans.addChild(panel, panelMaximizeButton);
-
-	#ifndef _WIN32
-	Id playButtonId = ui.createToggleButton("Play",
-		vec3(0.0f, 35.0f, 0.0f),
-		vec3(50.0f, 10.0f, 1.0f),
-		m_play);
-	trans.addChild(panel, playButtonId);
-
-	Id rewindButton = ui.createButton("Rewind",
-		vec3(0.0f, 35.0f, 0.0f),
-		vec3(50.0f, 10.0f, 1.0f),
-		std::bind(&Pihlaja::rewind, this));
-	trans.addChild(panel, rewindButton);
-	#endif
-
-	Id debugNeedsFrameUpdateButtonId = ui.createTextBox("NeedsFrameUpdate",
-		vec3(0.0f, 38.0f, 0.0f),
-		vec3(50.0f, 10.0f, 1.0f));
-	ui.bindActive(debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
 
 	Id renderModeButton = ui.createButton("Render Mode",
 		vec3(0.0f, 35.0f, 0.0f),
@@ -163,21 +183,6 @@ void Pihlaja::initUI()
 		});
 	trans.addChild(panel, renderModeButton);
 
-	/*
-	Id renderButtonId = ui.createToggleButton("Render",
-		vec3(0.0f, 150.0f, 0.0f),
-		vec3(98.0f, 25.0f, 1.0f),
-		m_engine.renderSystem().isEnabled());
-	ui.addToLayout(panel, renderButtonId);
-
-	// Raytracer
-	Id rayTracerButtonId = ui.createToggleButton("Raytrace",
-		vec3(0.0f, 150.0f, 0.0f),
-		vec3(98.0f, 25.0f, 1.0f),
-		m_engine.rayTracer().isEnabled());
-	ui.addToLayout(panel, rayTracerButtonId);
-	*/
-
 	Id qualityButton = ui.createButton("Quality",
 		vec3(0.0f, 35.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
@@ -200,6 +205,14 @@ void Pihlaja::initUI()
 		vec3(-100.0f, 380.0f, 0.0f),
 		vec3(98.0f, 25.0f, 1.0f));
 	ui.bindValue(positionTextBox, m_selectionSystem.positionProperty or something);
+	*/
+
+	/*
+	Id debugNeedsFrameUpdateButton = ui.createTextBox("NeedsFrameUpdate",
+		vec3(0.0f, 38.0f, 0.0f),
+		vec3(50.0f, 10.0f, 1.0f));
+	ui.bindActive(debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
+	trans.addChild(panel, debugNeedsFrameUpdateButton);
 	*/
 }
 

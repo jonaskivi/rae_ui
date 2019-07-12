@@ -292,15 +292,6 @@ void UIScene::hover()
 
 void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 {
-	/*
-	RAE_REMOVE
-	const auto& window = m_windowSystem.window();
-
-	int windowWidth = window.width();
-	int windowHeight = window.height();
-	float screenPixelRatio = window.screenPixelRatio();
-	*/
-
 	m_nanoVG = nanoVG;
 
 	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
@@ -398,6 +389,26 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 		}
 	});
 
+	query<Text>(m_texts, [&](Id id, const Text& text)
+	{
+		if (m_transformSystem.hasTransform(id) and
+			m_transformSystem.hasBox(id))
+		{
+			const Transform& transform = m_transformSystem.getTransform(id);
+			const Box& box = m_transformSystem.getBox(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
+
+			bool hasColor = m_colors.check(id);
+			bool active = isActive(id) || m_selectionSystem.isSelected(id);
+			bool hovered = m_selectionSystem.isHovered(id);
+			// More like a debug or editor feature
+			//bool selected = m_selectionSystem.isSelected(id);
+
+			renderText(text.text, transform, box, pivot,
+				(hasColor ? getColor(id) : buttonTextColor));
+		}
+	});
+
 	if (m_debugSystem.isEnabled())
 	{
 		// Debug rendering border for WindowEntities.
@@ -435,9 +446,10 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 			UIRenderer::renderLineNano(m_nanoVG, vec2(fromX, fromY), vec2(toX, toY), Colors::orange);
 		});
 
+		// Debug position visualization
 		query<Transform>(m_transformSystem.transforms(), [&](Id id, const Transform& transform)
 		{
-			float diameter = 2.0f;
+			float diameter = 1.0f;
 			renderCircle(transform, diameter, Colors::cyan);
 		});
 
@@ -545,6 +557,14 @@ void UIScene::renderButton(const String& text, const Transform& transform, const
 		m_screenSystem.mmToPixels(0.46f), // cornerRadius
 		color,
 		textColor);
+}
+
+void UIScene::renderText(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
+	const Color& color)
+{
+	UIRenderer::renderTextNano(m_nanoVG, text,
+		convertToRectangle(transform, box, pivot),
+		color);
 }
 
 void UIScene::renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,

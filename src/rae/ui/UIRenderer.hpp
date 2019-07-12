@@ -38,6 +38,8 @@ namespace UIRenderer
 			float cornerRadius,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f),
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
+	void renderTextNano(NVGcontext* vg, const String& text, const Rectangle& rectangle,
+			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 }

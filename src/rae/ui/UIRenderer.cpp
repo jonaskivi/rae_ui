@@ -282,3 +282,39 @@ void UIRenderer::renderButtonNano(NVGcontext* vg, const String& text, const Rect
 
 	nvgRestore(vg);
 }
+
+void UIRenderer::renderTextNano(
+	NVGcontext* vg,
+	const String& text,
+	const Rectangle& rectangle,
+	const Color& textColor)
+{
+	nvgSave(vg);
+
+	nvgFontSize(vg, 18.0f);
+	nvgFontFace(vg, "sans-bold");
+	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+
+	// Text shadow
+	nvgFontBlur(vg,2);
+	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f));
+
+	const float shadowOffset = 1.0f;
+	const float rectangleHalfWidth = rectangle.width * 0.5f;
+	const float rectangleHalfHeight = rectangle.height * 0.5f;
+
+	nvgText(vg,
+		rectangle.x + rectangleHalfWidth,
+		rectangle.y + rectangleHalfHeight + shadowOffset,
+		text.c_str(), nullptr);
+
+	// Actual text
+	nvgFontBlur(vg,0);
+	nvgFillColor(vg, nvgRGBAf(textColor.r, textColor.g, textColor.b, textColor.a));
+	nvgText(vg,
+		rectangle.x + rectangleHalfWidth,
+		rectangle.y + rectangleHalfHeight,
+		text.c_str(), nullptr);
+
+	nvgRestore(vg);
+}

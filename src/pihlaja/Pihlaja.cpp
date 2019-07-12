@@ -85,6 +85,22 @@ void Pihlaja::initUI()
 	// So 2D would be top-left Y down, for easy UI layout (and texture coordinates, reading direction etc.).
 	// And 3D (world-space) would be Z-up right handed (Y-left, X-forward) for easy level design (architecture etc.).
 
+	// Viewports for 3D and for raytracing. These should be defined first, because currently we can only draw UI on
+	// top of the 3D viewports. Not sure if it is worth it to try and render viewports to textures just because
+	// we'd want to draw UI under them. No, it wouldn't be worth it.
+
+	int sceneIndex = 0;
+	Id viewport = ui.createAdvancedViewport(sceneIndex,
+		vec3(130.0f, 80.0f, 0.0f),
+		vec3(250.0f, 150.0f, 1.0f));
+
+	int sceneIndex2 = 1;
+	Id viewport2 = ui.createAdvancedViewport(sceneIndex2,
+		vec3(130.0f, 235.0f, 0.0f),
+		vec3(250.0f, 150.0f, 1.0f));
+
+	// Video things
+
 	m_screenImageAssetId = m_assetSystem.createImage(1920, 1080);
 
 	#ifndef _WIN32
@@ -125,18 +141,6 @@ void Pihlaja::initUI()
 		vec3(100.0f, 10.0f, 1.0f));
 		trans.addChild(videoControls, noVideoText);
 	#endif
-
-	// Viewports
-
-	int sceneIndex = 0;
-	Id viewport = ui.createAdvancedViewport(sceneIndex,
-		vec3(130.0f, 80.0f, 0.0f),
-		vec3(250.0f, 150.0f, 1.0f));
-
-	int sceneIndex2 = 1;
-	Id viewport2 = ui.createAdvancedViewport(sceneIndex2,
-		vec3(130.0f, 235.0f, 0.0f),
-		vec3(250.0f, 150.0f, 1.0f));
 
 	// Raytracer Controls
 

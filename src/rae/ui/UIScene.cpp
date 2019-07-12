@@ -296,10 +296,30 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 {
 	m_nanoVG = nanoVG;
 
+	for (Id id : m_entitySystem.entities())
+	{
+		if (not m_transformSystem.hasParent(id))
+		{
+			m_transformSystem.processHierarchy(id, [this](Id id)
+			{
+				if (m_uiWidgetRenderers.check(id))
+				{
+					const auto& renderer = m_uiWidgetRenderers.get(id);
+					renderer.render(id);
+				}
+			});
+		}
+	}
+
+	/*
+	// Another previous way to render all UIWidgetRenderers in one go. This won't work
+	// because it relies on the children to come after the parents, so the user has to
+	// define them in the right order, which is not good.
 	query<UIWidgetRenderer>(m_uiWidgetRenderers, [&](Id id, const UIWidgetRenderer& renderer)
 	{
 		renderer.render(id);
 	});
+	*/
 
 	/*
 	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
@@ -789,6 +809,10 @@ Id UIScene::createToggleButton(const String& text, const vec3& position, const v
 
 	bindActive(id, property);
 
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderButton, this, std::placeholders::_1)));
+
 	return id;
 }
 
@@ -984,29 +1008,13 @@ void UIScene::toggleMaximizer(Id id)
 
 void UIScene::updateMaximizers()
 {
-	int windowWidth = 100.0f;
-	int windowHeight = 100.0f;
-
-	// Get any window size. Most likely we should have only one window.
-	query<WindowEntity>(m_windows, [&](Id id)
-	{
-		if (m_transformSystem.hasTransform(id) and
-			m_transformSystem.hasBox(id))
-		{
-			const Transform& transform = m_transformSystem.getTransform(id);
-			const Box& box = m_transformSystem.getBox(id);
-			const Pivot& pivot = m_transformSystem.getPivot(id);
-
-			windowWidth = box.width();
-			windowHeight = box.height();
-		}
-	});
+	const Box& window = m_transformSystem.getBox(m_rootId);
 
 	query<Maximizer>(m_maximizers, [&](Id id, const Maximizer& maximizer)
 	{
 		if (maximizer.maximizerState == MaximizerState::Maximized)
 		{
-			m_transformSystem.setBox(id, Box(vec3(0.0f, 0.0f, 0.0f), vec3(windowWidth, windowHeight, 1.0f)));
+			m_transformSystem.setBox(id, Box(vec3(0.0f, 0.0f, 0.0f), vec3(window.width(), window.height(), 1.0f)));
 			m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
 		}
 	});

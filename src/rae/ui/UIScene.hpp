@@ -30,6 +30,29 @@ class ScreenSystem;
 class AssetSystem;
 class DebugSystem;
 
+struct UIWidgetRenderer
+{
+	UIWidgetRenderer() {}
+
+	UIWidgetRenderer(std::function<void(Id)> renderFunction) :
+		renderFunction(renderFunction)
+	{
+	}
+
+	void render(Id id) const
+	{
+		renderFunction(id);
+	}
+
+	std::function<void(Id)> renderFunction;
+};
+
+struct UINode
+{
+	Id id;
+	Array<UINode*> children;
+};
+
 class UIScene : public ISystem
 {
 public:
@@ -38,9 +61,11 @@ public:
 		const Time& time,
 		Input& input,
 		ScreenSystem& screenSystem,
-		DebugSystem& debugSystem);
+		DebugSystem& debugSystem,
+		AssetSystem& assetSystem);
 
-	TransformSystem&	transformSystem()	{ return m_transformSystem; }
+	TransformSystem&		transformSystem() { return m_transformSystem; }
+	const TransformSystem&	transformSystem() const { return m_transformSystem; }
 
 	void handleInput(const Array<InputEvent>& events);
 	void viewportHandleInput(const InputState& inputState);
@@ -103,17 +128,18 @@ public:
 	const Text& getText(Id id);
 
 	void addButton(Id id, Button&& element);
-	const Button& getButton(Id id);
+	const Button& getButton(Id id) const;
+	bool isButton(Id id) const;
 
 	void addColor(Id id, Color&& element);
-	const Color& getColor(Id id);
+	const Color& getColor(Id id) const;
 
 	void addCommand(Id id, Command&& element);
 	Command& getCommand(Id id);
 	const Command& getCommand(Id id) const;
 
 	void setActive(Id id, bool active);
-	bool isActive(Id id);
+	bool isActive(Id id) const;
 	// Make active follow property state with a two-way binding
 	void bindActive(Id id, Bool& property);
 
@@ -123,26 +149,33 @@ public:
 
 	// Input in millimeters
 
+	void renderViewportLine(Id id) const;
+	void renderPanel(Id id) const;
 	// When thickness in mm is 0 use 1 pixel thickness.
 	void renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color,
-		float cornerRadius = 0.0f, float thickness = 0.0f);
-	void renderCircle(const Transform& transform, float diameter, const Color& color);
-	void renderCircle(const vec2& position, float diameter, const Color& color);
+		float cornerRadius = 0.0f, float thickness = 0.0f) const;
+	void renderCircle(const Transform& transform, float diameter, const Color& color) const;
+	void renderCircle(const vec2& position, float diameter, const Color& color) const;
 	void renderArc(const vec2& origin, float fromAngleRad, float toAngleRad, float diameter,
-		float thickness, const Color& color);
-	void renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color);
-	void renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
-		const Color& color, const Color& textColor);
-	void renderText(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
-		const Color& color);
-	void renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
-		const AssetSystem& assetSystem);
+		float thickness, const Color& color) const;
+	void renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color) const;
+	void renderButton(Id id) const;
+	void renderButtonGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
+		const Color& color, const Color& textColor) const;
+	void renderText(Id id) const;
+	void renderTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
+		const Color& color) const;
+	void renderImage(Id id) const;
+	void renderImageGeneric(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
+		const AssetSystem& assetSystem) const;
 
 	Rectangle convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const;
 
 private:
 
 	void createDefaultTheme();
+
+	AssetSystem&		m_assetSystem;
 
 	EntitySystem		m_entitySystem;
 	TransformSystem		m_transformSystem;
@@ -156,6 +189,8 @@ private:
 	Id					m_rootId = InvalidId;
 
 	Table<WindowEntity>	m_windows;
+
+	Table<UIWidgetRenderer>		m_uiWidgetRenderers;
 
 	Table<Text>			m_texts;
 	Table<Button>		m_buttons;

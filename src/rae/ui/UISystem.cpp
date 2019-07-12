@@ -50,7 +50,8 @@ UISystem::~UISystem()
 UIScene& UISystem::createUIScene(const String& name)
 {
 	LOG_F(INFO, "Creating UIScene: %s", name.c_str());
-	m_uiScenes.emplace_back(std::make_unique<UIScene>(name, m_time, m_input, m_screenSystem, m_debugSystem));
+	m_uiScenes.emplace_back(std::make_unique<UIScene>(
+		name, m_time, m_input, m_screenSystem, m_debugSystem, m_assetSystem));
 	return *m_uiScenes.back();
 }
 

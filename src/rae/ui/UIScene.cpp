@@ -18,14 +18,16 @@ UIScene::UIScene(
 	const Time& time,
 	Input& input,
 	ScreenSystem& screenSystem,
-	DebugSystem& debugSystem) :
+	DebugSystem& debugSystem,
+	AssetSystem& assetSystem) :
 		ISystem(name),
 		m_entitySystem("UISystem"),
 		m_transformSystem(),
 		m_selectionSystem(m_transformSystem),
 		m_input(input),
 		m_screenSystem(screenSystem),
-		m_debugSystem(debugSystem)
+		m_debugSystem(debugSystem),
+		m_assetSystem(assetSystem)
 {
 	addTable(m_windows);
 	addTable(m_texts);
@@ -294,6 +296,12 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 {
 	m_nanoVG = nanoVG;
 
+	query<UIWidgetRenderer>(m_uiWidgetRenderers, [&](Id id, const UIWidgetRenderer& renderer)
+	{
+		renderer.render(id);
+	});
+
+	/*
 	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
 	const Color& buttonHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Hover];
 	const Color& buttonActiveColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Active];
@@ -303,9 +311,6 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 	const Color& buttonHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::HoverText];
 	const Color& buttonActiveTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveText];
 	const Color& buttonActiveHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHoverText];
-
-	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
-	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
 
 	const Color& viewportLineColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line];
 	const Color& viewportLineActiveColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::LineActive];
@@ -408,6 +413,7 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 				(hasColor ? getColor(id) : buttonTextColor));
 		}
 	});
+	*/
 
 	if (m_debugSystem.isEnabled())
 	{
@@ -511,8 +517,59 @@ Rectangle UIScene::convertToRectangle(const Transform& transform, const Box& box
 		m_screenSystem.mmToPixels(dimensions.y));
 }
 
+void UIScene::renderViewportLine(Id id) const
+{
+	if (not m_viewports.check(id))
+		return;
+
+	const Color& viewportLineColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line];
+	const Color& viewportLineActiveColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::LineActive];
+
+	if (m_transformSystem.hasTransform(id) and
+		m_transformSystem.hasBox(id))
+	{
+		const Viewport& viewport = m_viewports.get(id);
+		const Transform& transform = m_transformSystem.getTransform(id);
+		const Box& box = m_transformSystem.getBox(id);
+		const Pivot& pivot = m_transformSystem.getPivot(id);
+
+		bool hasColor = m_colors.check(id);
+		//bool hovered = m_selectionSystem.isHovered(id);
+
+		renderBorder(transform, box, pivot,
+			viewport.active ? viewportLineActiveColor :
+			hasColor ? getColor(id) :
+			viewportLineColor);
+	}
+}
+
+void UIScene::renderPanel(Id id) const
+{
+	if (not m_panels.check(id))
+		return;
+
+	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
+	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
+
+	if (m_transformSystem.hasTransform(id) and
+		m_transformSystem.hasBox(id))
+	{
+		const Transform& transform = m_transformSystem.getTransform(id);
+		const Box& box = m_transformSystem.getBox(id);
+		const Pivot& pivot = m_transformSystem.getPivot(id);
+
+		bool hasColor = m_colors.check(id);
+		bool hovered = m_selectionSystem.isHovered(id);
+
+		renderRectangle(transform, box, pivot,
+				hovered ? panelHoverColor :
+				hasColor ? getColor(id) :
+				panelBackgroundColor);
+	}
+}
+
 void UIScene::renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color,
-	float cornerRadius, float thickness)
+	float cornerRadius, float thickness) const
 {
 	UIRenderer::renderBorderNano(m_nanoVG,
 		convertToRectangle(transform, box, pivot),
@@ -521,12 +578,12 @@ void UIScene::renderBorder(const Transform& transform, const Box& box, const Piv
 		thickness == 0.0f ? 1.0f : m_screenSystem.mmToPixels(thickness));
 }
 
-void UIScene::renderCircle(const Transform& transform, float diameter, const Color& color)
+void UIScene::renderCircle(const Transform& transform, float diameter, const Color& color) const
 {
 	renderCircle(vec2(transform.position.x, transform.position.y), diameter, color);
 }
 
-void UIScene::renderCircle(const vec2& position, float diameter, const Color& color)
+void UIScene::renderCircle(const vec2& position, float diameter, const Color& color) const
 {
 	UIRenderer::renderCircleNano(m_nanoVG,
 		m_screenSystem.mmToPixels(position),
@@ -535,13 +592,17 @@ void UIScene::renderCircle(const vec2& position, float diameter, const Color& co
 }
 
 void UIScene::renderArc(const vec2& origin, float fromAngleRad, float toAngleRad,
-	float diameter, float thickness, const Color& color)
+	float diameter, float thickness, const Color& color) const
 {
 	UIRenderer::renderArcNano(m_nanoVG, m_screenSystem.mmToPixels(origin), fromAngleRad, toAngleRad,
 		m_screenSystem.mmToPixels(diameter), m_screenSystem.mmToPixels(thickness), color);
 }
 
-void UIScene::renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color)
+void UIScene::renderRectangle(
+	const Transform& transform,
+	const Box& box,
+	const Pivot& pivot,
+	const Color& color) const
 {
 	UIRenderer::renderRectangleNano(m_nanoVG,
 		convertToRectangle(transform, box, pivot),
@@ -549,8 +610,50 @@ void UIScene::renderRectangle(const Transform& transform, const Box& box, const 
 		color);
 }
 
-void UIScene::renderButton(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
-	const Color& color, const Color& textColor)
+void UIScene::renderButton(Id id) const
+{
+	if (not isButton(id))
+		return;
+
+	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
+	const Color& buttonHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Hover];
+	const Color& buttonActiveColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Active];
+	const Color& buttonActiveHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHover];
+
+	const Color& buttonTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Text];
+	const Color& buttonHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::HoverText];
+	const Color& buttonActiveTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveText];
+	const Color& buttonActiveHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHoverText];
+
+	if (m_transformSystem.hasTransform(id) and
+		m_transformSystem.hasBox(id))
+	{
+		const Button& button = getButton(id);
+		const Transform& transform = m_transformSystem.getTransform(id);
+		const Box& box = m_transformSystem.getBox(id);
+		const Pivot& pivot = m_transformSystem.getPivot(id);
+
+		bool hasColor = m_colors.check(id);
+		bool active = isActive(id) || m_selectionSystem.isSelected(id);
+		bool hovered = m_selectionSystem.isHovered(id);
+		// More like a debug or editor feature
+		//bool selected = m_selectionSystem.isSelected(id);
+
+		renderButtonGeneric(button.text(), transform, box, pivot,
+			(hovered and active ? buttonActiveHoverColor :
+				hovered ? buttonHoverColor :
+				active ? buttonActiveColor :
+				hasColor ? getColor(id) :
+				buttonBackgroundColor),
+			(hovered and active ? buttonActiveHoverTextColor :
+				hovered ? buttonHoverTextColor :
+				active ? buttonActiveTextColor :
+				buttonTextColor));
+	}
+}
+
+void UIScene::renderButtonGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
+	const Color& color, const Color& textColor) const
 {
 	UIRenderer::renderButtonNano(m_nanoVG, text,
 		convertToRectangle(transform, box, pivot),
@@ -559,16 +662,57 @@ void UIScene::renderButton(const String& text, const Transform& transform, const
 		textColor);
 }
 
-void UIScene::renderText(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
-	const Color& color)
+void UIScene::renderText(Id id) const
+{
+	if (not m_texts.check(id))
+		return;
+
+	if (m_transformSystem.hasTransform(id) and
+			m_transformSystem.hasBox(id))
+	{
+		const Text& text = m_texts.get(id);
+		const Transform& transform = m_transformSystem.getTransform(id);
+		const Box& box = m_transformSystem.getBox(id);
+		const Pivot& pivot = m_transformSystem.getPivot(id);
+
+		bool hasColor = m_colors.check(id);
+		bool active = isActive(id) || m_selectionSystem.isSelected(id);
+		bool hovered = m_selectionSystem.isHovered(id);
+		// More like a debug or editor feature
+		//bool selected = m_selectionSystem.isSelected(id);
+
+		renderTextGeneric(text.text, transform, box, pivot,
+			(hasColor ? getColor(id) : Colors::white));
+	}
+}
+
+void UIScene::renderTextGeneric(const String& text, const Transform& transform, const Box& box,
+	const Pivot& pivot, const Color& color) const
 {
 	UIRenderer::renderTextNano(m_nanoVG, text,
 		convertToRectangle(transform, box, pivot),
 		color);
 }
 
-void UIScene::renderImage(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
-const AssetSystem& assetSystem)
+void UIScene::renderImage(Id id) const
+{
+	if (not m_imageLinks.check(id))
+		return;
+
+	if (m_transformSystem.hasTransform(id) and
+		m_transformSystem.hasBox(id))
+	{
+		const ImageLink& imageLink = m_imageLinks.get(id);
+		const Transform& transform = m_transformSystem.getTransform(id);
+		const Box& box = m_transformSystem.getBox(id);
+		const Pivot& pivot = m_transformSystem.getPivot(id);
+
+		renderImageGeneric(imageLink, transform, box, pivot, m_assetSystem);
+	}
+}
+
+void UIScene::renderImageGeneric(ImageLink imageLink, const Transform& transform, const Box& box,
+	const Pivot& pivot, const AssetSystem& assetSystem) const
 {
 	const auto& image = assetSystem.getImage(imageLink);
 
@@ -619,6 +763,11 @@ Id UIScene::createButton(const String& text, const vec3& position, const vec3& e
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addButton(id, Button(text));
 	addCommand(id, Command(handler));
+
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderButton, this, std::placeholders::_1)));
+
 	return id;
 }
 
@@ -666,6 +815,11 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addText(id, text);
+
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderText, this, std::placeholders::_1)));
+
 	return id;
 }
 
@@ -677,14 +831,19 @@ Id UIScene::createViewport(int sceneIndex, const vec3& position, const vec3& ext
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addViewport(id, Viewport(sceneIndex));
+
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderViewportLine, this, std::placeholders::_1)));
+
 	return id;
 }
 
 Id UIScene::createAdvancedViewport(int sceneIndex, const vec3& position, const vec3& extents)
 {
 	Id viewport = createViewport(sceneIndex, position, extents);
-
 	addMaximizerAndButton(viewport);
+	return viewport;
 }
 
 void UIScene::addViewport(Id id, Viewport&& entity)
@@ -749,6 +908,11 @@ Id UIScene::createPanel(const vec3& position, const vec3& extents)
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addPanel(id, Panel());
+
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderPanel, this, std::placeholders::_1)));
+
 	return id;
 }
 
@@ -856,6 +1020,11 @@ Id UIScene::createImageBox(asset::Id imageLink, const vec3& position, const vec3
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addImageLink(id, ImageLink(imageLink));
+
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderImage, this, std::placeholders::_1)));
+
 	return id;
 }
 
@@ -916,9 +1085,14 @@ void UIScene::addButton(Id id, Button&& element)
 	m_buttons.assign(id, std::move(element));
 }
 
-const Button& UIScene::getButton(Id id)
+const Button& UIScene::getButton(Id id) const
 {
 	return m_buttons.get(id);
+}
+
+bool UIScene::isButton(Id id) const
+{
+	return m_buttons.check(id);
 }
 
 void UIScene::addColor(Id id, Color&& element)
@@ -926,7 +1100,7 @@ void UIScene::addColor(Id id, Color&& element)
 	m_colors.assign(id, std::move(element));
 }
 
-const Color& UIScene::getColor(Id id)
+const Color& UIScene::getColor(Id id) const
 {
 	return m_colors.get(id);
 }
@@ -951,7 +1125,7 @@ void UIScene::setActive(Id id, bool active)
 	m_actives.assign(id, std::move(Active(active)));
 }
 
-bool UIScene::isActive(Id id)
+bool UIScene::isActive(Id id) const
 {
 	return m_actives.get(id);
 }

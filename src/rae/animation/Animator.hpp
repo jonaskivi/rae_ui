@@ -58,18 +58,27 @@ public:
 	{
 	}
 
+	Animator(
+		T startValue,
+		T targetValue,
+		float duration,
+		AnimatorType setType = AnimatorType::Smoothstep)
+	{
+		init(startValue, targetValue, duration, setType);
+	}
+
 	~Animator(){}
 
 	// Value must be between 0.0 - 1.0
-	float Smoothstep(float value)
+	float smoothstep(float value)
 	{
 		return value * value * (3.0f - 2.0f * (value));
 	}
 
-	T SmoothstepEase(float time, T startValue, T valueChange, float duration)
+	T smoothstepEase(float time, T startValue, T valueChange, float duration)
 	{
 		float v = time / duration;
-		v = Smoothstep(v);
+		v = smoothstep(v);
 		return (startValue * v) + ((startValue + valueChange) * (1.0f - v));
 	}
 
@@ -147,6 +156,12 @@ public:
 		m_animatorType = setType;
 	}
 
+	void restart()
+	{
+		m_value = m_startValue;
+		m_startTime = -5.0f;
+	}
+
 	// returns true if the Animator is still running.
 	bool update(float currentTime)
 	{
@@ -169,7 +184,7 @@ public:
 		switch (m_animatorType)
 		{
 			case AnimatorType::Smoothstep:
-				m_value = SmoothstepEase(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
+				m_value = smoothstepEase(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
 				break;
 			case AnimatorType::SineIn:
 				m_value = sineEaseIn(currentTime - m_startTime, m_startValue, m_valueChange, m_duration);
@@ -199,7 +214,7 @@ public:
 	{
 		m_value = set;
 		m_valueChange = set;
-		m_duration = 0.0f;
+		//RAE_REMOVE m_duration = 0.0f;
 	}
 
 	bool isFinished() // Could also be called isTargetReached

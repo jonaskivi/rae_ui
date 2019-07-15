@@ -44,6 +44,9 @@ public:
 	TransformSystem&		transformSystem() { return m_transformSystem; }
 	const TransformSystem&	transformSystem() const { return m_transformSystem; }
 
+	AnimationSystem&		animationSystem() { return m_animationSystem; }
+	const AnimationSystem&	animationSystem() const { return m_animationSystem; }
+
 	void handleInput(const Array<InputEvent>& events);
 	void viewportHandleInput(const InputState& inputState);
 	UpdateStatus update() override;
@@ -163,6 +166,7 @@ private:
 
 	EntitySystem		m_entitySystem;
 	TransformSystem		m_transformSystem;
+	AnimationSystem		m_animationSystem;
 	SelectionSystem		m_selectionSystem;
 
 	Input&				m_input;

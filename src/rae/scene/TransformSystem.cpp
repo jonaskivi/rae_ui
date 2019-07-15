@@ -1,5 +1,7 @@
 #include "rae/scene/TransformSystem.hpp"
 
+#include "rae/core/Time.hpp" // for AnimationSystem
+
 using namespace rae;
 
 static const int ReserveTransforms = 1000;
@@ -266,4 +268,56 @@ Box TransformSystem::getAABBWorldSpace(Id id) const
 	box.translate(getPivot(id));
 	box.transform(getTransform(id));
 	return box;
+}
+
+AnimationSystem::AnimationSystem(
+	const Time& time,
+	TransformSystem& transformSystem) :
+		m_time(time),
+		m_transformSystem(transformSystem)
+{
+}
+
+UpdateStatus AnimationSystem::update()
+{
+	query<PositionAnimator>(m_positionAnimators, [&](Id id, PositionAnimator& anim)
+	{
+		anim.update(m_time.time());
+		m_transformSystem.setPosition(id, anim.value());
+
+		//LOG_F(INFO, "anim: %i pos: %s", id, Utils::toString(anim.value()).c_str());
+
+		if (anim.isFinished())
+		{
+			//LOG_F(INFO, "restart anim: %i", id);
+			anim.restart();
+		}
+	});
+
+	return UpdateStatus::NotChanged;
+}
+
+bool AnimationSystem::hasPositionAnimator(Id id) const
+{
+	return m_positionAnimators.check(id);
+}
+
+void AnimationSystem::addPositionAnimator(Id id, PositionAnimator&& anim)
+{
+	m_positionAnimators.assign(id, std::move(anim));
+}
+
+void AnimationSystem::setPositionAnimator(Id id, PositionAnimator&& anim)
+{
+	m_positionAnimators.assign(id, std::move(anim));
+}
+
+void AnimationSystem::setPositionAnimator(Id id, const PositionAnimator& anim)
+{
+	m_positionAnimators.assign(id, anim);
+}
+
+const PositionAnimator& AnimationSystem::getPositionAnimator(Id id) const
+{
+	return m_positionAnimators.get(id);
 }

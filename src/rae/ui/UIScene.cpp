@@ -23,6 +23,7 @@ UIScene::UIScene(
 		ISystem(name),
 		m_entitySystem("UISystem"),
 		m_transformSystem(),
+		m_animationSystem(time, m_transformSystem),
 		m_selectionSystem(m_transformSystem),
 		m_input(input),
 		m_screenSystem(screenSystem),
@@ -198,6 +199,7 @@ UpdateStatus UIScene::update()
 		updater.update(id);
 	});
 
+	m_animationSystem.update(); // RAE_TODO return value.
 	m_transformSystem.update(); // RAE_TODO return value.
 
 	doLayout();

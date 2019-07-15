@@ -46,16 +46,17 @@ void GameMenuExample::initUI()
 	uiSystem.connectWindowToScene(windowSystem.mainWindow(), ui);
 
 	auto& trans = ui.transformSystem();
+	auto& anim = ui.animationSystem();
 
 	{
 		Id panel = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f));
 
 		ui.addMaximizer(panel);
 		ui.toggleMaximizer(panel);
-		ui.addStackLayout(panel);
+		//RAE_TEMP ui.addStackLayout(panel);
 
 		Id testButton1 = ui.createButton("Test Button 1",
-			Rectangle(10.0f, 81.0f, 22.0f, 6.0f),
+			Rectangle(80.0f, 20.0f, 22.0f, 6.0f),
 			[&]()
 			{
 				LOG_F(INFO, "Activate Test Button 1");
@@ -64,15 +65,20 @@ void GameMenuExample::initUI()
 		ui.addDraggable(testButton1);
 
 		Id testButton2 = ui.createButton("Test Button 2",
-			Rectangle(10.0f, 81.0f, 22.0f, 6.0f),
+			Rectangle(5.0f, 30.0f, 60.0f, 10.0f),
 			[&]()
 			{
 				LOG_F(INFO, "Activate Test Button 2");
 			});
 		ui.addDraggable(testButton2);
+		anim.addPositionAnimator(testButton2,
+			PositionAnimator(
+				vec3(5.0f, 30.0f, 0.0f),
+				vec3(80.0f, 40.0f, 0.0f),
+				2.0f, AnimatorType::CubicOut));
 
 		Id testButton3 = ui.createButton("Test Button 3",
-			Rectangle(10.0f, 81.0f, 22.0f, 6.0f),
+			Rectangle(30.0f, 80.0f, 70.0f, 20.0f),
 			[&]()
 			{
 				LOG_F(INFO, "Activate Test Button 3");

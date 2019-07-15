@@ -12,31 +12,38 @@
 
 using namespace rae;
 
+Engine* g_engine = nullptr;
+
 Engine::Engine() :
 	Engine("Rae Application", -1, -1)
 {
+	g_engine = this;
 }
 
-Engine::Engine(const String& applicationName, int mainWindowWidth, int mainWindowHeight) :
-	m_screenSystem(),
-	m_input(m_screenSystem),
-	m_windowSystem(m_input, applicationName, mainWindowWidth, mainWindowHeight),
-	m_debugSystem(),
-	m_assetSystem(m_time, m_windowSystem.mainWindow().nanoVG()),
-	m_sceneSystem(m_time, m_input/*, m_assetSystem*/),
-	m_uiSystem(m_windowSystem, m_time, m_input, m_screenSystem, m_assetSystem, m_debugSystem),
-	m_rayTracer(m_time, m_windowSystem, m_assetSystem, m_sceneSystem),
-	m_renderSystem(m_time, m_input, m_screenSystem,
-		m_windowSystem, m_assetSystem, m_uiSystem, m_sceneSystem,
-		m_rayTracer)
+Engine::Engine(
+	const String& applicationName,
+	int mainWindowWidth,
+	int mainWindowHeight,
+	bool isFullscreen) :
+		m_screenSystem(),
+		m_input(m_screenSystem),
+		m_windowSystem(m_input, applicationName, mainWindowWidth, mainWindowHeight, isFullscreen),
+		m_debugSystem(),
+		m_assetSystem(m_time, m_windowSystem.mainWindow().nanoVG()),
+		m_sceneSystem(m_time, m_input/*, m_assetSystem*/),
+		m_uiSystem(m_windowSystem, m_time, m_input, m_screenSystem, m_assetSystem, m_debugSystem),
+		m_rayTracer(m_time, m_windowSystem, m_assetSystem, m_sceneSystem),
+		m_renderSystem(m_time, m_input, m_screenSystem,
+			m_windowSystem, m_assetSystem, m_uiSystem, m_sceneSystem,
+			m_rayTracer)
 {
+	g_engine = this;
 	m_time.initTime(glfwGetTime());
+}
 
-	/* RAE_TODO HOW TO HANDLE INPUT:
-	using std::placeholders::_1;
-	m_input.connectMouseButtonPressEventHandler(std::bind(&Engine::onMouseEvent, this, _1));
-	m_input.connectKeyEventHandler(std::bind(&Engine::onKeyEvent, this, _1));
-	*/
+Engine::~Engine()
+{
+	g_engine = nullptr;
 }
 
 void Engine::destroyEntity(Id id)
@@ -92,12 +99,8 @@ void Engine::run()
 		{
 			glfwPollEvents();
 
-			// RAE_TODO reimplement window close support for multiple windows. Press ESC for now.
-			//if (glfwWindowShouldClose(windowHandle) != 0)
-			//{
-			//	m_running = false;
-			//}
-
+			// RAE_TODO: Hmm. How does time previous thing here react to window size update()?
+			// It probably doesn't work properly with that.
 			m_time.setPreviousTime();
 		}
 	}
@@ -131,6 +134,12 @@ UpdateStatus Engine::update()
 			system->defragmentTables();
 		}
 		m_defragmentTables = false;
+	}
+
+	if (m_windowSystem.windowCount() == 0)
+	{
+		quit();
+		return UpdateStatus::Changed;
 	}
 
 	// Update window sizes to scenes

@@ -21,11 +21,17 @@ class Window;
 class WindowSystem : public ISystem
 {
 public:
-	WindowSystem(Input& input, const String& mainWindowName, int mainWindowWidth = -1, int mainWindowHeight = -1);
+	WindowSystem(
+		Input& input,
+		const String& mainWindowName,
+		int mainWindowWidth = -1,
+		int mainWindowHeight = -1,
+		bool isFullscreen = false);
 	WindowSystem(GLFWwindow* windowHandle, Input& input);
 	~WindowSystem();
 
 	virtual UpdateStatus update() override;
+	virtual void onFrameEnd() override;
 
 	// TODO multiwindow support
 	void osEventResizeWindow(GLFWwindow* windowHandle, int width, int height);
@@ -40,15 +46,15 @@ public:
 	void osScrollEvent(GLFWwindow* windowHandle, float scrollX, float scrollY);
 	void osKeyEvent(GLFWwindow* windowHandle, int key, int scancode, int action, int mods);
 
-	const Window& mainWindow() const { return m_windows[0]; }
-	Window& mainWindow() { return m_windows[0]; }
+	const Window& mainWindow() const { return *m_windows[0]; }
+	Window& mainWindow() { return *m_windows[0]; }
 
-	const Window& window(int index) const { return m_windows[index]; }
-	Window& window(int index) { return m_windows[index]; }
+	const Window& window(int index) const { return *m_windows[index]; }
+	Window& window(int index) { return *m_windows[index]; }
 	Window* window(GLFWwindow* windowHandle);
 	int windowCount() const { return (int)m_windows.size(); }
 
-	Window& createWindow(const String& title, int width, int height);
+	Window& createWindow(const String& title, int width, int height, bool isFullscreen);
 
 private:
 
@@ -56,8 +62,7 @@ private:
 
 	Input& m_input;
 
-	// Possibly we could use Table here too? But can we use it without an EntitySystem?
-	Array<Window>		m_windows;
+	Array<UniquePtr<Window>>		m_windows;
 };
 
 }

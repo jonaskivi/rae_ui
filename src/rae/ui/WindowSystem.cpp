@@ -117,15 +117,20 @@ void WindowSystem::osKeyEvent(GLFWwindow* windowHandle, int key, int scancode, i
 	m_input.osKeyEvent(*window2, eventType, key, (int32_t)scancode);
 }
 
-WindowSystem::WindowSystem(Input& input, const String& mainWindowName, int mainWindowWidth, int mainWindowHeight) :
-	ISystem("WindowSystem"),
-	m_input(input)
+WindowSystem::WindowSystem(
+	Input& input,
+	const String& mainWindowName,
+	int mainWindowWidth,
+	int mainWindowHeight,
+	bool isFullscreen) :
+		ISystem("WindowSystem"),
+		m_input(input)
 {
 	g_windowSystem = this;
 
 	initOnce();
 
-	createWindow(mainWindowName, mainWindowWidth, mainWindowHeight);
+	createWindow(mainWindowName, mainWindowWidth, mainWindowHeight, isFullscreen);
 }
 
 WindowSystem::WindowSystem(GLFWwindow* windowHandle, Input& input) :
@@ -135,7 +140,7 @@ WindowSystem::WindowSystem(GLFWwindow* windowHandle, Input& input) :
 
 	initOnce();
 
-	m_windows.emplace_back(windowHandle);
+	m_windows.emplace_back(std::make_unique<Window>(windowHandle));
 }
 
 WindowSystem::~WindowSystem()
@@ -147,18 +152,42 @@ UpdateStatus WindowSystem::update()
 {
 	for (auto&& window : m_windows)
 	{
-		window.update();
+		window->update();
 	}
 
 	return UpdateStatus::NotChanged;
+}
+
+void WindowSystem::onFrameEnd()
+{
+	ISystem::onFrameEnd();
+
+	int i = 0;
+	Array<int> shouldClose;
+	for (auto&& window : m_windows)
+	{
+		if (window->isOpen() == false)
+		{
+			shouldClose.emplace_back(i);
+		}
+		++i;
+	}
+
+	// Currently UIScene is not automatically destroyed when the window closes. You could still create
+	// another window and start showing an existing UIScene in that window...
+	// But it will get destroyed when the engine quits.
+	for (int idx : shouldClose)
+	{
+		m_windows.erase(m_windows.begin() + idx);
+	}
 }
 
 Window* WindowSystem::window(GLFWwindow* windowHandle)
 {
 	for (auto&& window : m_windows)
 	{
-		if (window.windowHandle() == windowHandle)
-			return &window;
+		if (window->windowHandle() == windowHandle)
+			return window.get();
 	}
 	return nullptr;
 }
@@ -183,14 +212,10 @@ void WindowSystem::initOnce()
 	once = true;
 }
 
-Window& WindowSystem::createWindow(const String& title, int width, int height)
+Window& WindowSystem::createWindow(const String& title, int width, int height, bool isFullscreen)
 {
 	LOG_F(INFO, "Creating window: %s", title.c_str());
 
-	//auto* window = new Window(title, width, height);
-	//m_windows.push_back(window);
-	//return m_windows[0]->windowHandle();
-
-	m_windows.emplace_back(title, width, height);
-	return m_windows.back();
+	m_windows.emplace_back(std::make_unique<Window>(title, width, height, isFullscreen));
+	return *m_windows.back();
 }

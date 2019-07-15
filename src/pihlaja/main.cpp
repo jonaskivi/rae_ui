@@ -28,8 +28,6 @@
 
 //----------------------------------------
 
-Engine* g_engine = nullptr;
-
 int main(int argc, char* argv[])
 {
 	loguru::init(argc, argv);
@@ -81,16 +79,12 @@ int main(int argc, char* argv[])
 
 	{
 		Test2DCoordinates test2DCoordinates;
-		g_engine = test2DCoordinates.getEngine();
 		test2DCoordinates.run();
-		g_engine = nullptr;
 	}
 
 	{
 		Pihlaja pihlaja;
-		g_engine = pihlaja.getEngine();
 		pihlaja.run();
-		g_engine = nullptr;
 	}
 
 	glfwTerminate();

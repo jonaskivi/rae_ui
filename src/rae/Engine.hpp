@@ -33,7 +33,12 @@ class Engine
 {
 public:
 	Engine();
-	Engine(const String& applicationName, int mainWindowWidth = -1, int mainWindowHeight = -1);
+	Engine(
+		const String& applicationName,
+		int mainWindowWidth = -1,
+		int mainWindowHeight = -1,
+		bool isFullscreen = false);
+	~Engine();
 
 	// Restarts the engine if it was stopped with quit().
 	void start();

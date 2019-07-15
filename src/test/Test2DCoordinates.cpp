@@ -5,7 +5,7 @@
 using namespace rae;
 
 Test2DCoordinates::Test2DCoordinates() :
-	m_engine("Test 2D Coordinates", 1920, 1080),
+	m_engine("Test 2D Coordinates", 1920, 1080, false),
 	m_input(m_engine.input()),
 	m_uiSystem(m_engine.uiSystem())
 {
@@ -158,7 +158,8 @@ void Test2DCoordinates::initUISecondWindow()
 	auto& uiSystem = m_uiSystem;
 	auto& windowSystem = m_engine.windowSystem();
 
-	Window& window = windowSystem.createWindow(windowName, 600, 300);
+	bool isFullscreen = false;
+	Window& window = windowSystem.createWindow(windowName, 600, 300, isFullscreen);
 
 	UIScene& ui = uiSystem.createUIScene(windowName);
 	uiSystem.connectWindowToScene(window, ui);

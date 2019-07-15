@@ -18,7 +18,7 @@ namespace rae
 class Window
 {
 public:
-	Window(const String& name, int width, int height);
+	Window(const String& name, int width, int height, bool isFullscreen);
 
 	Window(GLFWwindow* windowHandle) :
 		m_windowHandle(windowHandle)
@@ -27,7 +27,8 @@ public:
 
 	~Window();
 
-	Window(Window&& other);
+	void create(const String& name, int width, int height, bool isFullscreen);
+	void destroy();
 
 #ifdef version_glfw
 	GLFWwindow* windowHandle() const { return m_windowHandle; }
@@ -63,13 +64,16 @@ public:
 	const Array<InputEvent>& events() { return m_events; }
 	void clearEvents() { m_events.clear(); }
 
+	bool isOpen() const { return m_isOpen; }
+	void toggleFullscreen();
+
 private:
 
 #ifdef version_glfw
-	GLFWwindow* m_windowHandle;
+	GLFWwindow* m_windowHandle = nullptr;
 #endif
 
-	NVGcontext* m_nanoVG;
+	NVGcontext* m_nanoVG = nullptr;
 
 	String m_name;
 	int m_width = 0;
@@ -82,6 +86,15 @@ private:
 	//float m_pixelsPerMM = 0.0f;
 
 	int m_uiSceneIndex = -1;
+
+	bool m_isOpen = true;
+
+	bool m_isFullscreen = false;
+	// Save windowed position and size when going to fullscreen:
+	int m_positionXBackup = 0;
+	int m_positionYBackup = 0;
+	int m_widthBackup = 0;
+	int m_heightBackup = 0;
 
 	// Events to be handled.
 	Array<InputEvent> m_events;

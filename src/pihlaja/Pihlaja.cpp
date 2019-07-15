@@ -325,6 +325,8 @@ void Pihlaja::onKeyEvent(const Input& input)
 				setNeedsFrameUpdate(true);
 				break;
 				*/
+			// Doesn't quite work right yet. Needs GLFW 3.2 to work properly. possibly.
+			//case KeySym::F: m_engine.windowSystem().mainWindow().toggleFullscreen(); break;
 			//RAE_OLD case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
 			case KeySym::P: m_engine.rayTracer().toggleFastMode(); break;
 			case KeySym::H: m_engine.rayTracer().toggleVisualizeFocusDistance(); break;

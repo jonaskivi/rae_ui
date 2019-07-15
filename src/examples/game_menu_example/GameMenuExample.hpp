@@ -14,12 +14,12 @@
 namespace rae
 {
 
-class Test2DCoordinates : public rae::ISystem
+class GameMenuExample : public rae::ISystem
 {
 public:
-	Test2DCoordinates();
+	GameMenuExample();
 
-	String name() { return "Test2DCoordinates"; }
+	String name() { return "GameMenuExample"; }
 
 	Engine* getEngine() { return &m_engine; }
 
@@ -35,8 +35,6 @@ public:
 	void defragmentTables() override {}
 
 protected:
-
-	void initUISecondWindow();
 
 	Engine m_engine;
 	UISystem& m_uiSystem;

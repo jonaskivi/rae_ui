@@ -241,83 +241,34 @@ UpdateStatus Test2DCoordinates::update()
 	return UpdateStatus::Changed;
 }
 
-void Test2DCoordinates::renderGrid(NVGcontext* vg, float width, float height, float pixelStep, vec2 startPos)
-{
-	Color color = Colors::darkGray;
-	Color midColor = Colors::gray;
-	Color accentColor = Colors::lightGray;
-
-	nvgSave(vg);
-
-	//nvgShapeAntiAlias(vg, 0); // Should be fixed in later NanoVG: https://github.com/memononen/nanovg/issues/471
-
-	NVGcolor strokeColor = nvgRGBAf(color.r, color.g, color.b, color.a);
-	NVGcolor midColor2 = nvgRGBAf(midColor.r, midColor.g, midColor.b, midColor.a);
-	NVGcolor accColor = nvgRGBAf(accentColor.r, accentColor.g, accentColor.b, accentColor.a);
-	nvgStrokeColor(vg, strokeColor);
-	nvgStrokeWidth(vg, 1.0f);
-
-	auto drawLines = [&strokeColor, &midColor2, &accColor]
-		(NVGcontext* vg, int lineCount, vec2 pos, vec2 xIter, vec2 yIter)
-	{
-		for (int i = 0; i < lineCount; ++i)
-		{
-			if (i % 100 == 0)
-			{
-				nvgStrokeColor(vg, accColor);
-			}
-			else if (i % 10 == 0)
-			{
-				nvgStrokeColor(vg, midColor2);
-			}
-			else
-			{
-				nvgStrokeColor(vg, strokeColor);
-			}
-
-			nvgBeginPath(vg);
-			nvgMoveTo(vg, pos.x, pos.y);
-			pos += xIter;
-			nvgLineTo(vg, pos.x, pos.y);
-			nvgStroke(vg);
-			pos -= xIter;
-			pos += yIter;
-		}
-	};
-
-	// Horizontal lines
-	drawLines(vg, 1+(int)height/pixelStep, startPos, vec2(width, 0.0f), vec2(0.0f, pixelStep));
-	// Vertical lines
-	drawLines(vg, 1+(int)width/pixelStep, startPos, vec2(0.0f, height), vec2(pixelStep, 0.0f));
-
-	nvgRestore(vg);
-}
-
 void Test2DCoordinates::render2D(UIScene& uiScene, NVGcontext* vg)
 {
-	// Pixel grid:
-	//renderGrid(vg, 1920.0f, 1080.0f);
+	if (m_engine.debugSystem().isEnabled())
+	{
+		// Pixel grid:
+		//UIRenderer::renderGrid(vg, 1920.0f, 1080.0f);
 
-	// cm grid:
-	renderGrid(vg, 1920.0f, 1080.0f, m_engine.screenSystem().mmToPixels(1.0f));
+		// cm grid:
+		UIRenderer::renderGrid(vg, 1920.0f, 1080.0f, m_engine.screenSystem().mmToPixels(1.0f));
 
-	float cornerRadius = 0.0f;
-	UIRenderer::renderRectangleNano(vg, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
-		cornerRadius, Color(1.0f, 0.0f, 1.0f, 1.0f));
+		float cornerRadius = 0.0f;
+		UIRenderer::renderRectangleNano(vg, Rectangle(200.0f, 100.0f, 400.0f, 150.0f),
+			cornerRadius, Color(1.0f, 0.0f, 1.0f, 1.0f));
 
-	const float lineHeight = 45.0f;
+		const float lineHeight = 45.0f;
 
-	nvgFontFace(vg, "sans");
+		nvgFontFace(vg, "sans");
 
-	float vertPos = 250.0f - 100.0f;
+		float vertPos = 250.0f - 100.0f;
 
-	nvgFontSize(vg, 22.0f);
-	nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+		nvgFontSize(vg, 22.0f);
+		nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
 
-	String text = "Rectangle x: 200 y: 100 w: 400 h: 150";
+		String text = "Rectangle x: 200 y: 100 w: 400 h: 150";
 
-	nvgFillColor(vg, nvgRGBAf(1.0f, 1.0f, 1.0f, 1.0f));
-	nvgText(vg, 220.0f, vertPos, text.c_str(), nullptr);
-	vertPos += lineHeight;
+		nvgFillColor(vg, nvgRGBAf(1.0f, 1.0f, 1.0f, 1.0f));
+		nvgText(vg, 220.0f, vertPos, text.c_str(), nullptr);
+		vertPos += lineHeight;
+	}
 }
 

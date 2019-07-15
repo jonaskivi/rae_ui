@@ -16,6 +16,7 @@
 #include "nanovg_gl_utils.h"
 
 #include "rae/Engine.hpp"
+#include "examples/game_menu_example/GameMenuExample.hpp"
 #include "test/Test2DCoordinates.hpp"
 #include "pihlaja/Pihlaja.hpp"
 
@@ -77,6 +78,12 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
+	{
+		GameMenuExample gameMenuExample;
+		gameMenuExample.run();
+	}
+
+	// Temporarily disabled
 	{
 		Test2DCoordinates test2DCoordinates;
 		test2DCoordinates.run();

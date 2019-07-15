@@ -169,7 +169,7 @@ public:
 	void renderImageGeneric(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
 		const AssetSystem& assetSystem) const;
 
-	Rectangle convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const;
+	Rectangle convertToPixelRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const;
 
 private:
 

@@ -318,3 +318,55 @@ void UIRenderer::renderTextNano(
 
 	nvgRestore(vg);
 }
+
+void UIRenderer::renderGrid(NVGcontext* vg, float width, float height, float pixelStep, vec2 startPos)
+{
+	Color color = Colors::darkGray;
+	Color midColor = Colors::gray;
+	Color accentColor = Colors::lightGray;
+
+	nvgSave(vg);
+
+	//nvgShapeAntiAlias(vg, 0); // Should be fixed in later NanoVG: https://github.com/memononen/nanovg/issues/471
+
+	NVGcolor strokeColor = nvgRGBAf(color.r, color.g, color.b, color.a);
+	NVGcolor midColor2 = nvgRGBAf(midColor.r, midColor.g, midColor.b, midColor.a);
+	NVGcolor accColor = nvgRGBAf(accentColor.r, accentColor.g, accentColor.b, accentColor.a);
+	nvgStrokeColor(vg, strokeColor);
+	nvgStrokeWidth(vg, 1.0f);
+
+	auto drawLines = [&strokeColor, &midColor2, &accColor]
+		(NVGcontext* vg, int lineCount, vec2 pos, vec2 xIter, vec2 yIter)
+	{
+		for (int i = 0; i < lineCount; ++i)
+		{
+			if (i % 100 == 0)
+			{
+				nvgStrokeColor(vg, accColor);
+			}
+			else if (i % 10 == 0)
+			{
+				nvgStrokeColor(vg, midColor2);
+			}
+			else
+			{
+				nvgStrokeColor(vg, strokeColor);
+			}
+
+			nvgBeginPath(vg);
+			nvgMoveTo(vg, pos.x, pos.y);
+			pos += xIter;
+			nvgLineTo(vg, pos.x, pos.y);
+			nvgStroke(vg);
+			pos -= xIter;
+			pos += yIter;
+		}
+	};
+
+	// Horizontal lines
+	drawLines(vg, 1+(int)height/pixelStep, startPos, vec2(width, 0.0f), vec2(0.0f, pixelStep));
+	// Vertical lines
+	drawLines(vg, 1+(int)width/pixelStep, startPos, vec2(0.0f, height), vec2(pixelStep, 0.0f));
+
+	nvgRestore(vg);
+}

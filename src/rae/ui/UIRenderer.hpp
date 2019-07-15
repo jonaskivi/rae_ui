@@ -40,6 +40,12 @@ namespace UIRenderer
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 	void renderTextNano(NVGcontext* vg, const String& text, const Rectangle& rectangle,
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
+	void renderGrid(
+		NVGcontext* vg,
+		float width = 1920.0f,
+		float height = 1080.0f,
+		float pixelStep = 10.0f,
+		vec2 startPos = vec2(0.0f, 0.0f));
 }
 
 }

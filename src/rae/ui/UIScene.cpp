@@ -524,7 +524,10 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 	}
 }
 
-Rectangle UIScene::convertToRectangle(const Transform& transform, const Box& box, const Pivot& pivot) const
+Rectangle UIScene::convertToPixelRectangle(
+	const Transform& transform,
+	const Box& box,
+	const Pivot& pivot) const
 {
 	vec3 dimensions = box.dimensions();
 	Box pivotedBox = box;
@@ -592,7 +595,7 @@ void UIScene::renderBorder(const Transform& transform, const Box& box, const Piv
 	float cornerRadius, float thickness) const
 {
 	UIRenderer::renderBorderNano(m_nanoVG,
-		convertToRectangle(transform, box, pivot),
+		convertToPixelRectangle(transform, box, pivot),
 		color,
 		m_screenSystem.mmToPixels(cornerRadius),
 		thickness == 0.0f ? 1.0f : m_screenSystem.mmToPixels(thickness));
@@ -625,7 +628,7 @@ void UIScene::renderRectangle(
 	const Color& color) const
 {
 	UIRenderer::renderRectangleNano(m_nanoVG,
-		convertToRectangle(transform, box, pivot),
+		convertToPixelRectangle(transform, box, pivot),
 		0.0f, // cornerRadius
 		color);
 }
@@ -676,7 +679,7 @@ void UIScene::renderButtonGeneric(const String& text, const Transform& transform
 	const Color& color, const Color& textColor) const
 {
 	UIRenderer::renderButtonNano(m_nanoVG, text,
-		convertToRectangle(transform, box, pivot),
+		convertToPixelRectangle(transform, box, pivot),
 		m_screenSystem.mmToPixels(0.46f), // cornerRadius
 		color,
 		textColor);
@@ -710,7 +713,7 @@ void UIScene::renderTextGeneric(const String& text, const Transform& transform, 
 	const Pivot& pivot, const Color& color) const
 {
 	UIRenderer::renderTextNano(m_nanoVG, text,
-		convertToRectangle(transform, box, pivot),
+		convertToPixelRectangle(transform, box, pivot),
 		color);
 }
 
@@ -736,7 +739,7 @@ void UIScene::renderImageGeneric(ImageLink imageLink, const Transform& transform
 {
 	const auto& image = assetSystem.getImage(imageLink);
 
-	auto rect = convertToRectangle(transform, box, pivot);
+	auto rect = convertToPixelRectangle(transform, box, pivot);
 
 	renderImageNano(m_nanoVG, image.imageId(), rect.x, rect.y, rect.width, rect.height);
 }
@@ -896,7 +899,7 @@ Rectangle UIScene::getViewportPixelRectangle(int sceneIndex) const
 		{
 			const Transform& transform = m_transformSystem.getTransform(id);
 			const Box& box = m_transformSystem.getBox(id);
-			viewportRect = convertToRectangle(transform, box, Pivots::Center);
+			viewportRect = convertToPixelRectangle(transform, box, Pivots::Center);
 		}
 	});
 	return viewportRect;
@@ -929,7 +932,7 @@ Id UIScene::createPanel(const vec3& position, const vec3& extents)
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
-	vec3 halfExtents = extents / 2.0f;
+	vec3 halfExtents = extents * 0.5f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addPanel(id, Panel());
 
@@ -1014,8 +1017,11 @@ void UIScene::updateMaximizers()
 	{
 		if (maximizer.maximizerState == MaximizerState::Maximized)
 		{
-			m_transformSystem.setBox(id, Box(vec3(0.0f, 0.0f, 0.0f), vec3(window.width(), window.height(), 1.0f)));
+			//JONDE m_transformSystem.setBox(id, Box(vec3(0.0f, 0.0f, 0.0f), vec3(window.width(), window.height(), 1.0f)));
+			auto halfExtents = window.dimensions() * 0.5f;
+			m_transformSystem.setBox(id, Box(-halfExtents, halfExtents));
 			m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
+			//m_transformSystem.addPivot(id, Pivots::Center);
 		}
 	});
 }

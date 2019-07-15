@@ -40,7 +40,9 @@ solution "pihlaja"
          "src/rae_ray/**.hpp",
          "src/rae_ray/**.cpp",
          "src/test/**.hpp",
-         "src/test/**.cpp"
+         "src/test/**.cpp",
+         "src/examples/**.hpp",
+         "src/examples/**.cpp"
       }
       includedirs
       {

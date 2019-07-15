@@ -1,6 +1,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <memory>
+#include "rae/core/make_unique.hpp"
+
 #include "rae/ui/WindowSystem.hpp"
 #include "rae/ui/Input.hpp"
 

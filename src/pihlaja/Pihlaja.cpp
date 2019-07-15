@@ -118,9 +118,12 @@ void Pihlaja::initUI()
 	ui.addDraggable(videoControls);
 	ui.addStackLayout(videoControls);
 
+	float TitleFontSize = 22.0f;
+
 	Id videoControlsText = ui.createTextBox("Video Controls",
 		vec3(0.0f, 38.0f, 0.0f),
-		vec3(50.0f, 10.0f, 1.0f));
+		vec3(50.0f, 10.0f, 1.0f),
+		TitleFontSize);
 		trans.addChild(videoControls, videoControlsText);
 
 	Id playButton = ui.createToggleButton("Play",
@@ -151,9 +154,10 @@ void Pihlaja::initUI()
 	ui.addMaximizer(panel);
 	ui.addStackLayout(panel);
 
-	Id panelTitleText = ui.createTextBox("Controls",
+	Id panelTitleText = ui.createTextBox("Raytracer Controls",
 		vec3(0.0f, 38.0f, 0.0f),
-		vec3(50.0f, 10.0f, 1.0f));
+		vec3(50.0f, 10.0f, 1.0f),
+		TitleFontSize);
 	trans.addChild(panel, panelTitleText);
 
 	Id panelMaximizeButton = ui.createButton("Maximize",

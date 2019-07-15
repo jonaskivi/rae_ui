@@ -43,5 +43,6 @@ protected:
 };
 
 using Bool = Property<bool>;
+using Float = Property<float>;
 
 }

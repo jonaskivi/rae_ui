@@ -30,29 +30,6 @@ class ScreenSystem;
 class AssetSystem;
 class DebugSystem;
 
-struct UIWidgetRenderer
-{
-	UIWidgetRenderer() {}
-
-	UIWidgetRenderer(std::function<void(Id)> renderFunction) :
-		renderFunction(renderFunction)
-	{
-	}
-
-	void render(Id id) const
-	{
-		renderFunction(id);
-	}
-
-	std::function<void(Id)> renderFunction;
-};
-
-struct UINode
-{
-	Id id;
-	Array<UINode*> children;
-};
-
 class UIScene : public ISystem
 {
 public:
@@ -84,7 +61,7 @@ public:
 	Id createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler);
 	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
-	Id createTextBox(const String& text, const vec3& position, const vec3& extents);
+	Id createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize = 18.0f);
 
 	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
@@ -123,9 +100,10 @@ public:
 
 	// RAE_TODO These functions just repeat each other. Possibly all of these should just be functions of the Table
 	// and possibly then rename the Table to be a Component class.
-	void addText(Id id, const String& text);
+	void addText(Id id, const String& text, float fontSize = 18.0f);
 	void addText(Id id, Text&& text);
-	const Text& getText(Id id);
+	const Text& getText(Id id) const;
+	Text& getText(Id id);
 
 	void addButton(Id id, Button&& element);
 	const Button& getButton(Id id) const;
@@ -143,7 +121,13 @@ public:
 	// Make active follow property state with a two-way binding
 	void bindActive(Id id, Bool& property);
 
+	void connectUpdater(Id id, std::function<void(Id)> updateFunction);
+
 	void addDraggable(Id id);
+
+	Id rootId() const { return m_rootId; }
+	// Also known as windowSize. You can get the window width and height from the rootBox (in mm).
+	const Box& rootBox() const { return m_transformSystem.getBox(m_rootId); }
 
 // internal:
 
@@ -164,7 +148,7 @@ public:
 		const Color& color, const Color& textColor) const;
 	void renderText(Id id) const;
 	void renderTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
-		const Color& color) const;
+		float fontSize, const Color& color) const;
 	void renderImage(Id id) const;
 	void renderImageGeneric(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
 		const AssetSystem& assetSystem) const;
@@ -191,6 +175,7 @@ private:
 	Table<WindowEntity>	m_windows;
 
 	Table<UIWidgetRenderer>		m_uiWidgetRenderers;
+	Table<UIWidgetUpdater>		m_uiWidgetUpdaters;
 
 	Table<Text>			m_texts;
 	Table<Button>		m_buttons;

@@ -287,13 +287,14 @@ void UIRenderer::renderTextNano(
 	NVGcontext* vg,
 	const String& text,
 	const Rectangle& rectangle,
+	float fontSize,
 	const Color& textColor)
 {
 	nvgSave(vg);
 
-	nvgFontSize(vg, 18.0f);
+	nvgFontSize(vg, fontSize);
 	nvgFontFace(vg, "sans-bold");
-	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
 
 	// Text shadow
 	nvgFontBlur(vg,2);

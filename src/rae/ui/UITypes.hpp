@@ -25,6 +25,40 @@ struct Rectangle
 	float height = 0.0f;
 };
 
+struct UIWidgetRenderer
+{
+	UIWidgetRenderer() {}
+
+	UIWidgetRenderer(std::function<void(Id)> renderFunction) :
+		renderFunction(renderFunction)
+	{
+	}
+
+	void render(Id id) const
+	{
+		renderFunction(id);
+	}
+
+	std::function<void(Id)> renderFunction;
+};
+
+struct UIWidgetUpdater
+{
+	UIWidgetUpdater() {}
+
+	UIWidgetUpdater(std::function<void(Id)> updateFunction) :
+		updateFunction(updateFunction)
+	{
+	}
+
+	void update(Id id) const
+	{
+		updateFunction(id);
+	}
+
+	std::function<void(Id)> updateFunction;
+};
+
 struct Draggable
 {
 };
@@ -74,8 +108,9 @@ struct Active
 struct Text
 {
 	Text(){}
-	Text(const String& text) :
-		text(text)
+	Text(const String& text, float fontSize = 18.0f) :
+		text(text),
+		fontSize(fontSize)
 	{
 	}
 
@@ -83,6 +118,7 @@ struct Text
 	operator String() const { return text; }
 
 	String text;
+	float fontSize = 18.0f;
 };
 
 struct Keyline

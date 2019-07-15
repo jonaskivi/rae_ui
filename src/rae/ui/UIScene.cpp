@@ -188,6 +188,16 @@ UpdateStatus UIScene::update()
 {
 	static int frameCount = 0;
 
+	query<Command>(m_commands, [&](Id id, Command& command)
+	{
+		command.update();
+	});
+
+	query<UIWidgetUpdater>(m_uiWidgetUpdaters, [&](Id id, UIWidgetUpdater& updater)
+	{
+		updater.update(id);
+	});
+
 	m_transformSystem.update(); // RAE_TODO return value.
 
 	doLayout();
@@ -195,14 +205,6 @@ UpdateStatus UIScene::update()
 	if (not m_inputState.isGrabbed() && m_inputState.mouseInside && m_inputState.hadEvents)
 	{
 		hover();
-	}
-
-	// Execute async
-	{
-		query<Command>(m_commands, [&](Id id, Command& command)
-		{
-			command.update();
-		});
 	}
 
 	frameCount++;
@@ -704,17 +706,17 @@ void UIScene::renderText(Id id) const
 		// More like a debug or editor feature
 		//bool selected = m_selectionSystem.isSelected(id);
 
-		renderTextGeneric(text.text, transform, box, pivot,
+		renderTextGeneric(text.text, transform, box, pivot, text.fontSize,
 			(hasColor ? getColor(id) : Colors::white));
 	}
 }
 
 void UIScene::renderTextGeneric(const String& text, const Transform& transform, const Box& box,
-	const Pivot& pivot, const Color& color) const
+	const Pivot& pivot, float fontSize, const Color& color) const
 {
 	UIRenderer::renderTextNano(m_nanoVG, text,
 		convertToPixelRectangle(transform, box, pivot),
-		color);
+		fontSize, color);
 }
 
 void UIScene::renderImage(Id id) const
@@ -833,7 +835,14 @@ void UIScene::bindActive(Id id, Bool& property)
 	});
 }
 
-Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& extents)
+void UIScene::connectUpdater(Id id, std::function<void(Id)> updateFunction)
+{
+	m_uiWidgetUpdaters.assign(
+		id,
+		UIWidgetUpdater(updateFunction));
+}
+
+Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
@@ -841,7 +850,7 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
-	addText(id, text);
+	addText(id, text, fontSize);
 
 	m_uiWidgetRenderers.assign(
 		id,
@@ -1079,9 +1088,9 @@ const KeylineLink& UIScene::getKeylineLink(Id id)
 	return m_keylineLinks.get(id);
 }
 
-void UIScene::addText(Id id, const String& text)
+void UIScene::addText(Id id, const String& text, float fontSize)
 {
-	m_texts.assign(id, std::move(Text(text)));
+	m_texts.assign(id, std::move(Text(text, fontSize)));
 }
 
 void UIScene::addText(Id id, Text&& text)
@@ -1089,7 +1098,12 @@ void UIScene::addText(Id id, Text&& text)
 	m_texts.assign(id, std::move(text));
 }
 
-const Text& UIScene::getText(Id id)
+const Text& UIScene::getText(Id id) const
+{
+	return m_texts.get(id);
+}
+
+Text& UIScene::getText(Id id)
 {
 	return m_texts.get(id);
 }

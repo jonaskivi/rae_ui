@@ -67,6 +67,21 @@ void Test2DCoordinates::initUI()
 			{
 			});
 
+	Id resolutionTextBox = ui.createTextBox("1280x720",
+		vec3(80.0f, 15.0f, 0.0f),
+		vec3(200.0f, 100.0f, 1.0f),
+		44.0f);
+	ui.addMaximizer(resolutionTextBox);
+	ui.addColor(resolutionTextBox, Color(Colors::gray));
+	ui.connectUpdater(resolutionTextBox,
+		[&ui](Id id)
+		{
+			const Box& rootBox = ui.rootBox();
+
+			auto& text = ui.getText(id);
+			text.text = Utils::toString(rootBox.width()) + "mm x " + Utils::toString(rootBox.height()) + "mm";
+		});
+
 	Id testButton05 = ui.createButton("Test Button 0.5",
 			Rectangle(100.0f, 121.0f, 26.0f, 6.0f),
 			[&]()

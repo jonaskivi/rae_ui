@@ -331,7 +331,7 @@ HandleStatus TransformTool::handleInput(
 	if (not m_translateGizmo.isVisible())
 		return HandleStatus::NotHandled;
 
-	m_translateGizmo.setPosition(selectionSystem.selectionPosition());
+	m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
 
 	m_previousMouseRay = m_mouseRay;
 	m_mouseRay = camera.getExactRay(
@@ -391,7 +391,7 @@ void TransformTool::onSelectionChanged(SelectionSystem& selectionSystem)
 	if (selectionSystem.isSelection())
 	{
 		m_translateGizmo.show();
-		m_translateGizmo.setPosition(selectionSystem.selectionPosition());
+		m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
 	}
 	else
 	{
@@ -413,7 +413,7 @@ EditorSystem::EditorSystem(
 		ISystem("EditorSystem"),
 		m_input(input)
 {
-	LOG_F(INFO, "Init %s", name().c_str());
+	//LOG_F(INFO, "Init %s", name().c_str());
 
 	using std::placeholders::_1;
 	selectionSystem.onSelectionChanged.connect(std::bind(
@@ -574,13 +574,13 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 
 	query<Box>(scene.transformSystem().boxes(), [&](Id id, const Box& box)
 	{
-		if (scene.transformSystem().hasTransform(id))
+		if (scene.transformSystem().hasWorldTransform(id))
 		{
-			const Transform& transform = scene.transformSystem().getTransform(id);
+			const Transform& transform = scene.transformSystem().getWorldTransform(id);
 			const Pivot& pivot = scene.transformSystem().getPivot(id);
 			Box tbox = box;
 			tbox.transform(transform);
-			tbox.translate(pivot);
+			tbox.translatePivot(pivot);
 
 			//if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			if (tbox.hit(mouseRay, MinHoverDistance, MaxHoverDistance))

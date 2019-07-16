@@ -53,7 +53,7 @@ RenderSystem::RenderSystem(
 		m_sceneSystem(sceneSystem),
 		m_rayTracer(rayTracer)
 {
-	LOG_F(INFO, "Init %s", name().c_str());
+	//LOG_F(INFO, "Init %s", name().c_str());
 
 	debugTransform = new Transform(vec3(0,0,0));
 	debugTransform2 = new Transform(vec3(0,0,0));
@@ -254,11 +254,11 @@ void RenderSystem::renderMeshes(const Scene& scene)
 			else if (assetLinkSystem.m_materialLinks.check(id))
 				material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
 
-			if (transformSystem.hasTransform(id) &&
+			if (transformSystem.hasWorldTransform(id) &&
 				material)
 			{
 				const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
-				const Transform& transform = transformSystem.getTransform(id);
+				const Transform& transform = transformSystem.getWorldTransform(id);
 
 				//debugMaterial = &material;
 				//debugMesh = &mesh;
@@ -287,11 +287,11 @@ void RenderSystem::renderMeshes(const Scene& scene)
 		else if (assetLinkSystem.m_materialLinks.check(id))
 			material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
 
-		if (transformSystem.hasTransform(id) &&
+		if (transformSystem.hasWorldTransform(id) &&
 			material)
 		{
 			const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
-			const Transform& transform = transformSystem.getTransform(id);
+			const Transform& transform = transformSystem.getWorldTransform(id);
 
 			renderMesh(camera, transform, *material, mesh);
 		}
@@ -311,11 +311,11 @@ void RenderSystem::renderMeshes(const Scene& scene)
 			else if (assetLinkSystem.m_materialLinks.check(id))
 				material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
 
-			if (transformSystem.hasTransform(id) &&
+			if (transformSystem.hasWorldTransform(id) &&
 				material)
 			{
 				const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
-				const Transform& transform = transformSystem.getTransform(id);
+				const Transform& transform = transformSystem.getWorldTransform(id);
 
 				renderMesh(camera, transform, *material, mesh);
 			}
@@ -354,10 +354,10 @@ void RenderSystem::renderOutline(const Scene& scene)
 	{
 		bool selected = selectionSystem.isPartOfSelection(id);
 		bool hovered = selectionSystem.isHovered(id);
-		if ((selected || hovered) && transformSystem.hasTransform(id))
+		if ((selected || hovered) && transformSystem.hasWorldTransform(id))
 		{
 			const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
-			Transform transform = transformSystem.getTransform(id);
+			Transform transform = transformSystem.getWorldTransform(id);
 			//transform.scale = transform.scale * 1.2f;
 
 			renderMeshOutline(camera, transform, hovered ? hoverColor : activeColor, mesh);
@@ -384,10 +384,10 @@ void RenderSystem::renderNormals(const Scene& scene)
 	query<MeshLink>(assetLinkSystem.meshLinks(), [&](Id id, const MeshLink& meshLink)
 	{
 		bool selected = selectionSystem.isPartOfSelection(id);
-		if (selected && transformSystem.hasTransform(id))
+		if (selected && transformSystem.hasWorldTransform(id))
 		{
 			const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.meshLinks().get(id));
-			Transform transform = transformSystem.getTransform(id);
+			Transform transform = transformSystem.getWorldTransform(id);
 			//transform.scale = transform.scale * 1.2f;
 
 			renderMeshNormals(camera, transform, normalColor, mesh);
@@ -431,9 +431,9 @@ void RenderSystem::renderPicking(const Window& window)
 	{
 		Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.m_meshLinks.get(id));
 
-		if (transformSystem.hasTransform(id))
+		if (transformSystem.hasWorldTransform(id))
 		{
-			const Transform& transform = transformSystem.getTransform(id);
+			const Transform& transform = transformSystem.getWorldTransform(id);
 
 			#ifdef RAE_DEBUG
 				LOG_F(INFO, "Going to render Mesh. id: %i", id);

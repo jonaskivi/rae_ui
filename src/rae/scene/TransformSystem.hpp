@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "rae/core/Types.hpp"
 #include "rae/entity/Table.hpp"
 
@@ -9,8 +7,6 @@
 #include "rae/scene/Transform.hpp"
 #include "rae/core/ISystem.hpp"
 #include "rae/visual/Box.hpp"
-
-#include <rae/animation/Animator.hpp>
 
 namespace rae
 {
@@ -47,14 +43,22 @@ public:
 	void processHierarchy(Id parentId, std::function<void(Id)> process);
 
 	void addTransform(Id id, Transform&& transform);
-	bool hasTransform(Id id) const;
-	const Transform& getTransform(Id id) const;
 
-	void setPosition(Id id, const vec3& position);
-	const vec3& getPosition(Id id);
+	bool hasLocalTransform(Id id) const;
+	const Transform& getLocalTransform(Id id) const;
+
+	void setLocalPosition(Id id, const vec3& position);
+	const vec3& getLocalPosition(Id id);
+
+	bool hasWorldTransform(Id id) const;
+	const Transform& getWorldTransform(Id id) const;
+
+	void setWorldPosition(Id id, const vec3& position);
+	const vec3& getWorldPosition(Id id);
 
 	int transformCount() { return m_transforms.size(); }
-	const Table<Transform>& transforms() const { return m_transforms; }
+	const Table<Transform>& localTransforms() const { return m_transforms; }
+	const Table<Transform>& worldTransforms() const { return m_worldTransforms; }
 
 	void translate(Id id, vec3 delta);
 	void translate(const Array<Id>& ids, vec3 delta);
@@ -72,8 +76,9 @@ public:
 
 	// Pivot is defined in normalized coordinates -1 to 1 (in relation to own size)
 	// and it will affect how the origin of the current entity will be interpreted.
-	void addPivot(Id id, const vec3& pivot);
 	bool hasPivot(Id id) const;
+	void addPivot(Id id, const vec3& pivot);
+	void setPivot(Id id, const vec3& pivot);
 	const Pivot& getPivot(Id id) const;
 
 	// RAE_TODO add functions to get full 2D transform
@@ -101,11 +106,13 @@ public:
 
 private:
 
-	Transform& getTransformPrivate(Id id);
+	Transform& getLocalTransformPrivate(Id id);
+	Transform& getWorldTransformPrivate(Id id);
 
-	Table<Transform>	m_localTransforms;
-
+	// Local transforms. Relative to parents.
 	Table<Transform>	m_transforms;
+	// World transform. The final coordinates to draw and hittest with.
+	Table<Transform>	m_worldTransforms;
 
 	Table<Parent>		m_parents;
 	Table<Changed>		m_parentChanged;
@@ -121,31 +128,6 @@ private:
 	Table<Box>			m_boxes;
 	// This is just an additional component to recognize spheres for RayTracer. They can also have a Box component.
 	Table<Sphere>		m_spheres;
-};
-
-using PositionAnimator = Animator<vec3>;
-class Time;
-
-class AnimationSystem : public ISystem
-{
-public:
-	AnimationSystem(const Time& time, TransformSystem& transformSystem);
-
-	UpdateStatus update() override;
-
-	const Table<PositionAnimator>& positionAnimators() const { return m_positionAnimators; }
-	bool hasPositionAnimator(Id id) const;
-	void addPositionAnimator(Id id, PositionAnimator&& anim);
-	void setPositionAnimator(Id id, PositionAnimator&& anim);
-	void setPositionAnimator(Id id, const PositionAnimator& anim);
-	const PositionAnimator& getPositionAnimator(Id id) const;
-
-private:
-
-	const Time&			m_time;
-	TransformSystem&	m_transformSystem;
-
-	Table<PositionAnimator>	m_positionAnimators;
 };
 
 }

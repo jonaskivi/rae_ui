@@ -1,7 +1,5 @@
 #include "rae/scene/TransformSystem.hpp"
 
-#include "rae/core/Time.hpp" // for AnimationSystem
-
 using namespace rae;
 
 static const int ReserveTransforms = 1000;
@@ -9,12 +7,12 @@ static const int ReserveBoxes = 1000;
 
 TransformSystem::TransformSystem() :
 	ISystem("TransformSystem"),
-	m_localTransforms(ReserveTransforms),
 	m_transforms(ReserveTransforms),
+	m_worldTransforms(ReserveTransforms),
 	m_boxes(ReserveBoxes)
 {
-	addTable(m_localTransforms);
 	addTable(m_transforms);
+	addTable(m_worldTransforms);
 
 	addTable(m_parents);
 	addTable(m_childrens);
@@ -27,9 +25,11 @@ TransformSystem::TransformSystem() :
 
 UpdateStatus TransformSystem::update()
 {
+	/* // RAE_REMOVE This can't work in situations where the children Ids are smaller than the parent ids.
+	// Also this code was written before preferring local transforms.
 	query<Changed>(m_parentChanged, [&](Id id)
 	{
-		if (m_localTransforms.check(id))
+		if (m_transforms.check(id))
 		{
 			if (hasParent(id))
 			{
@@ -41,6 +41,57 @@ UpdateStatus TransformSystem::update()
 					transform.position = parentTransform.position + m_localTransforms.getF(id).position;
 				}
 			}
+		}
+	});
+	*/
+
+	// Update world transforms for children.
+	query<Transform>(m_transforms, [&](Id id)
+	{
+		if (not hasParent(id))
+		{
+			processHierarchy(id, [this](Id id)
+			{
+				if (hasParent(id))
+				{
+					Id parentId = getParent(id);
+					const auto& parentWorldTransform = getWorldTransform(parentId);
+
+					// Either our local position was set, or parent world position changed.
+					if (m_transforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
+					{
+						/* Bullshit:
+						// Must not use assign, because now we don't want isUpdated() to mark it as updated.
+						// Otherwise we get a loop, and previous hierarchical assigns would start to affect
+						// children.
+						auto& worldTransform = getWorldTransformPrivate(id);
+						worldTransform.position = parentWorldTransform.position + m_transforms.getF(id).position;
+						*/
+						setWorldPosition(id, parentWorldTransform.position + m_transforms.getF(id).position);
+					}
+					// Our world position was set. Must fix local then.
+					else if (m_worldTransforms.isUpdatedF(id))
+					{
+						setLocalPosition(id, parentWorldTransform.position - m_worldTransforms.getF(id).position);
+					}
+				}
+				else // no parents. Just make them the same because they should always be equal.
+				{
+					/*
+					JONDE REMOVE auto& worldTransform = getWorldTransformPrivate(id);
+					worldTransform.position = m_transforms.getF(id).position;
+					*/
+
+					if (m_transforms.isUpdatedF(id))
+					{
+						setWorldPosition(id, m_transforms.getF(id).position);
+					}
+					else if (m_worldTransforms.isUpdatedF(id))
+					{
+						setLocalPosition(id, m_worldTransforms.getF(id).position);
+					}
+				}
+			});
 		}
 	});
 
@@ -70,34 +121,62 @@ void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> proc
 void TransformSystem::addTransform(Id id, Transform&& transform)
 {
 	Transform localTransform = transform;
-	m_localTransforms.assign(id, std::move(localTransform));
-	m_transforms.assign(id, std::move(transform));
+	m_transforms.assign(id, std::move(localTransform));
+	m_worldTransforms.assign(id, std::move(transform));
 }
 
-bool TransformSystem::hasTransform(Id id) const
+bool TransformSystem::hasLocalTransform(Id id) const
 {
 	return m_transforms.check(id);
 }
 
-const Transform& TransformSystem::getTransform(Id id) const
+const Transform& TransformSystem::getLocalTransform(Id id) const
 {
 	return m_transforms.get(id);
 }
 
-Transform& TransformSystem::getTransformPrivate(Id id)
+Transform& TransformSystem::getLocalTransformPrivate(Id id)
 {
 	return m_transforms.get(id);
 }
 
-void TransformSystem::setPosition(Id id, const vec3& position)
+void TransformSystem::setLocalPosition(Id id, const vec3& position)
 {
+	// Must use assign instead of m_localTransforms.get(id).position = position, because otherwise
+	// we don't get isUpdated() set.
 	m_transforms.assign(id, position);
-	// Should measure if this is faster than assign or not: m_transforms.get(id).position = position;
 }
 
-const vec3& TransformSystem::getPosition(Id id)
+const vec3& TransformSystem::getLocalPosition(Id id)
 {
 	return m_transforms.get(id).position;
+}
+
+bool TransformSystem::hasWorldTransform(Id id) const
+{
+	return m_worldTransforms.check(id);
+}
+
+const Transform& TransformSystem::getWorldTransform(Id id) const
+{
+	return m_worldTransforms.get(id);
+}
+
+Transform& TransformSystem::getWorldTransformPrivate(Id id)
+{
+	return m_worldTransforms.get(id);
+}
+
+void TransformSystem::setWorldPosition(Id id, const vec3& position)
+{
+	// Must use assign instead of m_worldTransforms.get(id).position = position, because otherwise
+	// we don't get isUpdated() set.
+	m_worldTransforms.assign(id, position);
+}
+
+const vec3& TransformSystem::getWorldPosition(Id id)
+{
+	return m_worldTransforms.get(id).position;
 }
 
 void TransformSystem::translate(Id id, vec3 delta)
@@ -110,6 +189,8 @@ void TransformSystem::translate(Id id, vec3 delta)
 void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 {
 	// RAE_TODO function: entitiesForTransform
+	// We need to find the highest parents in a selection set, because moving the parents will also move
+	// their children. So that the children don't get moved twice.
 	Array<Id> topLevelIds;
 	for (auto&& id : ids)
 	{
@@ -137,6 +218,7 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 		m_transforms.getF(id).position += delta;
 		m_transforms.setUpdatedF(id);
 
+		/* // It is not necessary to move the children, as that is handled in update().
 		if (hasChildren(id))
 		{
 			auto& children = getChildren(id);
@@ -145,7 +227,7 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 				translate(childId, delta);
 			}
 		}
-
+		*/
 	}
 }
 
@@ -207,14 +289,19 @@ const Array<Id>& TransformSystem::getChildren(Id id)
 	return m_childrens.get(id);
 }
 
+bool TransformSystem::hasPivot(Id id) const
+{
+	return m_pivots.check(id);
+}
+
 void TransformSystem::addPivot(Id id, const Pivot& pivot)
 {
 	m_pivots.assign(id, Pivot(pivot));
 }
 
-bool TransformSystem::hasPivot(Id id) const
+void TransformSystem::setPivot(Id id, const Pivot& pivot)
 {
-	return m_pivots.check(id);
+	m_pivots.assign(id, Pivot(pivot));
 }
 
 const Pivot& TransformSystem::getPivot(Id id) const
@@ -265,59 +352,7 @@ const Sphere& TransformSystem::getSphere(Id id) const
 Box TransformSystem::getAABBWorldSpace(Id id) const
 {
 	auto box = getBox(id);
-	box.translate(getPivot(id));
-	box.transform(getTransform(id));
+	box.translatePivot(getPivot(id));
+	box.transform(getWorldTransform(id));
 	return box;
-}
-
-AnimationSystem::AnimationSystem(
-	const Time& time,
-	TransformSystem& transformSystem) :
-		m_time(time),
-		m_transformSystem(transformSystem)
-{
-}
-
-UpdateStatus AnimationSystem::update()
-{
-	query<PositionAnimator>(m_positionAnimators, [&](Id id, PositionAnimator& anim)
-	{
-		anim.update(m_time.time());
-		m_transformSystem.setPosition(id, anim.value());
-
-		//LOG_F(INFO, "anim: %i pos: %s", id, Utils::toString(anim.value()).c_str());
-
-		if (anim.isFinished())
-		{
-			//LOG_F(INFO, "restart anim: %i", id);
-			anim.restart();
-		}
-	});
-
-	return UpdateStatus::NotChanged;
-}
-
-bool AnimationSystem::hasPositionAnimator(Id id) const
-{
-	return m_positionAnimators.check(id);
-}
-
-void AnimationSystem::addPositionAnimator(Id id, PositionAnimator&& anim)
-{
-	m_positionAnimators.assign(id, std::move(anim));
-}
-
-void AnimationSystem::setPositionAnimator(Id id, PositionAnimator&& anim)
-{
-	m_positionAnimators.assign(id, std::move(anim));
-}
-
-void AnimationSystem::setPositionAnimator(Id id, const PositionAnimator& anim)
-{
-	m_positionAnimators.assign(id, anim);
-}
-
-const PositionAnimator& AnimationSystem::getPositionAnimator(Id id) const
-{
-	return m_positionAnimators.get(id);
 }

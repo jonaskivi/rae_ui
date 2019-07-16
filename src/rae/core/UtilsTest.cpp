@@ -11,7 +11,7 @@ SCENARIO("Utils unittest", "[rae][Utils]")
 {
 	GIVEN( "parallel_for 8193 array" )
 	{
-		LOG_F(INFO, "Testing testing...");
+		LOG_F(INFO, "Testing parallel_for...");
 
 		std::vector<int> array;
 		int arraySize = 8193;

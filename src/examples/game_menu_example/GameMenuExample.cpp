@@ -19,6 +19,8 @@ GameMenuExample::GameMenuExample() :
 	//m_engine.addSystem(m_engine.rayTracer());
 	//m_engine.addSystem(m_engine.renderSystem());
 
+	m_engine.addSystem(m_engine.debugSystem());
+
 	/*m_engine.addRenderer3D(m_engine.renderSystem());
 	m_engine.addRenderer3D(m_engine.editorSystem());
 	m_engine.addRenderer3D(m_engine.debugSystem());
@@ -48,34 +50,50 @@ void GameMenuExample::initUI()
 	auto& trans = ui.transformSystem();
 	auto& anim = ui.animationSystem();
 
-	{
-		Id panel = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f));
+	Id panelParent = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f));
+	trans.addPivot(panelParent, Pivots::TopLeft2D);
 
-		ui.addMaximizer(panel);
-		ui.toggleMaximizer(panel);
+	ui.addMaximizer(panelParent);
+	ui.toggleMaximizer(panelParent);
+
+	{
+		//Id panel = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f));
+		Id panel = ui.createPanel(Rectangle(20.0f, 20.0f, 60.0f, 80.0f));
+
+		ui.addDraggable(panel);
+		//ui.addMaximizer(panel);
+		//ui.toggleMaximizer(panel);
 		//RAE_TEMP ui.addStackLayout(panel);
 
 		Id testButton1 = ui.createButton("Test Button 1",
-			Rectangle(80.0f, 20.0f, 22.0f, 6.0f),
-			[&]()
+			Rectangle(10.0f, 10.0f, 22.0f, 6.0f),
+			[&, panelParent]()
 			{
 				LOG_F(INFO, "Activate Test Button 1");
 				//windowSystem.createWindow("Test Second Window", 600, 300);
+				ui.toggleMaximizer(panelParent);
 			});
 		ui.addDraggable(testButton1);
 
-		Id testButton2 = ui.createButton("Test Button 2",
-			Rectangle(5.0f, 30.0f, 60.0f, 10.0f),
+		Id testButton2 = ui.createButton("Anim Button 2",
+			Rectangle(10.0f, 30.0f, 60.0f, 10.0f),
 			[&]()
 			{
 				LOG_F(INFO, "Activate Test Button 2");
 			});
 		ui.addDraggable(testButton2);
-		anim.addPositionAnimator(testButton2,
-			PositionAnimator(
-				vec3(5.0f, 30.0f, 0.0f),
-				vec3(80.0f, 40.0f, 0.0f),
-				2.0f, AnimatorType::CubicOut));
+
+		{
+			float duration = 2.0f;
+			bool isLooping = true;
+			anim.addPositionAnimator(testButton2,
+				PositionAnimator(
+					vec3(10.0f, 30.0f, 0.0f),
+					vec3(80.0f, 40.0f, 0.0f),
+					duration,
+					AnimatorType::CubicOut,
+					isLooping));
+		}
 
 		Id testButton3 = ui.createButton("Test Button 3",
 			Rectangle(30.0f, 80.0f, 70.0f, 20.0f),
@@ -86,6 +104,7 @@ void GameMenuExample::initUI()
 
 		trans.addPivot(testButton3, Pivots::Center);
 
+		trans.addChild(panelParent, panel);
 		trans.addChild(panel, testButton1);
 		trans.addChild(panel, testButton2);
 		trans.addChild(panel, testButton3);

@@ -43,14 +43,12 @@ DebugSystem::DebugSystem()
 	loguru::add_callback("user_callback", loguruLoggerCallback, nullptr,
 		loguru::Verbosity_INFO, loguruCallbackClose, loguruCallbackFlush);
 
-	LOG_F(INFO, "Added loguru logging callback.");
+	//LOG_F(INFO, "Added loguru logging callback.");
 
 	if (m_singleColorShader.load() == 0)
 	{
 		exit(0);
 	}
-
-	LOG_F(INFO, "Loaded shader.");
 }
 
 DebugSystem::~DebugSystem()

@@ -83,7 +83,6 @@ int main(int argc, char* argv[])
 		gameMenuExample.run();
 	}
 
-	// Temporarily disabled
 	{
 		Test2DCoordinates test2DCoordinates;
 		test2DCoordinates.run();

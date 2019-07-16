@@ -186,12 +186,12 @@ bool SelectionSystem::hasSelectionChanged() const
 	return m_selected.isAnyUpdated();
 }
 
-vec3 SelectionSystem::selectionPosition() const
+vec3 SelectionSystem::selectionWorldPosition() const
 {
 	vec3 pos;
 	query<Selected>(m_selected, [&](Id id)
 	{
-		pos += m_transformSystem.getPosition(id);
+		pos += m_transformSystem.getWorldPosition(id);
 	});
 
 	return vec3(pos.x / m_selected.count(), pos.y / m_selected.count(), pos.z / m_selected.count());
@@ -208,9 +208,9 @@ Box SelectionSystem::selectionAABB() const
 			auto box = m_transformSystem.getAABBWorldSpace(id);
 			aabb.grow(box);
 		}
-		else if (m_transformSystem.hasTransform(id))
+		else if (m_transformSystem.hasWorldTransform(id))
 		{
-			aabb.grow(m_transformSystem.getPosition(id));
+			aabb.grow(m_transformSystem.getWorldPosition(id));
 		}
 	});
 
@@ -228,9 +228,9 @@ Box SelectionSystem::hoveredAABB() const
 			auto box = m_transformSystem.getAABBWorldSpace(id);
 			aabb.grow(box);
 		}
-		else if (m_transformSystem.hasTransform(id))
+		else if (m_transformSystem.hasWorldTransform(id))
 		{
-			aabb.grow(m_transformSystem.getPosition(id));
+			aabb.grow(m_transformSystem.getWorldPosition(id));
 		}
 	});
 

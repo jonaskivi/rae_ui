@@ -101,14 +101,14 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 	if (hovered != InvalidId)
 	{
-		if (m_transformSystem.hasTransform(hovered))
+		if (m_transformSystem.hasLocalTransform(hovered))
 		{
 			const Box& box = m_transformSystem.getBox(hovered);
-			const Transform& transform = m_transformSystem.getTransform(hovered);
+			const Transform& transform = m_transformSystem.getLocalTransform(hovered);
 			const Pivot& pivot = m_transformSystem.getPivot(hovered);
 			Box tbox = box;
 			tbox.transform(transform);
-			tbox.translate(pivot);
+			tbox.translatePivot(pivot);
 
 			vec3 mousePositionMM = m_screenSystem.pixelsToMM(m_inputState.mouse.position);
 
@@ -224,23 +224,23 @@ void UIScene::doLayout()
 			//Array<Id> children(childrenSet.begin(), childrenSet.end());
 			//layout.doLayout(children);
 
-			const vec3& parentPos = m_transformSystem.getPosition(layoutId);
+			//JONDE const vec3& parentPos = m_transformSystem.getWorldPosition(layoutId);
 			const Pivot& parentPivot = m_transformSystem.getPivot(layoutId);
 			Box parentBox = m_transformSystem.getBox(layoutId);
-			parentBox.translate(parentPivot);
+			parentBox.translatePivot(parentPivot);
 
 			// RAE_TODO Some kind of margin: float marginMM = 6.0f;
-			float someIter = parentPos.y + parentBox.min().y;
+			float someIter = /*JONDE parentPos.y +*/ parentBox.min().y;
 			for (auto&& childId : children)
 			{
-				vec3 pos = m_transformSystem.getPosition(childId);
+				vec3 pos = m_transformSystem.getLocalPosition(childId);
 				const Pivot& pivot = m_transformSystem.getPivot(childId);
 				Box tbox = m_transformSystem.getBox(childId);
-				tbox.translate(pivot);
+				tbox.translatePivot(pivot);
 
-				pos.x = (parentPos.x + parentBox.min().x) - tbox.min().x;// + marginMM;
+				pos.x = (/*JONDE parentPos.x +*/ parentBox.min().x) - tbox.min().x;// + marginMM;
 				pos.y = someIter - tbox.min().y;// + marginMM;
-				m_transformSystem.setPosition(childId, pos);
+				m_transformSystem.setLocalPosition(childId, pos);
 				someIter = someIter + tbox.dimensions().y;
 			}
 		}
@@ -255,10 +255,10 @@ void UIScene::doLayout()
 		if (m_keylines.check(keylineLink.keylineId))
 		{
 			auto& keyline = getKeyline(keylineLink.keylineId);
-			vec3 origPos = m_transformSystem.getPosition(id);
+			vec3 origPos = m_transformSystem.getWorldPosition(id);
 
 			float posX = m_transformSystem.getBox(m_rootId).dimensions().x * keyline.relativePosition;
-			m_transformSystem.setPosition(id, vec3(posX, origPos.y, origPos.z));
+			m_transformSystem.setWorldPosition(id, vec3(posX, origPos.y, origPos.z));
 		}
 	});
 
@@ -275,13 +275,13 @@ void UIScene::hover()
 
 	query<Box>(m_transformSystem.boxes(), [&](Id id, const Box& box)
 	{
-		if (m_transformSystem.hasTransform(id))
+		if (m_transformSystem.hasWorldTransform(id))
 		{
-			const Transform& transform = m_transformSystem.getTransform(id);
+			const Transform& transform = m_transformSystem.getWorldTransform(id);
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 			Box tbox = box;
 			tbox.transform(transform);
-			tbox.translate(pivot);
+			tbox.translatePivot(pivot);
 
 			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 			{
@@ -444,10 +444,10 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 		// Debug rendering border for WindowEntities.
 		query<WindowEntity>(m_windows, [&](Id id)
 		{
-			if (m_transformSystem.hasTransform(id) and
+			if (m_transformSystem.hasWorldTransform(id) and
 				m_transformSystem.hasBox(id))
 			{
-				const Transform& transform = m_transformSystem.getTransform(id);
+				const Transform& transform = m_transformSystem.getWorldTransform(id);
 				const Box& box = m_transformSystem.getBox(id);
 				const Pivot& pivot = m_transformSystem.getPivot(id);
 
@@ -477,7 +477,7 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 		});
 
 		// Debug position visualization
-		query<Transform>(m_transformSystem.transforms(), [&](Id id, const Transform& transform)
+		query<Transform>(m_transformSystem.worldTransforms(), [&](Id id, const Transform& transform)
 		{
 			float diameter = 1.0f;
 			renderCircle(transform, diameter, Colors::cyan);
@@ -509,10 +509,10 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 		// Debug hover visualization
 		query<Hover>(m_selectionSystem.hovers(), [&](Id id)
 		{
-			if (m_transformSystem.hasTransform(id) and
+			if (m_transformSystem.hasWorldTransform(id) and
 				m_transformSystem.hasBox(id))
 			{
-				const Transform& transform = m_transformSystem.getTransform(id);
+				const Transform& transform = m_transformSystem.getWorldTransform(id);
 				const Box& box = m_transformSystem.getBox(id);
 				const Pivot& pivot = m_transformSystem.getPivot(id);
 
@@ -535,7 +535,7 @@ Rectangle UIScene::convertToPixelRectangle(
 {
 	vec3 dimensions = box.dimensions();
 	Box pivotedBox = box;
-	pivotedBox.translate(pivot);
+	pivotedBox.translatePivot(pivot);
 
 	return Rectangle(
 		m_screenSystem.mmToPixels(transform.position.x + pivotedBox.left()),
@@ -552,11 +552,11 @@ void UIScene::renderViewportLine(Id id) const
 	const Color& viewportLineColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line];
 	const Color& viewportLineActiveColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::LineActive];
 
-	if (m_transformSystem.hasTransform(id) and
+	if (m_transformSystem.hasWorldTransform(id) and
 		m_transformSystem.hasBox(id))
 	{
 		const Viewport& viewport = m_viewports.get(id);
-		const Transform& transform = m_transformSystem.getTransform(id);
+		const Transform& transform = m_transformSystem.getWorldTransform(id);
 		const Box& box = m_transformSystem.getBox(id);
 		const Pivot& pivot = m_transformSystem.getPivot(id);
 
@@ -578,15 +578,17 @@ void UIScene::renderPanel(Id id) const
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
 	const Color& panelHoverColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Hover];
 
-	if (m_transformSystem.hasTransform(id) and
+	if (m_transformSystem.hasWorldTransform(id) and
 		m_transformSystem.hasBox(id))
 	{
-		const Transform& transform = m_transformSystem.getTransform(id);
+		const Transform& transform = m_transformSystem.getWorldTransform(id);
 		const Box& box = m_transformSystem.getBox(id);
 		const Pivot& pivot = m_transformSystem.getPivot(id);
 
 		bool hasColor = m_colors.check(id);
-		bool hovered = m_selectionSystem.isHovered(id);
+		// Needs to be draggable in order to have hover effect. Possibly there could be a separate
+		// Hoverable or HoverEffect component to control this.
+		bool hovered = m_selectionSystem.isHovered(id) && m_draggables.check(id);
 
 		renderRectangle(transform, box, pivot,
 				hovered ? panelHoverColor :
@@ -652,11 +654,11 @@ void UIScene::renderButton(Id id) const
 	const Color& buttonActiveTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveText];
 	const Color& buttonActiveHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHoverText];
 
-	if (m_transformSystem.hasTransform(id) and
+	if (m_transformSystem.hasWorldTransform(id) and
 		m_transformSystem.hasBox(id))
 	{
 		const Button& button = getButton(id);
-		const Transform& transform = m_transformSystem.getTransform(id);
+		const Transform& transform = m_transformSystem.getWorldTransform(id);
 		const Box& box = m_transformSystem.getBox(id);
 		const Pivot& pivot = m_transformSystem.getPivot(id);
 
@@ -694,11 +696,11 @@ void UIScene::renderText(Id id) const
 	if (not m_texts.check(id))
 		return;
 
-	if (m_transformSystem.hasTransform(id) and
+	if (m_transformSystem.hasWorldTransform(id) and
 			m_transformSystem.hasBox(id))
 	{
 		const Text& text = m_texts.get(id);
-		const Transform& transform = m_transformSystem.getTransform(id);
+		const Transform& transform = m_transformSystem.getWorldTransform(id);
 		const Box& box = m_transformSystem.getBox(id);
 		const Pivot& pivot = m_transformSystem.getPivot(id);
 
@@ -726,11 +728,11 @@ void UIScene::renderImage(Id id) const
 	if (not m_imageLinks.check(id))
 		return;
 
-	if (m_transformSystem.hasTransform(id) and
+	if (m_transformSystem.hasWorldTransform(id) and
 		m_transformSystem.hasBox(id))
 	{
 		const ImageLink& imageLink = m_imageLinks.get(id);
-		const Transform& transform = m_transformSystem.getTransform(id);
+		const Transform& transform = m_transformSystem.getWorldTransform(id);
 		const Box& box = m_transformSystem.getBox(id);
 		const Pivot& pivot = m_transformSystem.getPivot(id);
 
@@ -848,7 +850,7 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
-	m_transformSystem.setPosition(id, position);
+	m_transformSystem.setLocalPosition(id, position);
 
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
@@ -905,10 +907,10 @@ Rectangle UIScene::getViewportPixelRectangle(int sceneIndex) const
 	query<Viewport>(m_viewports, [&](Id id, const Viewport& viewport)
 	{
 		if (viewport.sceneIndex == sceneIndex and
-			m_transformSystem.hasTransform(id) and
+			m_transformSystem.hasWorldTransform(id) and
 			m_transformSystem.hasBox(id))
 		{
-			const Transform& transform = m_transformSystem.getTransform(id);
+			const Transform& transform = m_transformSystem.getWorldTransform(id);
 			const Box& box = m_transformSystem.getBox(id);
 			viewportRect = convertToPixelRectangle(transform, box, Pivots::Center);
 		}
@@ -1008,15 +1010,17 @@ void UIScene::toggleMaximizer(Id id)
 	auto& maximizer = m_maximizers.get(id);
 	if (maximizer.maximizerState == MaximizerState::Normal)
 	{
-		maximizer.storedNormalStatePosition = m_transformSystem.getPosition(id);
+		maximizer.storedNormalStatePosition = m_transformSystem.getLocalPosition(id);
 		maximizer.storedNormalStateBox = m_transformSystem.getBox(id);
+		maximizer.storedNormalStatePivot = m_transformSystem.getPivot(id);
 		maximizer.maximizerState = MaximizerState::Maximized;
 	}
 	else
 	{
 		maximizer.maximizerState = MaximizerState::Normal;
 		m_transformSystem.setBox(id, maximizer.storedNormalStateBox);
-		m_transformSystem.setPosition(id, maximizer.storedNormalStatePosition);
+		m_transformSystem.setLocalPosition(id, maximizer.storedNormalStatePosition);
+		m_transformSystem.setPivot(id, maximizer.storedNormalStatePivot);
 	}
 }
 
@@ -1028,11 +1032,11 @@ void UIScene::updateMaximizers()
 	{
 		if (maximizer.maximizerState == MaximizerState::Maximized)
 		{
-			//JONDE m_transformSystem.setBox(id, Box(vec3(0.0f, 0.0f, 0.0f), vec3(window.width(), window.height(), 1.0f)));
-			auto halfExtents = window.dimensions() * 0.5f;
-			m_transformSystem.setBox(id, Box(-halfExtents, halfExtents));
-			m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
-			//m_transformSystem.addPivot(id, Pivots::Center);
+			m_transformSystem.setBox(id, Box(vec3(5.0f, 5.0f, 0.0f), vec3(window.width()-10.0f, window.height()-10.0f, 1.0f)));
+			//JONDE auto halfExtents = window.dimensions() * 0.5f;
+			//m_transformSystem.setBox(id, Box(-halfExtents, halfExtents));
+			m_transformSystem.setWorldPosition(id, vec3(5.0f, 5.0f, 0.0f));
+			m_transformSystem.setPivot(id, Pivots::TopLeft2D);
 		}
 	});
 }

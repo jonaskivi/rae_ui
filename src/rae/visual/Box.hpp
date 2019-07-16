@@ -68,7 +68,7 @@ public:
 	float height() const { return up() - down(); }
 
 	void transform(const Transform& tr);
-	void translate(const Pivot& pivot);
+	void translatePivot(const Pivot& pivot);
 
 	const vec3& min() const { return m_min; }
 	const vec3& max() const { return m_max; }

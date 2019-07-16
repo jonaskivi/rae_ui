@@ -77,7 +77,7 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	int infoLogLength;
 
 	// Compile Vertex Shader
-	LOG_F(INFO, "Compiling vertex shader: %s", vertexFilePath.c_str());
+	//LOG_F(INFO, "Compiling vertex shader: %s", vertexFilePath.c_str());
 
 	const char* vertexSourcePointer = vertexShaderCode.c_str();
 	glShaderSource(vertexShaderId, 1, &vertexSourcePointer , nullptr);
@@ -99,7 +99,7 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 	}
 
 	// Compile Fragment Shader
-	LOG_F(INFO, "Compiling fragment shader: %s", fragmentFilePath.c_str());
+	//LOG_F(INFO, "Compiling fragment shader: %s", fragmentFilePath.c_str());
 	const char* fragmentSourcePointer = fragmentShaderCode.c_str();
 	glShaderSource(fragmentShaderId, 1, &fragmentSourcePointer , nullptr);
 	glCompileShader(fragmentShaderId);
@@ -121,7 +121,7 @@ GLuint Shader::load(String vertexFilePath, String fragmentFilePath)
 
 	// Link the program
 	GLuint programId = glCreateProgram();
-	LOG_F(INFO, "Created shader program: %i", (int)programId);
+	//LOG_F(INFO, "Created shader program: %i", (int)programId);
 	glAttachShader(programId, vertexShaderId);
 	glAttachShader(programId, fragmentShaderId);
 	glLinkProgram(programId);

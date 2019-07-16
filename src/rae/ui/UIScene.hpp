@@ -13,6 +13,7 @@
 #include "rae/core/ISystem.hpp"
 #include "rae/entity/EntitySystem.hpp"
 #include "rae/scene/TransformSystem.hpp"
+#include "rae/animation/AnimationSystem.hpp"
 #include "rae/editor/SelectionSystem.hpp"
 #include "rae/ui/WindowSystem.hpp"
 

@@ -14,7 +14,7 @@ AssetSystem::AssetSystem(Time& time, NVGcontext* nanoVG) :
 	m_nanoVG(nanoVG),
 	m_entitySystem("AssetSystem")
 {
-	LOG_F(INFO, "Init %s", name().c_str());
+	//LOG_F(INFO, "Init %s", name().c_str());
 
 	addTable(m_meshes);
 	addTable(m_materials);

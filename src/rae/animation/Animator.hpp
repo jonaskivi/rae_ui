@@ -28,7 +28,7 @@ template<typename T> inline bool isCloseEnough(const T& target, const T& value)
 
 template<> inline bool isCloseEnough<float>(const float& target, const float& value)
 {
-	if (std::abs(target - value) < 0.00001f)
+	if (std::abs(target - value) < 0.001f)
 		return true;
 	return false;
 }
@@ -37,8 +37,7 @@ template<> inline bool isCloseEnough<glm::vec3>(const glm::vec3& target, const g
 {
 	glm::vec3 temp = target - value;
 	float lengthSqr = glm::dot(temp, temp);
-	//if ((target - value).lengthSqr() < 0.00001f)
-	if (lengthSqr < 0.00001f)
+	if (lengthSqr < 0.001f)
 		return true;
 	return false;
 }
@@ -62,9 +61,49 @@ public:
 		T startValue,
 		T targetValue,
 		float duration,
-		AnimatorType setType = AnimatorType::Smoothstep)
+		AnimatorType setType = AnimatorType::Smoothstep,
+		bool isLooping = false)
 	{
-		init(startValue, targetValue, duration, setType);
+		init(startValue, targetValue, duration, setType, isLooping);
+	}
+
+	void init(
+		T startValue,
+		T targetValue,
+		float startTime,
+		float duration,
+		AnimatorType setType = AnimatorType::Smoothstep,
+		bool isLooping = false)
+	{
+		m_value = startValue;
+		m_startValue = startValue;
+		m_valueChange = targetValue - startValue;
+		m_startTime = startTime;
+		m_duration = duration;
+		if (m_duration == 0.0f)
+		{
+			m_duration = 5.0f;
+		}
+		m_animatorType = setType;
+		m_isLooping = isLooping;
+	}
+
+	// A deferred init, which can be used to init without knowing the startTime. update() will finish initing.
+	void init(
+		T startValue,
+		T targetValue,
+		float duration,
+		AnimatorType setType = AnimatorType::Smoothstep,
+		bool isLooping = false)
+	{
+		float startTime = -5.0f; // Unknown at this point, so we set it to a magic value -5.0f.
+
+		init(startValue,
+			targetValue,
+			startTime,
+			duration,
+			setType,
+			isLooping);
 	}
 
 	~Animator(){}
@@ -118,44 +157,6 @@ public:
 		return valueChange / 2.0f * (time * time * time + 2.0f) + startValue;
 	}
 
-	void init(
-		T startValue,
-		T targetValue,
-		float startTime,
-		float duration,
-		AnimatorType setType = AnimatorType::Smoothstep)
-	{
-		m_value = startValue;
-		m_startValue = startValue;
-		m_valueChange = targetValue - startValue;
-		m_startTime = startTime;
-		m_duration = duration;
-		if (m_duration == 0.0f)
-		{
-			m_duration = 5.0f;
-		}
-		m_animatorType = setType;
-	}
-
-	// A deferred init, which can be used to init without knowing the startTime. update() will finish initing.
-	void init(
-		T startValue,
-		T targetValue,
-		float duration,
-		AnimatorType setType = AnimatorType::Smoothstep)
-	{
-		m_value = startValue;
-		m_startValue = startValue;
-		m_valueChange = targetValue - startValue;
-		m_startTime = -5.0f; // Unknown at this point, so we set it to a magic value -5.0f.
-		m_duration = duration;
-		if (m_duration == 0.0f)
-		{
-			m_duration = 5.0f;
-		}
-		m_animatorType = setType;
-	}
-
 	void restart()
 	{
 		m_value = m_startValue;
@@ -178,6 +179,14 @@ public:
 		if (isFinished(currentTime))
 		{
 			finish(targetValue());
+
+			if (m_isLooping)
+			{
+				// This means that when looping, the target value is never reached 100%, only 99.9% (or the
+				// amount of ellipsis used in isCloseEnough) as restart will just jump back to the start.
+				restart();
+			}
+
 			return true; // Return true one more time, so that the value is updated to target.
 		}
 
@@ -213,8 +222,6 @@ public:
 	void finish(T set)
 	{
 		m_value = set;
-		m_valueChange = set;
-		//RAE_REMOVE m_duration = 0.0f;
 	}
 
 	bool isFinished() // Could also be called isTargetReached
@@ -239,13 +246,14 @@ public:
 		return false;
 	}
 
-	const T& value() { return m_value; }
-	const T& startValue() { return m_startValue; }
-	T targetValue() { return m_startValue + m_valueChange; }
+	const T& value() const { return m_value; }
+	const T& startValue() const { return m_startValue; }
+	T targetValue() const { return m_startValue + m_valueChange; }
 	void  setTargetValue(T targetValue) { m_valueChange = targetValue - m_startValue; }
-	const T& valueChange() { return m_valueChange; }
-	float duration() { return m_duration; }
-	float endTime() { return m_startTime + m_duration; }
+	const T& valueChange() const { return m_valueChange; }
+	float duration() const { return m_duration; }
+	float endTime() const { return m_startTime + m_duration; }
+	bool isLooping() const { return m_isLooping; }
 
 private:
 	T m_value;
@@ -254,6 +262,7 @@ private:
 	T m_valueChange; // targetValue - startValue
 	float m_startTime;
 	float m_duration;
+	bool m_isLooping = false;
 
 	AnimatorType m_animatorType;
 };

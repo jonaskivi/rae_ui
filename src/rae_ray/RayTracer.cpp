@@ -317,7 +317,7 @@ void RayTracer::autoFocus()
 	if (scene.selectionSystem().isSelection())
 	{
 		auto selectedIds = scene.selectionSystem().selectedIds();
-		const Transform& transform = transformSystem.getTransform(selectedIds.front());
+		const Transform& transform = transformSystem.getWorldTransform(selectedIds.front());
 
 		camera.animateFocusPosition(transform.position, camera.focusSpeed());
 	}
@@ -364,7 +364,7 @@ void RayTracer::autoFocus()
 		{
 			HitRecord record;
 
-			const Transform& transform = transformSystem.getTransform(id);
+			const Transform& transform = transformSystem.getWorldTransform(id);
 
 			Material* defaultMaterial = nullptr;
 
@@ -504,7 +504,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 	{
 		HitRecord record;
 
-		const Transform& transform = transformSystem.getTransform(id);
+		const Transform& transform = transformSystem.getWorldTransform(id);
 
 		//LOG_F(INFO, "raytrace box: %i", (int)id);
 

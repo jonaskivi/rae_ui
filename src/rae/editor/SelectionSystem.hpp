@@ -44,7 +44,7 @@ public:
 	bool hasSelectionChanged() const;
 
 	// The average position of all selected entities
-	vec3 selectionPosition() const;
+	vec3 selectionWorldPosition() const;
 	Box selectionAABB() const;
 	Box hoveredAABB() const;
 

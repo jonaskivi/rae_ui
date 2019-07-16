@@ -15,7 +15,7 @@ SceneSystem::SceneSystem(
 		m_time(time),
 		m_input(input)
 {
-	LOG_F(INFO, "Init %s", name().c_str());
+	//LOG_F(INFO, "Init %s", name().c_str());
 
 	// We must always have a scene
 	createScene("Default");

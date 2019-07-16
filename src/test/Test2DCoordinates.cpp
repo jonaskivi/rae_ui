@@ -19,6 +19,8 @@ Test2DCoordinates::Test2DCoordinates() :
 	//m_engine.addSystem(m_engine.rayTracer());
 	//m_engine.addSystem(m_engine.renderSystem());
 
+	m_engine.addSystem(m_engine.debugSystem());
+
 	/*m_engine.addRenderer3D(m_engine.renderSystem());
 	m_engine.addRenderer3D(m_engine.editorSystem());
 	m_engine.addRenderer3D(m_engine.debugSystem());

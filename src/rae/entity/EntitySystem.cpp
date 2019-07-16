@@ -10,10 +10,10 @@ EntitySystem::EntitySystem(String owner) :
 	m_owner(owner),
 	m_nextId(InvalidId)
 {
-	LOG_F(INFO, "Init one EntitySystem for %s", owner.c_str());
+	//LOG_F(INFO, "Init one EntitySystem for %s", owner.c_str());
 
-	Id emptyEntityId = createEntity(); // hack at index 0
-	LOG_F(INFO, "Create empty hack entity at id: %i", emptyEntityId);
+	Id emptyEntityId = createEntity(); // hack at index 0, id 1
+	//LOG_F(INFO, "Create empty hack entity at id: %i", emptyEntityId);
 }
 
 EntitySystem::~EntitySystem()
@@ -22,9 +22,9 @@ EntitySystem::~EntitySystem()
 
 Id EntitySystem::createEntity()
 {
-	LOG_F(INFO, "%s EntitySystem Creating entity.", m_owner.c_str());
+	//LOG_F(INFO, "%s EntitySystem Creating entity.", m_owner.c_str());
 	Id id = getNextId();
-	LOG_F(INFO, "%s EntitySystem Creating entity: %i", m_owner.c_str(), (int)id);
+	//LOG_F(INFO, "%s EntitySystem Creating entity: %i", m_owner.c_str(), (int)id);
 	m_entities.emplace_back(id);
 	return id;
 }
@@ -60,11 +60,9 @@ Id EntitySystem::biggestId() const
 
 Id EntitySystem::getNextId()
 {
-	LOG_F(INFO, "getNextId. Going to increment.");
-
-	LOG_F(INFO, "getNextId. Going to inc: %i", (int)m_nextId);
+	//LOG_F(INFO, "getNextId. Going to inc: %i", (int)m_nextId);
 	++m_nextId;
-	LOG_F(INFO, "getNextId. Going to return: %i", (int)m_nextId);
+	//LOG_F(INFO, "getNextId. Going to return: %i", (int)m_nextId);
 
 	return m_nextId;
 }

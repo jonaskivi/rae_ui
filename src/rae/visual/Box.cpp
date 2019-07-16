@@ -50,7 +50,7 @@ void Box::transform(const Transform& tr)
 	m_max += tr.position;
 }
 
-void Box::translate(const Pivot& pivot)
+void Box::translatePivot(const Pivot& pivot)
 {
 	if (not valid())
 		return;

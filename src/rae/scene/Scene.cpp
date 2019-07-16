@@ -100,7 +100,7 @@ Id Scene::createAddObjectButton(AssetSystem& assetSystem)
 	Id id = m_entitySystem.createEntity();
 	//LOG_F(INFO, "createAddObjectButton id: %i", id);
 	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
-	m_transformSystem.setPosition(id, vec3(0.0f, 0.0f, 0.0f));
+	m_transformSystem.setLocalPosition(id, vec3(0.0f, 0.0f, 0.0f));
 
 	m_assetLinkSystem.addMaterialLink(id, assetSystem.getAnimatingMaterialId());
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getCubeMeshId());

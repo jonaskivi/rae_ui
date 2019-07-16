@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "rae/core/Types.hpp"
 #include "rae/visual/Box.hpp"
 
@@ -89,6 +91,7 @@ struct Maximizer
 	MaximizerState maximizerState = MaximizerState::Normal;
 	vec3 storedNormalStatePosition;
 	Box storedNormalStateBox;
+	Pivot storedNormalStatePivot;
 };
 
 struct Active

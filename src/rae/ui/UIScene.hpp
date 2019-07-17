@@ -153,6 +153,8 @@ public:
 	void renderText(Id id) const;
 	void renderTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		float fontSize, const Color& color) const;
+	void renderMultilineTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
+		float fontSize, const Color& color, bool limitToBoxWidth = true) const;
 	void renderImage(Id id) const;
 	void renderImageGeneric(ImageLink imageLink, const Transform& transform, const Box& box, const Pivot& pivot,
 		const AssetSystem& assetSystem) const;

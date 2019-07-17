@@ -200,9 +200,14 @@ UpdateStatus UIScene::update()
 	});
 
 	m_animationSystem.update(); // RAE_TODO return value.
-	m_transformSystem.update(); // RAE_TODO return value.
+	// TransformSystem update is not called for now, as we just call the sync func after any changes...
+	// Need to think about this.
+	// m_transformSystem.update(); // RAE_TODO return value.
+	m_transformSystem.syncLocalAndWorldTransforms();
 
 	doLayout();
+
+	m_transformSystem.syncLocalAndWorldTransforms();
 
 	if (not m_inputState.isGrabbed() && m_inputState.mouseInside && m_inputState.hadEvents)
 	{
@@ -224,13 +229,13 @@ void UIScene::doLayout()
 			//Array<Id> children(childrenSet.begin(), childrenSet.end());
 			//layout.doLayout(children);
 
-			//JONDE const vec3& parentPos = m_transformSystem.getWorldPosition(layoutId);
+			//RAE_CHECK IF NEEDED const vec3& parentPos = m_transformSystem.getWorldPosition(layoutId);
 			const Pivot& parentPivot = m_transformSystem.getPivot(layoutId);
 			Box parentBox = m_transformSystem.getBox(layoutId);
 			parentBox.translatePivot(parentPivot);
 
 			// RAE_TODO Some kind of margin: float marginMM = 6.0f;
-			float someIter = /*JONDE parentPos.y +*/ parentBox.min().y;
+			float someIter = /*RAE_CHECK parentPos.y +*/ parentBox.min().y;
 			for (auto&& childId : children)
 			{
 				vec3 pos = m_transformSystem.getLocalPosition(childId);
@@ -238,7 +243,7 @@ void UIScene::doLayout()
 				Box tbox = m_transformSystem.getBox(childId);
 				tbox.translatePivot(pivot);
 
-				pos.x = (/*JONDE parentPos.x +*/ parentBox.min().x) - tbox.min().x;// + marginMM;
+				pos.x = (/*RAE_CHECK parentPos.x +*/ parentBox.min().x) - tbox.min().x;// + marginMM;
 				pos.y = someIter - tbox.min().y;// + marginMM;
 				m_transformSystem.setLocalPosition(childId, pos);
 				someIter = someIter + tbox.dimensions().y;
@@ -509,7 +514,7 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 		// Debug hover visualization
 		query<Hover>(m_selectionSystem.hovers(), [&](Id id)
 		{
-			if (m_transformSystem.hasWorldTransform(id) and
+			if (m_transformSystem.hasWorldTransform(id) &&
 				m_transformSystem.hasBox(id))
 			{
 				const Transform& transform = m_transformSystem.getWorldTransform(id);
@@ -523,8 +528,18 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 				float thicknessMM = 1.0f;
 				renderBorder(transform, box, pivot,
 					Colors::magenta, cornerRadius, thicknessMM);
+				renderMultilineTextGeneric(m_transformSystem.toString(id), transform, box, pivot, 14.0f,
+					Colors::orange, false);
 			}
 		});
+	}
+	else
+	{
+		UIRenderer::renderTextNano(
+			m_nanoVG,
+			"F1 debug info",
+			Rectangle(0.0f, 0.0f, 100.0f, 32.0f),
+			16.0f, Colors::white);
 	}
 }
 
@@ -723,6 +738,26 @@ void UIScene::renderTextGeneric(const String& text, const Transform& transform, 
 		fontSize, color);
 }
 
+void UIScene::renderMultilineTextGeneric(const String& text, const Transform& transform, const Box& box,
+	const Pivot& pivot, float fontSize, const Color& color, bool limitToBoxWidth) const
+{
+	if (limitToBoxWidth)
+	{
+		UIRenderer::renderMultilineTextNano(m_nanoVG, text,
+			convertToPixelRectangle(transform, box, pivot),
+			fontSize, color);
+	}
+	else
+	{
+		Rectangle rectangle = convertToPixelRectangle(transform, box, pivot);
+		// Just make the rectangle bigger than normal screens.
+		rectangle.width = 32000.0f;
+		UIRenderer::renderMultilineTextNano(m_nanoVG, text,
+			rectangle,
+			fontSize, color);
+	}
+}
+
 void UIScene::renderImage(Id id) const
 {
 	if (not m_imageLinks.check(id))
@@ -912,7 +947,9 @@ Rectangle UIScene::getViewportPixelRectangle(int sceneIndex) const
 		{
 			const Transform& transform = m_transformSystem.getWorldTransform(id);
 			const Box& box = m_transformSystem.getBox(id);
-			viewportRect = convertToPixelRectangle(transform, box, Pivots::Center);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
+
+			viewportRect = convertToPixelRectangle(transform, box, pivot);
 		}
 	});
 	return viewportRect;
@@ -1032,10 +1069,9 @@ void UIScene::updateMaximizers()
 	{
 		if (maximizer.maximizerState == MaximizerState::Maximized)
 		{
-			m_transformSystem.setBox(id, Box(vec3(5.0f, 5.0f, 0.0f), vec3(window.width()-10.0f, window.height()-10.0f, 1.0f)));
-			//JONDE auto halfExtents = window.dimensions() * 0.5f;
-			//m_transformSystem.setBox(id, Box(-halfExtents, halfExtents));
-			m_transformSystem.setWorldPosition(id, vec3(5.0f, 5.0f, 0.0f));
+			auto halfExtents = window.dimensions() * 0.5f;
+			m_transformSystem.setBox(id, Box(-halfExtents, halfExtents));
+			m_transformSystem.setWorldPosition(id, vec3(0.0f, 0.0f, 0.0f));
 			m_transformSystem.setPivot(id, Pivots::TopLeft2D);
 		}
 	});

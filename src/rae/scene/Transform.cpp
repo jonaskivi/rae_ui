@@ -32,6 +32,8 @@ String Transform::toString() const
 	ret += Utils::toString(position.y);
 	ret += ", z: ";
 	ret += Utils::toString(position.z);
+	ret += ", scale: ";
+	ret += Utils::toString(scale);
 	return ret;
 }
 

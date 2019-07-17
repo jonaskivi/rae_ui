@@ -38,6 +38,8 @@ void DebugSystem::loguruCallbackClose(void* user_data)
 
 DebugSystem::DebugSystem()
 {
+	setIsEnabled(false);
+
 	g_debugSystem = this;
 
 	loguru::add_callback("user_callback", loguruLoggerCallback, nullptr,

@@ -1,5 +1,9 @@
 #include "rae/scene/TransformSystem.hpp"
 
+#include <cassert>
+
+#include "rae/core/Utils.hpp"
+
 using namespace rae;
 
 static const int ReserveTransforms = 1000;
@@ -25,6 +29,13 @@ TransformSystem::TransformSystem() :
 
 UpdateStatus TransformSystem::update()
 {
+	syncLocalAndWorldTransforms();
+
+	return UpdateStatus::NotChanged;
+}
+
+void TransformSystem::syncLocalAndWorldTransforms()
+{
 	/* // RAE_REMOVE This can't work in situations where the children Ids are smaller than the parent ids.
 	// Also this code was written before preferring local transforms.
 	query<Changed>(m_parentChanged, [&](Id id)
@@ -45,7 +56,6 @@ UpdateStatus TransformSystem::update()
 	});
 	*/
 
-	// Update world transforms for children.
 	query<Transform>(m_transforms, [&](Id id)
 	{
 		if (not hasParent(id))
@@ -60,13 +70,6 @@ UpdateStatus TransformSystem::update()
 					// Either our local position was set, or parent world position changed.
 					if (m_transforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
 					{
-						/* Bullshit:
-						// Must not use assign, because now we don't want isUpdated() to mark it as updated.
-						// Otherwise we get a loop, and previous hierarchical assigns would start to affect
-						// children.
-						auto& worldTransform = getWorldTransformPrivate(id);
-						worldTransform.position = parentWorldTransform.position + m_transforms.getF(id).position;
-						*/
 						setWorldPosition(id, parentWorldTransform.position + m_transforms.getF(id).position);
 					}
 					// Our world position was set. Must fix local then.
@@ -77,11 +80,6 @@ UpdateStatus TransformSystem::update()
 				}
 				else // no parents. Just make them the same because they should always be equal.
 				{
-					/*
-					JONDE REMOVE auto& worldTransform = getWorldTransformPrivate(id);
-					worldTransform.position = m_transforms.getF(id).position;
-					*/
-
 					if (m_transforms.isUpdatedF(id))
 					{
 						setWorldPosition(id, m_transforms.getF(id).position);
@@ -95,9 +93,24 @@ UpdateStatus TransformSystem::update()
 		}
 	});
 
-	m_parentChanged.clear();
+	m_transforms.clearUpdated();
+	m_worldTransforms.clearUpdated();
 
-	return UpdateStatus::NotChanged;
+	// Assert check:
+	/*
+	query<Transform>(m_transforms, [&](Id id)
+	{
+		if (not hasParent(id))
+		{
+			assert(
+				Utils::isEqualVec(getLocalPosition(id), getWorldPosition(id), 0.01f));
+				//"Local and world transform should be equal if entity has no parent.");
+		}
+	});
+	*/
+
+	// This is not anything useful at the moment.
+	m_parentChanged.clear();
 }
 
 bool TransformSystem::hasAnyTransformChanged() const
@@ -284,7 +297,7 @@ bool TransformSystem::hasChildren(Id id) const
 	return (m_childrens.get(id).size() > 0);
 }
 
-const Array<Id>& TransformSystem::getChildren(Id id)
+const Array<Id>& TransformSystem::getChildren(Id id) const
 {
 	return m_childrens.get(id);
 }
@@ -355,4 +368,60 @@ Box TransformSystem::getAABBWorldSpace(Id id) const
 	box.translatePivot(getPivot(id));
 	box.transform(getWorldTransform(id));
 	return box;
+}
+
+String TransformSystem::toString(Id id) const
+{
+	String ret = "Id: " + Utils::toString(id);
+	if (hasLocalTransform(id))
+	{
+		ret += "\nLocal: " + getLocalTransform(id).toString();
+	}
+	else
+	{
+		ret += "\nNo local transform.";
+	}
+
+	if (hasWorldTransform(id))
+	{
+		ret += "\nWorld: " + getWorldTransform(id).toString();
+	}
+	else
+	{
+		ret += "\nNo world transform.";
+	}
+	
+	if (hasBox(id))
+	{
+		ret += "\nBox: " + getBox(id).toString();
+	}
+
+	if (hasPivot(id))
+	{
+		ret += "\nPivot: " + Utils::toString(getPivot(id));
+	}
+
+	if (hasParent(id))
+	{
+		ret += "\nParent id: " + Utils::toString(getParent(id));
+	}
+	else
+	{
+		ret += "\nNo parent.";
+	}
+
+	if (hasChildren(id))
+	{
+		ret += "\nChildren: ";
+		for (Id childId : getChildren(id))
+		{
+			ret += Utils::toString(childId) + ", ";
+		}
+	}
+	else
+	{
+		ret += "\nNo children.";
+	}
+
+	return ret;
 }

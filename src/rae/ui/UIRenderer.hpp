@@ -40,6 +40,8 @@ namespace UIRenderer
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 	void renderTextNano(NVGcontext* vg, const String& text, const Rectangle& rectangle, float fontSize = 18.0f,
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
+	void renderMultilineTextNano(NVGcontext* vg, const String& text, const Rectangle& rectangle, float fontSize = 18.0f,
+			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 	void renderGrid(
 		NVGcontext* vg,
 		float width = 1920.0f,

@@ -154,7 +154,7 @@ String toString(bool set)
 String toString(float value)
 {
 	String ret(16, '\0');
-	auto written = std::snprintf(&ret[0], ret.size(), "%.4f", value);
+	auto written = std::snprintf(&ret[0], ret.size(), "%.2f", value);
 	ret.resize(written);
 	return ret;
 }

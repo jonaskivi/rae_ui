@@ -289,7 +289,6 @@ public:
 	void onFrameEnd() override
 	{
 		clearUpdated();
-		m_anyUpdated = false;
 	}
 
 	// The updated flags should be cleared at the end of each frame
@@ -299,6 +298,7 @@ public:
 		{
 			value = false;
 		}
+		m_anyUpdated = false;
 	}
 
 	bool isAnyUpdated() const

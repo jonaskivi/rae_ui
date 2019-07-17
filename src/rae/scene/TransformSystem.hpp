@@ -38,6 +38,8 @@ public:
 
 	UpdateStatus update() override;
 
+	void syncLocalAndWorldTransforms();
+
 	bool hasAnyTransformChanged() const;
 
 	void processHierarchy(Id parentId, std::function<void(Id)> process);
@@ -72,7 +74,7 @@ public:
 
 	//void addChildren(Id id);
 	bool hasChildren(Id id) const;
-	const Array<Id>& getChildren(Id id);
+	const Array<Id>& getChildren(Id id) const;
 
 	// Pivot is defined in normalized coordinates -1 to 1 (in relation to own size)
 	// and it will affect how the origin of the current entity will be interpreted.
@@ -103,6 +105,8 @@ public:
 	const Sphere& getSphere(Id id) const;
 
 	Box getAABBWorldSpace(Id id) const;
+
+	String toString(Id id) const;
 
 private:
 

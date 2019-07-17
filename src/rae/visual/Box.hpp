@@ -76,6 +76,8 @@ public:
 	float left() const { return m_min.x; }
 	float right() const { return m_max.x; }
 	float up() const { return m_max.y; }
+	// This is confusing with 3D Y up vs 2D Y down situations. Clearly this implies a 2D usage scenario,
+	// so either change to 2D Y up (as in Unity) or rename this to up() or up2D(), and document that.
 	float down() const { return m_min.y; }
 
 	// Corners of the AABB box in a right handed Z-up coordinate system.

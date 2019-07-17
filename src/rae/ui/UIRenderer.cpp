@@ -320,6 +320,47 @@ void UIRenderer::renderTextNano(
 	nvgRestore(vg);
 }
 
+void UIRenderer::renderMultilineTextNano(
+	NVGcontext* vg,
+	const String& text,
+	const Rectangle& rectangle,
+	float fontSize,
+	const Color& textColor)
+{
+	nvgSave(vg);
+
+	nvgFontSize(vg, fontSize);
+	nvgFontFace(vg, "sans-bold");
+	nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+
+	// Text shadow
+	nvgFontBlur(vg,2);
+	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f));
+
+	const float shadowOffset = 1.0f;
+	const float rectangleHalfWidth = rectangle.width * 0.5f;
+	const float rectangleHalfHeight = rectangle.height * 0.5f;
+	const float breakRowWidth = rectangle.width;
+
+	nvgTextBox(vg,
+		rectangle.x,
+		rectangle.y,
+		breakRowWidth,
+		text.c_str(), nullptr);
+
+	// Actual text
+	nvgFontBlur(vg,0);
+	nvgFillColor(vg, nvgRGBAf(textColor.r, textColor.g, textColor.b, textColor.a));
+
+	nvgTextBox(vg,
+		rectangle.x,
+		rectangle.y,
+		breakRowWidth,
+		text.c_str(), nullptr);
+
+	nvgRestore(vg);
+}
+
 void UIRenderer::renderGrid(NVGcontext* vg, float width, float height, float pixelStep, vec2 startPos)
 {
 	Color color = Colors::darkGray;

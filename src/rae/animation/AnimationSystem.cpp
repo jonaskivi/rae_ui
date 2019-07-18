@@ -7,20 +7,22 @@ using namespace rae;
 
 //RAE_TODO Move to own file:--------------------------------------------
 
-void AnimationTimeline::update()
+void AnimationTimeline::update(Time time)
 {
+	float playheadFrames = secondsToFrames(playheadSeconds);
+
 	for (auto&& anim : m_vec3Animations)
 	{
-		anim.update(playhead);
+		anim.update(playheadFrames);
 	}
 
-	playhead++;
+	playheadSeconds += time.deltaTime();
 
 	if (isLooping)
 	{
-		if (playhead > end)
+		if (int(playheadFrames) > end + 1)
 		{
-			playhead = start;
+			rewind();
 		}
 	}
 }
@@ -57,8 +59,7 @@ UpdateStatus AnimationSystem::update()
 
 	for (auto&& timeline : m_animationTimelines)
 	{
-		// RAE_TODO time as a parameter, and convert frames into time.
-		timeline->update();
+		timeline->update(m_time);
 	}
 
 	return UpdateStatus::NotChanged;

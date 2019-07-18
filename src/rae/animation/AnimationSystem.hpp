@@ -47,7 +47,7 @@ public:
 		m_keyFrames.emplace_back(KeyFrame<T>(frame, value));
 	}
 
-	void update(int playhead)
+	void update(float playheadFrames)
 	{
 		// Make this more efficient, so we don't need to go through all of them.
 		for (int i = 0; i < (int)m_keyFrames.size()-1; ++i)
@@ -55,19 +55,14 @@ public:
 			auto& keyFrame = m_keyFrames[i];
 			auto& nextKeyFrame = m_keyFrames[i+1];
 
-			if (playhead == keyFrame.frame)
-			{
-				m_setFunction(m_id, keyFrame.value);
-				break;
-			}
-			else if (playhead > keyFrame.frame && playhead < nextKeyFrame.frame)
+			if (playheadFrames >= float(keyFrame.frame) && playheadFrames < float(nextKeyFrame.frame))
 			{
 				m_setFunction(m_id,
 					Animator<T>::cubicEaseInOut(
-						playhead - keyFrame.frame,
+						playheadFrames - float(keyFrame.frame),
 						keyFrame.value,
 						nextKeyFrame.value - keyFrame.value,
-						nextKeyFrame.frame - keyFrame.frame + 1)
+						float(nextKeyFrame.frame - keyFrame.frame + 1))
 				);
 			}
 		}
@@ -95,14 +90,23 @@ public:
 	AnimationTimeline(int start, int end) :
 		start(start),
 		end(end)
-	{}
+	{
+		rewind();
+	}
 
 	AnimationTimeline(int duration) :
 		start(0),
 		end(duration-1)
-	{}
+	{
+		rewind();
+	}
 
-	void update();
+	void update(Time time);
+
+	void rewind() { playheadSeconds = framesToSeconds(start); }
+
+	float secondsToFrames(float seconds) { return seconds * framesPerSecond; }
+	float framesToSeconds(float frames) { return frames / framesPerSecond; }
 
 	PropertyAnimation<vec3>& createVec3Animation(
 		Id id,
@@ -112,8 +116,9 @@ public:
 	Array<PropertyAnimation<vec3>> m_vec3Animations;
 	Array<PropertyAnimation<float>> m_floatAnimations;
 	TimelineState m_timelineState = TimelineState::Play;
-	// Current frame position on the timeline.
-	int playhead = 0;
+	// Current playhead position on the timeline. We keep it as float, as we want to animate smoothly,
+	// and not according to the framesPerSecond. FPS only defines the "grid" for the keyframes.
+	float playheadSeconds = 0.0f;
 
 	// Start and end in frames. Start is usually 0, but could be moved.
 	// End is included in the animation, so it is the last frame to be processed.
@@ -123,6 +128,7 @@ public:
 	// +1 to make end inclusive.
 	int duration() const { return end - start + 1; }
 	bool isLooping = true;
+	float framesPerSecond = 30.0f;
 };
 
 class AnimationSystem : public ISystem

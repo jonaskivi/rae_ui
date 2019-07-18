@@ -75,19 +75,27 @@ void GameMenuExample::initUI()
 			});
 		ui.addDraggable(testButton1);
 
-		Id testButton2 = ui.createButton("Anim Button 2",
-			Rectangle(10.0f, 30.0f, 60.0f, 10.0f),
+		Id testButton2 = ui.createButton("Test Button 2",
+			Rectangle(30.0f, 80.0f, 70.0f, 20.0f),
 			[&]()
 			{
 				LOG_F(INFO, "Activate Test Button 2");
 			});
-		ui.addDraggable(testButton2);
+		trans.addPivot(testButton2, Pivots::Center);
+
+		Id testButton3 = ui.createButton("Anim Button 3",
+			Rectangle(10.0f, 30.0f, 60.0f, 10.0f),
+			[&]()
+			{
+				LOG_F(INFO, "Activate Anim Button 3");
+			});
+		ui.addDraggable(testButton3);
 
 		{
 			/*RAE_OLD
 			float duration = 2.0f;
 			bool isLooping = true;
-			anim.addPositionAnimator(testButton2,
+			anim.addPositionAnimator(testButton3,
 				PositionAnimator(
 					vec3(10.0f, 30.0f, 0.0f),
 					vec3(80.0f, 40.0f, 0.0f),
@@ -96,28 +104,35 @@ void GameMenuExample::initUI()
 					isLooping));
 			*/
 
-			AnimationTimeline& timeline = anim.createAnimationTimeline(0, 3000);
+			AnimationTimeline& timeline = anim.createAnimationTimeline(0, 120);
 			PropertyAnimation<vec3>& posAnim =
-				timeline.createVec3Animation(testButton2,
+				timeline.createVec3Animation(testButton3,
 					std::bind(&TransformSystem::getLocalPosition, &trans, std::placeholders::_1),
 					std::bind(&TransformSystem::setLocalPosition, &trans, std::placeholders::_1, std::placeholders::_2));
 
-			// Frames here are too big as for now, they are not converted to time,
-			// but played as fast as possible.
 			posAnim.addKeyFrame(0, vec3(10.0f, 30.0f, 0.0f));
-			posAnim.addKeyFrame(1500, vec3(80.0f, 40.0f, 0.0f));
-			posAnim.addKeyFrame(2500, vec3(70.0f, 80.0f, 0.0f));
-			posAnim.addKeyFrame(3000, vec3(10.0f, 30.0f, 0.0f));
+			posAnim.addKeyFrame(60, vec3(50.0f, 40.0f, 0.0f));
+			posAnim.addKeyFrame(80, vec3(-20.0f, 80.0f, 0.0f));
+			posAnim.addKeyFrame(100, vec3(10.0f, 30.0f, 0.0f));
 		}
 
-		Id testButton3 = ui.createButton("Test Button 3",
-			Rectangle(30.0f, 80.0f, 70.0f, 20.0f),
-			[&]()
-			{
-				LOG_F(INFO, "Activate Test Button 3");
-			});
+		Id animText = ui.createTextBox("Match Start",
+			vec3(), vec3(50.0f, 50.0f, 1.0f), 64.0f);
+		ui.addColor(animText, Utils::createColor8bit(54, 168, 175, 255));
+		trans.addPivot(animText, Pivots::Center);
 
-		trans.addPivot(testButton3, Pivots::Center);
+		{
+			AnimationTimeline& timeline = anim.createAnimationTimeline(0, 200);
+			PropertyAnimation<vec3>& posAnim =
+				timeline.createVec3Animation(animText,
+					std::bind(&TransformSystem::getLocalPosition, &trans, std::placeholders::_1),
+					std::bind(&TransformSystem::setLocalPosition, &trans, std::placeholders::_1, std::placeholders::_2));
+
+			posAnim.addKeyFrame(0, vec3(65.0f, -200.0f, 0.0f));
+			posAnim.addKeyFrame(50, vec3(65.0f, 120.0f, 0.0f));
+			posAnim.addKeyFrame(100, vec3(65.0f, 120.0f, 0.0f));
+			posAnim.addKeyFrame(150, vec3(65.0f, 400.0f, 0.0f));
+		}
 
 		trans.addChild(panelParent, panel);
 		trans.addChild(panel, testButton1);

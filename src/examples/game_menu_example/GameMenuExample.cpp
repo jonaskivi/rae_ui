@@ -84,6 +84,7 @@ void GameMenuExample::initUI()
 		ui.addDraggable(testButton2);
 
 		{
+			/*RAE_OLD
 			float duration = 2.0f;
 			bool isLooping = true;
 			anim.addPositionAnimator(testButton2,
@@ -93,6 +94,20 @@ void GameMenuExample::initUI()
 					duration,
 					AnimatorType::CubicOut,
 					isLooping));
+			*/
+
+			AnimationTimeline& timeline = anim.createAnimationTimeline(0, 3000);
+			PropertyAnimation<vec3>& posAnim =
+				timeline.createVec3Animation(testButton2,
+					std::bind(&TransformSystem::getLocalPosition, &trans, std::placeholders::_1),
+					std::bind(&TransformSystem::setLocalPosition, &trans, std::placeholders::_1, std::placeholders::_2));
+
+			// Frames here are too big as for now, they are not converted to time,
+			// but played as fast as possible.
+			posAnim.addKeyFrame(0, vec3(10.0f, 30.0f, 0.0f));
+			posAnim.addKeyFrame(1500, vec3(80.0f, 40.0f, 0.0f));
+			posAnim.addKeyFrame(2500, vec3(70.0f, 80.0f, 0.0f));
+			posAnim.addKeyFrame(3000, vec3(10.0f, 30.0f, 0.0f));
 		}
 
 		Id testButton3 = ui.createButton("Test Button 3",

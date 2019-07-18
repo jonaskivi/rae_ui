@@ -56,6 +56,7 @@ public:
 	Id getBunnyMaterialId() { return m_bunnyMaterialId; }
 
 protected:
+	// Note that AssetSystem has its own Ids in this entitySystem.
 	EntitySystem	m_entitySystem;
 
 	Time&			m_time;

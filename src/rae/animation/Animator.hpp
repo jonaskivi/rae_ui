@@ -148,7 +148,7 @@ public:
 		return valueChange * (time * time * time + 1.0f) + startValue;
 	}
 
-	T cubicEaseInOut(float time, T startValue, T valueChange, float duration)
+	static T cubicEaseInOut(float time, T startValue, T valueChange, float duration)
 	{
 		time /= duration / 2.0f;
 		if (time < 1.0f)

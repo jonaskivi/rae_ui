@@ -16,8 +16,9 @@ friend class RenderSystem;
 public:
 	AssetLinkSystem();
 
-	void addMeshLink(Id id, Id linkId);
-	void addMaterialLink(Id id, Id linkId);
+	// Links between SceneId id and AssetID assetId
+	void addMeshLink(Id id, Id assetId);
+	void addMaterialLink(Id id, Id assetId);
 
 	bool hasMeshLink(Id id) const { return m_meshLinks.check(id); }
 	const MeshLink& getMeshLink(Id id) const;

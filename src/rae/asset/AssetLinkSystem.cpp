@@ -8,14 +8,14 @@ AssetLinkSystem::AssetLinkSystem()
 	addTable(m_materialLinks);
 }
 
-void AssetLinkSystem::addMeshLink(Id id, Id linkId)
+void AssetLinkSystem::addMeshLink(Id id, Id assetId)
 {
-	m_meshLinks.assign(id, std::move(linkId));
+	m_meshLinks.assign(id, std::move(assetId));
 }
 
-void AssetLinkSystem::addMaterialLink(Id id, Id linkId)
+void AssetLinkSystem::addMaterialLink(Id id, Id assetId)
 {
-	m_materialLinks.assign(id, std::move(linkId));
+	m_materialLinks.assign(id, std::move(assetId));
 }
 
 const MeshLink& AssetLinkSystem::getMeshLink(Id id) const

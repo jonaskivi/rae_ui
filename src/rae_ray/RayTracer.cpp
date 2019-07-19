@@ -319,6 +319,8 @@ void RayTracer::autoFocus()
 		auto selectedIds = scene.selectionSystem().selectedIds();
 		const Transform& transform = transformSystem.getWorldTransform(selectedIds.front());
 
+		// Animating the focus is kind of silly for a raytracer.
+		// Might be more interesting when it is actually realtime and uses GPU 
 		camera.animateFocusPosition(transform.position, camera.focusSpeed());
 	}
 	else

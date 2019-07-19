@@ -143,7 +143,7 @@ float Camera::screenSizeFactor(const vec3& position) const
 
 bool Camera::update(double time)
 {
-	if( m_focusDistanceAnimator.update((float)time) )
+	if (m_focusDistanceAnimator.update((float)time))
 	{
 		m_focusDistance = m_focusDistanceAnimator.value();
 		m_needsUpdate = true;

@@ -16,7 +16,7 @@ void AnimationTimeline::update(Time time)
 		anim.update(playheadFrames);
 	}
 
-	playheadSeconds += time.deltaTime();
+	playheadSeconds += (float)time.deltaTime();
 
 	if (isLooping)
 	{

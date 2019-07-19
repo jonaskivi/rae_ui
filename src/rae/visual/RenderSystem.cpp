@@ -168,7 +168,8 @@ void RenderSystem::setViewport(const Rectangle& viewport, const Window& window)
 	}
 	else
 	{
-		glViewport(viewport.x, window.pixelHeight() - viewport.y - viewport.height, viewport.width, viewport.height);
+		glViewport(GLint(viewport.x), GLint(window.pixelHeight() - viewport.y - viewport.height),
+			GLsizei(viewport.width), GLsizei(viewport.height));
 	}
 }
 
@@ -176,8 +177,6 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 {
 	if (!m_sceneSystem.hasActiveScene())
 		return;
-
-	//LOG_F(INFO, "Render.");
 
 	if ((m_renderMode == RenderMode::MixedRayTraceRasterize ||
 		m_renderMode == RenderMode::RayTrace) &&

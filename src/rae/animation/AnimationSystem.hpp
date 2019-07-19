@@ -103,7 +103,7 @@ public:
 
 	void update(Time time);
 
-	void rewind() { playheadSeconds = framesToSeconds(start); }
+	void rewind() { playheadSeconds = framesToSeconds((float)start); }
 
 	float secondsToFrames(float seconds) { return seconds * framesPerSecond; }
 	float framesToSeconds(float frames) { return frames / framesPerSecond; }

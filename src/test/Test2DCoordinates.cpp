@@ -20,6 +20,8 @@ Test2DCoordinates::Test2DCoordinates() :
 	//m_engine.addSystem(m_engine.renderSystem());
 
 	m_engine.addSystem(m_engine.debugSystem());
+	// Enable debugSystem to see the grid for this test.
+	m_engine.debugSystem().setIsEnabled(true);
 
 	/*m_engine.addRenderer3D(m_engine.renderSystem());
 	m_engine.addRenderer3D(m_engine.editorSystem());

@@ -221,7 +221,7 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem) const
 	const auto activeColor = Utils::createColor8bit(255, 215, 0);
 
 	// Draw from farthest to closest, so iterate backwards
-	for (int index = sortedLineHandles.size()-1; index >= 0; --index)
+	for (int index = int(sortedLineHandles.size())-1; index >= 0; --index)
 	{
 		int i = sortedLineHandles[index].axisIndex;
 
@@ -427,6 +427,8 @@ UpdateStatus EditorSystem::update(Scene& scene)
 
 	// It is actually strange that this selection rendering is in update. But we'll have to fix this later, probably
 	// when debugSystem becomes aware of the scenes and viewports.
+	// Also we need a line rendering system that is independent of debugSystem,
+	// because now these line boxes are off by default.
 	auto& selectionSystem = scene.selectionSystem();
 	if (selectionSystem.isSelection())
 	{

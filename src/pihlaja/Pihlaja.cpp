@@ -191,7 +191,7 @@ void Pihlaja::initUI()
 		});
 	trans.addChild(panel, renderModeButton);
 
-	Id qualityButton = ui.createButton("Quality",
+	Id qualityButton = ui.createButton("Toggle Quality",
 		vec3(0.0f, 35.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
 		[&]()

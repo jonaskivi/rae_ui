@@ -377,11 +377,13 @@ void Engine::onKeyEvent(const Input& input)
 {
 	if (input.eventType == EventType::KeyPress)
 	{
+		/*
 		switch (input.key.value)
 		{
 			default:
 			break;
 		}
+		*/
 	}
 }
 

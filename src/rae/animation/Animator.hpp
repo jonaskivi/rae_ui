@@ -86,6 +86,7 @@ public:
 		}
 		m_animatorType = setType;
 		m_isLooping = isLooping;
+		m_running = true;
 	}
 
 	// A deferred init, which can be used to init without knowing the startTime. update() will finish initing.
@@ -161,6 +162,7 @@ public:
 	{
 		m_value = m_startValue;
 		m_startTime = -5.0f;
+		m_running = true;
 	}
 
 	// returns true if the Animator is still running.
@@ -172,7 +174,7 @@ public:
 			m_startTime = currentTime;
 		}
 
-		if (m_duration == 0.0f)
+		if (m_running == false)
 			return false;
 
 		// Clamp to targetValue if we are finished
@@ -222,11 +224,12 @@ public:
 	void finish(T set)
 	{
 		m_value = set;
+		m_running = false;
 	}
 
 	bool isFinished() // Could also be called isTargetReached
 	{
-		if (m_duration == 0.0f || isCloseEnough<T>(targetValue(), m_value))
+		if (m_running == false || isCloseEnough<T>(targetValue(), m_value))
 			return true;
 		return false;
 	}
@@ -263,6 +266,9 @@ private:
 	float m_startTime;
 	float m_duration;
 	bool m_isLooping = false;
+	// We need to mark when it is finished, because the update() needs to run one more time
+	// after it has actually finished, so that who ever is calling update, can update the final value.
+	bool m_running = false;
 
 	AnimatorType m_animatorType;
 };

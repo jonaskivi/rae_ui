@@ -132,6 +132,11 @@ private:
 	Table<Owner>		m_owners;
 	Table<Owned>		m_owneds;
 
+	// Pivot defines the relation between the localTransform.position and the Box.
+	// By default if no Pivot is set, you get the default pivot which is vec(0,0,0).
+	// The pivot is relational to the Box size, and its typical values run from
+	// (-1,-1,-1) to (1,1,1), which mark the opposite corners of the Box. Y-up or Y-down in 3D or 2D
+	// of course affect which corner is which. TopLeft2D corner is defined in Types.cpp as vec(-1,-1,0).
 	Table<Pivot>		m_pivots;
 
 	Table<Box>			m_boxes;

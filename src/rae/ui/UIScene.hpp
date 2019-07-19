@@ -84,8 +84,8 @@ public:
 	const InputState& inputState() { return m_inputState; }
 	void activateViewportForSceneIndex(int sceneIndex);
 
-	Id createPanel(const Rectangle& rectangle);
-	Id createPanel(const vec3& position, const vec3& extents);
+	Id createPanel(const Rectangle& rectangle, bool visible = true);
+	Id createPanel(const vec3& position, const vec3& extents, bool visible = true);
 	void addPanel(Id id, Panel&& panel);
 	const Panel& getPanel(Id id);
 

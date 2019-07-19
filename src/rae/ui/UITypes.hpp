@@ -159,6 +159,13 @@ struct WindowEntity
 
 struct Panel
 {
+	Panel(){}
+	Panel(bool visible) :
+		visible(visible)
+	{
+	}
+
+	bool visible = true;
 };
 
 struct Viewport

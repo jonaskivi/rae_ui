@@ -65,9 +65,9 @@ void Scene::createTestWorld(AssetSystem& assetSystem)
 
 	auto sphere0 = createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, Color(0.8f, 0.3f, 0.3f, 0.0f));
 
-	auto sphere1 = createSphere(assetSystem, vec3(0.0f, 2.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
-	auto cube2   = createCube(assetSystem,   vec3(0.0f, 3.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), Color(0.8f, 0.4f, 0.8f, 0.0f));
-	auto sphere3 = createSphere(assetSystem, vec3(0.0f, 4.25f, 0.0f), 0.5f, Color(0.8f, 0.5f, 0.3f, 0.0f));
+	auto sphere1 = createSphere(assetSystem, vec3(0.0f, 4.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
+	auto cube2   = createCube(assetSystem,   vec3(0.0f, 6.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), Color(0.8f, 0.4f, 0.8f, 0.0f));
+	auto sphere3 = createSphere(assetSystem, vec3(0.0f, 8.25f, 0.0f), 0.5f, Color(0.8f, 0.5f, 0.3f, 0.0f));
 	auto sphere4 = createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, Color(0.05f, 0.2f, 0.8f, 0.0f));
 
 	m_transformSystem.addChild(sphere4, sphere1);

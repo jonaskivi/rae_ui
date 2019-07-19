@@ -185,7 +185,9 @@ void Window::create(const String& name, int width, int height, bool isFullscreen
 	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
 	glGetError();
 
-	glfwSwapInterval(0);
+	// Setting this to 1 will turn vsync on, setting it to 0 will turn vsync off.
+	// We want to test having vsync on, if it reduces power usage on laptops?
+	glfwSwapInterval(1);
 
 	glfwSetInputMode(m_windowHandle, GLFW_STICKY_KEYS, GL_TRUE);
 

@@ -280,17 +280,25 @@ void UIScene::hover()
 
 	query<Box>(m_transformSystem.boxes(), [&](Id id, const Box& box)
 	{
-		if (m_transformSystem.hasWorldTransform(id))
+		// RAE_TODO: Generic way to disable hit testing. Possibly DisableHover component?
+		if (m_panels.check(id) && m_panels.getF(id).visible == false)
 		{
-			const Transform& transform = m_transformSystem.getWorldTransform(id);
-			const Pivot& pivot = m_transformSystem.getPivot(id);
-			Box tbox = box;
-			tbox.transform(transform);
-			tbox.translatePivot(pivot);
-
-			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
+			//continue and skip the hit test.
+		}
+		else
+		{
+			if (m_transformSystem.hasWorldTransform(id))
 			{
-				topMostId = id;
+				const Transform& transform = m_transformSystem.getWorldTransform(id);
+				const Pivot& pivot = m_transformSystem.getPivot(id);
+				Box tbox = box;
+				tbox.transform(transform);
+				tbox.translatePivot(pivot);
+
+				if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
+				{
+					topMostId = id;
+				}
 			}
 		}
 	});
@@ -587,7 +595,7 @@ void UIScene::renderViewportLine(Id id) const
 
 void UIScene::renderPanel(Id id) const
 {
-	if (not m_panels.check(id))
+	if (not m_panels.check(id) || m_panels.getF(id).visible == false)
 		return;
 
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
@@ -1001,21 +1009,24 @@ void UIScene::activateViewportForSceneIndex(int sceneIndex)
 	});
 }
 
-Id UIScene::createPanel(const Rectangle& rectangle)
+Id UIScene::createPanel(const Rectangle& rectangle, bool visible)
 {
-	Id entity = createPanel(vec3(rectangle.x, rectangle.y, 0.0f), vec3(rectangle.width, rectangle.height, 1.0f));
+	Id entity = createPanel(
+		vec3(rectangle.x, rectangle.y, 0.0f),
+		vec3(rectangle.width, rectangle.height, 1.0f),
+		visible);
 	m_transformSystem.addPivot(entity, Pivots::TopLeft2D);
 	return entity;
 }
 
-Id UIScene::createPanel(const vec3& position, const vec3& extents)
+Id UIScene::createPanel(const vec3& position, const vec3& extents, bool visible)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 
 	vec3 halfExtents = extents * 0.5f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
-	addPanel(id, Panel());
+	addPanel(id, Panel(visible));
 
 	m_uiWidgetRenderers.assign(
 		id,
@@ -1102,8 +1113,23 @@ void UIScene::updateMaximizers()
 		{
 			auto halfExtents = window.dimensions() * 0.5f;
 			m_transformSystem.setBox(id, Box(-halfExtents, halfExtents));
-			m_transformSystem.setWorldPosition(id, vec3(0.0f, 0.0f, 0.0f));
-			m_transformSystem.setPivot(id, Pivots::TopLeft2D);
+
+			const Pivot& pivot = m_transformSystem.getPivot(id);
+
+			// I guess this could be generalized, but I'm not sure how. Probably something obvious.
+			if (pivot == Pivots::Center)
+			{
+				m_transformSystem.setWorldPosition(id, vec3(halfExtents.x, halfExtents.y, 0.0f));
+			}
+			else if (pivot == Pivots::TopLeft2D)
+			{
+				m_transformSystem.setWorldPosition(id, vec3(0.0f, 0.0f, 0.0f));
+			}
+			else
+			{
+				m_transformSystem.setWorldPosition(id, vec3(0.0f, 0.0f, 0.0f));
+				m_transformSystem.setPivot(id, Pivots::TopLeft2D);
+			}
 		}
 	});
 }

@@ -116,6 +116,13 @@ void GameMenuExample::initUI()
 			posAnim.addKeyFrame(100, vec3(10.0f, 30.0f, 0.0f));
 		}
 
+		bool visible = false;
+		Id centerPivotContainer = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f), visible);
+		trans.addPivot(centerPivotContainer, Pivots::Center);
+
+		ui.addMaximizer(centerPivotContainer);
+		ui.toggleMaximizer(centerPivotContainer);
+
 		Id animText = ui.createTextBox("Match Start",
 			vec3(), vec3(50.0f, 50.0f, 1.0f), 64.0f);
 		ui.addColor(animText, Utils::createColor8bit(54, 168, 175, 255));
@@ -128,16 +135,18 @@ void GameMenuExample::initUI()
 					std::bind(&TransformSystem::getLocalPosition, &trans, std::placeholders::_1),
 					std::bind(&TransformSystem::setLocalPosition, &trans, std::placeholders::_1, std::placeholders::_2));
 
-			posAnim.addKeyFrame(0, vec3(65.0f, -200.0f, 0.0f));
-			posAnim.addKeyFrame(50, vec3(65.0f, 120.0f, 0.0f));
-			posAnim.addKeyFrame(100, vec3(65.0f, 120.0f, 0.0f));
-			posAnim.addKeyFrame(150, vec3(65.0f, 400.0f, 0.0f));
+			posAnim.addKeyFrame(0, vec3(0.0f, -350.0f, 0.0f));
+			posAnim.addKeyFrame(50, vec3(0.0f, 0.0f, 0.0f));
+			posAnim.addKeyFrame(100, vec3(0.0f, 0.0f, 0.0f));
+			posAnim.addKeyFrame(150, vec3(0.0f, 400.0f, 0.0f));
 		}
 
 		trans.addChild(panelParent, panel);
 		trans.addChild(panel, testButton1);
 		trans.addChild(panel, testButton2);
 		trans.addChild(panel, testButton3);
+
+		trans.addChild(centerPivotContainer, animText);
 	}
 }
 

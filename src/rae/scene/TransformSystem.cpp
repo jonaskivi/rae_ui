@@ -11,11 +11,11 @@ static const int ReserveBoxes = 1000;
 
 TransformSystem::TransformSystem() :
 	ISystem("TransformSystem"),
-	m_transforms(ReserveTransforms),
+	m_localTransforms(ReserveTransforms),
 	m_worldTransforms(ReserveTransforms),
 	m_boxes(ReserveBoxes)
 {
-	addTable(m_transforms);
+	addTable(m_localTransforms);
 	addTable(m_worldTransforms);
 
 	addTable(m_parents);
@@ -40,7 +40,7 @@ void TransformSystem::syncLocalAndWorldTransforms()
 	// Also this code was written before preferring local transforms.
 	query<Changed>(m_parentChanged, [&](Id id)
 	{
-		if (m_transforms.check(id))
+		if (m_localTransforms.check(id))
 		{
 			if (hasParent(id))
 			{
@@ -56,7 +56,7 @@ void TransformSystem::syncLocalAndWorldTransforms()
 	});
 	*/
 
-	query<Transform>(m_transforms, [&](Id id)
+	query<Transform>(m_localTransforms, [&](Id id)
 	{
 		if (not hasParent(id))
 		{
@@ -68,9 +68,9 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					const auto& parentWorldTransform = getWorldTransform(parentId);
 
 					// Either our local position was set, or parent world position changed.
-					if (m_transforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
+					if (m_localTransforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
 					{
-						setWorldPosition(id, parentWorldTransform.position + m_transforms.getF(id).position);
+						setWorldPosition(id, parentWorldTransform.position + m_localTransforms.getF(id).position);
 					}
 					// Our world position was set. Must fix local then.
 					else if (m_worldTransforms.isUpdatedF(id))
@@ -80,9 +80,9 @@ void TransformSystem::syncLocalAndWorldTransforms()
 				}
 				else // no parents. Just make them the same because they should always be equal.
 				{
-					if (m_transforms.isUpdatedF(id))
+					if (m_localTransforms.isUpdatedF(id))
 					{
-						setWorldPosition(id, m_transforms.getF(id).position);
+						setWorldPosition(id, m_localTransforms.getF(id).position);
 					}
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
@@ -93,12 +93,12 @@ void TransformSystem::syncLocalAndWorldTransforms()
 		}
 	});
 
-	m_transforms.clearUpdated();
+	m_localTransforms.clearUpdated();
 	m_worldTransforms.clearUpdated();
 
 	// Assert check:
 	/*
-	query<Transform>(m_transforms, [&](Id id)
+	query<Transform>(m_localTransforms, [&](Id id)
 	{
 		if (not hasParent(id))
 		{
@@ -115,7 +115,7 @@ void TransformSystem::syncLocalAndWorldTransforms()
 
 bool TransformSystem::hasAnyTransformChanged() const
 {
-	return m_transforms.isAnyUpdated();
+	return m_localTransforms.isAnyUpdated();
 }
 
 void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> process)
@@ -134,35 +134,35 @@ void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> proc
 void TransformSystem::addTransform(Id id, Transform&& transform)
 {
 	Transform localTransform = transform;
-	m_transforms.assign(id, std::move(localTransform));
+	m_localTransforms.assign(id, std::move(localTransform));
 	m_worldTransforms.assign(id, std::move(transform));
 }
 
 bool TransformSystem::hasLocalTransform(Id id) const
 {
-	return m_transforms.check(id);
+	return m_localTransforms.check(id);
 }
 
 const Transform& TransformSystem::getLocalTransform(Id id) const
 {
-	return m_transforms.get(id);
+	return m_localTransforms.get(id);
 }
 
 Transform& TransformSystem::getLocalTransformPrivate(Id id)
 {
-	return m_transforms.get(id);
+	return m_localTransforms.get(id);
 }
 
 void TransformSystem::setLocalPosition(Id id, const vec3& position)
 {
 	// Must use assign instead of m_localTransforms.get(id).position = position, because otherwise
 	// we don't get isUpdated() set.
-	m_transforms.assign(id, position);
+	m_localTransforms.assign(id, position);
 }
 
 const vec3& TransformSystem::getLocalPosition(Id id)
 {
-	return m_transforms.get(id).position;
+	return m_localTransforms.get(id).position;
 }
 
 bool TransformSystem::hasWorldTransform(Id id) const
@@ -195,8 +195,8 @@ const vec3& TransformSystem::getWorldPosition(Id id)
 void TransformSystem::translate(Id id, vec3 delta)
 {
 	// Note: doesn't check if Id exists. Will crash/cause stuff if used unwisely.
-	m_transforms.getF(id).position += delta;
-	m_transforms.setUpdatedF(id);
+	m_localTransforms.getF(id).position += delta;
+	m_localTransforms.setUpdatedF(id);
 }
 
 void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
@@ -228,8 +228,8 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 
 	for (auto&& id : topLevelIds)
 	{
-		m_transforms.getF(id).position += delta;
-		m_transforms.setUpdatedF(id);
+		m_localTransforms.getF(id).position += delta;
+		m_localTransforms.setUpdatedF(id);
 
 		/* // It is not necessary to move the children, as that is handled in update().
 		if (hasChildren(id))

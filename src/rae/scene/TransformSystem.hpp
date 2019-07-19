@@ -58,8 +58,8 @@ public:
 	void setWorldPosition(Id id, const vec3& position);
 	const vec3& getWorldPosition(Id id);
 
-	int transformCount() { return m_transforms.size(); }
-	const Table<Transform>& localTransforms() const { return m_transforms; }
+	int transformCount() { return m_localTransforms.size(); }
+	const Table<Transform>& localTransforms() const { return m_localTransforms; }
 	const Table<Transform>& worldTransforms() const { return m_worldTransforms; }
 
 	void translate(Id id, vec3 delta);
@@ -114,7 +114,7 @@ private:
 	Transform& getWorldTransformPrivate(Id id);
 
 	// Local transforms. Relative to parents.
-	Table<Transform>	m_transforms;
+	Table<Transform>	m_localTransforms;
 	// World transform. The final coordinates to draw and hittest with.
 	Table<Transform>	m_worldTransforms;
 

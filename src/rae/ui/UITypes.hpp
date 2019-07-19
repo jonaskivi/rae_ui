@@ -122,6 +122,9 @@ struct Text
 
 	String text;
 	float fontSize = 18.0f;
+	// enum class TextAlignment::LEFT ::TOP ::CENTER etc.
+	//TextAlignment horizontalAlignment;
+	//TextAlignment verticalAlignment;
 };
 
 struct Keyline

@@ -29,6 +29,8 @@ TransformSystem::TransformSystem() :
 
 UpdateStatus TransformSystem::update()
 {
+	m_anyTransformUpdated = m_localTransforms.isAnyUpdated();
+
 	syncLocalAndWorldTransforms();
 
 	return UpdateStatus::NotChanged;
@@ -67,15 +69,24 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					Id parentId = getParent(id);
 					const auto& parentWorldTransform = getWorldTransform(parentId);
 
+					// RAE_TODO: It is pretty stupid that we have to update pos rot and scale
+					// whenever any of them changes, because we are only tracking the changes on
+					// component level. Possibly concider splitting Transform into three separate
+					// components, even if it makes things painful? Or think about how to separate
+					// the updated flags.
+
 					// Either our local position was set, or parent world position changed.
 					if (m_localTransforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
 					{
 						setWorldPosition(id, parentWorldTransform.position + m_localTransforms.getF(id).position);
+						setWorldScale(id, parentWorldTransform.scale * m_localTransforms.getF(id).scale);
 					}
 					// Our world position was set. Must fix local then.
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
 						setLocalPosition(id, parentWorldTransform.position - m_worldTransforms.getF(id).position);
+						// Scale must never be 0: RAE_TODO assert.
+						setLocalScale(id, m_worldTransforms.getF(id).scale / parentWorldTransform.scale);
 					}
 				}
 				else // no parents. Just make them the same because they should always be equal.
@@ -83,10 +94,12 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					if (m_localTransforms.isUpdatedF(id))
 					{
 						setWorldPosition(id, m_localTransforms.getF(id).position);
+						setWorldScale(id, m_localTransforms.getF(id).scale);
 					}
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
 						setLocalPosition(id, m_worldTransforms.getF(id).position);
+						setLocalScale(id, m_worldTransforms.getF(id).scale);
 					}
 				}
 			});
@@ -115,7 +128,10 @@ void TransformSystem::syncLocalAndWorldTransforms()
 
 bool TransformSystem::hasAnyTransformChanged() const
 {
-	return m_localTransforms.isAnyUpdated();
+	//RAE_TODO: Think about updates again. This is no longer up-to-date because of the
+	// local -> world syncing, which uses updated too.
+	//return m_localTransforms.isAnyUpdated();
+	return m_anyTransformUpdated;
 }
 
 void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> process)
@@ -155,14 +171,24 @@ Transform& TransformSystem::getLocalTransformPrivate(Id id)
 
 void TransformSystem::setLocalPosition(Id id, const vec3& position)
 {
-	// Must use assign instead of m_localTransforms.get(id).position = position, because otherwise
-	// we don't get isUpdated() set.
-	m_localTransforms.assign(id, position);
+	m_localTransforms.getF(id).position = position;
+	m_localTransforms.setUpdatedF(id);
 }
 
 const vec3& TransformSystem::getLocalPosition(Id id)
 {
-	return m_localTransforms.get(id).position;
+	return m_localTransforms.getF(id).position;
+}
+
+void TransformSystem::setLocalScale(Id id, const vec3& scale)
+{
+	m_localTransforms.getF(id).scale = scale;
+	m_localTransforms.setUpdatedF(id);
+}
+
+const vec3& TransformSystem::getLocalScale(Id id)
+{
+	return m_localTransforms.getF(id).scale;
 }
 
 bool TransformSystem::hasWorldTransform(Id id) const
@@ -172,24 +198,34 @@ bool TransformSystem::hasWorldTransform(Id id) const
 
 const Transform& TransformSystem::getWorldTransform(Id id) const
 {
-	return m_worldTransforms.get(id);
+	return m_worldTransforms.getF(id);
 }
 
 Transform& TransformSystem::getWorldTransformPrivate(Id id)
 {
-	return m_worldTransforms.get(id);
+	return m_worldTransforms.getF(id);
 }
 
 void TransformSystem::setWorldPosition(Id id, const vec3& position)
 {
-	// Must use assign instead of m_worldTransforms.get(id).position = position, because otherwise
-	// we don't get isUpdated() set.
-	m_worldTransforms.assign(id, position);
+	m_worldTransforms.getF(id).position = position;
+	m_worldTransforms.setUpdatedF(id);
 }
 
 const vec3& TransformSystem::getWorldPosition(Id id)
 {
-	return m_worldTransforms.get(id).position;
+	return m_worldTransforms.getF(id).position;
+}
+
+void TransformSystem::setWorldScale(Id id, const vec3& scale)
+{
+	m_worldTransforms.getF(id).scale = scale;
+	m_worldTransforms.setUpdatedF(id);
+}
+
+const vec3& TransformSystem::getWorldScale(Id id)
+{
+	return m_worldTransforms.getF(id).scale;
 }
 
 void TransformSystem::translate(Id id, vec3 delta)

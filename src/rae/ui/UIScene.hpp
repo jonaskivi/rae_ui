@@ -45,6 +45,9 @@ public:
 	TransformSystem&		transformSystem() { return m_transformSystem; }
 	const TransformSystem&	transformSystem() const { return m_transformSystem; }
 
+	SelectionSystem&		selectionSystem() { return m_selectionSystem; }
+	const SelectionSystem&	selectionSystem() const { return m_selectionSystem; }
+
 	AnimationSystem&		animationSystem() { return m_animationSystem; }
 	const AnimationSystem&	animationSystem() const { return m_animationSystem; }
 
@@ -65,7 +68,8 @@ public:
 	Id createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler);
 	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
-	Id createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize = 18.0f);
+	Id createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize = 18.0f,
+		bool multiline = false);
 
 	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
@@ -153,6 +157,7 @@ public:
 	void renderText(Id id) const;
 	void renderTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		float fontSize, const Color& color) const;
+	void renderMultilineText(Id id) const;
 	void renderMultilineTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		float fontSize, const Color& color, bool limitToBoxWidth = true) const;
 	void renderImage(Id id) const;

@@ -406,9 +406,9 @@ void UIRenderer::renderGrid(NVGcontext* vg, float width, float height, float pix
 	};
 
 	// Horizontal lines
-	drawLines(vg, 1+(int)height/pixelStep, startPos, vec2(width, 0.0f), vec2(0.0f, pixelStep));
+	drawLines(vg, 1+int(height/pixelStep), startPos, vec2(width, 0.0f), vec2(0.0f, pixelStep));
 	// Vertical lines
-	drawLines(vg, 1+(int)width/pixelStep, startPos, vec2(0.0f, height), vec2(pixelStep, 0.0f));
+	drawLines(vg, 1+int(width/pixelStep), startPos, vec2(0.0f, height), vec2(pixelStep, 0.0f));
 
 	nvgRestore(vg);
 }

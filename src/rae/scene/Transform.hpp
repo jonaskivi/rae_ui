@@ -10,7 +10,7 @@ struct Transform
 public:
 	Transform(){}
 
-	Transform(vec3 const& position);
+	explicit Transform(vec3 const& position);
 	Transform(vec3 const& position, qua const& rotation);
 	Transform(vec3 const& position, qua const& rotation, vec3 const& scale);
 	String toString() const;

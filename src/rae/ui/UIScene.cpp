@@ -712,7 +712,7 @@ void UIScene::renderText(Id id) const
 		return;
 
 	if (m_transformSystem.hasWorldTransform(id) and
-			m_transformSystem.hasBox(id))
+		m_transformSystem.hasBox(id))
 	{
 		const Text& text = m_texts.get(id);
 		const Transform& transform = m_transformSystem.getWorldTransform(id);
@@ -736,6 +736,27 @@ void UIScene::renderTextGeneric(const String& text, const Transform& transform, 
 	UIRenderer::renderTextNano(m_nanoVG, text,
 		convertToPixelRectangle(transform, box, pivot),
 		fontSize, color);
+}
+
+void UIScene::renderMultilineText(Id id) const
+{
+	if (not m_texts.check(id))
+		return;
+
+	if (m_transformSystem.hasWorldTransform(id) and
+		m_transformSystem.hasBox(id))
+	{
+		const Text& text = m_texts.get(id);
+		const Transform& transform = m_transformSystem.getWorldTransform(id);
+		const Box& box = m_transformSystem.getBox(id);
+		const Pivot& pivot = m_transformSystem.getPivot(id);
+
+		bool hasColor = m_colors.check(id);
+		bool limitToBoxWidth = true;
+
+		renderMultilineTextGeneric(text.text, transform, box, pivot, text.fontSize,
+			(hasColor ? getColor(id) : Colors::white), limitToBoxWidth);
+	}
 }
 
 void UIScene::renderMultilineTextGeneric(const String& text, const Transform& transform, const Box& box,
@@ -881,7 +902,8 @@ void UIScene::connectUpdater(Id id, std::function<void(Id)> updateFunction)
 		UIWidgetUpdater(updateFunction));
 }
 
-Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize)
+Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize,
+	bool multiline)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
@@ -891,9 +913,18 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addText(id, text, fontSize);
 
-	m_uiWidgetRenderers.assign(
-		id,
-		UIWidgetRenderer(std::bind(&UIScene::renderText, this, std::placeholders::_1)));
+	if (multiline)
+	{
+		m_uiWidgetRenderers.assign(
+			id,
+			UIWidgetRenderer(std::bind(&UIScene::renderMultilineText, this, std::placeholders::_1)));
+	}
+	else
+	{
+		m_uiWidgetRenderers.assign(
+			id,
+			UIWidgetRenderer(std::bind(&UIScene::renderText, this, std::placeholders::_1)));
+	}
 
 	return id;
 }

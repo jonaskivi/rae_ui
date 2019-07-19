@@ -209,6 +209,48 @@ void Pihlaja::initUI()
 		});
 	trans.addChild(panel, saveImageButton);
 
+	bool isMultilineText = true;
+	Id propertiesText = ui.createTextBox("Nothing selected or hovered.",
+		vec3(0.0f, 0.0f, 0.0f),
+		vec3(120.0f, 120.0f, 1.0f),
+		14.0f,
+		isMultilineText);
+	ui.connectUpdater(propertiesText,
+		[&](Id id)
+		{
+			auto& text = ui.getText(id);
+			const auto& sceneSystem = m_engine.sceneSystem();
+			String setText;
+			if (sceneSystem.hasActiveScene())
+			{
+				const auto& scene = sceneSystem.activeScene();
+				const auto& selection = scene.selectionSystem();
+				const auto& trans = scene.transformSystem();
+
+				setText += "Active scene: " + scene.name() + "\n";
+
+				if (selection.isSelection())
+				{
+					setText += trans.toString(selection.anySelected());
+				}
+				else if (selection.isAnyHovered())
+				{
+					setText += trans.toString(selection.hovered());
+				}
+				else
+				{
+					setText += "Nothing selected or hovered.";
+				}
+			}
+			else
+			{
+				setText += "No active scene.";
+			}
+			text.text = setText;
+		});
+
+	trans.addChild(panel, propertiesText);
+
 	/*Id positionTextBox = ui.createTextBox(
 		vec3(-100.0f, 380.0f, 0.0f),
 		vec3(98.0f, 25.0f, 1.0f));

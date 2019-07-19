@@ -52,9 +52,10 @@ public:
 	void setPixelClicked(Id id) { m_pixelClickedId = id; }
 
 	// RAE_TODO actually hovered instead of clicked
-	Id pixelHovered() { return m_pixelClickedId; }
+	Id pixelHovered() const { return m_pixelClickedId; }
 
-	Id hovered() { return m_hoveredId; }
+	Id hovered() const { return m_hoveredId; }
+	Id anySelected() const { return isSelection() ? selectedIds()[0] : InvalidId; }
 
 	void translateSelected(vec3 delta);
 

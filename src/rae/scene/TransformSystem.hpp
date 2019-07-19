@@ -51,12 +51,16 @@ public:
 
 	void setLocalPosition(Id id, const vec3& position);
 	const vec3& getLocalPosition(Id id);
+	void setLocalScale(Id id, const vec3& scale);
+	const vec3& getLocalScale(Id id);
 
 	bool hasWorldTransform(Id id) const;
 	const Transform& getWorldTransform(Id id) const;
 
 	void setWorldPosition(Id id, const vec3& position);
 	const vec3& getWorldPosition(Id id);
+	void setWorldScale(Id id, const vec3& scale);
+	const vec3& getWorldScale(Id id);
 
 	int transformCount() { return m_localTransforms.size(); }
 	const Table<Transform>& localTransforms() const { return m_localTransforms; }
@@ -117,6 +121,7 @@ private:
 	Table<Transform>	m_localTransforms;
 	// World transform. The final coordinates to draw and hittest with.
 	Table<Transform>	m_worldTransforms;
+	bool				m_anyTransformUpdated = true;
 
 	Table<Parent>		m_parents;
 	Table<Changed>		m_parentChanged;

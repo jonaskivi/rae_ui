@@ -218,7 +218,7 @@ void Pihlaja::initUI()
 	ui.connectUpdater(propertiesText,
 		[&](Id id)
 		{
-			auto& text = ui.getText(id);
+			auto& text = ui.modifyText(id);
 			const auto& sceneSystem = m_engine.sceneSystem();
 			String setText;
 			if (sceneSystem.hasActiveScene())
@@ -429,7 +429,7 @@ UpdateStatus Pihlaja::update()
 		return UpdateStatus::NotChanged;
 	}
 
-	auto& screenImage = m_assetSystem.getImage(m_screenImageAssetId);
+	auto& screenImage = m_assetSystem.modifyImage(m_screenImageAssetId);
 
 	if (m_opticalFlow.getState() == EffectNodeState::Nothing ||
 		m_opticalFlow.getState() == EffectNodeState::WaitingForData)

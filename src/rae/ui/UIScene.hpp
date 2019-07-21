@@ -76,9 +76,9 @@ public:
 	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
 	Id createAdvancedViewport(int sceneIndex, const vec3& position, const vec3& extents);
-	void addViewport(Id id, Viewport&& viewport);
+	void addViewport(Id id, const Viewport& viewport);
 	const Viewport& getViewport(Id id) const;
-	Viewport& getViewport(Id id);
+	Viewport& modifyViewport(Id id);
 	Rectangle getViewportPixelRectangle(int sceneIndex) const;
 	// Which scene index had events this frame, if any. (-1 for none?)
 	int eventsForSceneIndex() { return m_eventsForSceneIndex; }
@@ -88,7 +88,7 @@ public:
 
 	Id createPanel(const Rectangle& rectangle, bool visible = true);
 	Id createPanel(const vec3& position, const vec3& extents, bool visible = true);
-	void addPanel(Id id, Panel&& panel);
+	void addPanel(Id id, const Panel& panel);
 	const Panel& getPanel(Id id);
 
 	void addStackLayout(Id id);
@@ -102,8 +102,8 @@ public:
 	void addImageLink(Id id, ImageLink imageLink);
 	const ImageLink& getImageLink(Id id);
 
-	Id createKeyline(Keyline&& element);
-	void addKeyline(Id id, Keyline&& element);
+	Id createKeyline(const Keyline& element);
+	void addKeyline(Id id, const Keyline& element);
 	const Keyline& getKeyline(Id id);
 	void addKeylineLink(Id childId, Id keylineId); //TODO anchor
 	const KeylineLink& getKeylineLink(Id id);
@@ -111,21 +111,21 @@ public:
 	// RAE_TODO These functions just repeat each other. Possibly all of these should just be functions of the Table
 	// and possibly then rename the Table to be a Component class.
 	void addText(Id id, const String& text, float fontSize = 18.0f);
-	void addText(Id id, Text&& text);
+	void addText(Id id, const Text& text);
 	const Text& getText(Id id) const;
-	Text& getText(Id id);
+	Text& modifyText(Id id);
 
-	void addButton(Id id, Button&& element);
+	void addButton(Id id, const Button& element);
 	const Button& getButton(Id id) const;
 	bool isButton(Id id) const;
 
-	void addColor(Id id, Color&& element);
+	void addColor(Id id, const Color& element);
 	void setColor(Id id, const Color& element);
 	const Color& getColor(Id id) const;
 
-	void addCommand(Id id, Command&& element);
-	Command& getCommand(Id id);
+	void addCommand(Id id, const Command& element);
 	const Command& getCommand(Id id) const;
+	Command& modifyCommand(Id id);
 
 	void setActive(Id id, bool active);
 	bool isActive(Id id) const;

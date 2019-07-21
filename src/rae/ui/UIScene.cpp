@@ -128,7 +128,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 			if (m_buttons.check(hovered) && m_commands.check(hovered))
 			{
-				auto& command = getCommand(hovered);
+				auto& command = modifyCommand(hovered);
 				command.executeAsync();
 			}
 		}
@@ -170,7 +170,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 		if (m_viewports.check(hovered))
 		{
-			Viewport& viewport = getViewport(hovered);
+			Viewport& viewport = modifyViewport(hovered);
 			m_eventsForSceneIndex = viewport.sceneIndex;
 		}
 		else
@@ -1004,9 +1004,9 @@ Id UIScene::createAdvancedViewport(int sceneIndex, const vec3& position, const v
 	return viewport;
 }
 
-void UIScene::addViewport(Id id, Viewport&& entity)
+void UIScene::addViewport(Id id, const Viewport& entity)
 {
-	m_viewports.assign(id, std::move(entity));
+	m_viewports.assign(id, entity);
 }
 
 const Viewport& UIScene::getViewport(Id id) const
@@ -1014,9 +1014,9 @@ const Viewport& UIScene::getViewport(Id id) const
 	return m_viewports.get(id);
 }
 
-Viewport& UIScene::getViewport(Id id)
+Viewport& UIScene::modifyViewport(Id id)
 {
-	return m_viewports.get(id);
+	return m_viewports.modify(id);
 }
 
 Rectangle UIScene::getViewportPixelRectangle(int sceneIndex) const
@@ -1079,9 +1079,9 @@ Id UIScene::createPanel(const vec3& position, const vec3& extents, bool visible)
 	return id;
 }
 
-void UIScene::addPanel(Id id, Panel&& panel)
+void UIScene::addPanel(Id id, const Panel& panel)
 {
-	m_panels.assign(id, std::move(panel));
+	m_panels.assign(id, panel);
 }
 
 const Panel& UIScene::getPanel(Id id)
@@ -1130,7 +1130,7 @@ void UIScene::addMaximizer(Id id)
 
 void UIScene::toggleMaximizer(Id id)
 {
-	auto& maximizer = m_maximizers.get(id);
+	auto& maximizer = m_maximizers.modify(id);
 	if (maximizer.maximizerState == MaximizerState::Normal)
 	{
 		maximizer.storedNormalStatePosition = m_transformSystem.getLocalPosition(id);
@@ -1196,7 +1196,7 @@ Id UIScene::createImageBox(asset::Id imageLink, const vec3& position, const vec3
 
 void UIScene::addImageLink(Id id, ImageLink entity)
 {
-	m_imageLinks.assign(id, std::move(entity));
+	m_imageLinks.assign(id, entity);
 }
 
 const ImageLink& UIScene::getImageLink(Id id)
@@ -1204,16 +1204,16 @@ const ImageLink& UIScene::getImageLink(Id id)
 	return m_imageLinks.get(id);
 }
 
-Id UIScene::createKeyline(Keyline&& element)
+Id UIScene::createKeyline(const Keyline& element)
 {
 	Id id = m_entitySystem.createEntity();
-	addKeyline(id, std::move(element));
+	addKeyline(id, element);
 	return id;
 }
 
-void UIScene::addKeyline(Id id, Keyline&& element)
+void UIScene::addKeyline(Id id, const Keyline& element)
 {
-	m_keylines.assign(id, std::move(element));
+	m_keylines.assign(id, element);
 }
 
 const Keyline& UIScene::getKeyline(Id id)
@@ -1233,12 +1233,12 @@ const KeylineLink& UIScene::getKeylineLink(Id id)
 
 void UIScene::addText(Id id, const String& text, float fontSize)
 {
-	m_texts.assign(id, std::move(Text(text, fontSize)));
+	m_texts.assign(id, Text(text, fontSize));
 }
 
-void UIScene::addText(Id id, Text&& text)
+void UIScene::addText(Id id, const Text& text)
 {
-	m_texts.assign(id, std::move(text));
+	m_texts.assign(id, text);
 }
 
 const Text& UIScene::getText(Id id) const
@@ -1246,14 +1246,14 @@ const Text& UIScene::getText(Id id) const
 	return m_texts.get(id);
 }
 
-Text& UIScene::getText(Id id)
+Text& UIScene::modifyText(Id id)
 {
-	return m_texts.get(id);
+	return m_texts.modify(id);
 }
 
-void UIScene::addButton(Id id, Button&& element)
+void UIScene::addButton(Id id, const Button& element)
 {
-	m_buttons.assign(id, std::move(element));
+	m_buttons.assign(id, element);
 }
 
 const Button& UIScene::getButton(Id id) const
@@ -1266,9 +1266,9 @@ bool UIScene::isButton(Id id) const
 	return m_buttons.check(id);
 }
 
-void UIScene::addColor(Id id, Color&& element)
+void UIScene::addColor(Id id, const Color& element)
 {
-	m_colors.assign(id, std::move(element));
+	m_colors.assign(id, element);
 }
 
 void UIScene::setColor(Id id, const Color& element)
@@ -1281,14 +1281,9 @@ const Color& UIScene::getColor(Id id) const
 	return m_colors.get(id);
 }
 
-void UIScene::addCommand(Id id, Command&& element)
+void UIScene::addCommand(Id id, const Command& element)
 {
-	m_commands.assign(id, std::move(element));
-}
-
-Command& UIScene::getCommand(Id id)
-{
-	return m_commands.get(id);
+	m_commands.assign(id, element);
 }
 
 const Command& UIScene::getCommand(Id id) const
@@ -1296,9 +1291,14 @@ const Command& UIScene::getCommand(Id id) const
 	return m_commands.get(id);
 }
 
+Command& UIScene::modifyCommand(Id id)
+{
+	return m_commands.modify(id);
+}
+
 void UIScene::setActive(Id id, bool active)
 {
-	m_actives.assign(id, std::move(Active(active)));
+	m_actives.assign(id, Active(active));
 }
 
 bool UIScene::isActive(Id id) const
@@ -1308,5 +1308,5 @@ bool UIScene::isActive(Id id) const
 
 void UIScene::addDraggable(Id id)
 {
-	m_draggables.assign(id, std::move(Draggable()));
+	m_draggables.assign(id, Draggable());
 }

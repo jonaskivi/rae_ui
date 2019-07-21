@@ -29,16 +29,16 @@ public:
 	void onMouseEvent(const InputState& inputState);
 	void onKeyEvent(const Input& input);
 
-	void setNeedsUpdate() { currentCamera().setNeedsUpdate(); }
-	void setAspectRatio(float aspect) { currentCamera().setAspectRatio(aspect); }
+	void setNeedsUpdate() { modifyCurrentCamera().setNeedsUpdate(); }
+	void setAspectRatio(float aspect) { modifyCurrentCamera().setAspectRatio(aspect); }
 
 	const Camera& currentCamera() const { return getCamera(m_currentCamera); }
-	Camera& currentCamera() { return getCamera(m_currentCamera); }
+	Camera& modifyCurrentCamera() { return modifyCamera(m_currentCamera); }
 
 	Id createCamera();
-	void addCamera(Id id, Camera&& comp);
+	void addCamera(Id id, const Camera& camera);
 	const Camera& getCamera(Id id) const;
-	Camera& getCamera(Id id);
+	Camera& modifyCamera(Id id);
 
 	void connectCameraUpdatedEventHandler(std::function<void(const Camera&)> handler);
 

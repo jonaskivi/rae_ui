@@ -31,18 +31,18 @@ public:
 
 	void addMesh(Id id, Mesh&& comp);
 	const Mesh& getMesh(Id id) const;
-	Mesh& getMesh(Id id);
+	Mesh& modifyMesh(Id id);
 	bool isMesh(Id id) { return m_meshes.check(id); }
 
 	void addMaterial(Id id, Material&& comp);
 	const Material& getMaterial(Id id) const;
-	Material& getMaterial(Id id);
+	Material& modifyMaterial(Id id);
 	bool isMaterial(Id id) { return m_materials.check(id); }
 
 	asset::Id createImage(int width, int height, bool initNanoVG = true);
 	void addImage(Id id, ImageBuffer<uint8_t>&& image);
 	const ImageBuffer<uint8_t>& getImage(Id id) const;
-	ImageBuffer<uint8_t>& getImage(Id id);
+	ImageBuffer<uint8_t>& modifyImage(Id id);
 	bool isImage(Id id) { return m_images.check(id); }
 
 	int meshCount() { return m_meshes.size(); }

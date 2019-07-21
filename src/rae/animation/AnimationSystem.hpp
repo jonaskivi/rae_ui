@@ -154,8 +154,7 @@ public:
 
 	const Table<PositionAnimator>& positionAnimators() const { return m_positionAnimators; }
 	bool hasPositionAnimator(Id id) const;
-	void addPositionAnimator(Id id, PositionAnimator&& anim);
-	void setPositionAnimator(Id id, PositionAnimator&& anim);
+	void addPositionAnimator(Id id, const PositionAnimator& anim);
 	void setPositionAnimator(Id id, const PositionAnimator& anim);
 	const PositionAnimator& getPositionAnimator(Id id) const;
 

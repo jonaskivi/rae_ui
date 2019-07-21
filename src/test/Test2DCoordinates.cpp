@@ -82,7 +82,7 @@ void Test2DCoordinates::initUI()
 		{
 			const Box& rootBox = ui.rootBox();
 
-			auto& text = ui.getText(id);
+			auto& text = ui.modifyText(id);
 			text.text = Utils::toString(rootBox.width()) + "mm x " + Utils::toString(rootBox.height()) + "mm";
 		});
 

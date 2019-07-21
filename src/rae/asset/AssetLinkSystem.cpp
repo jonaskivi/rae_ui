@@ -10,12 +10,12 @@ AssetLinkSystem::AssetLinkSystem()
 
 void AssetLinkSystem::addMeshLink(Id id, Id assetId)
 {
-	m_meshLinks.assign(id, std::move(assetId));
+	m_meshLinks.assign(id, assetId);
 }
 
 void AssetLinkSystem::addMaterialLink(Id id, Id assetId)
 {
-	m_materialLinks.assign(id, std::move(assetId));
+	m_materialLinks.assign(id, assetId);
 }
 
 const MeshLink& AssetLinkSystem::getMeshLink(Id id) const

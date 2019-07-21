@@ -29,7 +29,7 @@ CameraSystem::CameraSystem(const Time& time, EntitySystem& entitySystem, Transfo
 
 void CameraSystem::onMouseEvent(const InputState& inputState)
 {
-	auto& camera = currentCamera();
+	auto& camera = modifyCurrentCamera();
 
 	//if (input.eventType == EventType::MouseMotion)
 	//{
@@ -86,15 +86,14 @@ Id CameraSystem::createCamera()
 	float aspect = 16.0f / 9.0f;
 	float aperture = 0.1f;
 	float focusDistance = 10.0f;
-	Camera camera(fieldOfView, aspect, aperture, focusDistance);
-	addCamera(id, std::move(camera));
+	addCamera(id, Camera(fieldOfView, aspect, aperture, focusDistance));
 
 	return id;
 }
 
-void CameraSystem::addCamera(Id id, Camera&& comp)
+void CameraSystem::addCamera(Id id, const Camera& camera)
 {
-	m_cameras.assign(id, std::move(comp));
+	m_cameras.assign(id, camera);
 }
 
 const Camera& CameraSystem::getCamera(Id id) const
@@ -102,9 +101,9 @@ const Camera& CameraSystem::getCamera(Id id) const
 	return m_cameras.get(id);
 }
 
-Camera& CameraSystem::getCamera(Id id)
+Camera& CameraSystem::modifyCamera(Id id)
 {
-	return m_cameras.get(id);
+	return m_cameras.modify(id);
 }
 
 void CameraSystem::connectCameraUpdatedEventHandler(std::function<void(const Camera&)> handler)
@@ -129,7 +128,7 @@ UpdateStatus CameraSystem::update()
 	// RAE_TODO: m_screenInfo??? from ScreenSystem???
 	// RAE_TODO camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
 
-	auto& camera = currentCamera();
+	auto& camera = modifyCurrentCamera();
 
 	if (m_input.getKeyState(KeySym::Control_L))
 		camera.setCameraSpeedDown(true);

@@ -249,9 +249,9 @@ void RenderSystem::renderMeshes(const Scene& scene)
 			Material* material = nullptr;
 
 			if (m_assetSystem.isMaterial(id))
-				material = &m_assetSystem.getMaterial(id);
+				material = &m_assetSystem.modifyMaterial(id);
 			else if (assetLinkSystem.m_materialLinks.check(id))
-				material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
+				material = &m_assetSystem.modifyMaterial(assetLinkSystem.materialLinks().get(id));
 
 			if (transformSystem.hasWorldTransform(id) &&
 				material)
@@ -282,9 +282,9 @@ void RenderSystem::renderMeshes(const Scene& scene)
 		Material* material = nullptr;
 
 		if (m_assetSystem.isMaterial(id))
-			material = &m_assetSystem.getMaterial(id);
+			material = &m_assetSystem.modifyMaterial(id);
 		else if (assetLinkSystem.m_materialLinks.check(id))
-			material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
+			material = &m_assetSystem.modifyMaterial(assetLinkSystem.materialLinks().get(id));
 
 		if (transformSystem.hasWorldTransform(id) &&
 			material)
@@ -306,9 +306,9 @@ void RenderSystem::renderMeshes(const Scene& scene)
 			Material* material = nullptr;
 
 			if (m_assetSystem.isMaterial(id))
-				material = &m_assetSystem.getMaterial(id);
+				material = &m_assetSystem.modifyMaterial(id);
 			else if (assetLinkSystem.m_materialLinks.check(id))
-				material = &m_assetSystem.getMaterial(assetLinkSystem.materialLinks().get(id));
+				material = &m_assetSystem.modifyMaterial(assetLinkSystem.materialLinks().get(id));
 
 			if (transformSystem.hasWorldTransform(id) &&
 				material)
@@ -428,7 +428,7 @@ void RenderSystem::renderPicking(const Window& window)
 
 	query<MeshLink>(assetLinkSystem.m_meshLinks, [&](Id id, MeshLink& meshLink)
 	{
-		Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.m_meshLinks.get(id));
+		const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.m_meshLinks.get(id));
 
 		if (transformSystem.hasWorldTransform(id))
 		{

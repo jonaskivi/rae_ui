@@ -44,7 +44,7 @@ public:
 
 	void processHierarchy(Id parentId, std::function<void(Id)> process);
 
-	void addTransform(Id id, Transform&& transform);
+	void addTransform(Id id, const Transform& transform);
 
 	bool hasLocalTransform(Id id) const;
 	const Transform& getLocalTransform(Id id) const;
@@ -83,8 +83,8 @@ public:
 	// Pivot is defined in normalized coordinates -1 to 1 (in relation to own size)
 	// and it will affect how the origin of the current entity will be interpreted.
 	bool hasPivot(Id id) const;
-	void addPivot(Id id, const vec3& pivot);
-	void setPivot(Id id, const vec3& pivot);
+	void addPivot(Id id, const Pivot& pivot);
+	void setPivot(Id id, const Pivot& pivot);
 	const Pivot& getPivot(Id id) const;
 
 	// RAE_TODO add functions to get full 2D transform
@@ -98,8 +98,7 @@ public:
 	*/
 	const Table<Box>& boxes() const { return m_boxes; }
 	bool hasBox(Id id) const;
-	void addBox(Id id, Box&& box);
-	void setBox(Id id, Box&& box);
+	void addBox(Id id, const Box& box);
 	void setBox(Id id, const Box& box);
 	const Box& getBox(Id id) const;
 	Box& modifyBox(Id id);
@@ -115,8 +114,8 @@ public:
 
 private:
 
-	Transform& getLocalTransformPrivate(Id id);
-	Transform& getWorldTransformPrivate(Id id);
+	Transform& modifyLocalTransform(Id id);
+	Transform& modifyWorldTransform(Id id);
 
 	// Local transforms. Relative to parents.
 	Table<Transform>	m_localTransforms;

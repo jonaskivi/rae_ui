@@ -106,14 +106,9 @@ bool AnimationSystem::hasPositionAnimator(Id id) const
 	return m_positionAnimators.check(id);
 }
 
-void AnimationSystem::addPositionAnimator(Id id, PositionAnimator&& anim)
+void AnimationSystem::addPositionAnimator(Id id, const PositionAnimator& anim)
 {
-	m_positionAnimators.assign(id, std::move(anim));
-}
-
-void AnimationSystem::setPositionAnimator(Id id, PositionAnimator&& anim)
-{
-	m_positionAnimators.assign(id, std::move(anim));
+	m_positionAnimators.assign(id, anim);
 }
 
 void AnimationSystem::setPositionAnimator(Id id, const PositionAnimator& anim)

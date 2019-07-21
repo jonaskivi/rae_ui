@@ -58,7 +58,9 @@ Id AssetSystem::createCubeMesh()
 
 	// Got into nasty crashes when I first created the VBOs and then moved the mesh to the table.
 	// Apparently you can't do that. Must first move mesh into table, and only create VBOs at the final memory pointers.
-	Mesh& mesh2 = getMesh(id);
+	// Later note: That's because you can't really move into a Table, as std::vector needs to have its data contiguous.
+	// So adding to a std::vector always copies, and it seems pretty useless to move into it.
+	Mesh& mesh2 = modifyMesh(id);
 	mesh2.generateCube();
 	mesh2.createVBOs();
 	return id;
@@ -71,7 +73,7 @@ Id AssetSystem::createSphereMesh()
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
-	Mesh& mesh2 = getMesh(id);
+	Mesh& mesh2 = modifyMesh(id);
 	mesh2.generateSphere();
 	mesh2.createVBOs();
 	return id;
@@ -85,7 +87,7 @@ Id AssetSystem::createMesh(const String& filename, WindingOrder windingOrder)
 	Mesh mesh;
 	addMesh(id, std::move(mesh));
 
-	Mesh& mesh2 = getMesh(id);
+	Mesh& mesh2 = modifyMesh(id);
 	mesh2.setWindingOrder(windingOrder);
 	mesh2.loadModel(filename);
 	return id;
@@ -98,7 +100,7 @@ Id AssetSystem::createMaterial(const Color& color)
 	Material material(color);
 	addMaterial(id, std::move(material));
 
-	Material& material2 = getMaterial(id);
+	Material& material2 = modifyMaterial(id);
 	material2.generateFBO(m_nanoVG);
 	return id;
 }
@@ -110,7 +112,7 @@ Id AssetSystem::createAnimatingMaterial(const Color& color)
 	Material material(color);
 	addMaterial(id, std::move(material));
 
-	Material& material2 = getMaterial(id);
+	Material& material2 = modifyMaterial(id);
 	material2.animate(true);
 	material2.generateFBO(m_nanoVG);
 	return id;
@@ -127,9 +129,9 @@ const Mesh& AssetSystem::getMesh(Id id) const
 	return m_meshes.get(id);
 }
 
-Mesh& AssetSystem::getMesh(Id id)
+Mesh& AssetSystem::modifyMesh(Id id)
 {
-	return m_meshes.get(id);
+	return m_meshes.modify(id);
 }
 
 void AssetSystem::addMaterial(Id id, Material&& comp)
@@ -142,9 +144,9 @@ const Material& AssetSystem::getMaterial(Id id) const
 	return m_materials.get(id);
 }
 
-Material& AssetSystem::getMaterial(Id id)
+Material& AssetSystem::modifyMaterial(Id id)
 {
-	return m_materials.get(id);
+	return m_materials.modify(id);
 }
 
 asset::Id AssetSystem::createImage(int width, int height, bool initNanoVG)
@@ -172,7 +174,7 @@ const ImageBuffer<uint8_t>& AssetSystem::getImage(Id id) const
 	return m_images.get(id);
 }
 
-ImageBuffer<uint8_t>& AssetSystem::getImage(Id id)
+ImageBuffer<uint8_t>& AssetSystem::modifyImage(Id id)
 {
-	return m_images.get(id);
+	return m_images.modify(id);
 }

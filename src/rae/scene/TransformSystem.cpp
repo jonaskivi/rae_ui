@@ -50,7 +50,7 @@ void TransformSystem::syncLocalAndWorldTransforms()
 				if (hasTransform(parentId))
 				{
 					const auto& parentTransform = getTransform(parentId);
-					auto& transform = getTransformPrivate(id);
+					auto& transform = modifyTransform(id);
 					transform.position = parentTransform.position + m_localTransforms.getF(id).position;
 				}
 			}
@@ -147,11 +147,10 @@ void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> proc
 	}
 }
 
-void TransformSystem::addTransform(Id id, Transform&& transform)
+void TransformSystem::addTransform(Id id, const Transform& transform)
 {
-	Transform localTransform = transform;
-	m_localTransforms.assign(id, std::move(localTransform));
-	m_worldTransforms.assign(id, std::move(transform));
+	m_localTransforms.assign(id, transform);
+	m_worldTransforms.assign(id, transform);
 }
 
 bool TransformSystem::hasLocalTransform(Id id) const
@@ -164,14 +163,14 @@ const Transform& TransformSystem::getLocalTransform(Id id) const
 	return m_localTransforms.get(id);
 }
 
-Transform& TransformSystem::getLocalTransformPrivate(Id id)
+Transform& TransformSystem::modifyLocalTransform(Id id)
 {
-	return m_localTransforms.get(id);
+	return m_localTransforms.modifyF(id);
 }
 
 void TransformSystem::setLocalPosition(Id id, const vec3& position)
 {
-	m_localTransforms.getF(id).position = position;
+	m_localTransforms.modifyF(id).position = position;
 	m_localTransforms.setUpdatedF(id);
 }
 
@@ -182,7 +181,7 @@ const vec3& TransformSystem::getLocalPosition(Id id)
 
 void TransformSystem::setLocalScale(Id id, const vec3& scale)
 {
-	m_localTransforms.getF(id).scale = scale;
+	m_localTransforms.modifyF(id).scale = scale;
 	m_localTransforms.setUpdatedF(id);
 }
 
@@ -201,14 +200,14 @@ const Transform& TransformSystem::getWorldTransform(Id id) const
 	return m_worldTransforms.getF(id);
 }
 
-Transform& TransformSystem::getWorldTransformPrivate(Id id)
+Transform& TransformSystem::modifyWorldTransform(Id id)
 {
-	return m_worldTransforms.getF(id);
+	return m_worldTransforms.modifyF(id);
 }
 
 void TransformSystem::setWorldPosition(Id id, const vec3& position)
 {
-	m_worldTransforms.getF(id).position = position;
+	m_worldTransforms.modifyF(id).position = position;
 	m_worldTransforms.setUpdatedF(id);
 }
 
@@ -219,7 +218,7 @@ const vec3& TransformSystem::getWorldPosition(Id id)
 
 void TransformSystem::setWorldScale(Id id, const vec3& scale)
 {
-	m_worldTransforms.getF(id).scale = scale;
+	m_worldTransforms.modifyF(id).scale = scale;
 	m_worldTransforms.setUpdatedF(id);
 }
 
@@ -231,7 +230,7 @@ const vec3& TransformSystem::getWorldScale(Id id)
 void TransformSystem::translate(Id id, vec3 delta)
 {
 	// Note: doesn't check if Id exists. Will crash/cause stuff if used unwisely.
-	m_localTransforms.getF(id).position += delta;
+	m_localTransforms.modifyF(id).position += delta;
 	m_localTransforms.setUpdatedF(id);
 }
 
@@ -264,7 +263,7 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 
 	for (auto&& id : topLevelIds)
 	{
-		m_localTransforms.getF(id).position += delta;
+		m_localTransforms.modifyF(id).position += delta;
 		m_localTransforms.setUpdatedF(id);
 
 		/* // It is not necessary to move the children, as that is handled in update().
@@ -288,7 +287,7 @@ void TransformSystem::addChild(Id parent, Id child)
 	}
 	else
 	{
-		auto& childrenArray = m_childrens.getF(parent);
+		auto& childrenArray = m_childrens.modifyF(parent);
 		// Check for duplicates
 		for (auto&& id : childrenArray)
 		{
@@ -303,7 +302,7 @@ void TransformSystem::addChild(Id parent, Id child)
 	}
 
 	if (!hasParent(child))
-		m_parents.assign(child, std::move(Parent(parent)));
+		m_parents.assign(child, Parent(parent));
 
 	m_childrenChanged.assign(parent, Changed());
 	m_parentChanged.assign(child, Changed());
@@ -363,14 +362,9 @@ bool TransformSystem::hasBox(Id id) const
 	return m_boxes.check(id);
 }
 
-void TransformSystem::addBox(Id id, Box&& box)
+void TransformSystem::addBox(Id id, const Box& box)
 {
-	m_boxes.assign(id, std::move(box));
-}
-
-void TransformSystem::setBox(Id id, Box&& box)
-{
-	m_boxes.assign(id, std::move(box));
+	m_boxes.assign(id, box);
 }
 
 void TransformSystem::setBox(Id id, const Box& box)
@@ -385,7 +379,7 @@ const Box& TransformSystem::getBox(Id id) const
 
 Box& TransformSystem::modifyBox(Id id)
 {
-	return m_boxes.get(id);
+	return m_boxes.modify(id);
 }
 
 bool TransformSystem::hasSphere(Id id) const
@@ -395,7 +389,7 @@ bool TransformSystem::hasSphere(Id id) const
 
 void TransformSystem::addSphere(Id id)
 {
-	m_spheres.assign(id, std::move(Sphere()));
+	m_spheres.assign(id, Sphere());
 }
 
 const Sphere& TransformSystem::getSphere(Id id) const

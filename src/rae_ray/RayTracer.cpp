@@ -45,7 +45,7 @@ void VolumeHierarchySystem::addChild(Id parent, Id child)
 	}
 	else
 	{
-		auto& childrenArray = m_childrens.getF(parent);
+		auto& childrenArray = m_childrens.modifyF(parent);
 		// Check for duplicates
 		for (auto&& id : childrenArray)
 		{
@@ -60,7 +60,7 @@ void VolumeHierarchySystem::addChild(Id parent, Id child)
 	}
 
 	if (!hasParent(child))
-		m_parents.assign(child, std::move(Parent(parent)));
+		m_parents.assign(child, Parent(parent));
 
 	//m_childrenChanged.assign(parent, Changed());
 	//m_parentChanged.assign(child, Changed());
@@ -312,7 +312,7 @@ void RayTracer::autoFocus()
 	auto& scene = m_sceneSystem.activeScene();
 	auto& transformSystem = scene.transformSystem();
 	auto& assetLinkSystem = scene.assetLinkSystem();
-	Camera& camera = scene.cameraSystem().currentCamera();
+	Camera& camera = scene.cameraSystem().modifyCurrentCamera();
 
 	if (scene.selectionSystem().isSelection())
 	{
@@ -320,7 +320,7 @@ void RayTracer::autoFocus()
 		const Transform& transform = transformSystem.getWorldTransform(selectedIds.front());
 
 		// Animating the focus is kind of silly for a raytracer.
-		// Might be more interesting when it is actually realtime and uses GPU 
+		// Might be more interesting when it is actually realtime and uses GPU
 		camera.animateFocusPosition(transform.position, camera.focusSpeed());
 	}
 	else
@@ -442,13 +442,13 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 
 	//scene.transformSystem().processHierarchy();
 
-	auto& scene = m_sceneSystem.activeScene();
+	const auto& scene = m_sceneSystem.activeScene();
 
-	Camera& camera = scene.cameraSystem().currentCamera();
+	const Camera& camera = scene.cameraSystem().currentCamera();
 	HitRecord finalRecord;
 
-	auto& transformSystem = scene.transformSystem();
-	auto& assetLinkSystem = scene.assetLinkSystem();
+	const auto& transformSystem = scene.transformSystem();
+	const auto& assetLinkSystem = scene.assetLinkSystem();
 
 	Lambertian lambertianMaterial1(vec3(0.0f, 0.3f, 1.0f));
 	Lambertian lambertianMaterial2(vec3(1.0f, 1.0f, 1.0f));
@@ -699,7 +699,7 @@ void RayTracer::updateRenderThread()
 
 void RayTracer::updateDebugTexts()
 {
-	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
+	const Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
 	g_debugSystem->showDebugText("Samples: " + std::to_string(m_currentSample));
 
@@ -799,7 +799,7 @@ void RayTracer::renderAllAtOnce()
 
 	if (m_currentSample < m_allAtOnceSamplesLimit)
 	{
-		Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
+		const Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
 		// Parallel was about 3.6 times faster here. From 48 seconds to 13 seconds with a very low resolution and sample count.
 		parallel_for(0, m_buffer->height(), [&](int y)

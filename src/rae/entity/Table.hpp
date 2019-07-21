@@ -266,7 +266,7 @@ public:
 		return m_empty;
 	}
 
-	Comp& get(Id id)
+	Comp& modify(Id id)
 	{
 		if (check(id))
 			return m_items[m_idMap[id]];
@@ -280,7 +280,7 @@ public:
 		return m_items[m_idMap[id]];
 	}
 
-	Comp& getF(Id id)
+	Comp& modifyF(Id id)
 	{
 		return m_items[m_idMap[id]];
 	}
@@ -356,7 +356,7 @@ void query(Table<Comp>& table, std::function<void(Id, Comp&)> process)
 	{
 		if (table.m_idMap[i] != InvalidIndex)
 		{
-			process((Id)i, table.getF((Id)i));
+			process((Id)i, table.modifyF((Id)i));
 		}
 	}
 }

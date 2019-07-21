@@ -43,10 +43,10 @@ void SelectionSystem::setSelection(const Array<Id>& ids)
 
 	for (auto&& id : ids)
 	{
-		m_selected.assign(id, std::move(Selected()));
+		m_selected.assign(id, Selected());
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{
-			m_selectedByParent.assign(id, std::move(Selected()));
+			m_selectedByParent.assign(id, Selected());
 		});
 	}
 
@@ -75,10 +75,10 @@ void SelectionSystem::toggleSelected(Id id)
 	}
 	else
 	{
-		m_selected.assign(id, std::move(Selected()));
+		m_selected.assign(id, Selected());
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{
-			m_selectedByParent.assign(id, std::move(Selected()));
+			m_selectedByParent.assign(id, Selected());
 		});
 		LOG_F(INFO, "Selected id: %i selection table: %i", id, m_selected.count());
 	}
@@ -90,10 +90,10 @@ void SelectionSystem::setSelected(Id id, bool selected)
 {
 	if (selected)
 	{
-		m_selected.assign(id, std::move(Selected()));
+		m_selected.assign(id, Selected());
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{
-			m_selectedByParent.assign(id, std::move(Selected()));
+			m_selectedByParent.assign(id, Selected());
 		});
 		LOG_F(INFO, "Selected id: %i selection table: %i", id, m_selected.count());
 	}
@@ -125,7 +125,7 @@ void SelectionSystem::setHovered(Id id, bool hovered)
 	if (hovered)
 	{
 		m_hoveredId = id;
-		m_hovers.assign(id, std::move(Hover()));
+		m_hovers.assign(id, Hover());
 	}
 	else
 	{
@@ -146,7 +146,7 @@ void SelectionSystem::setHoveredHierarchy(Id id, bool hovered)
 
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{
-			m_hovers.assign(id, std::move(Hover()));
+			m_hovers.assign(id, Hover());
 		});
 	}
 	else

@@ -117,7 +117,7 @@ void Material::generateFBO(NVGcontext* vg)
 
 void Material::update(NVGcontext* vg, double time)
 {
-	if (not m_frameBufferImage.isValid())
+	if (!m_frameBufferImage.isValid())
 		return;
 
 	if (m_initialized == true && m_animate == false)

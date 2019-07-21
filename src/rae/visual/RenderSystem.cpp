@@ -244,7 +244,7 @@ void RenderSystem::renderMeshes(const Scene& scene)
 		bool selected = selectionSystem.isPartOfSelection(id);
 		bool hovered = selectionSystem.isHovered(id);
 
-		if (not selected && not hovered)
+		if (!selected && !hovered)
 		{
 			Material* material = nullptr;
 
@@ -301,7 +301,7 @@ void RenderSystem::renderMeshes(const Scene& scene)
 	query<Hover>(selectionSystem.hovers(), [&](Id id)
 	{
 		bool selected = selectionSystem.isPartOfSelection(id);
-		if (not selected)
+		if (!selected)
 		{
 			Material* material = nullptr;
 

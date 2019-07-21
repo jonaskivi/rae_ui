@@ -208,7 +208,7 @@ void Scene::selectNextEntity()
 	if (m_selectionSystem.isSelection())
 	{
 		Array<Id> selectedIds = m_selectionSystem.selectedIds();
-		if (not selectedIds.empty())
+		if (!selectedIds.empty())
 		{
 			firstSelected = selectedIds.front();
 			m_selectionSystem.clearSelection();

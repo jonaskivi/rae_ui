@@ -73,12 +73,12 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 {
 	m_inputState.hadEvents = !events.empty();
 
-	if (not m_inputState.hadEvents)
+	if (!m_inputState.hadEvents)
 		return;
 
 	m_inputState.clear();
 
-	if (m_inputState.isGrabbed() && not m_input.mouse.anyButtonDown())
+	if (m_inputState.isGrabbed() && !m_input.mouse.anyButtonDown())
 	{
 		m_inputState.clearGrab();
 	}
@@ -91,7 +91,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 	m_inputState.handleEvents(events);
 
-	if (not m_inputState.isGrabbed() && not m_inputState.mouseInside)
+	if (!m_inputState.isGrabbed() && !m_inputState.mouseInside)
 	{
 		// Need to clear hovers, so that none are left behind.
 		m_selectionSystem.clearHovers();
@@ -162,7 +162,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 				}
 			});
 
-			if (not ids.empty())
+			if (!ids.empty())
 			{
 				m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(m_inputState.mouse.delta));
 			}
@@ -209,7 +209,7 @@ UpdateStatus UIScene::update()
 
 	m_transformSystem.syncLocalAndWorldTransforms();
 
-	if (not m_inputState.isGrabbed() && m_inputState.mouseInside && m_inputState.hadEvents)
+	if (!m_inputState.isGrabbed() && m_inputState.mouseInside && m_inputState.hadEvents)
 	{
 		hover();
 	}
@@ -315,7 +315,7 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 
 	for (Id id : m_entitySystem.entities())
 	{
-		if (not m_transformSystem.hasParent(id))
+		if (!m_transformSystem.hasParent(id))
 		{
 			m_transformSystem.processHierarchy(id, [this](Id id)
 			{
@@ -419,12 +419,12 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 			//bool selected = m_selectionSystem.isSelected(id);
 
 			renderButton(button.text(), transform, box, pivot,
-				(hovered and active ? buttonActiveHoverColor :
+				(hovered && active ? buttonActiveHoverColor :
 					hovered ? buttonHoverColor :
 					active ? buttonActiveColor :
 					hasColor ? getColor(id) :
 					buttonBackgroundColor),
-				(hovered and active ? buttonActiveHoverTextColor :
+				(hovered && active ? buttonActiveHoverTextColor :
 					hovered ? buttonHoverTextColor :
 					active ? buttonActiveTextColor :
 					buttonTextColor));
@@ -569,7 +569,7 @@ Rectangle UIScene::convertToPixelRectangle(
 
 void UIScene::renderViewportLine(Id id) const
 {
-	if (not m_viewports.check(id))
+	if (!m_viewports.check(id))
 		return;
 
 	const Color& viewportLineColor = m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line];
@@ -595,7 +595,7 @@ void UIScene::renderViewportLine(Id id) const
 
 void UIScene::renderPanel(Id id) const
 {
-	if (not m_panels.check(id) || m_panels.getF(id).visible == false)
+	if (!m_panels.check(id) || m_panels.getF(id).visible == false)
 		return;
 
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
@@ -677,7 +677,7 @@ void UIScene::renderArc(const vec2& origin, float fromAngleRad, float toAngleRad
 
 void UIScene::renderButton(Id id) const
 {
-	if (not isButton(id))
+	if (!isButton(id))
 		return;
 
 	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
@@ -705,12 +705,12 @@ void UIScene::renderButton(Id id) const
 		//bool selected = m_selectionSystem.isSelected(id);
 
 		renderButtonGeneric(button.text(), transform, box, pivot,
-			(hovered and active ? buttonActiveHoverColor :
+			(hovered && active ? buttonActiveHoverColor :
 				hovered ? buttonHoverColor :
 				active ? buttonActiveColor :
 				hasColor ? getColor(id) :
 				buttonBackgroundColor),
-			(hovered and active ? buttonActiveHoverTextColor :
+			(hovered && active ? buttonActiveHoverTextColor :
 				hovered ? buttonHoverTextColor :
 				active ? buttonActiveTextColor :
 				buttonTextColor));
@@ -729,7 +729,7 @@ void UIScene::renderButtonGeneric(const String& text, const Transform& transform
 
 void UIScene::renderText(Id id) const
 {
-	if (not m_texts.check(id))
+	if (!m_texts.check(id))
 		return;
 
 	if (m_transformSystem.hasWorldTransform(id) and
@@ -761,7 +761,7 @@ void UIScene::renderTextGeneric(const String& text, const Transform& transform, 
 
 void UIScene::renderMultilineText(Id id) const
 {
-	if (not m_texts.check(id))
+	if (!m_texts.check(id))
 		return;
 
 	if (m_transformSystem.hasWorldTransform(id) and
@@ -802,7 +802,7 @@ void UIScene::renderMultilineTextGeneric(const String& text, const Transform& tr
 
 void UIScene::renderImage(Id id) const
 {
-	if (not m_imageLinks.check(id))
+	if (!m_imageLinks.check(id))
 		return;
 
 	if (m_transformSystem.hasWorldTransform(id) and

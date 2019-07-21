@@ -328,7 +328,7 @@ HandleStatus TransformTool::handleInput(
 	//g_debugSystem->drawLine(m_translateGizmo.m_debugIntersectionLine);
 	//g_debugSystem->drawLine(m_translateGizmo.m_debugLine);
 
-	if (not m_translateGizmo.isVisible())
+	if (!m_translateGizmo.isVisible())
 		return HandleStatus::NotHandled;
 
 	m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
@@ -493,7 +493,7 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 
 	bool hadEvents = !events.empty();
 
-	if (not hadEvents)
+	if (!hadEvents)
 		return;
 
 	scene.selectionSystem().clearHovers();

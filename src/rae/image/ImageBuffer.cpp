@@ -202,7 +202,7 @@ void ImageBuffer<T>::update(NVGcontext* vg)
 template <>
 void ImageBuffer<uint8_t>::update(NVGcontext* vg)
 {
-	if (not m_needsUpdate)
+	if (!m_needsUpdate)
 		return;
 
 	if (m_imageId == -1)

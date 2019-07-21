@@ -130,11 +130,11 @@ struct InputState
 					mouse.buttonClicked[(int)event.mouseButton] = true;
 				}
 			}
-			else if (/*not isGrabbed() &&*/ event.eventType == EventType::MouseEnter)
+			else if (/*!isGrabbed() &&*/ event.eventType == EventType::MouseEnter)
 			{
 				mouseInside = true;
 			}
-			else if (/*not isGrabbed() &&*/ event.eventType == EventType::MouseLeave)
+			else if (/*!isGrabbed() &&*/ event.eventType == EventType::MouseLeave)
 			{
 				mouseInside = false;
 			}

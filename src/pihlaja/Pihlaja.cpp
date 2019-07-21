@@ -274,14 +274,14 @@ void Pihlaja::togglePlay()
 void Pihlaja::rewind()
 {
 	#ifdef USE_RAE_AV
-	if (not m_avSystem.hasAsset(m_videoAssetId))
+	if (!m_avSystem.hasAsset(m_videoAssetId))
 	{
 		LOG_F(ERROR, "No asset found in AVSystem with id: %i", m_videoAssetId);
 		return;
 	}
 
 	auto& asset = m_avSystem.getAsset(m_videoAssetId);
-	if (not asset.isLoaded())
+	if (!asset.isLoaded())
 	{
 		LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
 		return;
@@ -424,7 +424,7 @@ UpdateStatus Pihlaja::update()
 	updateDebugTexts();
 
 #ifdef USE_RAE_AV
-	if (not m_play and not m_needsFrameUpdate)
+	if (!m_play && !m_needsFrameUpdate)
 	{
 		return UpdateStatus::NotChanged;
 	}
@@ -434,14 +434,14 @@ UpdateStatus Pihlaja::update()
 	if (m_opticalFlow.getState() == EffectNodeState::Nothing ||
 		m_opticalFlow.getState() == EffectNodeState::WaitingForData)
 	{
-		if (not m_avSystem.hasAsset(m_videoAssetId))
+		if (!m_avSystem.hasAsset(m_videoAssetId))
 		{
 			LOG_F(ERROR, "No asset found in AVSystem with id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
 		}
 
 		auto& asset = m_avSystem.getAsset(m_videoAssetId);
-		if (not asset.isLoaded())
+		if (!asset.isLoaded())
 		{
 			LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
@@ -495,7 +495,7 @@ UpdateStatus Pihlaja::update()
 		//m_opticalFlow.copyMatToImage(m_opticalFlow.getoutput, screenImage);
 	}
 
-	//if (not m_opticalFlow.isDone())
+	//if (!m_opticalFlow.isDone())
 	//{
 	//	m_opticalFlow.process();
 	//}
@@ -508,20 +508,20 @@ UpdateStatus Pihlaja::update()
 /* HdrFlow version:
 UpdateStatus Pihlaja::update()
 {
-	if (not m_play and not m_needsFrameUpdate)
+	if (!m_play && !m_needsFrameUpdate)
 		return UpdateStatus::NotChanged;
 
 	if (m_hdrFlow.getState() == EffectNodeState::Nothing ||
 		m_hdrFlow.getState() == EffectNodeState::WaitingForData)
 	{
-		if (not m_avSystem.hasAsset(m_videoAssetId))
+		if (!m_avSystem.hasAsset(m_videoAssetId))
 		{
 			LOG_F(ERROR, "No asset found in AVSystem with id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
 		}
 
 		auto& asset = m_avSystem.getAsset(m_videoAssetId);
-		if (not asset.isLoaded())
+		if (!asset.isLoaded())
 		{
 			LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
 			return UpdateStatus::NotChanged;
@@ -532,13 +532,13 @@ UpdateStatus Pihlaja::update()
 
 		if (m_videoRenderingState == VideoRenderingState::Player)
 		{
-			if (m_needsFrameUpdate or (m_evenFrames and m_frameCount % 2 == 0))
+			if (m_needsFrameUpdate || (m_evenFrames && m_frameCount % 2 == 0))
 				m_avSystem.copyFrameToImage(frameRGB, screenImage);
-			else if (m_needsFrameUpdate or (not m_evenFrames and m_frameCount % 2))
+			else if (m_needsFrameUpdate || (!m_evenFrames && m_frameCount % 2))
 				m_avSystem.copyFrameToImage(frameRGB, screenImage);
 			m_needsFrameUpdate = false;
 		}
-		else if (m_videoRenderingState == VideoRenderingState::RenderToScreen or
+		else if (m_videoRenderingState == VideoRenderingState::RenderToScreen ||
 				 m_videoRenderingState == VideoRenderingState::RenderToDisk)
 		{
 			m_hdrFlow.pushFrame(frameRGB);
@@ -551,7 +551,7 @@ UpdateStatus Pihlaja::update()
 	}
 	else if (m_hdrFlow.getState() == EffectNodeState::Processing)
 	{
-		if (m_videoRenderingState == VideoRenderingState::RenderToScreen or
+		if (m_videoRenderingState == VideoRenderingState::RenderToScreen ||
 			m_videoRenderingState == VideoRenderingState::RenderToDisk)
 		{
 			//m_opticalFlow.update(screenImage);
@@ -572,7 +572,7 @@ UpdateStatus Pihlaja::update()
 		m_hdrFlow.waitForData();
 	}
 
-	//if (not m_opticalFlow.isDone())
+	//if (!m_opticalFlow.isDone())
 	//{
 	//	m_opticalFlow.process();
 	//}

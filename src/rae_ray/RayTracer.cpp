@@ -20,7 +20,7 @@ using namespace rae;
 
 bool VolumeHierarchySystem::hasParent(Id id) const
 {
-	if (not m_parents.check(id))
+	if (!m_parents.check(id))
 		return false;
 	return (m_parents.getF(id) != InvalidId);
 }
@@ -32,7 +32,7 @@ Id VolumeHierarchySystem::getParent(Id id) const
 
 bool VolumeHierarchySystem::hasChildren(Id id) const
 {
-	if (not m_childrens.check(id))
+	if (!m_childrens.check(id))
 		return false;
 	return (m_childrens.get(id).size() > 0);
 }
@@ -374,7 +374,7 @@ void RayTracer::autoFocus()
 			if ((transformSystem.hasSphere(id)
 				&& sphereHitFunc(transform.position, box.radius() * transform.scale.x, defaultMaterial, ray, 0.001f, closestSoFar, record))
 				||
-				(not transformSystem.hasSphere(id) &&
+				(!transformSystem.hasSphere(id) &&
 				assetLinkSystem.hasMeshLink(id) &&
 				m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
 			{
@@ -516,7 +516,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 		if ((transformSystem.hasSphere(id)
 			&& sphereHitFunc(transform.position, box.radius() * transform.scale.x, defaultMaterial, ray, 0.001f, closestSoFar, record))
 			||
-			(not transformSystem.hasSphere(id) &&
+			(!transformSystem.hasSphere(id) &&
 			assetLinkSystem.hasMeshLink(id) &&
 			m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
 		{
@@ -541,7 +541,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 				}
 			}
 
-			if (not hitLineLocal)
+			if (!hitLineLocal)
 			{
 				// Normal raytracing
 				if (isFastMode() == false)
@@ -580,7 +580,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 
 	if (hit)
 	{
-		if (needsScatter && not hitLine)
+		if (needsScatter && !hitLine)
 		{
 			// RAE_TODO get rid of this recursion:
 			resultColor *= rayTrace(scattered, depth + 1);

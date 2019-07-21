@@ -60,7 +60,7 @@ void TransformSystem::syncLocalAndWorldTransforms()
 
 	query<Transform>(m_localTransforms, [&](Id id)
 	{
-		if (not hasParent(id))
+		if (!hasParent(id))
 		{
 			processHierarchy(id, [this](Id id)
 			{
@@ -113,7 +113,7 @@ void TransformSystem::syncLocalAndWorldTransforms()
 	/*
 	query<Transform>(m_localTransforms, [&](Id id)
 	{
-		if (not hasParent(id))
+		if (!hasParent(id))
 		{
 			assert(
 				Utils::isEqualVec(getLocalPosition(id), getWorldPosition(id), 0.01f));
@@ -315,7 +315,7 @@ void TransformSystem::setParent(Id child, Id parent)
 
 bool TransformSystem::hasParent(Id id) const
 {
-	if (not m_parents.check(id))
+	if (!m_parents.check(id))
 		return false;
 	return (m_parents.getF(id) != InvalidId);
 }
@@ -327,7 +327,7 @@ Id TransformSystem::getParent(Id id) const
 
 bool TransformSystem::hasChildren(Id id) const
 {
-	if (not m_childrens.check(id))
+	if (!m_childrens.check(id))
 		return false;
 	return (m_childrens.get(id).size() > 0);
 }

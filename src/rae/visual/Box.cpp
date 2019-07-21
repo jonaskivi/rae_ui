@@ -33,7 +33,7 @@ void Box::grow(vec3 set)
 
 void Box::transform(const Transform& tr)
 {
-	if (not valid())
+	if (!valid())
 		return;
 
 	m_min *= tr.scale;
@@ -52,7 +52,7 @@ void Box::transform(const Transform& tr)
 
 void Box::translatePivot(const Pivot& pivot)
 {
-	if (not valid())
+	if (!valid())
 		return;
 
 	auto halfDimensions = dimensions() * 0.5f;

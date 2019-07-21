@@ -62,7 +62,7 @@ DebugSystem::~DebugSystem()
 
 void DebugSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem)
 {
-	if (not scene.isActive())
+	if (!scene.isActive())
 	{
 		m_lines.clear();
 		return;

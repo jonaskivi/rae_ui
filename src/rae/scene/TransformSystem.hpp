@@ -102,6 +102,7 @@ public:
 	void setBox(Id id, Box&& box);
 	void setBox(Id id, const Box& box);
 	const Box& getBox(Id id) const;
+	Box& modifyBox(Id id);
 
 	const Table<Sphere>& spheres() const { return m_spheres; }
 	bool hasSphere(Id id) const;

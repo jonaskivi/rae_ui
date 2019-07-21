@@ -70,6 +70,8 @@ public:
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
 	Id createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize = 18.0f,
 		bool multiline = false);
+	Id createBox(const Rectangle& rectangle, const Color& color);
+	Id createBox(const vec3& position, const vec3& extents, const Color& color);
 
 	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
@@ -118,6 +120,7 @@ public:
 	bool isButton(Id id) const;
 
 	void addColor(Id id, Color&& element);
+	void setColor(Id id, const Color& element);
 	const Color& getColor(Id id) const;
 
 	void addCommand(Id id, Command&& element);
@@ -150,7 +153,8 @@ public:
 	void renderCircle(const vec2& position, float diameter, const Color& color) const;
 	void renderArc(const vec2& origin, float fromAngleRad, float toAngleRad, float diameter,
 		float thickness, const Color& color) const;
-	void renderRectangle(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color) const;
+	void renderRectangle(Id id) const;
+	void renderRectangleGeneric(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color) const;
 	void renderButton(Id id) const;
 	void renderButtonGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		const Color& color, const Color& textColor) const;

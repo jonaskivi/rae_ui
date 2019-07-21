@@ -122,7 +122,7 @@ void UIRenderer::renderRectangleNano(NVGcontext* vg, const Rectangle& rectangle,
 	// Drop shadow
 	shadowPaint = nvgBoxGradient(vg, rectangle.x, rectangle.y+5, rectangle.width, rectangle.height,
 		cornerRadius, 20,
-		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f),
+		nvgRGBAf(0.0f, 0.0f, 0.0f, color.a * 0.5f),
 		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f));
 	nvgBeginPath(vg);
 	nvgRect(vg, rectangle.x - 60, rectangle.y - 60, rectangle.width + 120, rectangle.height + 120);
@@ -181,7 +181,8 @@ void UIRenderer::renderWindowNano(NVGcontext* vg, const String& title, const Rec
 	// RAE_TODO shadowPaint = nvgBoxGradient(vg, x,y+5, w,h, cornerRadius, 20, nvgRGBAf(0.0f,0.0f,0.0f,0.5f*a()), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
 	shadowPaint = nvgBoxGradient(vg, rectangle.x, rectangle.y+5, rectangle.width, rectangle.height,
 		cornerRadius, 20,
-		nvgRGBAf(0.0f,0.0f,0.0f,0.5f), nvgRGBAf(0.0f,0.0f,0.0f,0.0f));
+		nvgRGBAf(0.0f, 0.0f, 0.0f, color.a * 0.5f),
+		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f));
 	nvgBeginPath(vg);
 	nvgRect(vg, rectangle.x-60, rectangle.y-60, rectangle.width+120, rectangle.height+120);
 	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
@@ -253,7 +254,8 @@ void UIRenderer::renderButtonNano(NVGcontext* vg, const String& text, const Rect
 	// Drop shadow
 	shadowPaint = nvgBoxGradient(vg, rectangle.x, rectangle.y+5, rectangle.width, rectangle.height,
 		cornerRadius, 20,
-		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f), nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f));
+		nvgRGBAf(0.0f, 0.0f, 0.0f, color.a * 0.5f),
+		nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f));
 	nvgBeginPath(vg);
 	nvgRect(vg, rectangle.x - 60, rectangle.y - 60, rectangle.width + 120, rectangle.height + 120);
 	nvgRoundedRect(vg, rectangle.x, rectangle.y, rectangle.width, rectangle.height, cornerRadius);
@@ -298,7 +300,7 @@ void UIRenderer::renderTextNano(
 
 	// Text shadow
 	nvgFontBlur(vg,2);
-	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f));
+	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, textColor.a * 0.5f));
 
 	const float shadowOffset = 1.0f;
 	const float rectangleHalfWidth = rectangle.width * 0.5f;
@@ -335,7 +337,7 @@ void UIRenderer::renderMultilineTextNano(
 
 	// Text shadow
 	nvgFontBlur(vg,2);
-	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, 0.5f));
+	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, textColor.a * 0.5f));
 
 	const float shadowOffset = 1.0f;
 	const float rectangleHalfWidth = rectangle.width * 0.5f;

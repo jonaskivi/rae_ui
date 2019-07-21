@@ -108,13 +108,25 @@ public:
 	float secondsToFrames(float seconds) { return seconds * framesPerSecond; }
 	float framesToSeconds(float frames) { return frames / framesPerSecond; }
 
+	PropertyAnimation<float>& createFloatAnimation(
+		Id id,
+		std::function<float(Id)> getFunction,
+		std::function<void(Id, float)> setFunction);
+
 	PropertyAnimation<vec3>& createVec3Animation(
 		Id id,
 		std::function<const vec3&(Id)> getFunction,
 		std::function<void(Id, const vec3&)> setFunction);
 
-	Array<PropertyAnimation<vec3>> m_vec3Animations;
+	PropertyAnimation<vec4>& createVec4Animation(
+		Id id,
+		std::function<const vec4&(Id)> getFunction,
+		std::function<void(Id, const vec4&)> setFunction);
+
 	Array<PropertyAnimation<float>> m_floatAnimations;
+	Array<PropertyAnimation<vec3>> m_vec3Animations;
+	Array<PropertyAnimation<vec4>> m_vec4Animations;
+
 	TimelineState m_timelineState = TimelineState::Play;
 	// Current playhead position on the timeline. We keep it as float, as we want to animate smoothly,
 	// and not according to the framesPerSecond. FPS only defines the "grid" for the keyframes.

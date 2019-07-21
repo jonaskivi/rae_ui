@@ -383,6 +383,11 @@ const Box& TransformSystem::getBox(Id id) const
 	return m_boxes.get(id);
 }
 
+Box& TransformSystem::modifyBox(Id id)
+{
+	return m_boxes.get(id);
+}
+
 bool TransformSystem::hasSphere(Id id) const
 {
 	return m_spheres.check(id);
@@ -426,7 +431,7 @@ String TransformSystem::toString(Id id) const
 	{
 		ret += "\nNo world transform.";
 	}
-	
+
 	if (hasBox(id))
 	{
 		ret += "\nBox: " + getBox(id).toString();

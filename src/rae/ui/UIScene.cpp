@@ -613,11 +613,36 @@ void UIScene::renderPanel(Id id) const
 		// Hoverable or HoverEffect component to control this.
 		bool hovered = m_selectionSystem.isHovered(id) && m_draggables.check(id);
 
-		renderRectangle(transform, box, pivot,
+		renderRectangleGeneric(transform, box, pivot,
 				hovered ? panelHoverColor :
 				hasColor ? getColor(id) :
 				panelBackgroundColor);
 	}
+}
+
+void UIScene::renderRectangle(Id id) const
+{
+	if (m_transformSystem.hasWorldTransform(id) and
+		m_transformSystem.hasBox(id))
+	{
+		renderRectangleGeneric(
+			m_transformSystem.getWorldTransform(id),
+			m_transformSystem.getBox(id),
+			m_transformSystem.getPivot(id),
+			getColor(id));
+	}
+}
+
+void UIScene::renderRectangleGeneric(
+	const Transform& transform,
+	const Box& box,
+	const Pivot& pivot,
+	const Color& color) const
+{
+	UIRenderer::renderRectangleNano(m_nanoVG,
+		convertToPixelRectangle(transform, box, pivot),
+		0.0f, // cornerRadius
+		color);
 }
 
 void UIScene::renderBorder(const Transform& transform, const Box& box, const Pivot& pivot, const Color& color,
@@ -648,18 +673,6 @@ void UIScene::renderArc(const vec2& origin, float fromAngleRad, float toAngleRad
 {
 	UIRenderer::renderArcNano(m_nanoVG, m_screenSystem.mmToPixels(origin), fromAngleRad, toAngleRad,
 		m_screenSystem.mmToPixels(diameter), m_screenSystem.mmToPixels(thickness), color);
-}
-
-void UIScene::renderRectangle(
-	const Transform& transform,
-	const Box& box,
-	const Pivot& pivot,
-	const Color& color) const
-{
-	UIRenderer::renderRectangleNano(m_nanoVG,
-		convertToPixelRectangle(transform, box, pivot),
-		0.0f, // cornerRadius
-		color);
 }
 
 void UIScene::renderButton(Id id) const
@@ -841,9 +854,14 @@ Id UIScene::createButton(const String& text, std::function<void()> handler)
 
 Id UIScene::createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler)
 {
-	Id button = createButton(text, vec3(rectangle.x, rectangle.y, 0.0f), vec3(rectangle.width, rectangle.height, 1.0f),
+	Id button = createButton(
+		text,
+		vec3(rectangle.x, rectangle.y, 0.0f),
+		vec3(rectangle.width, rectangle.height, 1.0f),
 		handler);
+
 	m_transformSystem.addPivot(button, Pivots::TopLeft2D);
+
 	return button;
 }
 
@@ -933,6 +951,32 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 			id,
 			UIWidgetRenderer(std::bind(&UIScene::renderText, this, std::placeholders::_1)));
 	}
+
+	return id;
+}
+
+Id UIScene::createBox(const Rectangle& rectangle, const Color& color)
+{
+	Id button = createBox(
+		vec3(rectangle.x, rectangle.y, 0.0f),
+		vec3(rectangle.width, rectangle.height, 1.0f),
+		color);
+	m_transformSystem.addPivot(button, Pivots::TopLeft2D);
+	return button;
+}
+
+Id UIScene::createBox(const vec3& position, const vec3& extents, const Color& color)
+{
+	Id id = m_entitySystem.createEntity();
+	m_transformSystem.addTransform(id, Transform(position));
+
+	vec3 halfExtents = extents / 2.0f;
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
+	setColor(id, color);
+
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderRectangle, this, std::placeholders::_1)));
 
 	return id;
 }
@@ -1225,6 +1269,11 @@ bool UIScene::isButton(Id id) const
 void UIScene::addColor(Id id, Color&& element)
 {
 	m_colors.assign(id, std::move(element));
+}
+
+void UIScene::setColor(Id id, const Color& element)
+{
+	m_colors.assign(id, element);
 }
 
 const Color& UIScene::getColor(Id id) const

@@ -67,6 +67,20 @@ public:
 	float width() const { return right() - left(); }
 	float height() const { return up() - down(); }
 
+	void setWidth(float width)
+	{
+		float halfWidth = width * 0.5f;
+		m_min.x = -halfWidth;
+		m_max.x = halfWidth;
+	}
+
+	void setHeight(float height)
+	{
+		float halfHeight = height * 0.5f;
+		m_min.y = -halfHeight;
+		m_max.y = halfHeight;
+	}
+
 	void transform(const Transform& tr);
 	void translatePivot(const Pivot& pivot);
 

@@ -11,7 +11,17 @@ void AnimationTimeline::update(Time time)
 {
 	float playheadFrames = secondsToFrames(playheadSeconds);
 
+	for (auto&& anim : m_floatAnimations)
+	{
+		anim.update(playheadFrames);
+	}
+
 	for (auto&& anim : m_vec3Animations)
+	{
+		anim.update(playheadFrames);
+	}
+
+	for (auto&& anim : m_vec4Animations)
 	{
 		anim.update(playheadFrames);
 	}
@@ -27,6 +37,16 @@ void AnimationTimeline::update(Time time)
 	}
 }
 
+PropertyAnimation<float>& AnimationTimeline::createFloatAnimation(
+		Id id,
+		std::function<float(Id)> getFunction,
+		std::function<void(Id, float)> setFunction)
+{
+	m_floatAnimations.emplace_back(PropertyAnimation<float>(
+		id, getFunction, setFunction));
+	return m_floatAnimations.back();
+}
+
 PropertyAnimation<vec3>& AnimationTimeline::createVec3Animation(
 	Id id,
 	std::function<const vec3&(Id)> getFunction,
@@ -35,6 +55,16 @@ PropertyAnimation<vec3>& AnimationTimeline::createVec3Animation(
 	m_vec3Animations.emplace_back(PropertyAnimation<vec3>(
 		id, getFunction, setFunction));
 	return m_vec3Animations.back();
+}
+
+PropertyAnimation<vec4>& AnimationTimeline::createVec4Animation(
+	Id id,
+	std::function<const vec4&(Id)> getFunction,
+	std::function<void(Id, const vec4&)> setFunction)
+{
+	m_vec4Animations.emplace_back(PropertyAnimation<vec4>(
+		id, getFunction, setFunction));
+	return m_vec4Animations.back();
 }
 
 //--------------------------------------------

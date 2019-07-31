@@ -77,6 +77,19 @@ struct StackLayout
 	OrientationType orientationType = OrientationType::Vertical;
 };
 
+struct GridLayout
+{
+	GridLayout(){}
+	GridLayout(int xCells, int yCells) :
+		xCells(xCells),
+		yCells(yCells)
+	{
+	}
+
+	int xCells = 2;
+	int yCells = 2;
+};
+
 enum class MaximizerState
 {
 	Normal,
@@ -88,6 +101,8 @@ enum class MaximizerState
 // to maximize a viewport within a window.
 struct Maximizer
 {
+	bool isMaximized() const { return maximizerState == MaximizerState::Maximized; }
+
 	MaximizerState maximizerState = MaximizerState::Normal;
 	vec3 storedNormalStatePosition;
 	Box storedNormalStateBox;

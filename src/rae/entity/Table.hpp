@@ -342,7 +342,12 @@ protected:
 
 	Comp m_empty;
 	Array<Comp> m_items; // Size is only the size of required number of components
-	Array<int> m_idMap; // Size is the required size of Ids, so it will contain all the Ids in the World.
+	// A map from an Id (which is the index [id]) to a value, which is the index in the m_items.
+	// So to get an item with known Id, we do: m_items[m_idMap[id]].
+	// Size is the required size of Ids, so it will contain all the Ids in the World.
+	// This could be replaced with an std::unordered_map, and then we should measure if it is fast enough.
+	// At least this array map takes a huge amount of wasted space on each table for all the world Ids.
+	Array<int> m_idMap;
 	Array<int> m_freeItems;
 
 	bool m_anyUpdated = false;

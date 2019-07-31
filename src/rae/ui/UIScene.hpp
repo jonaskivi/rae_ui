@@ -73,13 +73,15 @@ public:
 	Id createBox(const Rectangle& rectangle, const Color& color);
 	Id createBox(const vec3& position, const vec3& extents, const Color& color);
 
+	const Table<Viewport>& viewports() const { return m_viewports; }
 	int viewportCount() const { return m_viewports.size(); }
 	Id createViewport(int sceneIndex, const vec3& position, const vec3& extents);
 	Id createAdvancedViewport(int sceneIndex, const vec3& position, const vec3& extents);
 	void addViewport(Id id, const Viewport& viewport);
 	const Viewport& getViewport(Id id) const;
 	Viewport& modifyViewport(Id id);
-	Rectangle getViewportPixelRectangle(int sceneIndex) const;
+	Rectangle getViewportPixelRectangle(Id viewportId) const;
+	Rectangle getViewportPixelRectangleForSceneIndex(int sceneIndex) const;
 	// Which scene index had events this frame, if any. (-1 for none?)
 	int eventsForSceneIndex() { return m_eventsForSceneIndex; }
 	// The processed events for this frame in this scene.
@@ -89,12 +91,14 @@ public:
 	Id createPanel(const Rectangle& rectangle, bool visible = true);
 	Id createPanel(const vec3& position, const vec3& extents, bool visible = true);
 	void addPanel(Id id, const Panel& panel);
-	const Panel& getPanel(Id id);
+	const Panel& getPanel(Id id) const;
 
 	void addStackLayout(Id id);
+	void addGridLayout(Id id, int xCells = 2, int yCells = 2);
 
 	void addMaximizerAndButton(Id id);
 	void addMaximizer(Id id);
+	const Maximizer& getMaximizer(Id id) const;
 	void toggleMaximizer(Id id);
 	void updateMaximizers();
 
@@ -210,6 +214,7 @@ private:
 	Table<KeylineLink>	m_keylineLinks;
 
 	Table<StackLayout>	m_stackLayouts;
+	Table<GridLayout>	m_gridLayouts;
 	Table<Maximizer>	m_maximizers;
 
 	Table<ImageLink>	m_imageLinks;

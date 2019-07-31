@@ -41,6 +41,7 @@ UIScene::UIScene(
 	addTable(m_keylines);
 	addTable(m_keylineLinks);
 	addTable(m_stackLayouts);
+	addTable(m_gridLayouts);
 	addTable(m_imageLinks);
 	addTable(m_draggables);
 
@@ -221,7 +222,7 @@ UpdateStatus UIScene::update()
 
 void UIScene::doLayout()
 {
-	query<StackLayout>(m_stackLayouts, [&](Id layoutId, StackLayout& layout)
+	query<StackLayout>(m_stackLayouts, [&](Id layoutId, const StackLayout& layout)
 	{
 		if (m_transformSystem.hasChildren(layoutId))
 		{
@@ -253,6 +254,56 @@ void UIScene::doLayout()
 		//RAE_TODO use owner owned? or layoutParent layoutChildren?
 		// or some other type of additional hierarchy, so that layout could even be a member of the parent panel here
 		// and it would do layout on its siblings.
+	});
+
+	query<GridLayout>(m_gridLayouts, [&](Id layoutId, const GridLayout& layout)
+	{
+		if (m_transformSystem.hasChildren(layoutId))
+		{
+			auto& children = m_transformSystem.getChildren(layoutId);
+
+			const Pivot& parentPivot = m_transformSystem.getPivot(layoutId);
+			Box parentBox = m_transformSystem.getBox(layoutId);
+			parentBox.translatePivot(parentPivot);
+
+			// RAE_TODO Some kind of margin: float marginMM = 6.0f;
+			vec3 someIter = parentBox.min();
+
+			assert(layout.xCells > 0);
+			float xStep = parentBox.width() / layout.xCells;
+			assert(layout.yCells > 0);
+			float yStep = parentBox.height() / layout.yCells;
+
+			for (auto&& childId : children)
+			{
+				// Skip maximized maximizers.
+				const Maximizer& possibleMaximizer = m_maximizers.get(childId);
+				if (possibleMaximizer.maximizerState == MaximizerState::Normal)
+				{
+					vec3 pos = m_transformSystem.getLocalPosition(childId);
+					const Pivot& pivot = m_transformSystem.getPivot(childId);
+
+					Box& box = m_transformSystem.modifyBox(childId);
+					box.setWidth(xStep);
+					box.setHeight(yStep);
+
+					Box tbox = box;
+					tbox.translatePivot(pivot);
+
+					pos.x = someIter.x - tbox.min().x;
+					pos.y = someIter.y - tbox.min().y;
+					m_transformSystem.setLocalPosition(childId, pos);
+				}
+
+				someIter.x = someIter.x + xStep;
+
+				if (someIter.x > parentBox.width())
+				{
+					someIter.x = parentBox.min().x;
+					someIter.y = someIter.y + yStep;
+				}
+			}
+		}
 	});
 
 	query<KeylineLink>(m_keylineLinks, [&](Id id, const KeylineLink& keylineLink)
@@ -1019,13 +1070,28 @@ Viewport& UIScene::modifyViewport(Id id)
 	return m_viewports.modify(id);
 }
 
-Rectangle UIScene::getViewportPixelRectangle(int sceneIndex) const
+Rectangle UIScene::getViewportPixelRectangle(Id viewportId) const
+{
+	Rectangle viewportRect;
+	if (m_transformSystem.hasWorldTransform(viewportId) &&
+		m_transformSystem.hasBox(viewportId))
+	{
+		const Transform& transform = m_transformSystem.getWorldTransform(viewportId);
+		const Box& box = m_transformSystem.getBox(viewportId);
+		const Pivot& pivot = m_transformSystem.getPivot(viewportId);
+
+		viewportRect = convertToPixelRectangle(transform, box, pivot);
+	}
+	return viewportRect;
+}
+
+Rectangle UIScene::getViewportPixelRectangleForSceneIndex(int sceneIndex) const
 {
 	Rectangle viewportRect;
 	query<Viewport>(m_viewports, [&](Id id, const Viewport& viewport)
 	{
-		if (viewport.sceneIndex == sceneIndex and
-			m_transformSystem.hasWorldTransform(id) and
+		if (viewport.sceneIndex == sceneIndex &&
+			m_transformSystem.hasWorldTransform(id) &&
 			m_transformSystem.hasBox(id))
 		{
 			const Transform& transform = m_transformSystem.getWorldTransform(id);
@@ -1084,7 +1150,7 @@ void UIScene::addPanel(Id id, const Panel& panel)
 	m_panels.assign(id, panel);
 }
 
-const Panel& UIScene::getPanel(Id id)
+const Panel& UIScene::getPanel(Id id) const
 {
 	return m_panels.get(id);
 }
@@ -1092,6 +1158,11 @@ const Panel& UIScene::getPanel(Id id)
 void UIScene::addStackLayout(Id id)
 {
 	m_stackLayouts.assign(id, StackLayout());
+}
+
+void UIScene::addGridLayout(Id id, int xCells, int yCells)
+{
+	m_gridLayouts.assign(id, GridLayout(xCells, yCells));
 }
 
 /*RAE_TODO owner or layoutChildren thing
@@ -1126,6 +1197,11 @@ void UIScene::addMaximizerAndButton(Id id)
 void UIScene::addMaximizer(Id id)
 {
 	m_maximizers.assign(id, Maximizer());
+}
+
+const Maximizer& UIScene::getMaximizer(Id id) const
+{
+	return m_maximizers.get(id);
 }
 
 void UIScene::toggleMaximizer(Id id)

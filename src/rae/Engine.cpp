@@ -242,25 +242,47 @@ UpdateStatus Engine::update()
 
 				m_renderSystem.beginFrame3D();
 
-				for (int i = 0; i < uiScene.viewportCount(); ++i)
+				const auto& viewports = uiScene.viewports();
+
+				// We can only have 1 maximized 3D viewport at a time.
+				Id maximizedViewport = InvalidId;
+				query<Viewport>(viewports, [&](Id id, const Viewport& viewport)
 				{
-					Rectangle viewport = uiScene.getViewportPixelRectangle(i);
-
-					m_renderSystem.setViewport(viewport, window);
-
-					if (m_sceneSystem.hasScene(i))
+					const Maximizer& maximizer = uiScene.getMaximizer(id);
+					if (maximizedViewport == InvalidId && maximizer.isMaximized())
 					{
-						const Scene& scene = m_sceneSystem.scene(i);
+						maximizedViewport = id;
 
-						for (auto system : m_renderers3D)
+						// RAE_TODO: make some querys breakable by returning a bool value if we should continue or not.
+						// return false;
+					}
+					// RAE_TODO: continue:
+					//return true;
+				});
+
+				query<Viewport>(viewports, [&](Id id, const Viewport& viewport)
+				{
+					// Nothing maximized or this is the maximized viewport, so render this viewport.
+					if (maximizedViewport == InvalidId || maximizedViewport == id)
+					{
+						Rectangle viewportRectangle = uiScene.getViewportPixelRectangle(id);
+
+						m_renderSystem.setViewport(viewportRectangle, window);
+
+						if (m_sceneSystem.hasScene(viewport.sceneIndex))
 						{
-							if (system->isEnabled())
+							const Scene& scene = m_sceneSystem.scene(viewport.sceneIndex);
+
+							for (auto system : m_renderers3D)
 							{
-								system->render3D(scene, window, m_renderSystem);
+								if (system->isEnabled())
+								{
+									system->render3D(scene, window, m_renderSystem);
+								}
 							}
 						}
 					}
-				}
+				});
 
 				m_renderSystem.endFrame3D();
 

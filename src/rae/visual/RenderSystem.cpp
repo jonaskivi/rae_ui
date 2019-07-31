@@ -412,7 +412,7 @@ void RenderSystem::renderPicking(const Window& window)
 	// glViewport(0, 0, window.pixelWidth(), window.pixelHeight());
 
 	//TODO sceneIndex:
-	Rectangle viewport = m_uiSystem.defaultScene().getViewportPixelRectangle(0);
+	Rectangle viewport = m_uiSystem.defaultScene().getViewportPixelRectangleForSceneIndex(0);
 
 	setViewport(viewport, window);
 

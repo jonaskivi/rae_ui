@@ -89,15 +89,20 @@ void Pihlaja::initUI()
 	// top of the 3D viewports. Not sure if it is worth it to try and render viewports to textures just because
 	// we'd want to draw UI under them. No, it wouldn't be worth it.
 
+	Id rootId = ui.rootId();
+	ui.addGridLayout(rootId, 2, 2);
+
 	int sceneIndex = 0;
 	Id viewport = ui.createAdvancedViewport(sceneIndex,
 		vec3(130.0f, 80.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
+	trans.addChild(rootId, viewport);
 
 	int sceneIndex2 = 1;
 	Id viewport2 = ui.createAdvancedViewport(sceneIndex2,
 		vec3(130.0f, 235.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
+	trans.addChild(rootId, viewport2);
 
 	// Video things
 
@@ -110,6 +115,7 @@ void Pihlaja::initUI()
 		vec3(250.0f, 150.0f, 1.0f));
 	ui.addDraggable(videoBufferImageBox);
 	ui.addMaximizerAndButton(videoBufferImageBox);
+	trans.addChild(rootId, videoBufferImageBox);
 	#endif
 
 	Id videoControls = ui.createPanel(

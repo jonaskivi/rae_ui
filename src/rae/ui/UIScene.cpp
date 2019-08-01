@@ -102,10 +102,10 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 	if (hovered != InvalidId)
 	{
-		if (m_transformSystem.hasLocalTransform(hovered))
+		if (m_transformSystem.hasWorldTransform(hovered))
 		{
 			const Box& box = m_transformSystem.getBox(hovered);
-			const Transform& transform = m_transformSystem.getLocalTransform(hovered);
+			const Transform& transform = m_transformSystem.getWorldTransform(hovered);
 			const Pivot& pivot = m_transformSystem.getPivot(hovered);
 			Box tbox = box;
 			tbox.transform(transform);
@@ -113,14 +113,16 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 			vec3 mousePositionMM = m_screenSystem.pixelsToMM(m_inputState.mouse.position);
 
-			//LOG_F(INFO, "hovered 3D scene. mouse %f %f, tbox left:%f down:%f width: %f height: %f",
-			//	mousePositionMM.x, mousePositionMM.y,
-			//	tbox.left(), tbox.down(), tbox.width(), tbox.height());
-
 			m_inputState.mouse.localPositionNormalized = vec3(
 				(mousePositionMM.x - tbox.left()) / tbox.width(),
 				(mousePositionMM.y - tbox.down()) / tbox.height(), // Ugh, down is the new up. Fix this somehow. Z-up. Something about Y down Y up in UIs and in 3D.
 				0.0f);
+
+			//LOG_F(INFO, "hovered entity. mouse %f %f, tbox left:%f down:%f width: %f height: %f "
+			//	"localPosNormalized: %s",
+			//	mousePositionMM.x, mousePositionMM.y,
+			//	tbox.left(), tbox.down(), tbox.width(), tbox.height(),
+			//	Utils::toString(m_inputState.mouse.localPositionNormalized).c_str());
 		}
 
 		if (m_inputState.mouse.buttonClicked[(int)MouseButton::First])
@@ -171,7 +173,7 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 		if (m_viewports.check(hovered))
 		{
-			Viewport& viewport = modifyViewport(hovered);
+			const Viewport& viewport = getViewport(hovered);
 			m_eventsForSceneIndex = viewport.sceneIndex;
 		}
 		else
@@ -1235,15 +1237,15 @@ void UIScene::updateMaximizers()
 	{
 		if (maximizer.maximizerState == MaximizerState::Maximized)
 		{
-			auto halfExtents = window.dimensions() * 0.5f;
-			m_transformSystem.setBox(id, Box(-halfExtents, halfExtents));
+			auto windowHalfExtents = window.dimensions() * 0.5f;
+			m_transformSystem.setBox(id, Box(-windowHalfExtents, windowHalfExtents));
 
 			const Pivot& pivot = m_transformSystem.getPivot(id);
 
 			// I guess this could be generalized, but I'm not sure how. Probably something obvious.
 			if (pivot == Pivots::Center)
 			{
-				m_transformSystem.setWorldPosition(id, vec3(halfExtents.x, halfExtents.y, 0.0f));
+				m_transformSystem.setWorldPosition(id, vec3(windowHalfExtents.x, windowHalfExtents.y, 0.0f));
 			}
 			else if (pivot == Pivots::TopLeft2D)
 			{

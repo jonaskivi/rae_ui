@@ -529,19 +529,19 @@ void Mesh::generateCone(int steps)
 			(cosf(angle) + 1.0f) * 0.5f));
 	}
 
-	// Circle
+	// Flat cone bottom disc/circle
 	for (int i = 2; i < (int)m_vertices.size()-1; ++i)
 	{
-		m_indices.emplace_back(0);
 		m_indices.emplace_back(i);
+		m_indices.emplace_back(0); // Winding order must be like this, if you think about it.
 		m_indices.emplace_back(i+1);
 	}
 
-	m_indices.emplace_back(0);
 	m_indices.emplace_back(m_vertices.size()-1);
+	m_indices.emplace_back(0);
 	m_indices.emplace_back(2);
 
-	// Cone "circle"
+	// Angled cone surface "circle"
 	for (int i = 2; i < (int)m_vertices.size()-1; ++i)
 	{
 		m_indices.emplace_back(1);

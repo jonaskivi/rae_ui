@@ -76,6 +76,9 @@ void Scene::createTestWorld(AssetSystem& assetSystem)
 	m_transformSystem.addChild(sphere4, sphere3);
 
 	auto bunny1 = createBunny(assetSystem, vec3(0.0f, 0.0f, 0.0f), Color(0.05f, 0.2f, 0.8f, 0.0f));
+
+	// Should make this automatic after addChild somehow.
+	m_transformSystem.syncLocalAndWorldTransforms();
 }
 
 void Scene::createTestWorld2(AssetSystem& assetSystem)
@@ -93,6 +96,9 @@ void Scene::createTestWorld2(AssetSystem& assetSystem)
 
 	m_transformSystem.addChild(sphere1, cube2);
 	m_transformSystem.addChild(sphere1, sphere3);
+
+	// Should make this automatic after addChild somehow.
+	m_transformSystem.syncLocalAndWorldTransforms();
 }
 
 Id Scene::createAddObjectButton(AssetSystem& assetSystem)

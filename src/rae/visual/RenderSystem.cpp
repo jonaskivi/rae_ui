@@ -484,6 +484,8 @@ void RenderSystem::renderMeshSingleColor(
 	const Color& color,
 	const Mesh& mesh)
 {
+	glFrontFace(mesh.glWindingOrder());
+
 	m_singleColorShader.use();
 
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
@@ -506,6 +508,8 @@ void RenderSystem::renderMeshOutline(
 	const Color& color,
 	const Mesh& mesh)
 {
+	glFrontFace(mesh.glWindingOrder());
+
 	m_outlineShader.use();
 
 	const float t_outlineMultiplier = 0.005f;
@@ -580,6 +584,8 @@ void RenderSystem::renderMeshPicking(
 	const Mesh& mesh,
 	Id id)
 {
+	glFrontFace(mesh.glWindingOrder());
+
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
 	mat4 rotationMatrix = glm::toMat4(transform.rotation);
 	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);

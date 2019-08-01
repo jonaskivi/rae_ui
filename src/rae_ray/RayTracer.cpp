@@ -76,8 +76,7 @@ RayTracer::RayTracer(
 		m_time(time),
 		m_windowSystem(windowSystem),
 		m_assetSystem(assetSystem),
-		m_sceneSystem(sceneSystem),
-		m_renderThread(&RayTracer::updateRenderThread, this)
+		m_sceneSystem(sceneSystem)
 {
 	setIsEnabled(false);
 
@@ -99,7 +98,10 @@ RayTracer::RayTracer(
 RayTracer::~RayTracer()
 {
 	m_renderThreadActive = false;
-	m_renderThread.join();
+	if (m_renderThread.joinable())
+	{
+		m_renderThread.join();
+	}
 }
 
 void RayTracer::updateScene(const Scene& scene)
@@ -254,6 +256,33 @@ void RayTracer::createSceneFromBook(HitableList& list)
 	list.add( new OldSphere(vec3(4, 1, 0), 1.0, new Metal(vec3(0.7, 0.6, 0.5), 0.0)) );
 
 	m_tree.init(list.list(), 0, 0);
+}
+
+bool RayTracer::toggleIsEnabled()
+{
+	m_isEnabled = !m_isEnabled;
+	checkShouldStartRenderThread();
+	return m_isEnabled;
+}
+
+void RayTracer::setIsEnabled(bool set)
+{
+	m_isEnabled = set;
+	checkShouldStartRenderThread();
+}
+
+void RayTracer::checkShouldStartRenderThread()
+{
+	if (m_isEnabled && !m_renderThread.joinable())
+	{
+		m_renderThreadActive = true;
+		m_renderThread = std::thread(&RayTracer::updateRenderThread, this);
+	}
+	else if (!m_isEnabled && m_renderThread.joinable())
+	{
+		m_renderThreadActive = false;
+		m_renderThread.join();
+	}
 }
 
 void RayTracer::showScene(int number)
@@ -612,13 +641,13 @@ UpdateStatus RayTracer::update()
 		requestClear();
 	}
 
+	if (!m_isEnabled)
+		return UpdateStatus::Disabled;
+
 	m_tree.iterate([](const Box& box)
 	{
 		g_debugSystem->drawLineBox(box, Colors::blue);
 	});
-
-	if (!m_isEnabled)
-		return UpdateStatus::Disabled;
 
 	/*
 	Old time based switch buffers system:

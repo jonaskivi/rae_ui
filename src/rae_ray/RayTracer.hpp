@@ -62,6 +62,9 @@ public:
 		SceneSystem& sceneSystem);
 	~RayTracer();
 
+	bool toggleIsEnabled() override;
+	void setIsEnabled(bool set) override;
+
 	void showScene(int number);
 	void clearScene();
 
@@ -109,6 +112,8 @@ public:
 
 protected:
 
+	void checkShouldStartRenderThread();
+
 	void clear();
 
 	bool m_isInfoText = true;
@@ -151,7 +156,7 @@ protected:
 
 	NVGpaint m_imgPaint;
 
-	bool m_renderThreadActive = true;
+	bool m_renderThreadActive = false;
 	std::thread m_renderThread;
 };
 

@@ -576,7 +576,11 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 
 	query<Box>(scene.transformSystem().boxes(), [&](Id id, const Box& box)
 	{
-		if (scene.transformSystem().hasWorldTransform(id))
+		if (scene.selectionSystem().isDisableHovering(id))
+		{
+			// Continue and skip the hit test.
+		}
+		else if (scene.transformSystem().hasWorldTransform(id))
 		{
 			const Transform& transform = scene.transformSystem().getWorldTransform(id);
 			const Pivot& pivot = scene.transformSystem().getPivot(id);

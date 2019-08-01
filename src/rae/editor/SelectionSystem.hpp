@@ -16,6 +16,10 @@ struct Hover
 {
 };
 
+struct DisableHovering
+{
+};
+
 class TransformSystem;
 
 class SelectionSystem : public ISystem
@@ -39,6 +43,9 @@ public:
 	bool isHovered(Id id) const;
 	bool isAnyHovered() const;
 	void clearHovers();
+
+	void addDisableHovering(Id id) { m_disableHoverings.assign(id); }
+	bool isDisableHovering(Id id) { return m_disableHoverings.check(id); }
 
 	Event<SelectionSystem&> onSelectionChanged;
 	bool hasSelectionChanged() const;
@@ -73,6 +80,10 @@ protected:
 	// Hovers are a mess currently. Trying to decide if we need multiple hovers or only one.
 	// So currently we have m_hoveredId which is the main hover, and then m_hovers is the hoveredByParent.
 	Table<Hover>		m_hovers;
+
+	// An entity with DisableHovering can't be selected with hovering (but can be selected by some other way).
+	// Basically hover bypass, so the thing under it will hover instead.
+	Table<DisableHovering> m_disableHoverings;
 
 	Id m_hoveredId = InvalidId;
 	Id m_pixelClickedId = InvalidId;

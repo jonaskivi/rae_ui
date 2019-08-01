@@ -331,25 +331,26 @@ void UIScene::hover()
 
 	query<Box>(m_transformSystem.boxes(), [&](Id id, const Box& box)
 	{
-		// RAE_TODO: Generic way to disable hit testing. Possibly DisableHover component?
+		// RAE_TODO: Probably need to add generic visibility instead of this Panel visible thing.
 		if (m_panels.check(id) && m_panels.getF(id).visible == false)
 		{
-			//continue and skip the hit test.
+			// Continue and skip the hit test.
 		}
-		else
+		else if (m_selectionSystem.isDisableHovering(id))
 		{
-			if (m_transformSystem.hasWorldTransform(id))
-			{
-				const Transform& transform = m_transformSystem.getWorldTransform(id);
-				const Pivot& pivot = m_transformSystem.getPivot(id);
-				Box tbox = box;
-				tbox.transform(transform);
-				tbox.translatePivot(pivot);
+			// Continue and skip the hit test.
+		}
+		else if (m_transformSystem.hasWorldTransform(id))
+		{
+			const Transform& transform = m_transformSystem.getWorldTransform(id);
+			const Pivot& pivot = m_transformSystem.getPivot(id);
+			Box tbox = box;
+			tbox.transform(transform);
+			tbox.translatePivot(pivot);
 
-				if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
-				{
-					topMostId = id;
-				}
+			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
+			{
+				topMostId = id;
 			}
 		}
 	});
@@ -989,6 +990,9 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addText(id, text, fontSize);
+
+	// Read-only textbox is not hoverable.
+	m_selectionSystem.addDisableHovering(id);
 
 	if (multiline)
 	{

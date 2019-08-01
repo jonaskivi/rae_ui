@@ -12,6 +12,7 @@ SelectionSystem::SelectionSystem(TransformSystem& transformSystem) :
 {
 	addTable(m_selected);
 	addTable(m_hovers);
+	addTable(m_disableHoverings);
 }
 
 bool SelectionSystem::isSelection() const
@@ -124,6 +125,9 @@ void SelectionSystem::setHovered(Id id, bool hovered)
 {
 	if (hovered)
 	{
+		if (m_disableHoverings.check(id))
+			return;
+
 		m_hoveredId = id;
 		m_hovers.assign(id, Hover());
 	}
@@ -142,11 +146,17 @@ void SelectionSystem::setHoveredHierarchy(Id id, bool hovered)
 {
 	if (hovered)
 	{
+		if (m_disableHoverings.check(id))
+			return;
+
 		m_hoveredId = id;
 
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{
-			m_hovers.assign(id, Hover());
+			if (m_disableHoverings.check(id) == false)
+			{
+				m_hovers.assign(id, Hover());
+			}
 		});
 	}
 	else

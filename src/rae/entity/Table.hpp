@@ -57,6 +57,11 @@ public:
 
 	bool empty() const { return (int)m_items.size() <= 0; }
 
+	void assign(Id id)
+	{
+		assign(id, Comp());
+	}
+
 	void assign(Id id, Comp&& comp)
 	{
 		if (check(id))

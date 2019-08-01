@@ -34,9 +34,15 @@ Source code is found under "src/rae".
     # on OSX:
     premake4 xcode4
     # Open the project file and build it.
+    # See premake4.lua file for additional instructions on installing libraries,
+    # and setting Runpath Search Paths manually. Possibly other things need to be done
+    # in XCode project settings too, like SDK version and setting the C++ dialect to C++11?
+    # Build on Release mode for best performance. Currently performance on laptops is not that great,
+    # due to vector and font rendering being slow (and not cached into textures etc.).
 
     # on Windows:
     premake4 vs2012
     # Open the project file and build it.
     # You may need to retarget it to vs2013 or vs2015 after opening it and sometimes need to restore (checkout)
     # the libs as they are built wrong.
+    # Build on Release mode for best performance.

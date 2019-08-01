@@ -119,7 +119,7 @@ void Pihlaja::initUI()
 	#endif
 
 	Id videoControls = ui.createPanel(
-		vec3(440.0f, 190.0f, 0.0f),
+		vec3(60.0f, 110.0f, 0.0f),
 		vec3(100.0f, 50.0f, 1.0f));
 	ui.addDraggable(videoControls);
 	ui.addStackLayout(videoControls);
@@ -154,7 +154,7 @@ void Pihlaja::initUI()
 	// Raytracer Controls
 
 	Id panel = ui.createPanel(
-		vec3(320.0f, 210.0f, 0.0f),
+		vec3(200.0f, 130.0f, 0.0f),
 		vec3(120.0f, 100.0f, 1.0f));
 	ui.addDraggable(panel);
 	ui.addMaximizer(panel);
@@ -289,7 +289,7 @@ void Pihlaja::rewind()
 	auto& asset = m_avSystem.getAsset(m_videoAssetId);
 	if (!asset.isLoaded())
 	{
-		LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
+		LOG_F(ERROR, "Asset is not loaded: %s id: %i", asset.filepath().c_str(), m_videoAssetId);
 		return;
 	}
 
@@ -449,7 +449,7 @@ UpdateStatus Pihlaja::update()
 		auto& asset = m_avSystem.getAsset(m_videoAssetId);
 		if (!asset.isLoaded())
 		{
-			LOG_F(ERROR, "Asset is not loaded. id: %i", m_videoAssetId);
+			//LOG_F(ERROR, "Asset is not loaded: %s id: %i", asset.filepath().c_str(), m_videoAssetId);
 			return UpdateStatus::NotChanged;
 		}
 

@@ -21,6 +21,15 @@ struct Rectangle
 		x(x), y(y), width(width), height(height)
 	{}
 
+	Rectangle& operator*=(float value)
+	{
+		x *= value;
+		y *= value;
+		width *= value;
+		height *= value;
+		return *this;
+	}
+
 	float x = 0.0f;
 	float y = 0.0f;
 	float width = 0.0f;

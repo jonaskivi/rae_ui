@@ -43,7 +43,7 @@ public:
 	// A silly fix for the need for a position from the instance:
 	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const override { return false; };
 	virtual bool hit(const vec3& position, const Ray& ray, float t_min, float t_max, HitRecord& record) const;
-	virtual Box getAabb(float t0 = 0.0f, float t1 = 0.0f) const { return m_aabb; }
+	virtual Box getAabb(float t0 = 0.0f, float t1 = 0.0f) const override { return m_aabb; }
 
 	void generateCube();
 	void generateSphere(float radius = 0.5f, int rings = 32, int sectors = 32);

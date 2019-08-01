@@ -297,7 +297,7 @@ void UIScene::doLayout()
 
 				someIter.x = someIter.x + xStep;
 
-				if (someIter.x > parentBox.width())
+				if (someIter.x >= parentBox.width())
 				{
 					someIter.x = parentBox.min().x;
 					someIter.y = someIter.y + yStep;

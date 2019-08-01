@@ -11,7 +11,7 @@ public:
 	IAsset();
 	IAsset(String setFilepath);
 
-	const String& filepath() { return m_filepath; }
+	const String& filepath() const { return m_filepath; }
 
 protected:
 	String m_filepath;

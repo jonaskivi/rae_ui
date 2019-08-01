@@ -168,8 +168,15 @@ void RenderSystem::setViewport(const Rectangle& viewport, const Window& window)
 	}
 	else
 	{
-		glViewport(GLint(viewport.x), GLint(window.pixelHeight() - viewport.y - viewport.height),
-			GLsizei(viewport.width), GLsizei(viewport.height));
+		// Support hi-dpi screens:
+		Rectangle viewportPixels = viewport;
+		viewportPixels *= window.screenPixelRatio();
+
+		glViewport(
+			GLint(viewportPixels.x),
+			GLint(window.pixelHeight() - viewportPixels.y - viewportPixels.height),
+			GLsizei(viewportPixels.width),
+			GLsizei(viewportPixels.height));
 	}
 }
 

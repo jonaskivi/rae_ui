@@ -22,7 +22,7 @@ namespace av
 
 using AssetId = int;
 
-class MediaAsset : IAsset
+class MediaAsset : public IAsset
 {
 public:
 	MediaAsset();

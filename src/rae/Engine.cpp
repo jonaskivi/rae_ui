@@ -91,9 +91,13 @@ void Engine::run()
 {
 	while (m_running)
 	{
+		//RAE_TEMP: Commented out because of some performance issues on a Macbook Pro.
+		// Somehow the glfwWaitEvents slows things down so much that we miss the vsync.
+		// Possibly at least text rendering is really slow.
+		/*
 		//glfwPollEvents(); // Don't use this here, it's for games. Use it in the inner loop if something is updating.
 		// It will take up too much CPU all the time, even when nothing is happening.
-		glfwWaitEvents(); // Use this instead. It will sleep when no events are being received.
+		//RAE_TEMP: glfwWaitEvents(); // Use this instead. It will sleep when no events are being received.
 
 		while (m_running == true && update() == UpdateStatus::Changed)
 		{
@@ -103,6 +107,12 @@ void Engine::run()
 			// It probably doesn't work properly with that.
 			m_time.setPreviousTime();
 		}
+		*/
+
+		//RAE_TEMP:
+		glfwPollEvents();
+		update();
+		m_time.setPreviousTime();
 	}
 }
 

@@ -47,7 +47,7 @@ void Test2DCoordinates::initUI()
 	auto& windowSystem = m_engine.windowSystem();
 
 	UIScene& ui = uiSystem.defaultScene();
-	uiSystem.connectWindowToScene(windowSystem.mainWindow(), ui);
+	uiSystem.connectWindowToScene(windowSystem.modifyMainWindow(), ui);
 
 	auto& trans = ui.transformSystem();
 

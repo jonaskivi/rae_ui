@@ -90,5 +90,8 @@ bool Box::hit(vec2 position) const
 
 String Box::toString() const
 {
-	return "min: " + Utils::toString(m_min) + " max: " + Utils::toString(m_max);
+	return "min: " + Utils::toString(m_min)
+		+ " max: " + Utils::toString(m_max)
+		+ "\nwidth: " + Utils::toString(width())
+		+ " height: " + Utils::toString(height());
 }

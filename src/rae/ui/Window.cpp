@@ -283,6 +283,11 @@ void Window::swapBuffers()
 	glfwSwapBuffers(m_windowHandle);
 }
 
+void Window::setSize(int width, int height)
+{
+	glfwSetWindowSize(m_windowHandle, width, height);
+}
+
 void Window::osEventResizeWindow(int width, int height)
 {
 	m_width = width;

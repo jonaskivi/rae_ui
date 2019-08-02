@@ -156,7 +156,7 @@ UpdateStatus Engine::update()
 	{
 		for (int i = 0; i < m_windowSystem.windowCount(); ++i)
 		{
-			auto&& window = m_windowSystem.window(i);
+			const Window& window = m_windowSystem.window(i);
 
 			int uiSceneIndex = window.uiSceneIndex();
 			if (m_uiSystem.hasScene(uiSceneIndex))
@@ -184,7 +184,7 @@ UpdateStatus Engine::update()
 
 		for (int i = 0; i < m_windowSystem.windowCount(); ++i)
 		{
-			auto&& window = m_windowSystem.window(i);
+			auto&& window = m_windowSystem.modifyWindow(i);
 
 			int uiSceneIndex = window.uiSceneIndex();
 			if (m_uiSystem.hasScene(uiSceneIndex))
@@ -238,7 +238,7 @@ UpdateStatus Engine::update()
 	{
 		for (int i = 0; i < m_windowSystem.windowCount(); ++i)
 		{
-			auto&& window = m_windowSystem.window(i);
+			auto&& window = m_windowSystem.modifyWindow(i);
 			//LOG_F(INFO, "Window: %s sceneIndex: %i", window.name().c_str(), window.sceneIndex());
 
 			window.activateContext();

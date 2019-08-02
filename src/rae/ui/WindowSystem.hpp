@@ -47,11 +47,11 @@ public:
 	void osKeyEvent(GLFWwindow* windowHandle, int key, int scancode, int action, int mods);
 
 	const Window& mainWindow() const { return *m_windows[0]; }
-	Window& mainWindow() { return *m_windows[0]; }
+	Window& modifyMainWindow() { return *m_windows[0]; }
 
 	const Window& window(int index) const { return *m_windows[index]; }
-	Window& window(int index) { return *m_windows[index]; }
-	Window* window(GLFWwindow* windowHandle);
+	Window& modifyWindow(int index) { return *m_windows[index]; }
+	Window* windowPtr(GLFWwindow* windowHandle);
 	int windowCount() const { return (int)m_windows.size(); }
 
 	Window& createWindow(const String& title, int width, int height, bool isFullscreen);

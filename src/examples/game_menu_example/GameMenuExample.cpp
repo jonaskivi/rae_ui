@@ -5,7 +5,7 @@
 using namespace rae;
 
 GameMenuExample::GameMenuExample() :
-	m_engine("Game Menu Example", 562, 1000, false),
+	m_engine("Game Menu Example", 1920, 1080, false),
 	m_input(m_engine.input()),
 	m_uiSystem(m_engine.uiSystem())
 {
@@ -43,15 +43,20 @@ void GameMenuExample::initUI()
 {
 	auto& uiSystem = m_uiSystem;
 	auto& windowSystem = m_engine.windowSystem();
+	auto& screenSystem = m_engine.screenSystem();
+
+	auto& mainWindow = windowSystem.modifyMainWindow();
+	mainWindow.setSize(
+		screenSystem.mmToPixels(150.0f),
+		screenSystem.mmToPixels(260.0f));
 
 	UIScene& ui = uiSystem.defaultScene();
-	uiSystem.connectWindowToScene(windowSystem.mainWindow(), ui);
+	uiSystem.connectWindowToScene(mainWindow, ui);
 
 	auto& trans = ui.transformSystem();
 	auto& anim = ui.animationSystem();
 
-	Id panelParent = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f));
-	trans.addPivot(panelParent, Pivots::TopLeft2D);
+	Id panelParent = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 90.0f));
 	ui.setColor(panelParent, Utils::createColor8bit(43, 47, 59));
 
 	ui.addMaximizer(panelParent);

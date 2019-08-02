@@ -17,29 +17,29 @@ WindowSystem* g_windowSystem = nullptr;
 
 void WindowSystem::osEventResizeWindow(GLFWwindow* windowHandle, int width, int height)
 {
-	window(windowHandle)->osEventResizeWindow(width, height);
+	windowPtr(windowHandle)->osEventResizeWindow(width, height);
 }
 
 void WindowSystem::osEventResizeWindowPixels(GLFWwindow* windowHandle, int width, int height)
 {
-	window(windowHandle)->osEventResizeWindowPixels(width, height);
+	windowPtr(windowHandle)->osEventResizeWindowPixels(width, height);
 }
 
 void WindowSystem::osEventCursorEnter(GLFWwindow* windowHandle)
 {
-	auto* window2 = window(windowHandle);
+	auto* window2 = windowPtr(windowHandle);
 	window2->osMouseEvent(EventType::MouseEnter);
 }
 
 void WindowSystem::osEventCursorLeave(GLFWwindow* windowHandle)
 {
-	auto* window2 = window(windowHandle);
+	auto* window2 = windowPtr(windowHandle);
 	window2->osMouseEvent(EventType::MouseLeave);
 }
 
 void WindowSystem::osMouseButtonPress(GLFWwindow* windowHandle, int button, float xP, float yP)
 {
-	auto* window2 = window(windowHandle);
+	auto* window2 = windowPtr(windowHandle);
 
 	window2->osMouseEvent(
 		EventType::MouseButtonPress,
@@ -62,7 +62,7 @@ void WindowSystem::osMouseButtonPress(GLFWwindow* windowHandle, int button, floa
 
 void WindowSystem::osMouseButtonRelease(GLFWwindow* windowHandle, int button, float xP, float yP)
 {
-	auto* window2 = window(windowHandle);
+	auto* window2 = windowPtr(windowHandle);
 
 	window2->osMouseEvent(
 		EventType::MouseButtonRelease,
@@ -82,7 +82,7 @@ void WindowSystem::osMouseButtonRelease(GLFWwindow* windowHandle, int button, fl
 
 void WindowSystem::osMouseMotion(GLFWwindow* windowHandle, float xP, float yP)
 {
-	auto* window2 = window(windowHandle);
+	auto* window2 = windowPtr(windowHandle);
 
 	window2->osMouseEvent(
 		EventType::MouseMotion,
@@ -102,13 +102,13 @@ void WindowSystem::osMouseMotion(GLFWwindow* windowHandle, float xP, float yP)
 
 void WindowSystem::osScrollEvent(GLFWwindow* windowHandle, float scrollX, float scrollY)
 {
-	auto* window2 = window(windowHandle);
+	auto* window2 = windowPtr(windowHandle);
 	m_input.osScrollEvent(*window2, scrollX, scrollY);
 }
 
 void WindowSystem::osKeyEvent(GLFWwindow* windowHandle, int key, int scancode, int action, int mods)
 {
-	auto* window2 = window(windowHandle);
+	auto* window2 = windowPtr(windowHandle);
 
 	// glfw mods are not handled at the moment
 	EventType eventType = EventType::Undefined;
@@ -185,7 +185,7 @@ void WindowSystem::onFrameEnd()
 	}
 }
 
-Window* WindowSystem::window(GLFWwindow* windowHandle)
+Window* WindowSystem::windowPtr(GLFWwindow* windowHandle)
 {
 	for (auto&& window : m_windows)
 	{

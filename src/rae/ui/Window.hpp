@@ -40,12 +40,15 @@ public:
 	void activateContext();
 	void swapBuffers();
 
-	String name() { return m_name; }
+	String name() const { return m_name; }
 
 	int width()			const { return m_width; }
 	int height()		const { return m_height; }
 	int pixelWidth()	const { return m_pixelWidth; }
 	int pixelHeight()	const { return m_pixelHeight; }
+
+	// Sets the width and height, not pixelWidth.
+	void setSize(int width, int height);
 
 	float screenPixelRatio() const { return m_screenPixelRatio; }
 
@@ -53,7 +56,7 @@ public:
 	float yPixelsToNormalizedWindow(float pixels) const { return pixels / pixelHeight(); }
 
 	void setUISceneIndex(int uiSceneIndex) { m_uiSceneIndex = uiSceneIndex; }
-	int uiSceneIndex() { return m_uiSceneIndex; }
+	int uiSceneIndex() const { return m_uiSceneIndex; }
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
@@ -61,7 +64,7 @@ public:
 	void osMouseEvent(EventType eventType);
 	void osMouseEvent(EventType eventType, int button, float xP, float yP);
 
-	const Array<InputEvent>& events() { return m_events; }
+	const Array<InputEvent>& events() const { return m_events; }
 	void clearEvents() { m_events.clear(); }
 
 	bool isOpen() const { return m_isOpen; }
@@ -76,13 +79,14 @@ private:
 	NVGcontext* m_nanoVG = nullptr;
 
 	String m_name;
-	int m_width = 0;
-	int m_height = 0;
-	int m_pixelWidth = 0;
-	int m_pixelHeight = 0;
+	int m_width = 0; // in virtual screen coordinates (m_pixelWidth * m_screenPixelRatio)
+	int m_height = 0; // in virtual screen coordinates (m_pixelHeight * m_screenPixelRatio)
+	int m_pixelWidth = 0; // in pixels
+	int m_pixelHeight = 0; // in pixels
 	// Window pixel ratio for hi-dpi screens.
 	float m_screenPixelRatio = 1.0f;
 
+	// Pixels per mm info should be per screen, so it is available from ScreenSystem.
 	//float m_pixelsPerMM = 0.0f;
 
 	int m_uiSceneIndex = -1;

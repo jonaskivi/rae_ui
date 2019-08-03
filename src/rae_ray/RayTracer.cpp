@@ -686,12 +686,7 @@ UpdateStatus RayTracer::update()
 			updateImageBuffer();
 			m_frameReady = false;
 		}
-		else if (m_currentSample == 0)
-		{
-			// A silly hack to copy the buffer always when sample count is 0. This keeps the update fluid
-			// when moving the camera.
-			updateImageBuffer();
-		}
+
 	#endif
 
 	m_totalRayTracingTime = m_time.time() - m_startTime;
@@ -703,23 +698,26 @@ void RayTracer::updateRenderThread()
 {
 	while (m_renderThreadActive)
 	{
-		/*
-		// Crashes for some reason, but ideally we'd want this to be in this thread too.
-		if (m_buffer && m_requestToggleBuffer)
+		if (!m_buffer)
 		{
-			toggleBufferQuality();
-			m_requestToggleBuffer = false;
-		}
-		*/
-
-		if (m_buffer && m_requestClear)
-		{
-			clear();
-			m_requestClear = false;
+			continue;
 		}
 
-		if (m_buffer && m_frameReady == false)
+		if (m_frameReady == false)
 		{
+			if (m_requestToggleBuffer)
+			{
+				toggleBufferQuality();
+				m_requestToggleBuffer = false;
+				m_requestClear = true;
+			}
+
+			if (m_requestClear)
+			{
+				clear();
+				m_requestClear = false;
+			}
+
 			std::lock_guard<std::mutex> lock(m_bufferMutex);
 			renderSamples();
 		}

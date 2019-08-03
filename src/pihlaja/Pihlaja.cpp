@@ -202,7 +202,7 @@ void Pihlaja::initUI()
 		vec3(50.0f, 10.0f, 1.0f),
 		[&]()
 		{
-			m_engine.rayTracer().toggleBufferQuality();
+			m_engine.rayTracer().requestToggleBufferQuality();
 		});
 	trans.addChild(panel, qualityButton);
 

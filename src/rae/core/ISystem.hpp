@@ -41,8 +41,9 @@ public:
 	virtual UpdateStatus update() { return UpdateStatus::NotChanged; }
 	// Sometimes you need to do cleanup every frame, even when the system is disabled.
 	virtual void updateWhenDisabled() {}
-	virtual void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) {};
-	virtual void render2D(UIScene& uiScene, NVGcontext* nanoVG) {}; // RAE_TODO Should be const
+	virtual void prepareRender3D(Scene& scene) {}
+	virtual void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) {}
+	virtual void render2D(UIScene& uiScene, NVGcontext* nanoVG) {} // RAE_TODO Should be const
 	virtual void onFrameEnd()
 	{
 		for (auto&& table : m_tables)

@@ -281,13 +281,29 @@ UpdateStatus Engine::update()
 
 						if (m_sceneSystem.hasScene(viewport.sceneIndex))
 						{
-							const Scene& scene = m_sceneSystem.scene(viewport.sceneIndex);
-
-							for (auto system : m_renderers3D)
+							// Prepare
 							{
-								if (system->isEnabled())
+								Scene& scene = m_sceneSystem.scene(viewport.sceneIndex);
+
+								for (auto system : m_renderers3D)
 								{
-									system->render3D(scene, window, m_renderSystem);
+									if (system->isEnabled())
+									{
+										system->prepareRender3D(scene);
+									}
+								}
+							}
+
+							// Render
+							{
+								const Scene& scene = m_sceneSystem.scene(viewport.sceneIndex);
+
+								for (auto system : m_renderers3D)
+								{
+									if (system->isEnabled())
+									{
+										system->render3D(scene, window, m_renderSystem);
+									}
 								}
 							}
 						}
@@ -318,8 +334,9 @@ UpdateStatus Engine::update()
 	for (auto system : m_systems)
 	{
 		// A potential issue where isEnabled is changed to false earlier in the update,
-		// and then onFrameEnd doesn't get called for the system.
-		if (system->isEnabled())
+		// and then onFrameEnd doesn't get called for the system. So we run onFrameEnd even if the system
+		// is disabled.
+		//if (system->isEnabled())
 		{
 			system->onFrameEnd();
 		}
@@ -338,7 +355,7 @@ void Engine::osEventResizeWindow(int width, int height)
 	if (!m_sceneSystem.hasActiveScene())
 		return;
 	Scene& scene = m_sceneSystem.activeScene();
-	auto& cameraSystem = scene.cameraSystem();
+	auto& cameraSystem = scene.modifyCameraSystem();
 	cameraSystem.setAspectRatio(float(width) / float(height));
 }
 
@@ -347,7 +364,7 @@ void Engine::osEventResizeWindowPixels(int width, int height)
 	if (!m_sceneSystem.hasActiveScene())
 		return;
 	Scene& scene = m_sceneSystem.activeScene();
-	auto& cameraSystem = scene.cameraSystem();
+	auto& cameraSystem = scene.modifyCameraSystem();
 	cameraSystem.setAspectRatio(float(width) / float(height));
 }
 

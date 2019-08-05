@@ -22,7 +22,7 @@ public:
 	void use();
 
 	// RAE_TODO get rid of this detail, and encapsulate gl calls to functions:
-	GLuint getProgramId() { return m_programId; }
+	GLuint getProgramId() const { return m_programId; }
 
 protected:
 	GLuint load(String vertexFilePath, String fragmentFilePath);

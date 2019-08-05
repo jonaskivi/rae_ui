@@ -430,16 +430,18 @@ UpdateStatus EditorSystem::update(Scene& scene)
 	// Also we need a line rendering system that is independent of debugSystem,
 	// because now these line boxes are off by default.
 	auto& selectionSystem = scene.selectionSystem();
+	auto& shapeRenderer = scene.modifyShapeRenderer();
+
 	if (selectionSystem.isSelection())
 	{
 		Box selectionAabb = selectionSystem.selectionAABB();
-		g_debugSystem->drawLineBox(selectionAabb, selectedColor);
+		shapeRenderer.drawLineBox(selectionAabb, selectedColor);
 	}
 
 	if (selectionSystem.isAnyHovered())
 	{
 		Box selectionAabb = selectionSystem.hoveredAABB();
-		g_debugSystem->drawLineBox(selectionAabb, hoverColor);
+		shapeRenderer.drawLineBox(selectionAabb, hoverColor);
 	}
 
 	/* RAE_TODO THIS USED TO DO SOMETHING, BEFORE THE HANDLEINPUT InputState STUFF.
@@ -496,7 +498,7 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 	if (!hadEvents)
 		return;
 
-	scene.selectionSystem().clearHovers();
+	scene.modifySelectionSystem().clearHovers();
 
 	if (inputState.mouse.buttonClicked[(int)MouseButton::First] == true)
 	{
@@ -516,7 +518,7 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 			m_transformTool.handleInput(m_input,
 				inputState,
 				scene.cameraSystem().currentCamera(),
-				scene.selectionSystem());
+				scene.modifySelectionSystem());
 	}
 
 	if (cameraInput == false && transformToolStatus == HandleStatus::NotHandled)
@@ -540,22 +542,22 @@ void EditorSystem::handleInput(const InputState& inputState, const Array<InputEv
 				m_input.getKeyState(KeySym::Super_R))
 			{
 				if (hoveredId != InvalidId)
-					scene.selectionSystem().toggleSelected(hoveredId);
+					scene.modifySelectionSystem().toggleSelected(hoveredId);
 			}
 			else if (hoveredId == InvalidId)
 			{
-				scene.selectionSystem().clearSelection();
+				scene.modifySelectionSystem().clearSelection();
 			}
 			else
 			{
-				scene.selectionSystem().setSelection({ hoveredId });
+				scene.modifySelectionSystem().setSelection({ hoveredId });
 			}
 		}
 	}
 
 	if (transformToolStatus == HandleStatus::NotHandled)
 	{
-		scene.cameraSystem().onMouseEvent(inputState);
+		scene.modifyCameraSystem().onMouseEvent(inputState);
 	}
 }
 
@@ -608,7 +610,7 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 	if (topMostId != InvalidId)
 	{
 		//LOG_F(INFO, "Hovered: id %i", (int)topMostId);
-		scene.selectionSystem().setHoveredHierarchy(topMostId, true);
+		scene.modifySelectionSystem().setHoveredHierarchy(topMostId, true);
 	}
 	else
 	{

@@ -180,6 +180,11 @@ void RenderSystem::setViewport(const Rectangle& viewport, const Window& window)
 	}
 }
 
+void RenderSystem::prepareRender3D(Scene& scene)
+{
+	scene.modifyShapeRenderer().prepareRender3D(scene);
+}
+
 void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem)
 {
 	if (!m_sceneSystem.hasActiveScene())
@@ -201,7 +206,7 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 
-		bool isWireframeMode = false;
+		bool isWireframeMode = (m_renderMode == RenderMode::MixedRayTraceRasterize);
 		if (!isWireframeMode)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -222,6 +227,7 @@ void RenderSystem::render3D(const Scene& scene, const Window& window, RenderSyst
 		}
 	}
 
+	scene.shapeRenderer().render3D(scene, window, renderSystem);
 	scene.editorSystem().render3D(scene, window, renderSystem);
 }
 
@@ -377,6 +383,9 @@ void RenderSystem::renderOutline(const Scene& scene)
 
 void RenderSystem::renderNormals(const Scene& scene)
 {
+	if (!scene.isActive())
+		return;
+
 	const Camera& camera = scene.cameraSystem().currentCamera();
 	auto& transformSystem = scene.transformSystem();
 	auto& selectionSystem = scene.selectionSystem();
@@ -396,7 +405,7 @@ void RenderSystem::renderNormals(const Scene& scene)
 			Transform transform = transformSystem.getWorldTransform(id);
 			//transform.scale = transform.scale * 1.2f;
 
-			renderMeshNormals(camera, transform, normalColor, mesh);
+			renderMeshNormals(camera, transform, normalColor, mesh, id);
 		}
 	});
 
@@ -433,7 +442,7 @@ void RenderSystem::renderPicking(const Window& window)
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 
-	query<MeshLink>(assetLinkSystem.m_meshLinks, [&](Id id, MeshLink& meshLink)
+	query<MeshLink>(assetLinkSystem.m_meshLinks, [&](Id id, const MeshLink& meshLink)
 	{
 		const Mesh& mesh = m_assetSystem.getMesh(assetLinkSystem.m_meshLinks.get(id));
 
@@ -536,9 +545,9 @@ void RenderSystem::renderMeshNormals(
 	const Camera& camera,
 	const Transform& transform,
 	const Color& color,
-	const Mesh& mesh)
+	const Mesh& mesh,
+	Id cacheId)
 {
-	/* RAE_TODO some more efficient way to render the normals.
 	m_singleColorShader.use();
 
 	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
@@ -551,31 +560,34 @@ void RenderSystem::renderMeshNormals(
 
 	m_singleColorShader.pushModelViewMatrix(combinedMatrix);
 	m_singleColorShader.pushColor(color);
-	*/
 
-	const Array<vec3>& vertices = mesh.vertices();
-	const Array<vec3>& normals = mesh.normals();
-
-	// Assert if vertices and normals count doesn't match?
-
-	const float VisualizeNormalsLength = 0.1f;
-
-	for (int i = 0; i < (int)vertices.size() && i < (int)normals.size(); ++i)
+	//RAE_TODO: if (cacheId != m_normalRenderingCacheId)
 	{
-		vec3 transformedPos = transform.position + vertices[i];
-		vec3 normalTip = transformedPos + (normals[i] * VisualizeNormalsLength);
+		//RAE_TODO: m_normalRenderingCacheId = cacheId;
 
-		// This is not the most optimal way of drawing the normals.
-		g_debugSystem->drawLine({ transformedPos, normalTip }, color);
+		const Array<vec3>& vertices = mesh.vertices();
+		const Array<vec3>& normals = mesh.normals();
 
-		/* // Something like this could also work, but we should store the Mesh.
-		Mesh lineMesh;
+		// Assert if vertices and normals count doesn't match?
 
-		lineMesh.generateLinesFromVertices({ vertices[i], normalTip });
-		lineMesh.createVBOs(GL_DYNAMIC_DRAW);
-		lineMesh.renderLines(m_singleColorShader.getProgramId());
-		*/
+		const float VisualizeNormalsLength = 0.1f;
+
+		for (int i = 0; i < (int)vertices.size() && i < (int)normals.size(); ++i)
+		{
+			vec3 normalTip = vertices[i] + (normals[i] * VisualizeNormalsLength);
+
+			m_normalRenderingMesh.generateLinesFromVertices({ vertices[i], normalTip });
+			m_normalRenderingMesh.createVBOs(GL_DYNAMIC_DRAW);
+			m_normalRenderingMesh.renderLines(m_singleColorShader.getProgramId());
+		}
 	}
+	//RAE_TODO:
+	/*
+	else
+	{
+		m_normalRenderingMesh.renderLines(m_singleColorShader.getProgramId());
+	}
+	*/
 }
 
 void RenderSystem::renderMeshPicking(

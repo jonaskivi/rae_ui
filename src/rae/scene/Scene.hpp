@@ -53,13 +53,15 @@ public:
 	const TransformSystem&	transformSystem()	const { return m_transformSystem; }
 	const AssetLinkSystem&	assetLinkSystem()	const { return m_assetLinkSystem; }
 	const EditorSystem&		editorSystem()		const { return m_editorSystem; }
+	const ShapeRenderer&	shapeRenderer()		const { return m_shapeRenderer; }
 
-	EntitySystem&		entitySystem()		{ return m_entitySystem; }
-	CameraSystem&		cameraSystem()		{ return m_cameraSystem; }
-	SelectionSystem&	selectionSystem()	{ return m_selectionSystem; }
-	TransformSystem&	transformSystem()	{ return m_transformSystem; }
-	AssetLinkSystem&	assetLinkSystem()	{ return m_assetLinkSystem; }
-	EditorSystem&		editorSystem()		{ return m_editorSystem; }
+	EntitySystem&		modifyEntitySystem()	{ return m_entitySystem; }
+	CameraSystem&		modifyCameraSystem()	{ return m_cameraSystem; }
+	SelectionSystem&	modifySelectionSystem()	{ return m_selectionSystem; }
+	TransformSystem&	modifyTransformSystem()	{ return m_transformSystem; }
+	AssetLinkSystem&	modifyAssetLinkSystem()	{ return m_assetLinkSystem; }
+	EditorSystem&		modifyEditorSystem()	{ return m_editorSystem; }
+	ShapeRenderer&		modifyShapeRenderer()	{ return m_shapeRenderer; }
 
 	bool checkIfNeedsToBeActiveScene()
 	{
@@ -80,6 +82,7 @@ private:
 	CameraSystem		m_cameraSystem;
 	SelectionSystem		m_selectionSystem;
 	AssetLinkSystem		m_assetLinkSystem;
+	ShapeRenderer		m_shapeRenderer;
 	EditorSystem		m_editorSystem;
 };
 

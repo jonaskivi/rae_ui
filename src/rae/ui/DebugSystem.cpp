@@ -10,6 +10,7 @@
 
 #include "rae/visual/Mesh.hpp"
 #include "rae/visual/Camera.hpp"
+#include "rae/visual/RenderSystem.hpp"
 #include "rae/scene/SceneSystem.hpp"
 
 using namespace rae;
@@ -35,51 +36,12 @@ void DebugSystem::loguruCallbackClose(void* user_data)
 	//reinterpret_cast<CallbackTester*>(user_data)->num_close += 1;
 }
 
-
-DebugSystem::DebugSystem()
+ShapeRenderer::ShapeRenderer()
 {
-	setIsEnabled(false);
-
-	g_debugSystem = this;
-
-	loguru::add_callback("user_callback", loguruLoggerCallback, nullptr,
-		loguru::Verbosity_INFO, loguruCallbackClose, loguruCallbackFlush);
-
-	//LOG_F(INFO, "Added loguru logging callback.");
-
-	if (m_singleColorShader.load() == 0)
-	{
-		exit(0);
-	}
 }
 
-DebugSystem::~DebugSystem()
+void ShapeRenderer::prepareRender3D(Scene& scene)
 {
-	loguru::remove_callback("user_callback");
-
-	g_debugSystem = nullptr;
-}
-
-void DebugSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem)
-{
-	if (!scene.isActive())
-	{
-		m_lines.clear();
-		return;
-	}
-
-	const Camera& camera = scene.cameraSystem().currentCamera();
-
-	m_singleColorShader.use();
-
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-
-	// The model-view-projection matrix
-	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix();// * modelMatrix;
-
-	m_singleColorShader.pushModelViewMatrix(combinedMatrix);
-
 	if (m_lineMeshes.size() < m_lines.size())
 	{
 		m_lineMeshes.reserve(m_lines.size());
@@ -96,25 +58,53 @@ void DebugSystem::render3D(const Scene& scene, const Window& window, RenderSyste
 
 		auto&& lineMesh = m_lineMeshes[i];
 
-		m_singleColorShader.pushColor(line.color);
 		lineMesh.generateLinesFromVertices(line.points);
 		lineMesh.createVBOs(GL_DYNAMIC_DRAW);
-		lineMesh.renderLines(m_singleColorShader.getProgramId());
 	}
+}
+
+void ShapeRenderer::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const
+{
+	const Camera& camera = scene.cameraSystem().currentCamera();
+
+	auto& singleColorShader = renderSystem.modifySingleColorShader();
+	singleColorShader.use();
+
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+
+	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix();
+
+	singleColorShader.pushModelViewMatrix(combinedMatrix);
+
+	assert(m_lines.size() <= m_lineMeshes.size());
+
+	for (int i = 0; i < (int)m_lines.size(); ++i)
+	{
+		const auto& line = m_lines[i];
+		const auto& lineMesh = m_lineMeshes[i];
+
+		singleColorShader.pushColor(line.color);
+		lineMesh.renderLines(singleColorShader.getProgramId());
+	}
+}
+
+void ShapeRenderer::onFrameEnd()
+{
 	m_lines.clear();
 }
 
-void DebugSystem::drawLine(const Array<vec3>& points, const Color& color)
+void ShapeRenderer::drawLine(const Array<vec3>& points, const Color& color)
 {
 	m_lines.emplace_back(Line{ points, color });
 }
 
-void DebugSystem::drawLine(const Line& line)
+void ShapeRenderer::drawLine(const Line& line)
 {
 	m_lines.emplace_back(line);
 }
 
-void DebugSystem::drawLineBox(const Box& box, const Color& color)
+void ShapeRenderer::drawLineBox(const Box& box, const Color& color)
 {
 	// 4 is the minimum amount of lines for the edges of the cube.
 	// https://math.stackexchange.com/questions/253253/tracing-the-edges-of-a-cube-with-the-minimum-pencil-lifts
@@ -148,6 +138,30 @@ void DebugSystem::drawLineBox(const Box& box, const Color& color)
 	}, color);
 }
 
+void ShapeRenderer::updateWhenDisabled()
+{
+	m_lines.clear();
+}
+
+DebugSystem::DebugSystem()
+{
+	setIsEnabled(false);
+
+	g_debugSystem = this;
+
+	loguru::add_callback("user_callback", loguruLoggerCallback, nullptr,
+		loguru::Verbosity_INFO, loguruCallbackClose, loguruCallbackFlush);
+
+	//LOG_F(INFO, "Added loguru logging callback.");
+}
+
+DebugSystem::~DebugSystem()
+{
+	loguru::remove_callback("user_callback");
+
+	g_debugSystem = nullptr;
+}
+
 void DebugSystem::showDebugText(const String& text)
 {
 	showDebugText(text, m_defaultTextColor);
@@ -170,7 +184,6 @@ void DebugSystem::log(const String& text, const Color& color)
 
 void DebugSystem::updateWhenDisabled()
 {
-	m_lines.clear();
 	m_debugTexts.clear();
 }
 

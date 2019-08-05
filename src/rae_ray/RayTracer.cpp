@@ -309,7 +309,7 @@ void RayTracer::showScene(int number)
 void RayTracer::clearScene()
 {
 	m_world.clear();
-	m_sceneSystem.activeScene().cameraSystem().setNeedsUpdate();
+	m_sceneSystem.activeScene().modifyCameraSystem().setNeedsUpdate();
 	clear();
 }
 
@@ -341,7 +341,7 @@ void RayTracer::autoFocus()
 	auto& scene = m_sceneSystem.activeScene();
 	auto& transformSystem = scene.transformSystem();
 	auto& assetLinkSystem = scene.assetLinkSystem();
-	Camera& camera = scene.cameraSystem().modifyCurrentCamera();
+	Camera& camera = scene.modifyCameraSystem().modifyCurrentCamera();
 
 	if (scene.selectionSystem().isSelection())
 	{
@@ -644,10 +644,13 @@ UpdateStatus RayTracer::update()
 	if (!m_isEnabled)
 		return UpdateStatus::Disabled;
 
+	// RAE_TODO visualize BVH boxes again (but currently we are not using BVH anyway):
+	/*
 	m_tree.iterate([](const Box& box)
 	{
 		g_debugSystem->drawLineBox(box, Colors::blue);
 	});
+	*/
 
 	/*
 	Old time based switch buffers system:

@@ -45,7 +45,7 @@ public:
 	void clearHovers();
 
 	void addDisableHovering(Id id) { m_disableHoverings.assign(id); }
-	bool isDisableHovering(Id id) { return m_disableHoverings.check(id); }
+	bool isDisableHovering(Id id) const { return m_disableHoverings.check(id); }
 
 	Event<SelectionSystem&> onSelectionChanged;
 	bool hasSelectionChanged() const;

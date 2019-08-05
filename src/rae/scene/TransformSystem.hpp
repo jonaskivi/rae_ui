@@ -62,7 +62,7 @@ public:
 	void setWorldScale(Id id, const vec3& scale);
 	const vec3& getWorldScale(Id id);
 
-	int transformCount() { return m_localTransforms.size(); }
+	int transformCount() const { return m_localTransforms.size(); }
 	const Table<Transform>& localTransforms() const { return m_localTransforms; }
 	const Table<Transform>& worldTransforms() const { return m_worldTransforms; }
 

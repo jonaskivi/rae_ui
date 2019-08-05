@@ -68,6 +68,7 @@ public:
 
 	void beginFrame3D();
 	void setViewport(const Rectangle& viewport, const Window& window);
+	void prepareRender3D(Scene& scene) override;
 	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
 	void endFrame3D();
 
@@ -110,13 +111,16 @@ public:
 		const Camera& camera,
 		const Transform& transform,
 		const Color& color,
-		const Mesh& mesh);
+		const Mesh& mesh,
+		Id cacheId);
 
 	void renderMeshPicking(
 		const Camera& camera,
 		const Transform& transform,
 		const Mesh& mesh,
 		Id id);
+
+	SingleColorShader& modifySingleColorShader() { return m_singleColorShader; }
 
 	// Temp before we get keyboard Input class
 	void clearImageRenderer();
@@ -154,6 +158,11 @@ protected:
 
 	RenderMode	m_renderMode = RenderMode::Rasterize;
 	bool m_renderNormals = false;
+
+	// RAE_TODO: A simple cached mesh, with single selection. Doesn't work with multiselection,
+	// because we only have one mesh and one id to check.
+	//Id m_normalRenderingCacheId = InvalidId;
+	Mesh m_normalRenderingMesh;
 
 	ImageBuffer<uint8_t> m_backgroundImage;
 };

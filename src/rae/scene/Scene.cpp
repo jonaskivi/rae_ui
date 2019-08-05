@@ -26,6 +26,7 @@ UpdateStatus Scene::update()
 	auto transformSystemStatus = m_transformSystem.update();
 	auto cameraSystemStatus = m_cameraSystem.update();
 	auto selectionSystemStatus = m_selectionSystem.update();
+	m_shapeRenderer.update(); // Doesn't really do anything at the moment. Just for completeness.
 	auto editorSystemStatus = m_editorSystem.update(*this);
 
 	// Return update status
@@ -46,6 +47,7 @@ void Scene::onFrameEnd()
 	m_transformSystem.onFrameEnd();
 	m_cameraSystem.onFrameEnd();
 	m_selectionSystem.onFrameEnd();
+	m_shapeRenderer.onFrameEnd();
 	m_editorSystem.onFrameEnd();
 }
 

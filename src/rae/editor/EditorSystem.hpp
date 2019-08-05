@@ -177,6 +177,7 @@ public:
 
 	UpdateStatus update(Scene& scene);
 	void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const;
+	// NOT OVERRIDDEN because of const:
 	//void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
 	void handleInput(const InputState& inputState, const Array<InputEvent>& events, Scene& scene);
 	void hover(const InputState& inputState, Scene& scene);

@@ -38,6 +38,7 @@ UIScene::UIScene(
 	addTable(m_actives);
 	addTable(m_viewports);
 	addTable(m_panels);
+	addTable(m_margins);
 	addTable(m_keylines);
 	addTable(m_keylineLinks);
 	addTable(m_stackLayouts);
@@ -63,7 +64,8 @@ void UIScene::createDefaultTheme()
 
 	m_panelThemeColors.resize((size_t)PanelThemeColorKey::Count);
 	m_panelThemeColors[(size_t)PanelThemeColorKey::Background]	= Utils::createColor8bit(54, 68, 75, 235);
-	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]		= Utils::createColor8bit(52, 61, 70, 255);
+	// Set to same as background, so that we would not hover.
+	m_panelThemeColors[(size_t)PanelThemeColorKey::Hover]		= Utils::createColor8bit(54, 68, 75, 235);
 
 	m_viewportThemeColors.resize((size_t)ViewportThemeColorKey::Count);
 	m_viewportThemeColors[(size_t)ViewportThemeColorKey::Line]			= Utils::createColor8bit(64, 64, 64, 255);
@@ -245,11 +247,12 @@ void UIScene::doLayout()
 				const Pivot& pivot = m_transformSystem.getPivot(childId);
 				Box tbox = m_transformSystem.getBox(childId);
 				tbox.translatePivot(pivot);
+				const Margin& margin = m_margins.get(childId);
 
-				pos.x = (/*RAE_CHECK parentPos.x +*/ parentBox.min().x) - tbox.min().x;// + marginMM;
-				pos.y = someIter - tbox.min().y;// + marginMM;
+				pos.x = (/*RAE_CHECK parentPos.x +*/ parentBox.min().x) - tbox.min().x + margin.left;
+				pos.y = someIter - tbox.min().y + margin.up;
 				m_transformSystem.setLocalPosition(childId, pos);
-				someIter = someIter + tbox.dimensions().y;
+				someIter = someIter + tbox.dimensions().y + margin.down;
 			}
 		}
 
@@ -928,6 +931,7 @@ Id UIScene::createButton(const String& text, const vec3& position, const vec3& e
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addButton(id, Button(text));
 	addCommand(id, Command(handler));
+	addMargin(id, Margin(2.0f, 1.0f));
 
 	m_uiWidgetRenderers.assign(
 		id,
@@ -944,6 +948,7 @@ Id UIScene::createToggleButton(const String& text, const vec3& position, const v
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addButton(id, Button(text));
+	addMargin(id, Margin(2.0f, 1.0f));
 
 	// When button gets clicked, change property
 	addCommand(id, Command([this, &property]()
@@ -992,6 +997,7 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	addText(id, text, fontSize);
+	addMargin(id, Margin(2.0f, 1.0f));
 
 	// Read-only textbox is not hoverable.
 	m_selectionSystem.addDisableHovering(id);
@@ -1196,6 +1202,7 @@ void UIScene::addMaximizerAndButton(Id id)
 		{
 			toggleMaximizer(id);
 		});
+	addMargin(maximizeButton, Margin());
 	m_transformSystem.addChild(id, maximizeButton);
 	addStackLayout(id);
 }
@@ -1386,6 +1393,11 @@ void UIScene::setActive(Id id, bool active)
 bool UIScene::isActive(Id id) const
 {
 	return m_actives.get(id);
+}
+
+void UIScene::addMargin(Id id, const Margin& element)
+{
+	m_margins.assign(id, element);
 }
 
 void UIScene::addDraggable(Id id)

@@ -151,6 +151,40 @@ struct Text
 	//TextAlignment verticalAlignment;
 };
 
+struct Margin
+{
+	Margin(){}
+
+	Margin(float left, float right, float up, float down) :
+		left(left),
+		right(right),
+		up(up),
+		down(down)
+	{
+	}
+
+	Margin(float all) :
+		left(all),
+		right(all),
+		up(all),
+		down(all)
+	{
+	}
+
+	Margin(float leftRight, float upDown) :
+		left(leftRight),
+		right(leftRight),
+		up(upDown),
+		down(upDown)
+	{
+	}
+
+	float left = 0.0f;
+	float right = 0.0f;
+	float up = 0.0f;
+	float down = 0.0f;
+};
+
 struct Keyline
 {
 	Keyline(){}

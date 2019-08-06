@@ -136,6 +136,8 @@ public:
 	// Make active follow property state with a two-way binding
 	void bindActive(Id id, Bool& property);
 
+	void addMargin(Id id, const Margin& element);
+
 	void connectUpdater(Id id, std::function<void(Id)> updateFunction);
 
 	void addDraggable(Id id);
@@ -210,6 +212,7 @@ private:
 	Table<Panel>		m_panels;
 	Array<Color>		m_panelThemeColors;
 
+	Table<Margin>		m_margins;
 	Table<Keyline>		m_keylines;
 	Table<KeylineLink>	m_keylineLinks;
 

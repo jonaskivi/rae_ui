@@ -6,29 +6,29 @@ using namespace rae;
 
 GameMenuExample::GameMenuExample() :
 	m_engine("Game Menu Example", 1920, 1080, false),
-	m_input(m_engine.input()),
-	m_uiSystem(m_engine.uiSystem())
+	m_input(m_engine.modifyInput()),
+	m_uiSystem(m_engine.modifyUiSystem())
 {
 	m_engine.addBaseSystems();
 
-	//m_engine.addSystem(m_engine.assetSystem());
-	//m_engine.addSystem(m_engine.sceneSystem());
+	//m_engine.addSystem(m_engine.modifyAssetSystem());
+	//m_engine.addSystem(m_engine.modifySceneSystem());
 
-	//m_engine.addSystem(m_engine.editorSystem());
-	m_engine.addSystem(m_engine.uiSystem());
-	//m_engine.addSystem(m_engine.rayTracer());
-	//m_engine.addSystem(m_engine.renderSystem());
+	//m_engine.addSystem(m_engine.modifyEditorSystem());
+	m_engine.addSystem(m_engine.modifyUiSystem());
+	//m_engine.addSystem(m_engine.modifyRayTracer());
+	//m_engine.addSystem(m_engine.modifyRenderSystem());
 
-	m_engine.addSystem(m_engine.debugSystem());
+	m_engine.addSystem(m_engine.modifyDebugSystem());
 
-	/*m_engine.addRenderer3D(m_engine.renderSystem());
-	m_engine.addRenderer3D(m_engine.editorSystem());
-	m_engine.addRenderer3D(m_engine.debugSystem());
+	/*m_engine.addRenderer3D(m_engine.modifyRenderSystem());
+	m_engine.addRenderer3D(m_engine.modifyEditorSystem());
+	m_engine.addRenderer3D(m_engine.modifyDebugSystem());
 	*/
 
 	m_engine.addRenderer2D(*this);
-	m_engine.addRenderer2D(m_engine.uiSystem());
-	m_engine.addRenderer2D(m_engine.debugSystem());
+	m_engine.addRenderer2D(m_engine.modifyUiSystem());
+	m_engine.addRenderer2D(m_engine.modifyDebugSystem());
 
 	//m_engine.addSystem(m_engine.renderSystem());
 	m_engine.addSystem(*this);
@@ -42,7 +42,7 @@ GameMenuExample::GameMenuExample() :
 void GameMenuExample::initUI()
 {
 	auto& uiSystem = m_uiSystem;
-	auto& windowSystem = m_engine.windowSystem();
+	auto& windowSystem = m_engine.modifyWindowSystem();
 	auto& screenSystem = m_engine.screenSystem();
 
 	auto& mainWindow = windowSystem.modifyMainWindow();
@@ -196,9 +196,9 @@ void GameMenuExample::onKeyEvent(const Input& input)
 			case KeySym::Home: break;
 			case KeySym::Tab:
 				m_uiSystem.toggleIsEnabled();
-				m_engine.debugSystem().toggleIsEnabled();
+				m_engine.modifyDebugSystem().toggleIsEnabled();
 				break;
-			case KeySym::F1:		m_engine.debugSystem().toggleIsEnabled(); break;
+			case KeySym::F1:		m_engine.modifyDebugSystem().toggleIsEnabled(); break;
 			case KeySym::F2:		m_uiSystem.toggleIsEnabled(); break;
 			case KeySym::_1: break;
 			case KeySym::_2: break;

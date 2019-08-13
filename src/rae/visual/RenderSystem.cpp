@@ -261,9 +261,7 @@ void RenderSystem::renderMeshes(const Scene& scene)
 		{
 			Material* material = nullptr;
 
-			if (m_assetSystem.isMaterial(id))
-				material = &m_assetSystem.modifyMaterial(id);
-			else if (assetLinkSystem.m_materialLinks.check(id))
+			if (assetLinkSystem.m_materialLinks.check(id))
 				material = &m_assetSystem.modifyMaterial(assetLinkSystem.materialLinks().get(id));
 
 			if (transformSystem.hasWorldTransform(id) &&
@@ -294,9 +292,7 @@ void RenderSystem::renderMeshes(const Scene& scene)
 	{
 		Material* material = nullptr;
 
-		if (m_assetSystem.isMaterial(id))
-			material = &m_assetSystem.modifyMaterial(id);
-		else if (assetLinkSystem.m_materialLinks.check(id))
+		if (assetLinkSystem.m_materialLinks.check(id))
 			material = &m_assetSystem.modifyMaterial(assetLinkSystem.materialLinks().get(id));
 
 		if (transformSystem.hasWorldTransform(id) &&
@@ -318,9 +314,7 @@ void RenderSystem::renderMeshes(const Scene& scene)
 		{
 			Material* material = nullptr;
 
-			if (m_assetSystem.isMaterial(id))
-				material = &m_assetSystem.modifyMaterial(id);
-			else if (assetLinkSystem.m_materialLinks.check(id))
+			if (assetLinkSystem.m_materialLinks.check(id))
 				material = &m_assetSystem.modifyMaterial(assetLinkSystem.materialLinks().get(id));
 
 			if (transformSystem.hasWorldTransform(id) &&
@@ -417,7 +411,7 @@ void RenderSystem::renderPicking(const Window& window)
 	if (!m_sceneSystem.hasActiveScene())
 		return;
 
-	Scene& scene = m_sceneSystem.activeScene();
+	Scene& scene = m_sceneSystem.modifyActiveScene();
 	auto& cameraSystem = scene.cameraSystem();
 	auto& transformSystem = scene.transformSystem();
 	auto& assetLinkSystem = scene.assetLinkSystem();

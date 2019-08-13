@@ -59,15 +59,25 @@ public:
 	void addRenderer3D(ISystem& system);
 	void addRenderer2D(ISystem& system);
 
-	Input&        input()        { return m_input;        }
-	ScreenSystem& screenSystem() { return m_screenSystem; }
-	WindowSystem& windowSystem() { return m_windowSystem; }
-	DebugSystem&  debugSystem()  { return m_debugSystem;  }
-	AssetSystem&  assetSystem()  { return m_assetSystem;  }
-	SceneSystem&  sceneSystem()  { return m_sceneSystem;  }
-	UISystem&     uiSystem()     { return m_uiSystem;     }
-	RayTracer&    rayTracer()    { return m_rayTracer;    }
-	RenderSystem& renderSystem() { return m_renderSystem; }
+	const Input&        input()        const { return m_input;        }
+	const ScreenSystem& screenSystem() const { return m_screenSystem; }
+	const WindowSystem& windowSystem() const { return m_windowSystem; }
+	const DebugSystem&  debugSystem()  const { return m_debugSystem;  }
+	const AssetSystem&  assetSystem()  const { return m_assetSystem;  }
+	const SceneSystem&  sceneSystem()  const { return m_sceneSystem;  }
+	const UISystem&     uiSystem()     const { return m_uiSystem;     }
+	const RayTracer&    rayTracer()    const { return m_rayTracer;    }
+	const RenderSystem& renderSystem() const { return m_renderSystem; }
+
+	Input&        modifyInput()        { return m_input;        }
+	ScreenSystem& modifyScreenSystem() { return m_screenSystem; }
+	WindowSystem& modifyWindowSystem() { return m_windowSystem; }
+	DebugSystem&  modifyDebugSystem()  { return m_debugSystem;  }
+	AssetSystem&  modifyAssetSystem()  { return m_assetSystem;  }
+	SceneSystem&  modifySceneSystem()  { return m_sceneSystem;  }
+	UISystem&     modifyUiSystem()     { return m_uiSystem;     }
+	RayTracer&    modifyRayTracer()    { return m_rayTracer;    }
+	RenderSystem& modifyRenderSystem() { return m_renderSystem; }
 
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);

@@ -8,22 +8,19 @@
 #include <glm/gtx/vector_angle.hpp>
 
 #include "rae/core/Utils.hpp"
-#include "rae/visual/Material.hpp"
-
+#include "rae/visual/Ray.hpp"
+#include "rae_ray/HitRecord.hpp"
 
 using namespace rae;
 
 Mesh::Mesh()
 {
-	//m_material = new Lambertian(vec3(0.1f, 0.2f, 0.7f));
-	m_material = new Metal(vec3(0.1f, 0.2f, 0.7f), 0.3f);
 }
 
 Mesh::~Mesh()
 {
 	LOG_F(INFO, "Mesh destructor.");
 	freeVBOs();
-	delete m_material;
 }
 
 Mesh::Mesh(Mesh&& other)
@@ -35,9 +32,6 @@ Mesh::Mesh(Mesh&& other)
 	m_normals = std::move(other.m_normals);
 	m_indices = std::move(other.m_indices);
 	m_aabb = std::move(other.m_aabb);
-	m_material = other.m_material;
-
-	other.m_material = nullptr;
 
 	createVBOs();
 }
@@ -54,9 +48,6 @@ Mesh& Mesh::operator=(Mesh&& other)
 		m_normals = std::move(other.m_normals);
 		m_indices = std::move(other.m_indices);
 		m_aabb = std::move(other.m_aabb);
-		m_material = other.m_material;
-
-		other.m_material = nullptr;
 
 		createVBOs();
 	}
@@ -249,7 +240,6 @@ bool Mesh::hit(const vec3& position, const Ray& ray, float t_min, float t_max, H
 			record.t = hitDistance;
 			record.point = ray.pointAtParameter(record.t);
 			record.normal = getFaceNormal(i); // currently just face normals
-			record.material = m_material;
 		}
 	}
 

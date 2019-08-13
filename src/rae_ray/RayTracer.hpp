@@ -69,8 +69,6 @@ public:
 	void clearScene();
 
 	void updateScene(const Scene& scene);
-	void createSceneOne(HitableList& world, bool loadBunny = false);
-	void createSceneFromBook(HitableList& list);
 
 	UpdateStatus update() override;
 	void updateDebugTexts();

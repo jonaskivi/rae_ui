@@ -125,130 +125,135 @@ void ScreenSystem::updateScreenInfo()
 
 #endif // version_glfw
 
-int ScreenSystem::numberOfScreens()
+int ScreenSystem::numberOfScreens() const
 {
 	return int(screens.size());
 }
 
-float ScreenSystem::ppmm(int screenIndex)
+float ScreenSystem::ppmm(int screenIndex) const
 {
 	return screens[screenIndex].ppmm();
 }
 
-float ScreenSystem::pixelsPerMM(int screenIndex)
+float ScreenSystem::pixelsPerMM(int screenIndex) const
 {
 	return screens[screenIndex].pixelsPerMM();
 }
 
-int ScreenSystem::screenWidthP(int set_screen)
+int ScreenSystem::screenWidthP(int screenIndex) const
 {
-	return screens[set_screen].screenWidthP();
+	return screens[screenIndex].screenWidthP();
 }
 
-int ScreenSystem::screenHeightP(int set_screen)
+int ScreenSystem::screenHeightP(int screenIndex) const
 {
-	return screens[set_screen].screenHeightP();
+	return screens[screenIndex].screenHeightP();
 }
 
-float ScreenSystem::screenWidth(int set_screen)
+float ScreenSystem::screenWidth(int screenIndex) const
 {
-	return screens[set_screen].screenWidth();
+	return screens[screenIndex].screenWidth();
 }
 
-float ScreenSystem::screenHeight(int set_screen)
+float ScreenSystem::screenHeight(int screenIndex) const
 {
-	return screens[set_screen].screenHeight();
+	return screens[screenIndex].screenHeight();
 }
 
-float ScreenSystem::screenHalfWidthP(int set_screen)
+float ScreenSystem::screenHalfWidthP(int screenIndex) const
 {
-	return screens[set_screen].screenHalfWidthP();
+	return screens[screenIndex].screenHalfWidthP();
 }
 
-float ScreenSystem::screenHalfHeightP(int set_screen)
+float ScreenSystem::screenHalfHeightP(int screenIndex) const
 {
-	return screens[set_screen].screenHalfHeightP();
+	return screens[screenIndex].screenHalfHeightP();
 }
-float ScreenSystem::screenHalfWidth(int set_screen)
+float ScreenSystem::screenHalfWidth(int screenIndex) const
 {
-	return screens[set_screen].screenHalfWidth();
+	return screens[screenIndex].screenHalfWidth();
 }
-float ScreenSystem::screenHalfHeight(int set_screen)
+float ScreenSystem::screenHalfHeight(int screenIndex) const
 {
-	return screens[set_screen].screenHalfHeight();
-}
-
-float ScreenSystem::screenAspect(int set_screen)
-{
-	return screens[set_screen].screenAspect();
+	return screens[screenIndex].screenHalfHeight();
 }
 
-float ScreenSystem::pixel(int set_screen)
+float ScreenSystem::screenAspect(int screenIndex) const
 {
-	return screens[set_screen].pixel();
+	return screens[screenIndex].screenAspect();
 }
 
-float ScreenSystem::pixelsToHeightOLD(int set_screen)
+float ScreenSystem::pixel(int screenIndex) const
 {
-	return screens[set_screen].pixelsToHeight();
+	return screens[screenIndex].pixel();
 }
 
-float ScreenSystem::pixelsToHeightOLD(float in_pixels, int set_screen)
+float ScreenSystem::pixelsToHeightOLD(int screenIndex) const
+{
+	return screens[screenIndex].pixelsToHeight();
+}
+
+float ScreenSystem::pixelsToHeightOLD(float pixels, int screenIndex) const
 {
 	//return in_pixels * m_pixelsToHeight;
-	return screens[set_screen].pixelsToHeight(in_pixels);
+	return screens[screenIndex].pixelsToHeight(pixels);
 }
 
-float ScreenSystem::heightToPixelsOLD(float in_height, int set_screen)
+float ScreenSystem::heightToPixelsOLD(float heightCoords, int screenIndex) const
 {
 	//return in_height * m_heightToPixels;
-	return screens[set_screen].heightToPixels(in_height);
+	return screens[screenIndex].heightToPixels(heightCoords);
 }
 
-float ScreenSystem::heightToPixelsOLD(int set_screen)
+float ScreenSystem::heightToPixelsOLD(int screenIndex) const
 {
-	return screens[set_screen].heightToPixels();
+	return screens[screenIndex].heightToPixels();
 }
 
-float ScreenSystem::roundToPixels( float set, int set_screen)
+float ScreenSystem::roundToPixels(float heightCoords, int screenIndex) const
 {
 	//float temppixel = pixel();
 	//return ((float)((int)( set / temppixel ))) * temppixel;
-	return screens[set_screen].roundToPixels(set);
+	return screens[screenIndex].roundToPixels(heightCoords);
 }
 
 // The default dpi (dots per inch) is 96.0f.
 // The user should change it according to screen size.
 // A smaller dpi will result in smaller widgets and smaller text.
-void ScreenSystem::dpi(float set, int set_screen)
+void ScreenSystem::setDpi(float value, int screenIndex)
 {
-	screens[set_screen].setDpi(set);
+	screens[screenIndex].setDpi(value);
 }
-float ScreenSystem::dpi(int set_screen)
+
+float ScreenSystem::dpi(int screenIndex) const
 {
-	return screens[set_screen].dpi();
+	return screens[screenIndex].dpi();
 }
-float ScreenSystem::dpiMul(float set, int set_screen)
+
+void ScreenSystem::setDpiMul(float value, int screenIndex)
 {
-	return screens[set_screen].setDpiMul(set);
+	screens[screenIndex].setDpiMul(value);
 }
-float ScreenSystem::dpiMul(int set_screen)
+
+float ScreenSystem::dpiMul(int screenIndex) const
 {
-	return screens[set_screen].dpiMul();
+	return screens[screenIndex].dpiMul();
 }
-void ScreenSystem::dpiToDefault(int set_screen)
+
+void ScreenSystem::dpiToDefault(int screenIndex)
 {
-	screens[set_screen].dpiToDefault();
+	screens[screenIndex].dpiToDefault();
 }
-float ScreenSystem::curveSideSize(int set_screen)
+
+float ScreenSystem::curveSideSize(int screenIndex) const
 {
-	return screens[set_screen].curveSideSize();
+	return screens[screenIndex].curveSideSize();
 }
 
 // Convert a percentage (e.g. -0.5 - 0.5f which is the whole screen) to "height units" (in the width direction)
 // e.g. 0.5 is 50% and it will be half of 1.78 when the aspect ratio is 1:1.78 (16:9)
 // so the result will be 0.89, which is half of the screen width in "height units".
-float ScreenSystem::percentToWidth(float in_percent, int set_screen)
+float ScreenSystem::percentToWidth(float percent, int screenIndex) const
 {
-	return screens[set_screen].percentToWidth(in_percent);
+	return screens[screenIndex].percentToWidth(percent);
 }

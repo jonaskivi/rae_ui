@@ -17,37 +17,37 @@ public:
 	// TODO: micro-optimize to multiplications:
 	float pixelsToHeight(float pixels) { return pixels / screenHeightP(); }; //RAE_TODO / m_windows[0].screenPixelRatio(); }
 
-	float mmToPixels(float mm)       { return mm * pixelsPerMM(); };
-	vec2  mmToPixels(const vec2& mm) { return mm * pixelsPerMM(); };
-	vec3  mmToPixels(const vec3& mm) { return mm * pixelsPerMM(); };
+	float mmToPixels(float mm)       const { return mm * pixelsPerMM(); };
+	vec2  mmToPixels(const vec2& mm) const { return mm * pixelsPerMM(); };
+	vec3  mmToPixels(const vec3& mm) const { return mm * pixelsPerMM(); };
 
-	float pixelsToMM(float pixels) { return pixels / pixelsPerMM(); };
-	vec2 pixelsToMM(const vec2& pixels) { return pixels / pixelsPerMM(); };
-	vec3 pixelsToMM(const vec3& pixels) { return pixels / pixelsPerMM(); };
+	float pixelsToMM(float pixels) const { return pixels / pixelsPerMM(); };
+	vec2 pixelsToMM(const vec2& pixels) const { return pixels / pixelsPerMM(); };
+	vec3 pixelsToMM(const vec3& pixels) const { return pixels / pixelsPerMM(); };
 
-	float heightToAltPixels(float heightCoords) { return heightCoords * screenHeightP(); }
+	float heightToAltPixels(float heightCoords) const { return heightCoords * screenHeightP(); }
 	// TODO: micro-optimize to multiplications:
-	float altPixelsToHeight(float pixels) { return pixels / screenHeightP(); }
+	float altPixelsToHeight(float pixels) const { return pixels / screenHeightP(); }
 
 	void updateScreenInfo();
-	int numberOfScreens();
+	int numberOfScreens() const;
 
-	float ppmm(int screenIndex = 0); // shorthand
-	float pixelsPerMM(int screenIndex = 0);
+	float ppmm(int screenIndex = 0) const; // shorthand
+	float pixelsPerMM(int screenIndex = 0) const;
 
-	int screenWidthP(int set_screen = 0);
-	int screenHeightP(int set_screen = 0);
+	int screenWidthP(int screenIndex = 0) const;
+	int screenHeightP(int screenIndex = 0) const;
 	// Screen width and height in height coordinates.
-	float screenWidth(int set_screen = 0);
+	float screenWidth(int screenIndex = 0) const;
 	// screenHeight in height coordinates should always be 1.0f.
-	float screenHeight(int set_screen = 0);
+	float screenHeight(int screenIndex = 0) const;
 
-	float screenHalfWidthP(int set_screen = 0);
-	float screenHalfHeightP(int set_screen = 0);
-	float screenHalfWidth(int set_screen = 0);
-	float screenHalfHeight(int set_screen = 0);
+	float screenHalfWidthP(int screenIndex = 0) const;
+	float screenHalfHeightP(int screenIndex = 0) const;
+	float screenHalfWidth(int screenIndex = 0) const;
+	float screenHalfHeight(int screenIndex = 0) const;
 
-	float screenAspect(int set_screen = 0);
+	float screenAspect(int screenIndex = 0) const;
 
 	// to convert Height coordinates to pixels:
 	// inHCoord * pixelsToHeight()
@@ -62,28 +62,28 @@ public:
 	// inHCoord / pixel()
 	// float pixel() { return 1.0f/m_screenHeightP; }
 
-	float pixel(int set_screen = 0);
-	float pixelsToHeightOLD(int set_screen = 0);
+	float pixel(int screenIndex = 0) const;
+	float pixelsToHeightOLD(int screenIndex = 0) const;
 
-	float heightToPixelsOLD(int set_screen = 0);
+	float heightToPixelsOLD(int screenIndex = 0) const;
 
-	float pixelsToHeightOLD(float in_pixels, int set_screen = 0);
-	float heightToPixelsOLD(float in_height, int set_screen = 0);
+	float pixelsToHeightOLD(float pixels, int screenIndex = 0) const;
+	float heightToPixelsOLD(float heightCoords, int screenIndex = 0) const;
 
-	float percentToWidth(float in_percent, int set_screen = 0);
+	float percentToWidth(float percent, int screenIndex = 0) const;
 
 	// This returns and accepts Height coordinates
-	float roundToPixels( float set, int set_screen = 0 );
+	float roundToPixels( float heightCoords, int screenIndex = 0 ) const;
 
 	// The default dpi (dots per inch) is 96.0f.
 	// The user should change it according to screen size.
 	// A smaller dpi will result in smaller widgets and smaller text.
-	void dpi(float set, int set_screen = 0);
-	float dpi(int set_screen = 0);
-	float dpiMul(float set, int set_screen = 0);
-	float dpiMul(int set_screen = 0);
-	void dpiToDefault(int set_screen = 0);
-	float curveSideSize(int set_screen = 0);
+	void setDpi(float value, int screenIndex = 0);
+	float dpi(int screenIndex = 0) const;
+	void setDpiMul(float value, int screenIndex = 0);
+	float dpiMul(int screenIndex = 0) const;
+	void dpiToDefault(int screenIndex = 0);
+	float curveSideSize(int screenIndex = 0) const;
 
 protected:
 	Array<ScreenInfo>	screens;

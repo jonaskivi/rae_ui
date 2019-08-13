@@ -19,8 +19,6 @@
 namespace rae
 {
 
-class Material;
-
 enum class WindingOrder
 {
 	CounterClockwise,
@@ -98,7 +96,6 @@ protected:
 	WindingOrder m_windingOrder = WindingOrder::CounterClockwise;
 
 	Box m_aabb;
-	Material* m_material; // RAE_TODO make better, don't use pointer. Use component ID.
 };
 
 } // end namespace rae

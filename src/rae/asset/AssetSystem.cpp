@@ -42,11 +42,10 @@ void AssetSystem::createTestAssets()
 
 	m_cubeMeshId = createCubeMesh();
 	m_sphereMeshId = createSphereMesh();
-	m_testMaterialId = createMaterial(Color(0.2f, 0.5f, 0.7f, 0.0f));
-	m_animatingMaterialId = createAnimatingMaterial(Color(0.0f, 0.0f, 0.1f, 0.0f));
+	m_testMaterialId = createMaterial(Material("TestMaterial", Color(0.2f, 0.5f, 0.7f, 0.0f)));
 
 	m_bunnyMeshId = createMesh("./data/models/bunny.obj", WindingOrder::Clockwise);
-	m_bunnyMaterialId = createMaterial(Color(0.7f, 0.3f, 0.1f, 0.0f));
+	m_bunnyMaterialId = createMaterial(Material("BunnyMaterial", Color(0.7f, 0.3f, 0.1f, 0.0f))); // RAE_TODO: REMOVE
 }
 
 Id AssetSystem::createCubeMesh()
@@ -93,12 +92,11 @@ Id AssetSystem::createMesh(const String& filename, WindingOrder windingOrder)
 	return id;
 }
 
-Id AssetSystem::createMaterial(const Color& color)
+Id AssetSystem::createMaterial(const Material& material)
 {
 	Id id = m_entitySystem.createEntity();
 	//LOG_F(INFO, "createMaterial entity: %i", id);
-	Material material(color);
-	addMaterial(id, std::move(material));
+	addMaterial(id, material);
 
 	Material& material2 = modifyMaterial(id);
 	material2.generateFBO(m_nanoVG);
@@ -109,7 +107,7 @@ Id AssetSystem::createAnimatingMaterial(const Color& color)
 {
 	Id id = m_entitySystem.createEntity();
 	//LOG_F(INFO, "createAnimatingMaterial entity: %i", id);
-	Material material(color);
+	Material material("AnimatingMaterial", color);
 	addMaterial(id, std::move(material));
 
 	Material& material2 = modifyMaterial(id);
@@ -134,9 +132,9 @@ Mesh& AssetSystem::modifyMesh(Id id)
 	return m_meshes.modify(id);
 }
 
-void AssetSystem::addMaterial(Id id, Material&& comp)
+void AssetSystem::addMaterial(Id id, const Material& comp)
 {
-	m_materials.assign(id, std::move(comp));
+	m_materials.assign(id, comp);
 }
 
 const Material& AssetSystem::getMaterial(Id id) const

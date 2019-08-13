@@ -35,15 +35,12 @@ public:
 
 	void handleInput(const InputState& inputState, const Array<InputEvent>& events);
 
-	void createTestWorld(AssetSystem& assetSystem);
-	void createTestWorld2(AssetSystem& assetSystem);
-
 	Id createAddObjectButton(AssetSystem& assetSystem);
 	Id createRandomBunnyEntity(AssetSystem& assetSystem);
 	Id createRandomCubeEntity(AssetSystem& assetSystem);
-	Id createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, const Color& color);
-	Id createSphere(AssetSystem& assetSystem, const vec3& position, float radius, const Color& color);
-	Id createBunny(AssetSystem& assetSystem, const vec3& position, const Color& color);
+	Id createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, Id materialId);
+	Id createSphere(AssetSystem& assetSystem, const vec3& position, float radius, Id materialId);
+	Id createBunny(AssetSystem& assetSystem, const vec3& position, Id materialId);
 
 	void selectNextEntity();
 

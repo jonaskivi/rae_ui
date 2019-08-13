@@ -22,30 +22,9 @@ vec3 randomInUnitSphere()
 	return p;
 }
 
-bool Material::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
-{
-	return false;
-}
-
-bool Lambertian::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
-{
-	vec3 target = record.point + record.normal + randomInUnitSphere();
-	scattered = Ray(record.point, target - record.point);
-	attenuation = Color3(m_color);
-	return true;
-}
-
 vec3 reflect(const vec3& v, const vec3& normal)
 {
 	return v - 2.0f * glm::dot(v, normal) * normal;
-}
-
-bool Metal::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
-{
-	vec3 reflected = reflect( glm::normalize(r_in.direction()), record.normal );
-	scattered = Ray(record.point, reflected + roughness * randomInUnitSphere());
-	attenuation = Color3(m_color);
-	return (glm::dot(scattered.direction(), record.normal) > 0);
 }
 
 bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
@@ -68,46 +47,86 @@ float schlick(float cosine, float refractive_index)
 	return r0 + (1.0f - r0) * pow((1.0f - cosine), 5.0f);
 }
 
-bool Dielectric::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
+bool Material::scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const
 {
-	vec3 outward_normal;
-	vec3 reflected = reflect(r_in.direction(), record.normal);
-	float ni_over_nt;
-	attenuation = vec3(1,1,1);
-	vec3 refracted;
-	float reflect_probability;
-	float cosine;
-	if (glm::dot(r_in.direction(), record.normal) > 0)
+	switch(m_materialType)
 	{
-		outward_normal = -record.normal;
-		ni_over_nt = refractiveIndex;
-		cosine = refractiveIndex * glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
-	}
-	else
-	{
-		outward_normal = record.normal;
-		ni_over_nt = 1.0f / refractiveIndex;
-		cosine = -glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
+		case MaterialType::Lambertian:
+		{
+			vec3 target = record.point + record.normal + randomInUnitSphere();
+			scattered = Ray(record.point, target - record.point);
+			attenuation = Color3(m_color);
+			return true;
+		}
+		case MaterialType::Metal:
+		{
+			vec3 reflected = reflect( glm::normalize(r_in.direction()), record.normal );
+			scattered = Ray(record.point, reflected + m_roughness * randomInUnitSphere());
+			attenuation = Color3(m_color);
+			return (glm::dot(scattered.direction(), record.normal) > 0);
+		}
+		case MaterialType::Dielectric:
+		{
+			vec3 outward_normal;
+			vec3 reflected = reflect(r_in.direction(), record.normal);
+			float ni_over_nt;
+			attenuation = vec3(1,1,1);
+			vec3 refracted;
+			float reflect_probability;
+			float cosine;
+			if (glm::dot(r_in.direction(), record.normal) > 0)
+			{
+				outward_normal = -record.normal;
+				ni_over_nt = m_refractiveIndex;
+				cosine = m_refractiveIndex * glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
+			}
+			else
+			{
+				outward_normal = record.normal;
+				ni_over_nt = 1.0f / m_refractiveIndex;
+				cosine = -glm::dot(r_in.direction(), record.normal) / r_in.direction().length();
+			}
+
+			if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))
+			{
+				reflect_probability = schlick(cosine, m_refractiveIndex);
+			}
+			else
+			{
+				reflect_probability = 1.0f;
+			}
+
+			if (drand48() < reflect_probability)
+			{
+				scattered = Ray(record.point, reflected); // REFLECT vs
+			}
+			else
+			{
+				scattered = Ray(record.point, refracted); // REFRACT !!
+			}
+			return true;
+		}
+		case MaterialType::Light:
+		{
+			return false;
+		}
 	}
 
-	if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))
-	{
-		reflect_probability = schlick(cosine, refractiveIndex);
-	}
-	else
-	{
-		reflect_probability = 1.0f;
-	}
+	return false;
+}
 
-	if (drand48() < reflect_probability)
+vec3 Material::emitted(const vec3& p) const
+{
+	switch(m_materialType)
 	{
-		scattered = Ray(record.point, reflected); // REFLECT vs
+		case MaterialType::Lambertian:
+		case MaterialType::Metal:
+		case MaterialType::Dielectric:
+			return vec3(0.0f, 0.0f, 0.0f);
+		case MaterialType::Light:
+			return Color3(m_color);
 	}
-	else
-	{
-		scattered = Ray(record.point, refracted); // REFRACT !!
-	}
-	return true;
+	return vec3(0.0f, 0.0f, 0.0f);
 }
 
 void Material::generateFBO(NVGcontext* vg)

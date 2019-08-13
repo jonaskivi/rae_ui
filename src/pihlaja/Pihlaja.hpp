@@ -34,6 +34,7 @@ public:
 
 	Engine* getEngine() { return &m_engine; }
 
+	void init3D();
 	void initUI();
 
 	void reactToInput(const Input& input);

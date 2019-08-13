@@ -30,7 +30,7 @@ public:
 	}
 
 	const Scene& activeScene() const { return *m_scenes[m_activeSceneIdx]; }
-	Scene& activeScene() { return *m_scenes[m_activeSceneIdx]; }
+	Scene& modifyActiveScene() { return *m_scenes[m_activeSceneIdx]; }
 
 	bool hasScene(int index) const
 	{

@@ -143,17 +143,16 @@ void RayTracer::updateScene(const Scene& scene)
 	*/
 }
 
+/*
 void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 {
-	/*
-	Camera& camera = m_sceneSystem.activescene().cameraSystem().currentCamera();
-	camera.setFieldOfViewDeg(44.6f);
-	camera.setPosition(vec3(-0.16f, 2.9664f, 14.8691f));
-	camera.setYaw(Math::toRadians(178.560333f));
-	camera.setPitch(Math::toRadians(-10.8084f));
-	camera.setAperture(0.07f);
-	camera.setFocusDistance(14.763986f);
-	 */
+	//Camera& camera = m_sceneSystem.activescene().cameraSystem().currentCamera();
+	//camera.setFieldOfViewDeg(44.6f);
+	//camera.setPosition(vec3(-0.16f, 2.9664f, 14.8691f));
+	//camera.setYaw(Math::toRadians(178.560333f));
+	//camera.setPitch(Math::toRadians(-10.8084f));
+	//camera.setAperture(0.07f);
+	//camera.setFocusDistance(14.763986f);
 
 	// A big light
 	world.add(
@@ -181,16 +180,16 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 	// Metal balls
 	world.add(
 		new OldSphere(vec3(1, 0, 0), 0.5f,
-		new Metal(vec3(0.8f, 0.6f, 0.2f), /*roughness*/0.0f))
+		new Metal(vec3(0.8f, 0.6f, 0.2f), 0.0f))
 		);
 	world.add(
 		new OldSphere(vec3(-1.5f, 0.65f, 0.5), 0.4f,
-		new Metal(vec3(0.8f, 0.4f, 0.8f), /*roughness*/0.3f))
+		new Metal(vec3(0.8f, 0.4f, 0.8f), 0.3f))
 		);
 	// Dielectric, glass ball
 	world.add(
 		new OldSphere(vec3(-1, 0, 1), 0.5f,
-		new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f))
+		new Dielectric(vec3(0.8f, 0.5f, 0.3f), 1.5f))
 		);
 	world.add(
 		new OldSphere(vec3(-3.15f, 0.1f, -5), 0.6f,
@@ -211,15 +210,13 @@ void RayTracer::createSceneOne(HitableList& world, bool loadBunny)
 
 void RayTracer::createSceneFromBook(HitableList& list)
 {
-	/*
-	Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
+	//Camera& camera = m_sceneSystem.activeScene().cameraSystem().currentCamera();
 
-	camera.setPosition(vec3(16.857f, 2.0f, 6.474f));
-	camera.setYaw(Math::toRadians(247.8f));
-	camera.setPitch(Math::toRadians(-4.762f));
-	camera.setAperture(0.1f);
-	camera.setFocusDistance(17.29f);
-	*/
+	//camera.setPosition(vec3(16.857f, 2.0f, 6.474f));
+	//camera.setYaw(Math::toRadians(247.8f));
+	//camera.setPitch(Math::toRadians(-4.762f));
+	//camera.setAperture(0.1f);
+	//camera.setFocusDistance(17.29f);
 
 	list.add( new OldSphere(vec3(0,-1000,0), 1000, new Lambertian(vec3(0.5, 0.5, 0.5))) );
 
@@ -240,23 +237,24 @@ void RayTracer::createSceneFromBook(HitableList& list)
 				{
 					// metal
 					list.add( new OldSphere(center, 0.2f,
-							new Metal(vec3(0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom())), /*roughness*/ 0.5f*getRandom())));
+							new Metal(vec3(0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom()), 0.5f*(1.0f + getRandom())), 0.5f*getRandom())));
 				}
 				else
 				{
 					// glass
-					list.add( new OldSphere(center, 0.2f, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
+					list.add( new OldSphere(center, 0.2f, new Dielectric(vec3(0.8f, 0.5f, 0.3f), 1.5f)) );
 				}
 			}
 		}
 	}
 
-	list.add( new OldSphere(vec3(0, 1, 0), 1.0, new Dielectric(vec3(0.8f, 0.5f, 0.3f), /*refractive_index*/1.5f)) );
+	list.add( new OldSphere(vec3(0, 1, 0), 1.0, new Dielectric(vec3(0.8f, 0.5f, 0.3f), 1.5f)) );
 	list.add( new OldSphere(vec3(-4, 1, 0), 1.0, new Lambertian(vec3(0.0, 0.2, 0.9))) );
 	list.add( new OldSphere(vec3(4, 1, 0), 1.0, new Metal(vec3(0.7, 0.6, 0.5), 0.0)) );
 
 	m_tree.init(list.list(), 0, 0);
 }
+*/
 
 bool RayTracer::toggleIsEnabled()
 {
@@ -290,26 +288,26 @@ void RayTracer::showScene(int number)
 	if (number == 1)
 	{
 		clearScene();
-		createSceneOne(m_world, false);
+		//RAE_TODO: REMOVE createSceneOne(m_world, false);
 	}
 
 	if (number == 2)
 	{
 		clearScene();
-		createSceneOne(m_world, true);
+		//RAE_TODO: REMOVE createSceneOne(m_world, true);
 	}
 
 	if (number == 3)
 	{
 		clearScene();
-		createSceneFromBook(m_world);
+		//RAE_TODO: REMOVE createSceneFromBook(m_world);
 	}
 }
 
 void RayTracer::clearScene()
 {
 	m_world.clear();
-	m_sceneSystem.activeScene().modifyCameraSystem().setNeedsUpdate();
+	m_sceneSystem.modifyActiveScene().modifyCameraSystem().setNeedsUpdate();
 	clear();
 }
 
@@ -338,7 +336,7 @@ std::string toString(const HitRecord& record)
 
 void RayTracer::autoFocus()
 {
-	auto& scene = m_sceneSystem.activeScene();
+	auto& scene = m_sceneSystem.modifyActiveScene();
 	auto& transformSystem = scene.transformSystem();
 	auto& assetLinkSystem = scene.assetLinkSystem();
 	Camera& camera = scene.modifyCameraSystem().modifyCurrentCamera();
@@ -479,25 +477,9 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 	const auto& transformSystem = scene.transformSystem();
 	const auto& assetLinkSystem = scene.assetLinkSystem();
 
-	Lambertian lambertianMaterial1(vec3(0.0f, 0.3f, 1.0f));
-	Lambertian lambertianMaterial2(vec3(1.0f, 1.0f, 1.0f));
-	Lambertian lambertianMaterial3(vec3(0.9f, 0.4f, 0.2f));
-	Lambertian lambertianMaterial4(vec3(0.8f, 0.9f, 0.1f));
-	Dielectric glassMaterial(vec3(0.8f, 0.5f, 0.3f), 1.5f);
-
-	Array<Material*> tempMaterials =
-	{
-		&lambertianMaterial1,
-		&lambertianMaterial2,
-		&lambertianMaterial3,
-		&lambertianMaterial4,
-		&glassMaterial
-	};
-
 	auto sphereHitFunc = [](
 		const vec3& position,
 		float radius,
-		Material* material,
 		const Ray& ray,
 		float t_min,
 		float t_max,
@@ -516,7 +498,6 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 				record.t = temp;
 				record.point = ray.pointAtParameter(record.t);
 				record.normal = (record.point - position) / radius;
-				record.material = material;
 				return true;
 			}
 		}
@@ -539,17 +520,19 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 
 		//LOG_F(INFO, "raytrace box: %i", (int)id);
 
-		Material* defaultMaterial = tempMaterials[int(id) % int(tempMaterials.size())];
+		Material& defaultMaterial = m_assetSystem.modifyMaterial(assetLinkSystem.getMaterialLink(id));
 
 		// This is pretty random. So we check if it's a Sphere or a Mesh... and do hit testing on those... yeah. Need to refactor.
 		if ((transformSystem.hasSphere(id)
-			&& sphereHitFunc(transform.position, box.radius() * transform.scale.x, defaultMaterial, ray, 0.001f, closestSoFar, record))
+			&& sphereHitFunc(transform.position, box.radius() * transform.scale.x, ray, 0.001f, closestSoFar, record))
 			||
 			(!transformSystem.hasSphere(id) &&
 			assetLinkSystem.hasMeshLink(id) &&
 			m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
 		{
 			bool hitLineLocal = false;
+
+			record.material = &defaultMaterial;
 
 			closestSoFar = record.t;
 			finalRecord = record;

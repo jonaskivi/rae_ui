@@ -74,7 +74,7 @@ public:
 	}
 
 	virtual bool toggleIsEnabled() { m_isEnabled = !m_isEnabled; return m_isEnabled; }
-	virtual Bool& isEnabled() { return m_isEnabled; }
+	virtual const Bool& isEnabled() const { return m_isEnabled; }
 	virtual void setIsEnabled(bool set) { m_isEnabled = set; }
 
 protected:

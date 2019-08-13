@@ -13,24 +13,48 @@ struct NVGcontext;
 namespace rae
 {
 
+enum class MaterialType
+{
+	Lambertian,
+	Metal,
+	Dielectric,
+	Light
+};
+
 class Material
 {
 public:
 	Material() {}
-	Material(Color3 albedo) :
-		m_color(albedo.r, albedo.g, albedo.b, 1.0f)
+	Material(
+		const String& name,
+		const Color3& albedo,
+		MaterialType materialType = MaterialType::Lambertian,
+		float roughness = 0.0f,
+		float refractiveIndex = 0.0f) :
+			m_name(name),
+			m_color(albedo.r, albedo.g, albedo.b, 1.0f),
+			m_materialType(materialType),
+			m_roughness(roughness),
+			m_refractiveIndex(refractiveIndex)
 	{
 	}
 
-	Material(Color albedo) :
-		m_color(albedo)
+	Material(
+		const String& name,
+		const Color& albedo,
+		MaterialType materialType = MaterialType::Lambertian,
+		float roughness = 0.0f,
+		float refractiveIndex = 0.0f) :
+			m_name(name),
+			m_color(albedo),
+			m_materialType(materialType),
+			m_roughness(roughness),
+			m_refractiveIndex(refractiveIndex)
 	{
 	}
 
-	virtual bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
-	virtual vec3 emitted(const vec3& p) const { return vec3(0.0f, 0.0f, 0.0f); }
-	
-	bool metal(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
+	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const;
+	vec3 emitted(const vec3& p) const;
 
 	void generateFBO(NVGcontext* vg);
 	void update(NVGcontext* vg, double time);
@@ -43,63 +67,23 @@ public:
 
 	void animate(bool set) { m_animate = set; }
 
+	const String& name() const { return m_name; }
+	MaterialType materialType() const { return m_materialType; }
+
 protected:
 	FrameBufferImage m_frameBufferImage;
 
+	String m_name = "Material";
 	Color m_color;
+	MaterialType m_materialType = MaterialType::Lambertian;
+
+	float m_roughness = 0.0f; // for Metal
+	float m_refractiveIndex = 0.0f; // for Dielectric
 
 	bool m_initialized = false;
 	bool m_animate = false;
 	// RAE_TODO REMOVE?
 	int m_type = 1; // TODO enum. Currently 0 and 1 supported!
-};
-
-class Lambertian : public Material
-{
-public:
-	Lambertian(Color3 albedo) :
-		Material(albedo)
-	{}
-
-	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
-};
-
-class Metal : public Material
-{
-public:
-	Metal(Color3 albedo, float roughness) :
-		Material(albedo),
-		roughness(roughness)
-	{}
-
-	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
-
-	float roughness = 0.0f;
-};
-
-class Dielectric : public Material
-{
-public:
-	Dielectric(Color3 albedo, float refractiveIndex) :
-		Material(albedo),
-		refractiveIndex(refractiveIndex)
-	{}
-
-	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override;
-
-	float refractiveIndex = 0.0f;
-};
-
-class Light : public Material
-{
-public:
-	Light(Color3 albedo) :
-		Material(albedo)
-	{
-	}
-
-	bool scatter(const Ray& r_in, const HitRecord& record, vec3& attenuation, Ray& scattered) const override { return false; }
-	Color3 emitted(const vec3& p) const override { return Color3(m_color); }
 };
 
 }

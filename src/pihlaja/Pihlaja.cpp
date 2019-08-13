@@ -4,42 +4,32 @@ Pihlaja::Pihlaja() :
 	ISystem("PihlajaSystem"),
 	m_engine("Pihlaja"),
 	#ifdef USE_RAE_AV
-	m_avSystem(m_engine.renderSystem()),
+	m_avSystem(m_engine.modifyRenderSystem()),
 	#endif
 	m_screenImage(1920, 1080),
-	m_input(m_engine.input()),
-	m_assetSystem(m_engine.assetSystem()),
-	m_uiSystem(m_engine.uiSystem())
+	m_input(m_engine.modifyInput()),
+	m_assetSystem(m_engine.modifyAssetSystem()),
+	m_uiSystem(m_engine.modifyUiSystem())
 {
 	LOG_F(INFO, "Adding systems.");
 
 	m_engine.addBaseSystems();
 
-	m_engine.addSystem(m_engine.assetSystem());
-	m_engine.addSystem(m_engine.sceneSystem());
+	m_engine.addSystem(m_engine.modifyAssetSystem());
+	m_engine.addSystem(m_engine.modifySceneSystem());
 
-	m_engine.addSystem(m_engine.uiSystem());
-	m_engine.addSystem(m_engine.rayTracer());
-	m_engine.addSystem(m_engine.renderSystem());
+	m_engine.addSystem(m_engine.modifyUiSystem());
+	m_engine.addSystem(m_engine.modifyRayTracer());
+	m_engine.addSystem(m_engine.modifyRenderSystem());
 
-	m_engine.addSystem(m_engine.debugSystem());
+	m_engine.addSystem(m_engine.modifyDebugSystem());
 
-	m_engine.addRenderer3D(m_engine.renderSystem());
-	m_engine.addRenderer3D(m_engine.rayTracer()); // This is just the debug rendering.
-	m_engine.addRenderer3D(m_engine.debugSystem());
+	m_engine.addRenderer3D(m_engine.modifyRenderSystem());
+	m_engine.addRenderer3D(m_engine.modifyRayTracer()); // This is just the debug rendering.
+	m_engine.addRenderer3D(m_engine.modifyDebugSystem());
 
-	m_engine.addRenderer2D(m_engine.uiSystem());
-	m_engine.addRenderer2D(m_engine.debugSystem());
-
-	m_engine.assetSystem().createTestAssets();
-
-	m_engine.sceneSystem().activeScene().createTestWorld2(m_engine.assetSystem());
-
-	Scene& alternativeScene = m_engine.sceneSystem().createScene("Alternative");
-	alternativeScene.createTestWorld(m_engine.assetSystem());
-
-	auto& scene = m_engine.sceneSystem().activeScene();
-	m_engine.rayTracer().updateScene(scene);
+	m_engine.addRenderer2D(m_engine.modifyUiSystem());
+	m_engine.addRenderer2D(m_engine.modifyDebugSystem());
 
 	//
 
@@ -65,12 +55,95 @@ Pihlaja::Pihlaja() :
 	#endif
 
 	initUI();
+	init3D();
+}
+
+void Pihlaja::init3D()
+{
+	auto& assetSystem = m_engine.modifyAssetSystem();
+	assetSystem.createTestAssets();
+
+	// Lambertians
+	Id planetMaterial = assetSystem.createMaterial(
+		Material("Planet Material", Color(0.0f, 0.7f, 0.8f, 0.0f), MaterialType::Lambertian));
+	Id material1 = assetSystem.createMaterial(
+		Material("Lambertian1", Color(0.8f, 0.3f, 0.3f, 1.0f), MaterialType::Lambertian));
+
+	// Metals
+	float roughness = 0.0f;
+	Id material2 = assetSystem.createMaterial(
+		Material("Metal1", Color(0.8f, 0.6f, 0.2f, 1.0f), MaterialType::Metal, roughness));
+	roughness = 0.3f;
+	Id material3 = assetSystem.createMaterial(
+		Material("Metal2", Color(0.8f, 0.4f, 0.8f, 1.0f), MaterialType::Metal, roughness));
+
+	// Dielectric, glass
+	float refractiveIndex = 1.5f;
+	Id material4 = assetSystem.createMaterial(
+		Material("Glass1", Color(0.8f, 0.6f, 0.2f, 1.0f), MaterialType::Dielectric, roughness, refractiveIndex));
+
+	// Lights
+	Id lightMaterial1 = assetSystem.createMaterial(
+		Material("Light1", Color(4.0f, 4.0f, 4.0f, 1.0f), MaterialType::Light));
+	Id lightMaterial2 = assetSystem.createMaterial(
+		Material("Light2", Color(16.0f, 16.0f, 16.0f, 1.0f), MaterialType::Light));
+
+	{
+		Scene& scene = m_engine.modifySceneSystem().modifyActiveScene();
+		auto& transformSystem = scene.modifyTransformSystem();
+		auto& selectionSystem = scene.modifySelectionSystem();
+
+		Id planet = scene.createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, planetMaterial);
+		selectionSystem.addDisableHovering(planet);
+
+		Id sphere5 = scene.createSphere(assetSystem, vec3(0.0f, 1.0f, 0.0f), 0.5f, material1);
+		Id sphere1 = scene.createSphere(assetSystem, vec3(0.0f, 2.0f, 0.0f), 0.5f, material2);
+		Id cube2   = scene.createCube  (assetSystem, vec3(0.0f, 1.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), material1);
+		Id sphere3 = scene.createSphere(assetSystem, vec3(-1.0f, 2.0f, 0.0f), 0.5f, material3);
+		Id sphere4 = scene.createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, material4);
+
+		transformSystem.addChild(sphere1, cube2);
+		transformSystem.addChild(sphere1, sphere3);
+
+		// Lights
+		Id bigLight = scene.createSphere(assetSystem, vec3(0.0f, 6.0f, -1.0f), 2.0f, lightMaterial1);
+		Id smallLight = scene.createSphere(assetSystem, vec3(3.85, 2.3, -0.15f), 0.2f, lightMaterial2);
+
+		// Should make this automatic after addChild somehow.
+		transformSystem.syncLocalAndWorldTransforms();
+	}
+
+	{
+		Scene& scene = m_engine.modifySceneSystem().createScene("Alternative");
+		auto& transformSystem = scene.modifyTransformSystem();
+		auto& selectionSystem = scene.modifySelectionSystem();
+
+		Id planet = scene.createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, planetMaterial);
+		selectionSystem.addDisableHovering(planet);
+
+		Id sphere1 = scene.createSphere(assetSystem, vec3(0.0f, 4.0f, 0.0f), 0.5f, material1);
+		Id cube2   = scene.createCube(assetSystem,   vec3(0.0f, 6.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), material2);
+		Id sphere3 = scene.createSphere(assetSystem, vec3(0.0f, 8.25f, 0.0f), 0.5f, material3);
+		Id sphere4 = scene.createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, material4);
+
+		transformSystem.addChild(sphere4, sphere1);
+		transformSystem.addChild(sphere4, cube2);
+		transformSystem.addChild(sphere4, sphere3);
+
+		Id bunny1 = scene.createBunny(assetSystem, vec3(0.0f, 0.0f, 0.0f), material1);
+
+		// Should make this automatic after addChild somehow.
+		transformSystem.syncLocalAndWorldTransforms();
+	}
+
+	const auto& scene = m_engine.sceneSystem().activeScene();
+	m_engine.modifyRayTracer().updateScene(scene);
 }
 
 void Pihlaja::initUI()
 {
 	auto& uiSystem = m_uiSystem;
-	auto& windowSystem = m_engine.windowSystem();
+	auto& windowSystem = m_engine.modifyWindowSystem();
 
 	UIScene& ui = uiSystem.defaultScene();
 	uiSystem.connectWindowToScene(windowSystem.modifyMainWindow(), ui);
@@ -180,7 +253,7 @@ void Pihlaja::initUI()
 		vec3(50.0f, 10.0f, 1.0f),
 		[&]()
 		{
-			auto renderMode = m_engine.renderSystem().toggleRenderMode();
+			auto renderMode = m_engine.modifyRenderSystem().toggleRenderMode();
 
 			if (renderMode == RenderMode::Rasterize)
 				LOG_F(INFO, "renderMode: Rasterize");
@@ -192,8 +265,8 @@ void Pihlaja::initUI()
 
 
 			if (renderMode == RenderMode::Rasterize)
-				m_engine.rayTracer().setIsEnabled(false);
-			else m_engine.rayTracer().setIsEnabled(true);
+				m_engine.modifyRayTracer().setIsEnabled(false);
+			else m_engine.modifyRayTracer().setIsEnabled(true);
 		});
 	trans.addChild(panel, renderModeButton);
 
@@ -202,7 +275,7 @@ void Pihlaja::initUI()
 		vec3(50.0f, 10.0f, 1.0f),
 		[&]()
 		{
-			m_engine.rayTracer().requestToggleBufferQuality();
+			m_engine.modifyRayTracer().requestToggleBufferQuality();
 		});
 	trans.addChild(panel, qualityButton);
 
@@ -211,14 +284,54 @@ void Pihlaja::initUI()
 		vec3(50.0f, 10.0f, 1.0f),
 		[&]()
 		{
-			m_engine.rayTracer().writeToPng("./rae_ray_render.png");
+			m_engine.modifyRayTracer().writeToPng("./rae_ray_render.png");
 		});
 	trans.addChild(panel, saveImageButton);
+
+	Id colorPropertyEditor = ui.createTextBox("Material:",
+		vec3(0.0f, 0.0f, 0.0f),
+		vec3(120.0f, 10.0f, 1.0f),
+		14.0f,
+		false);
+	ui.connectUpdater(colorPropertyEditor,
+		[&](Id id)
+		{
+			auto& text = ui.modifyText(id);
+			const auto& sceneSystem = m_engine.sceneSystem();
+			String setText;
+			if (sceneSystem.hasActiveScene())
+			{
+				const auto& scene = sceneSystem.activeScene();
+				const auto& selection = scene.selectionSystem();
+				const auto& trans = scene.transformSystem();
+				const auto& assetLinkSystem = scene.assetLinkSystem();
+
+				Id selectedOrHovered = selection.anySelectedOrHovered();
+				if (selectedOrHovered != InvalidId && assetLinkSystem.hasMaterialLink(selectedOrHovered))
+				{
+					const auto& material = m_assetSystem.getMaterial(assetLinkSystem.getMaterialLink(selectedOrHovered));
+					setText = "Material: " + material.name()
+						+ " hoveredId: " + std::to_string(selectedOrHovered)
+						+ " assetLink: " + std::to_string(assetLinkSystem.getMaterialLink(selectedOrHovered));
+				}
+				else
+				{
+					setText = "Empty";
+				}
+			}
+			else
+			{
+				setText = "No active scene";
+			}
+			text.text = setText;
+		});
+
+	trans.addChild(panel, colorPropertyEditor);
 
 	bool isMultilineText = true;
 	Id propertiesText = ui.createTextBox("Nothing selected or hovered.",
 		vec3(0.0f, 0.0f, 0.0f),
-		vec3(120.0f, 120.0f, 1.0f),
+		vec3(120.0f, 40.0f, 1.0f),
 		14.0f,
 		isMultilineText);
 	ui.connectUpdater(propertiesText,
@@ -311,8 +424,8 @@ void Pihlaja::reactToInput(const Input& input)
 	if (!m_engine.sceneSystem().hasActiveScene())
 		return;
 
-	Scene& scene = m_engine.sceneSystem().activeScene();
-	auto& entitySystem = scene.entitySystem();
+	Scene& scene = m_engine.modifySceneSystem().modifyActiveScene();
+	auto& entitySystem = scene.modifyEntitySystem();
 
 	if (input.getKeyState(KeySym::I))
 	{
@@ -338,8 +451,8 @@ void Pihlaja::reactToInput(const Input& input)
 	*/
 
 	// TODO use KeySym::Page_Up
-	if (input.getKeyState(KeySym::K)) { m_engine.rayTracer().minusBounces(); }
-	if (input.getKeyState(KeySym::L)) { m_engine.rayTracer().plusBounces(); }
+	if (input.getKeyState(KeySym::K)) { m_engine.modifyRayTracer().minusBounces(); }
+	if (input.getKeyState(KeySym::L)) { m_engine.modifyRayTracer().plusBounces(); }
 }
 
 void Pihlaja::onKeyEvent(const Input& input)
@@ -350,18 +463,18 @@ void Pihlaja::onKeyEvent(const Input& input)
 		{
 			case KeySym::Escape:	m_engine.quit(); break;
 			//case KeySym::R:			m_renderSystem.clearImageRenderer(); break;
-			case KeySym::G:			m_engine.renderSystem().toggleRenderMode(); break;
+			case KeySym::G:			m_engine.modifyRenderSystem().toggleRenderMode(); break;
 			case KeySym::space:		togglePlay(); break;
 			case KeySym::Home:		rewind(); break;
 			case KeySym::Tab:
 				m_uiSystem.toggleIsEnabled();
-				m_engine.debugSystem().toggleIsEnabled();
+				m_engine.modifyDebugSystem().toggleIsEnabled();
 				break;
-			case KeySym::F1:		m_engine.debugSystem().toggleIsEnabled(); break;
+			case KeySym::F1:		m_engine.modifyDebugSystem().toggleIsEnabled(); break;
 			case KeySym::F2:		m_uiSystem.toggleIsEnabled(); break;
-			case KeySym::F3:		m_engine.renderSystem().toggleRenderNormals(); break;
-			case KeySym::_1:		m_engine.sceneSystem().activateScene(0); break;
-			case KeySym::_2:		m_engine.sceneSystem().activateScene(1); break;
+			case KeySym::F3:		m_engine.modifyRenderSystem().toggleRenderNormals(); break;
+			case KeySym::_1:		m_engine.modifySceneSystem().activateScene(0); break;
+			case KeySym::_2:		m_engine.modifySceneSystem().activateScene(1); break;
 			case KeySym::_3:		m_evenFrames = true; break;
 			case KeySym::_4:		m_evenFrames = false; break;
 			case KeySym::R:
@@ -380,12 +493,12 @@ void Pihlaja::onKeyEvent(const Input& input)
 			// Doesn't quite work right yet. Needs GLFW 3.2 to work properly. possibly.
 			//case KeySym::F: m_engine.windowSystem().mainWindow().toggleFullscreen(); break;
 			//RAE_OLD case KeySym::Y: m_rayTracer.toggleBufferQuality(); break;
-			case KeySym::P: m_engine.rayTracer().toggleFastMode(); break;
-			case KeySym::H: m_engine.rayTracer().toggleVisualizeFocusDistance(); break;
+			case KeySym::P: m_engine.modifyRayTracer().toggleFastMode(); break;
+			case KeySym::H: m_engine.modifyRayTracer().toggleVisualizeFocusDistance(); break;
 			//RAE_OLD case KeySym::_1: m_rayTracer.showScene(1); break;
 			//RAE_OLD case KeySym::_2: m_rayTracer.showScene(2); break;
 			//RAE_OLD case KeySym::_3: m_rayTracer.showScene(3); break;
-			case KeySym::_9:		m_engine.sceneSystem().activeScene().selectNextEntity();
+			case KeySym::_9:		m_engine.modifySceneSystem().modifyActiveScene().selectNextEntity();
 			default:
 				break;
 		}
@@ -402,7 +515,7 @@ void Pihlaja::updateDebugTexts()
 	if (!m_engine.sceneSystem().hasActiveScene())
 		return;
 
-	Scene& scene = m_engine.sceneSystem().activeScene();
+	const Scene& scene = m_engine.sceneSystem().activeScene();
 	auto& transformSystem = scene.transformSystem();
 	auto& entitySystem = scene.entitySystem();
 

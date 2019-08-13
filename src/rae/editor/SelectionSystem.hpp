@@ -63,6 +63,7 @@ public:
 
 	Id hovered() const { return m_hoveredId; }
 	Id anySelected() const { return isSelection() ? selectedIds()[0] : InvalidId; }
+	Id anySelectedOrHovered() const { return isSelection() ? selectedIds()[0] : m_hoveredId; }
 
 	void translateSelected(vec3 delta);
 

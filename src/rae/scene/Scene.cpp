@@ -61,48 +61,6 @@ void Scene::handleInput(const InputState& inputState, const Array<InputEvent>& e
 	m_editorSystem.handleInput(inputState, events, *this);
 }
 
-void Scene::createTestWorld(AssetSystem& assetSystem)
-{
-	LOG_F(INFO, "Creating test world to scene: %s", m_name.c_str());
-
-	Id planet = createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, Color(0.8f, 0.3f, 0.3f, 0.0f));
-	m_selectionSystem.addDisableHovering(planet);
-
-	Id sphere1 = createSphere(assetSystem, vec3(0.0f, 4.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
-	Id cube2   = createCube(assetSystem,   vec3(0.0f, 6.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), Color(0.8f, 0.4f, 0.8f, 0.0f));
-	Id sphere3 = createSphere(assetSystem, vec3(0.0f, 8.25f, 0.0f), 0.5f, Color(0.8f, 0.5f, 0.3f, 0.0f));
-	Id sphere4 = createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, Color(0.05f, 0.2f, 0.8f, 0.0f));
-
-	m_transformSystem.addChild(sphere4, sphere1);
-	m_transformSystem.addChild(sphere4, cube2);
-	m_transformSystem.addChild(sphere4, sphere3);
-
-	auto bunny1 = createBunny(assetSystem, vec3(0.0f, 0.0f, 0.0f), Color(0.05f, 0.2f, 0.8f, 0.0f));
-
-	// Should make this automatic after addChild somehow.
-	m_transformSystem.syncLocalAndWorldTransforms();
-}
-
-void Scene::createTestWorld2(AssetSystem& assetSystem)
-{
-	LOG_F(INFO, "Creating test world 2 to scene: %s", m_name.c_str());
-
-	Id planet = createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, glm::vec4(0.8f, 0.3f, 0.3f, 0.0f));
-	m_selectionSystem.addDisableHovering(planet);
-
-	Id sphere5 = createSphere(assetSystem, vec3(0.0f, 1.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
-	Id sphere1 = createSphere(assetSystem, vec3(0.0f, 2.0f, 0.0f), 0.5f, Color(0.8f, 0.6f, 0.2f, 0.0f));
-	Id cube2   = createCube  (assetSystem, vec3(0.0f, 1.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), Color(0.8f, 0.4f, 0.8f, 0.0f));
-	Id sphere3 = createSphere(assetSystem, vec3(-1.0f, 2.0f, 0.0f), 0.5f, Color(0.8f, 0.5f, 0.3f, 0.0f));
-	Id sphere4 = createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, Color(0.05f, 0.2f, 0.8f, 0.0f));
-
-	m_transformSystem.addChild(sphere1, cube2);
-	m_transformSystem.addChild(sphere1, sphere3);
-
-	// Should make this automatic after addChild somehow.
-	m_transformSystem.syncLocalAndWorldTransforms();
-}
-
 Id Scene::createAddObjectButton(AssetSystem& assetSystem)
 {
 	Id id = m_entitySystem.createEntity();
@@ -110,7 +68,6 @@ Id Scene::createAddObjectButton(AssetSystem& assetSystem)
 	m_transformSystem.addTransform(id, Transform(vec3(0.0f, 0.0f, 5.0f)));
 	m_transformSystem.setLocalPosition(id, vec3(0.0f, 0.0f, 0.0f));
 
-	m_assetLinkSystem.addMaterialLink(id, assetSystem.getAnimatingMaterialId());
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getCubeMeshId());
 
 	return id;
@@ -148,7 +105,7 @@ Id Scene::createRandomCubeEntity(AssetSystem& assetSystem)
 	return id;
 }
 
-Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, const Color& color)
+Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, Id materialId)
 {
 	qua rotation = qua();
 	//qua rotation = qua(vec3(0.0f, Math::toRadians(45.0f), 0.0f));
@@ -164,15 +121,13 @@ Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const vec3&
 	//m_geometrySystem.setMesh(entity, m_meshID);
 	//m_materialSystem.setMaterial(entity, color);
 
-	//assert(0);
-	//////////m_assetSystem.addMaterial(id, Material(color));
-	m_assetLinkSystem.addMaterialLink(id, assetSystem.getTestMaterialId());
+	m_assetLinkSystem.addMaterialLink(id, materialId);
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getCubeMeshId());
 
 	return id;
 }
 
-Id Scene::createSphere(AssetSystem& assetSystem, const vec3& position, float radius, const Color& color)
+Id Scene::createSphere(AssetSystem& assetSystem, const vec3& position, float radius, Id materialId)
 {
 	vec3 halfExtents = vec3(radius, radius, radius);
 	qua rotation = qua();
@@ -185,23 +140,22 @@ Id Scene::createSphere(AssetSystem& assetSystem, const vec3& position, float rad
 	m_transformSystem.addPivot(id, Pivots::Center);
 	m_transformSystem.addSphere(id);
 
-	m_assetLinkSystem.addMaterialLink(id, assetSystem.getTestMaterialId());
+	m_assetLinkSystem.addMaterialLink(id, materialId);
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getSphereMeshId());
 
 	return id;
 }
 
-Id Scene::createBunny(AssetSystem& assetSystem, const vec3& position, const Color& color)
+Id Scene::createBunny(AssetSystem& assetSystem, const vec3& position, Id materialId)
 {
 	vec3 halfExtents = vec3(0.5f, 0.5f, 0.5f);
 
 	Id id = m_entitySystem.createEntity();
-	//LOG_F(INFO, "createBunny id: %i", id);
 	m_transformSystem.addTransform(id, Transform(position));
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
 	m_transformSystem.addPivot(id, Pivots::Center);
 
-	m_assetLinkSystem.addMaterialLink(id, assetSystem.getBunnyMaterialId());
+	m_assetLinkSystem.addMaterialLink(id, materialId);
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getBunnyMeshId());
 
 	return id;

@@ -39,7 +39,7 @@ void SceneSystem::activateScene(int index)
 
 	deactivateAllScenes();
 	m_activeSceneIdx = index;
-	activeScene().setIsActive(true);
+	modifyActiveScene().setIsActive(true);
 	//LOG_F(INFO, "Active Scene set to %i %s", m_activeSceneIdx, activeScene().m_entitySystem.owner().c_str());
 }
 
@@ -56,7 +56,7 @@ UpdateStatus SceneSystem::update()
 	if (!hasActiveScene())
 		return UpdateStatus::NotChanged;
 
-	return activeScene().update();
+	return modifyActiveScene().update();
 
 	// Update all scenes version:
 	//UpdateStatus status;
@@ -72,5 +72,5 @@ void SceneSystem::onFrameEnd()
 	if (!hasActiveScene())
 		return;
 
-	activeScene().onFrameEnd();
+	modifyActiveScene().onFrameEnd();
 }

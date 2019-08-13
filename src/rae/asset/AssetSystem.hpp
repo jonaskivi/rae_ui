@@ -26,7 +26,7 @@ public:
 	Id createSphereMesh();
 
 	Id createMesh(const String& filename, WindingOrder windingOrder = WindingOrder::CounterClockwise);
-	Id createMaterial(const Color& color);
+	Id createMaterial(const Material& material);
 	Id createAnimatingMaterial(const Color& color);
 
 	void addMesh(Id id, Mesh&& comp);
@@ -34,7 +34,7 @@ public:
 	Mesh& modifyMesh(Id id);
 	bool isMesh(Id id) { return m_meshes.check(id); }
 
-	void addMaterial(Id id, Material&& comp);
+	void addMaterial(Id id, const Material& comp);
 	const Material& getMaterial(Id id) const;
 	Material& modifyMaterial(Id id);
 	bool isMaterial(Id id) { return m_materials.check(id); }
@@ -50,10 +50,10 @@ public:
 
 	Id getCubeMeshId() { return m_cubeMeshId; }
 	Id getSphereMeshId() { return m_sphereMeshId; }
+
 	Id getTestMaterialId() { return m_testMaterialId; }
-	Id getAnimatingMaterialId() { return m_animatingMaterialId; }
 	Id getBunnyMeshId() { return m_bunnyMeshId; }
-	Id getBunnyMaterialId() { return m_bunnyMaterialId; }
+	Id getBunnyMaterialId() { return m_bunnyMaterialId; } // RAE_TODO: REMOVE
 
 protected:
 	// Note that AssetSystem has its own Ids in this entitySystem.
@@ -70,9 +70,8 @@ protected:
 	// Some test assets
 	Id m_cubeMeshId = InvalidId;
 	Id m_sphereMeshId = InvalidId;
-	Id m_testMaterialId = InvalidId;
-	Id m_animatingMaterialId = InvalidId;
 
+	Id m_testMaterialId = InvalidId;
 	Id m_bunnyMeshId = InvalidId;
 	Id m_bunnyMaterialId = InvalidId;
 };

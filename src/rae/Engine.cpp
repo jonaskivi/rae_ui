@@ -121,7 +121,7 @@ UpdateStatus Engine::update()
 	if (!m_sceneSystem.hasActiveScene())
 		return UpdateStatus::NotChanged;
 
-	Scene& activeScene = m_sceneSystem.activeScene();
+	Scene& activeScene = m_sceneSystem.modifyActiveScene();
 	auto& entitySystem = activeScene.entitySystem();
 
 	// Measure speed
@@ -354,7 +354,7 @@ void Engine::osEventResizeWindow(int width, int height)
 {
 	if (!m_sceneSystem.hasActiveScene())
 		return;
-	Scene& scene = m_sceneSystem.activeScene();
+	Scene& scene = m_sceneSystem.modifyActiveScene();
 	auto& cameraSystem = scene.modifyCameraSystem();
 	cameraSystem.setAspectRatio(float(width) / float(height));
 }
@@ -363,7 +363,7 @@ void Engine::osEventResizeWindowPixels(int width, int height)
 {
 	if (!m_sceneSystem.hasActiveScene())
 		return;
-	Scene& scene = m_sceneSystem.activeScene();
+	Scene& scene = m_sceneSystem.modifyActiveScene();
 	auto& cameraSystem = scene.modifyCameraSystem();
 	cameraSystem.setAspectRatio(float(width) / float(height));
 }

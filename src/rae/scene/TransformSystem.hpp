@@ -79,6 +79,10 @@ public:
 	//void addChildren(Id id);
 	bool hasChildren(Id id) const;
 	const Array<Id>& getChildren(Id id) const;
+	void moveToTop(Id parentId, Id childIdToMove);
+	void moveToTopInParent(Id childIdToMove);
+	void moveToBottom(Id parentId, Id childIdToMove);
+	void moveToBottomInParent(Id childIdToMove);
 
 	// Pivot is defined in normalized coordinates -1 to 1 (in relation to own size)
 	// and it will affect how the origin of the current entity will be interpreted.
@@ -124,7 +128,7 @@ private:
 	bool				m_anyTransformUpdated = true;
 
 	Table<Parent>		m_parents;
-	Table<Changed>		m_parentChanged;
+	Table<Changed>		m_parentChanged; // These are most likely not used properly. Also see Changed tag inside Table class.
 
 	Table<Children>		m_childrens;
 	Table<Changed>		m_childrenChanged;

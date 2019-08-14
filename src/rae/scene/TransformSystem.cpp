@@ -337,6 +337,60 @@ const Array<Id>& TransformSystem::getChildren(Id id) const
 	return m_childrens.get(id);
 }
 
+void TransformSystem::moveToTop(Id parentId, Id childIdToMove)
+{
+	if (!m_childrens.check(parentId))
+		return;
+
+	auto& children = m_childrens.modify(parentId);
+
+	auto pivot = std::find_if(children.begin(), children.end(),
+		[&childIdToMove](Id id) -> bool
+		{
+			return id == childIdToMove;
+		});
+
+	if (pivot != children.end())
+	{
+		std::rotate(pivot, pivot + 1, children.end());
+	}
+}
+
+void TransformSystem::moveToTopInParent(Id childIdToMove)
+{
+	if (!hasParent(childIdToMove))
+		return;
+	auto parentId = getParent(childIdToMove);
+	moveToTop(parentId, childIdToMove);
+}
+
+void TransformSystem::moveToBottom(Id parentId, Id childIdToMove)
+{
+	if (!m_childrens.check(parentId))
+		return;
+
+	auto& children = m_childrens.modify(parentId);
+
+	auto pivot = std::find_if(children.begin(), children.end(),
+		[&childIdToMove](Id id) -> bool
+		{
+			return id == childIdToMove;
+		});
+
+	if (pivot != children.end())
+	{
+		std::rotate(children.begin(), pivot, pivot + 1);
+	}
+}
+
+void TransformSystem::moveToBottomInParent(Id childIdToMove)
+{
+	if (!hasParent(childIdToMove))
+		return;
+	auto parentId = getParent(childIdToMove);
+	moveToTop(parentId, childIdToMove);
+}
+
 bool TransformSystem::hasPivot(Id id) const
 {
 	return m_pivots.check(id);

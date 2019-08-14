@@ -136,6 +136,18 @@ public:
 	// Make active follow property state with a two-way binding
 	void bindActive(Id id, Bool& property);
 
+	bool isVisible(Id id) const { return m_visibles.get(id) == true; }
+	void setVisible(Id id, bool visible) { m_visibles.assign(Visible(visible)); }
+	void show(Id id)
+	{
+		if (isVisible(id) == false)
+			m_visibles.assign(Visible(true));
+	}
+	void hide(Id id)
+	{
+		m_visibles.assign(Visible(false));
+	}
+
 	void addMargin(Id id, const Margin& element);
 
 	void connectUpdater(Id id, std::function<void(Id)> updateFunction);
@@ -198,6 +210,10 @@ private:
 
 	Table<UIWidgetRenderer>		m_uiWidgetRenderers;
 	Table<UIWidgetUpdater>		m_uiWidgetUpdaters;
+
+	// Because of Table default value, you should only assign Visibles to entities that might be hidden at some point.
+	// So all entities which don't have this assigned, will be visible by default.
+	Table<Visible>		m_visibles;
 
 	Table<Text>			m_texts;
 	Table<Button>		m_buttons;

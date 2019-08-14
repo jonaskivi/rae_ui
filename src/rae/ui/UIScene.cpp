@@ -31,6 +31,7 @@ UIScene::UIScene(
 		m_assetSystem(assetSystem)
 {
 	addTable(m_windows);
+	addTable(m_visibles);
 	addTable(m_texts);
 	addTable(m_buttons);
 	addTable(m_commands);
@@ -169,6 +170,11 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 
 			if (!ids.empty())
 			{
+				for (auto&& id : ids)
+				{
+					m_transformSystem.moveToTopInParent(id);
+				}
+
 				m_transformSystem.translate(ids, m_screenSystem.pixelsToMM(m_inputState.mouse.delta));
 			}
 		}
@@ -328,37 +334,40 @@ void UIScene::doLayout()
 
 void UIScene::hover()
 {
-	// This is not a good way to hover. We should process the hierarchy instead of a flat list.
-
 	m_selectionSystem.clearHovers();
 
 	Id topMostId = InvalidId;
 
-	query<Box>(m_transformSystem.boxes(), [&](Id id, const Box& box)
+	for (Id id : m_entitySystem.entities())
 	{
-		// RAE_TODO: Probably need to add generic visibility instead of this Panel visible thing.
-		if (m_panels.check(id) && m_panels.getF(id).visible == false)
+		if (!m_transformSystem.hasParent(id))
 		{
-			// Continue and skip the hit test.
-		}
-		else if (m_selectionSystem.isDisableHovering(id))
-		{
-			// Continue and skip the hit test.
-		}
-		else if (m_transformSystem.hasWorldTransform(id))
-		{
-			const Transform& transform = m_transformSystem.getWorldTransform(id);
-			const Pivot& pivot = m_transformSystem.getPivot(id);
-			Box tbox = box;
-			tbox.transform(transform);
-			tbox.translatePivot(pivot);
-
-			if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
+			m_transformSystem.processHierarchy(id, [this, &topMostId](Id id)
 			{
-				topMostId = id;
-			}
+				if (isVisible(id) == false)
+				{
+					// Continue and skip the hit test.
+				}
+				else if (m_selectionSystem.isDisableHovering(id))
+				{
+					// Continue and skip the hit test.
+				}
+				else if (m_transformSystem.hasBox(id) && m_transformSystem.hasWorldTransform(id))
+				{
+					const Transform& transform = m_transformSystem.getWorldTransform(id);
+					const Pivot& pivot = m_transformSystem.getPivot(id);
+					Box tbox = m_transformSystem.getBox(id);
+					tbox.transform(transform);
+					tbox.translatePivot(pivot);
+
+					if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
+					{
+						topMostId = id;
+					}
+				}
+			});
 		}
-	});
+	}
 
 	if (topMostId != InvalidId)
 	{
@@ -652,7 +661,7 @@ void UIScene::renderViewportLine(Id id) const
 
 void UIScene::renderPanel(Id id) const
 {
-	if (!m_panels.check(id) || m_panels.getF(id).visible == false)
+	if (!m_panels.check(id))
 		return;
 
 	const Color& panelBackgroundColor = m_panelThemeColors[(size_t)PanelThemeColorKey::Background];
@@ -1148,11 +1157,18 @@ Id UIScene::createPanel(const vec3& position, const vec3& extents, bool visible)
 
 	vec3 halfExtents = extents * 0.5f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
-	addPanel(id, Panel(visible));
+	addPanel(id, Panel());
 
-	m_uiWidgetRenderers.assign(
-		id,
-		UIWidgetRenderer(std::bind(&UIScene::renderPanel, this, std::placeholders::_1)));
+	if (visible)
+	{
+		m_uiWidgetRenderers.assign(
+			id,
+			UIWidgetRenderer(std::bind(&UIScene::renderPanel, this, std::placeholders::_1)));
+	}
+	else // "invisible" panel shouldn't hover either.
+	{
+		m_selectionSystem.addDisableHovering(id);
+	}
 
 	return id;
 }

@@ -162,20 +162,27 @@ void Pihlaja::initUI()
 	// top of the 3D viewports. Not sure if it is worth it to try and render viewports to textures just because
 	// we'd want to draw UI under them. No, it wouldn't be worth it.
 
-	Id rootId = ui.rootId();
-	ui.addGridLayout(rootId, 2, 2);
+	bool visible = false;
+	Id gridContainer = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f), visible);
+	ui.addMaximizer(gridContainer);
+	ui.toggleMaximizer(gridContainer);
+	ui.addGridLayout(gridContainer, 2, 2);
+
+	Id layerContainer = ui.createPanel(Rectangle(10.0f, 10.0f, 60.0f, 80.0f), visible);
+	ui.addMaximizer(layerContainer);
+	ui.toggleMaximizer(layerContainer);
 
 	int sceneIndex = 0;
 	Id viewport = ui.createAdvancedViewport(sceneIndex,
 		vec3(130.0f, 80.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
-	trans.addChild(rootId, viewport);
+	trans.addChild(gridContainer, viewport);
 
 	int sceneIndex2 = 1;
 	Id viewport2 = ui.createAdvancedViewport(sceneIndex2,
 		vec3(130.0f, 235.0f, 0.0f),
 		vec3(250.0f, 150.0f, 1.0f));
-	trans.addChild(rootId, viewport2);
+	trans.addChild(gridContainer, viewport2);
 
 	// Video things
 
@@ -188,7 +195,7 @@ void Pihlaja::initUI()
 		vec3(250.0f, 150.0f, 1.0f));
 	ui.addDraggable(videoBufferImageBox);
 	ui.addMaximizerAndButton(videoBufferImageBox);
-	trans.addChild(rootId, videoBufferImageBox);
+	trans.addChild(gridContainer, videoBufferImageBox);
 	#endif
 
 	Id videoControls = ui.createPanel(
@@ -196,6 +203,7 @@ void Pihlaja::initUI()
 		vec3(100.0f, 50.0f, 1.0f));
 	ui.addDraggable(videoControls);
 	ui.addStackLayout(videoControls);
+	trans.addChild(layerContainer, videoControls);
 
 	float TitleFontSize = 22.0f;
 
@@ -226,27 +234,28 @@ void Pihlaja::initUI()
 
 	// Raytracer Controls
 
-	Id panel = ui.createPanel(
+	Id raytracerControls = ui.createPanel(
 		vec3(200.0f, 130.0f, 0.0f),
 		vec3(120.0f, 100.0f, 1.0f));
-	ui.addDraggable(panel);
-	ui.addMaximizer(panel);
-	ui.addStackLayout(panel);
+	ui.addDraggable(raytracerControls);
+	ui.addMaximizer(raytracerControls);
+	ui.addStackLayout(raytracerControls);
+	trans.addChild(layerContainer, raytracerControls);
 
 	Id panelTitleText = ui.createTextBox("Raytracer Controls",
 		vec3(0.0f, 38.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
 		TitleFontSize);
-	trans.addChild(panel, panelTitleText);
+	trans.addChild(raytracerControls, panelTitleText);
 
 	Id panelMaximizeButton = ui.createButton("Maximize",
 		vec3(0.0f, 35.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
-		[&, panel]()
+		[&, raytracerControls]()
 		{
-			ui.toggleMaximizer(panel);
+			ui.toggleMaximizer(raytracerControls);
 		});
-	trans.addChild(panel, panelMaximizeButton);
+	trans.addChild(raytracerControls, panelMaximizeButton);
 
 	Id renderModeButton = ui.createButton("Render Mode",
 		vec3(0.0f, 35.0f, 0.0f),
@@ -268,7 +277,7 @@ void Pihlaja::initUI()
 				m_engine.modifyRayTracer().setIsEnabled(false);
 			else m_engine.modifyRayTracer().setIsEnabled(true);
 		});
-	trans.addChild(panel, renderModeButton);
+	trans.addChild(raytracerControls, renderModeButton);
 
 	Id qualityButton = ui.createButton("Toggle Quality",
 		vec3(0.0f, 35.0f, 0.0f),
@@ -277,7 +286,7 @@ void Pihlaja::initUI()
 		{
 			m_engine.modifyRayTracer().requestToggleBufferQuality();
 		});
-	trans.addChild(panel, qualityButton);
+	trans.addChild(raytracerControls, qualityButton);
 
 	Id saveImageButton = ui.createButton("Save Image",
 		vec3(0.0f, 35.0f, 0.0f),
@@ -286,7 +295,7 @@ void Pihlaja::initUI()
 		{
 			m_engine.modifyRayTracer().writeToPng("./rae_ray_render.png");
 		});
-	trans.addChild(panel, saveImageButton);
+	trans.addChild(raytracerControls, saveImageButton);
 
 	Id colorPropertyEditor = ui.createTextBox("Material:",
 		vec3(0.0f, 0.0f, 0.0f),
@@ -326,7 +335,7 @@ void Pihlaja::initUI()
 			text.text = setText;
 		});
 
-	trans.addChild(panel, colorPropertyEditor);
+	trans.addChild(raytracerControls, colorPropertyEditor);
 
 	bool isMultilineText = true;
 	Id propertiesText = ui.createTextBox("Nothing selected or hovered.",
@@ -368,7 +377,7 @@ void Pihlaja::initUI()
 			text.text = setText;
 		});
 
-	trans.addChild(panel, propertiesText);
+	trans.addChild(raytracerControls, propertiesText);
 
 	/*Id positionTextBox = ui.createTextBox(
 		vec3(-100.0f, 380.0f, 0.0f),
@@ -381,7 +390,7 @@ void Pihlaja::initUI()
 		vec3(0.0f, 38.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f));
 	ui.bindActive(debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);
-	trans.addChild(panel, debugNeedsFrameUpdateButton);
+	trans.addChild(raytracerControls, debugNeedsFrameUpdateButton);
 	*/
 }
 

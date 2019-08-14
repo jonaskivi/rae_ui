@@ -132,6 +132,20 @@ struct Active
 	bool active = false;
 };
 
+struct Visible
+{
+	Visible(){}
+	Visible(bool visible) :
+		visible(visible)
+	{
+	}
+
+	operator bool&() { return visible; }
+	operator bool() const { return visible; }
+
+	bool visible = true;
+};
+
 struct Text
 {
 	Text(){}
@@ -217,13 +231,6 @@ struct WindowEntity
 
 struct Panel
 {
-	Panel(){}
-	Panel(bool visible) :
-		visible(visible)
-	{
-	}
-
-	bool visible = true;
 };
 
 struct Viewport

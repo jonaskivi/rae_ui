@@ -52,10 +52,10 @@ public:
 	}
 
 	// Hmm, get rid of one of these...
-	int size() const { return (int)m_items.size(); }
-	int count() const { return (int)m_items.size(); }
+	int size() const { return m_count; }
+	int count() const { return m_count; }
 
-	bool empty() const { return (int)m_items.size() <= 0; }
+	bool empty() const { return m_count <= 0; }
 
 	void assign(Id id)
 	{
@@ -72,6 +72,8 @@ public:
 			//LOG_F(INFO, "Table: Entity already exists, replacing: %i", id);
 			return;
 		}
+
+		m_count++;
 
 		// Reserve enough space in idMap to hold the id.
 		//LOG_F(INFO, "Creating id: %i size: %i", id, (int)m_idMap.size());
@@ -120,6 +122,8 @@ public:
 			return;
 		}
 
+		m_count++;
+
 		// Reserve enough space in idMap to hold the id.
 		//LOG_F(INFO, "Creating id: %i size: %i", id, (int)m_idMap.size());
 		int index = (int)id;
@@ -158,6 +162,7 @@ public:
 
 	void clear()
 	{
+		m_count = 0;
 		m_items.clear();
 		m_idMap.clear();
 		m_freeItems.clear();
@@ -165,12 +170,17 @@ public:
 		m_anyUpdated = true; // And this might be unexpected or not.
 	}
 
+	// This remove is currently quite "lazy", so it doesn't actually remove the item, but just
+	// marks it as free. This is also currently the reason why we need to count the items separately
+	// (and also because we are using array idMap instead of a proper unordered_map which would tell
+	// the count easily).
 	void remove(Id id)
 	{
 		if (check(id))
 		{
 			m_freeItems.emplace_back(m_idMap[id]);
 			m_idMap[id] = InvalidIndex;
+			m_count--;
 		}
 	}
 
@@ -346,6 +356,9 @@ public:
 protected:
 
 	Comp m_empty;
+	// Because we don't properly remove items when remove is called, but we mark them as free, so we need
+	// a way to count the items. Another option would be again to use std::unordered_map instead of current idMap.
+	int m_count = 0;
 	Array<Comp> m_items; // Size is only the size of required number of components
 	// A map from an Id (which is the index [id]) to a value, which is the index in the m_items.
 	// So to get an item with known Id, we do: m_items[m_idMap[id]].

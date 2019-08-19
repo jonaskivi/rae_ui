@@ -147,6 +147,68 @@ void TransformSystem::processHierarchy(Id parentId, std::function<void(Id)> proc
 	}
 }
 
+void TransformSystem::processHierarchySkippable(Id parentId, std::function<bool(Id)> process)
+{
+	bool result = process(parentId);
+	if (result == false)
+		return;
+	if (hasChildren(parentId))
+	{
+		auto& children = getChildren(parentId);
+		for (auto&& id : children)
+		{
+			processHierarchySkippable(id, process);
+		}
+	}
+}
+
+void TransformSystem::processChildren(Id parentId, std::function<void(Id)> process)
+{
+	if (hasChildren(parentId))
+	{
+		auto& children = getChildren(parentId);
+		for (auto&& id : children)
+		{
+			process(id);
+		}
+	}
+}
+
+void TransformSystem::processSiblingsInclusive(Id id, std::function<void(Id)> process)
+{
+	if (hasParent(id) == false)
+		return;
+
+	Id parentId = getParent(id);
+	if (hasChildren(parentId))
+	{
+		auto& children = getChildren(parentId);
+		for (auto&& siblingId : children)
+		{
+			process(siblingId);
+		}
+	}
+}
+
+void TransformSystem::processSiblingsExclusive(Id id, std::function<void(Id)> process)
+{
+	if (hasParent(id) == false)
+		return;
+
+	Id parentId = getParent(id);
+	if (hasChildren(parentId))
+	{
+		auto& children = getChildren(parentId);
+		for (auto&& siblingId : children)
+		{
+			if (siblingId != id)
+			{
+				process(siblingId);
+			}
+		}
+	}
+}
+
 void TransformSystem::addTransform(Id id, const Transform& transform)
 {
 	m_localTransforms.assign(id, transform);

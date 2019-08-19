@@ -76,6 +76,14 @@ UpdateStatus UISystem::update()
 	return status;
 }
 
+void UISystem::onFrameEnd()
+{
+	for (auto&& uiScene : m_uiScenes)
+	{
+		uiScene->onFrameEnd();
+	}
+}
+
 void UISystem::render2D(UIScene& uiScene, NVGcontext* nanoVG)
 {
 	uiScene.render2D(nanoVG, m_assetSystem);

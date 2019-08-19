@@ -165,7 +165,6 @@ UpdateStatus Engine::update()
 				uiScene.updateWindowSize(window);
 			}
 		}
-
 	}
 
 	reactToInput(m_input);

@@ -35,7 +35,8 @@ public:
 	UIScene& createUIScene(const String& name = "Untitled");
 	void connectWindowToScene(Window& window, UIScene& uiScene);
 
-	UpdateStatus update() override;
+	virtual UpdateStatus update() override;
+	virtual void onFrameEnd() override;
 	virtual void render2D(UIScene& uiScene, NVGcontext* nanoVG) override;
 
 	bool hasScene(int index) const

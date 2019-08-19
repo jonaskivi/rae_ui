@@ -47,6 +47,15 @@ UIScene::UIScene(
 	addTable(m_imageLinks);
 	addTable(m_draggables);
 
+	addSystem(m_assetSystem);
+	// EntitySystem is not an ISystem for now: addSystem(m_entitySystem);
+	addSystem(m_transformSystem);
+	addSystem(m_animationSystem);
+	addSystem(m_selectionSystem);
+	addSystem(m_input);
+	// Not an ISystem: addSystem(m_screenSystem);
+	addSystem(m_debugSystem);
+
 	createDefaultTheme();
 }
 
@@ -342,29 +351,32 @@ void UIScene::hover()
 	{
 		if (!m_transformSystem.hasParent(id))
 		{
-			m_transformSystem.processHierarchy(id, [this, &topMostId](Id id)
+			m_transformSystem.processHierarchySkippable(id, [this, &topMostId](Id processId) -> bool
 			{
-				if (isVisible(id) == false)
+				if (isVisible(processId) == false)
+				{
+					// Break.
+					return false;
+				}
+				else if (m_selectionSystem.isDisableHovering(processId))
 				{
 					// Continue and skip the hit test.
+					return true;
 				}
-				else if (m_selectionSystem.isDisableHovering(id))
+				else if (m_transformSystem.hasBox(processId) && m_transformSystem.hasWorldTransform(processId))
 				{
-					// Continue and skip the hit test.
-				}
-				else if (m_transformSystem.hasBox(id) && m_transformSystem.hasWorldTransform(id))
-				{
-					const Transform& transform = m_transformSystem.getWorldTransform(id);
-					const Pivot& pivot = m_transformSystem.getPivot(id);
-					Box tbox = m_transformSystem.getBox(id);
+					const Transform& transform = m_transformSystem.getWorldTransform(processId);
+					const Pivot& pivot = m_transformSystem.getPivot(processId);
+					Box tbox = m_transformSystem.getBox(processId);
 					tbox.transform(transform);
 					tbox.translatePivot(pivot);
 
 					if (tbox.hit(vec2(m_input.mouse.xMM, m_input.mouse.yMM)))
 					{
-						topMostId = id;
+						topMostId = processId;
 					}
 				}
+				return true;
 			});
 		}
 	}
@@ -383,13 +395,20 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 	{
 		if (!m_transformSystem.hasParent(id))
 		{
-			m_transformSystem.processHierarchy(id, [this](Id id)
+			m_transformSystem.processHierarchySkippable(id, [this](Id processId) -> bool
 			{
-				if (m_uiWidgetRenderers.check(id))
+				if (isVisible(processId) == false)
 				{
-					const auto& renderer = m_uiWidgetRenderers.get(id);
-					renderer.render(id);
+					return false;
 				}
+
+				if (m_uiWidgetRenderers.check(processId))
+				{
+					const auto& renderer = m_uiWidgetRenderers.get(processId);
+					renderer.render(processId);
+				}
+
+				return true;
 			});
 		}
 	}
@@ -595,6 +614,8 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 				const Box& box = m_transformSystem.getBox(id);
 				const Pivot& pivot = m_transformSystem.getPivot(id);
 
+				vec3 mousePositionAndOffset = vec3(m_input.mouse.xMM + 10.0f, m_input.mouse.yMM + 10.0f, 0.0f);
+
 				bool hasColor = m_colors.check(id);
 				bool hovered = m_selectionSystem.isHovered(id);
 
@@ -602,7 +623,11 @@ void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
 				float thicknessMM = 1.0f;
 				renderBorder(transform, box, pivot,
 					Colors::magenta, cornerRadius, thicknessMM);
-				renderMultilineTextGeneric(m_transformSystem.toString(id), transform, box, pivot, 14.0f,
+				renderMultilineTextGeneric(m_transformSystem.toString(id)
+					+ "\n" + (isVisible(id) ? "Visible" : "Hidden"),
+					Transform(mousePositionAndOffset),
+					Box(vec3(0.0f, 0.0f, 0.0f), vec3(50.0f, 50.0f, 1.0f)),
+					Pivots::Center, 14.0f,
 					Colors::orange, false);
 			}
 		});
@@ -910,7 +935,12 @@ Id UIScene::connectToWindow(const Window& window)
 void UIScene::updateWindowSize(const Window& window)
 {
 	vec3 halfExtents = m_screenSystem.pixelsToMM(vec3(window.width(), window.height(), 1.0f) / 2.0f);
-	m_transformSystem.addBox(m_rootId, Box(-(halfExtents), halfExtents));
+
+	const auto& existingBox = m_transformSystem.getBox(m_rootId);
+	if (existingBox.max() != halfExtents && existingBox.min() != -(halfExtents))
+	{
+		m_transformSystem.setBox(m_rootId, Box(-(halfExtents), halfExtents));
+	}
 }
 
 Id UIScene::createButton(const String& text, std::function<void()> handler)
@@ -1242,18 +1272,40 @@ void UIScene::toggleMaximizer(Id id)
 		maximizer.storedNormalStateBox = m_transformSystem.getBox(id);
 		maximizer.storedNormalStatePivot = m_transformSystem.getPivot(id);
 		maximizer.maximizerState = MaximizerState::Maximized;
+
+		m_transformSystem.processSiblingsExclusive(id, [&](Id siblingId)
+		{
+			hide(siblingId);
+		});
 	}
-	else
+	else // maximizer.maximizerState == MaximizerState::Maximized
 	{
 		maximizer.maximizerState = MaximizerState::Normal;
 		m_transformSystem.setBox(id, maximizer.storedNormalStateBox);
 		m_transformSystem.setLocalPosition(id, maximizer.storedNormalStatePosition);
 		m_transformSystem.setPivot(id, maximizer.storedNormalStatePivot);
+
+		m_transformSystem.processSiblingsExclusive(id, [&](Id siblingId)
+		{
+			show(siblingId);
+		});
 	}
+
+	m_requestUpdateMaximizers = true;
 }
 
 void UIScene::updateMaximizers()
 {
+	if (m_requestUpdateMaximizers == false && m_transformSystem.boxes().isUpdated(m_rootId) == false)
+	{
+		return;
+	}
+
+	if (m_requestUpdateMaximizers)
+	{
+		m_requestUpdateMaximizers = false;
+	}
+
 	const Box& window = m_transformSystem.getBox(m_rootId);
 
 	query<Maximizer>(m_maximizers, [&](Id id, const Maximizer& maximizer)
@@ -1279,6 +1331,9 @@ void UIScene::updateMaximizers()
 				m_transformSystem.setWorldPosition(id, vec3(0.0f, 0.0f, 0.0f));
 				m_transformSystem.setPivot(id, Pivots::TopLeft2D);
 			}
+
+			// RAE_TODO: Brute force, but we should just easily do this for this one id that we are working with.
+			m_transformSystem.syncLocalAndWorldTransforms();
 		}
 	});
 }

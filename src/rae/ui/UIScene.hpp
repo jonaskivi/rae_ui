@@ -136,16 +136,16 @@ public:
 	// Make active follow property state with a two-way binding
 	void bindActive(Id id, Bool& property);
 
-	bool isVisible(Id id) const { return m_visibles.get(id) == true; }
+	bool isVisible(Id id) const { return ((m_visibles.get(id).visible) == true); }
 	void setVisible(Id id, bool visible) { m_visibles.assign(Visible(visible)); }
 	void show(Id id)
 	{
 		if (isVisible(id) == false)
-			m_visibles.assign(Visible(true));
+			m_visibles.assign(id, Visible(true));
 	}
 	void hide(Id id)
 	{
-		m_visibles.assign(Visible(false));
+		m_visibles.assign(id, Visible(false));
 	}
 
 	void addMargin(Id id, const Margin& element);
@@ -192,6 +192,7 @@ private:
 
 	void createDefaultTheme();
 
+	// Child systems
 	AssetSystem&		m_assetSystem;
 
 	EntitySystem		m_entitySystem;
@@ -234,6 +235,7 @@ private:
 
 	Table<StackLayout>	m_stackLayouts;
 	Table<GridLayout>	m_gridLayouts;
+	bool				m_requestUpdateMaximizers = false;
 	Table<Maximizer>	m_maximizers;
 
 	Table<ImageLink>	m_imageLinks;

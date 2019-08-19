@@ -42,7 +42,17 @@ public:
 
 	bool hasAnyTransformChanged() const;
 
+	// Process the while hierarchy including the parentId itself.
 	void processHierarchy(Id parentId, std::function<void(Id)> process);
+	// Process the hierarchy. If process returns false, we don't process it's children,
+	// but still continue to process it's siblings and their children.
+	void processHierarchySkippable(Id parentId, std::function<bool(Id)> process);
+	// Process only direct children, so doesn't include the parentId.
+	void processChildren(Id parentId, std::function<void(Id)> process);
+	// Process the siblings of the given entity (they have the same parent). Also process entity itself.
+	void processSiblingsInclusive(Id id, std::function<void(Id)> process);
+	// Process the siblings of the given entity (they have the same parent). Don't process the entity.
+	void processSiblingsExclusive(Id id, std::function<void(Id)> process);
 
 	void addTransform(Id id, const Transform& transform);
 

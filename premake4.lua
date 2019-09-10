@@ -97,7 +97,7 @@ solution "pihlaja"
       configuration { "macosx" }
          buildoptions { "-std=c++11 -stdlib=libc++" }
          includedirs {
-                        "/usr/local/opt/opencv3/include/",
+                        "/usr/local/opt/opencv/opencv4/include/",
                         "/usr/local/opt/ffmpeg/include/",
                      }
          defines { "USE_RAE_AV" }

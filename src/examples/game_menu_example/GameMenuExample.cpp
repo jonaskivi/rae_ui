@@ -128,7 +128,7 @@ void GameMenuExample::initUI()
 			ui.addMaximizer(centerPivotContainer);
 			ui.toggleMaximizer(centerPivotContainer);
 
-			Id animText = ui.createTextBox("Match Start",
+			Id animText = ui.createTextWidget("Match Start",
 				vec3(), vec3(50.0f, 50.0f, 1.0f), 64.0f);
 			ui.setColor(animText, Colors::white);
 			trans.addPivot(animText, Pivots::Center);

@@ -146,6 +146,12 @@ void UIScene::handleInput(const Array<InputEvent>& events)
 				auto& command = modifyCommand(hovered);
 				command.executeAsync();
 			}
+
+			if (m_textBoxes.check(hovered))
+			{
+				auto& textBox = m_textBoxes.modify(hovered);
+				textBox.editing = true;
+			}
 		}
 
 		if (m_inputState.mouse.buttonClicked[(int)MouseButton::Middle])
@@ -808,14 +814,97 @@ void UIScene::renderButton(Id id) const
 	}
 }
 
-void UIScene::renderButtonGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
-	const Color& color, const Color& textColor) const
+void UIScene::renderButtonGeneric(
+	const String& text,
+	const Transform& transform,
+	const Box& box,
+	const Pivot& pivot,
+	const Color& color,
+	const Color& textColor) const
 {
 	UIRenderer::renderButtonNano(m_nanoVG, text,
 		convertToPixelRectangle(transform, box, pivot),
 		m_screenSystem.mmToPixels(0.46f), // cornerRadius
 		color,
 		textColor);
+}
+
+void UIScene::renderTextBox(Id id) const
+{
+	if (!m_textBoxes.check(id))
+		return;
+
+	const Color& buttonBackgroundColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Background];
+	const Color& buttonHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Hover];
+	const Color& buttonActiveColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Active];
+	const Color& buttonActiveHoverColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHover];
+
+	const Color& buttonTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::Text];
+	const Color& buttonHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::HoverText];
+	const Color& buttonActiveTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveText];
+	const Color& buttonActiveHoverTextColor = m_buttonThemeColors[(size_t)ButtonThemeColorKey::ActiveHoverText];
+
+	if (m_transformSystem.hasWorldTransform(id) and
+		m_transformSystem.hasBox(id))
+	{
+		const Text& text = getText(id);
+		const Transform& transform = m_transformSystem.getWorldTransform(id);
+		const Box& box = m_transformSystem.getBox(id);
+		const Pivot& pivot = m_transformSystem.getPivot(id);
+
+		bool hasColor = m_colors.check(id);
+		bool active = isActive(id) || m_selectionSystem.isSelected(id);
+		bool hovered = m_selectionSystem.isHovered(id);
+		// More like a debug or editor feature
+		//bool selected = m_selectionSystem.isSelected(id);
+
+		const TextBox& textBox = m_textBoxes.get(id);
+		int cursorIndex = -1;
+		if (textBox.editing)
+		{
+			cursorIndex = 0;
+		}
+
+		renderTextBoxGeneric(text, transform, box, pivot,
+			(hovered && active ? buttonActiveHoverColor :
+				hovered ? buttonHoverColor :
+				active ? buttonActiveColor :
+				hasColor ? getColor(id) :
+				buttonBackgroundColor),
+			(hovered && active ? buttonActiveHoverTextColor :
+				hovered ? buttonHoverTextColor :
+				active ? buttonActiveTextColor :
+				buttonTextColor),
+			cursorIndex);
+	}
+}
+
+void UIScene::renderTextBoxGeneric(
+	const Text& text,
+	const Transform& transform,
+	const Box& box,
+	const Pivot& pivot,
+	const Color& color,
+	const Color& textColor,
+	int cursorIndex) const
+{
+	Rectangle rectangle = convertToPixelRectangle(transform, box, pivot);
+
+	UIRenderer::renderRectangleNano(
+		m_nanoVG,
+		rectangle,
+		0.0f, // cornerRadius
+		color);
+
+	UIRenderer::renderTextWithCursorNano(
+		m_nanoVG,
+		text.text,
+		rectangle,
+		text.fontSize,
+		textColor,
+		text.horizontalAlignment,
+		text.verticalAlignment,
+		cursorIndex);
 }
 
 void UIScene::renderText(Id id) const
@@ -837,17 +926,31 @@ void UIScene::renderText(Id id) const
 		// More like a debug or editor feature
 		//bool selected = m_selectionSystem.isSelected(id);
 
-		renderTextGeneric(text.text, transform, box, pivot, text.fontSize,
-			(hasColor ? getColor(id) : Colors::white));
+		renderTextGeneric(
+			text.text,
+			transform,
+			box,
+			pivot,
+			text.fontSize,
+			(hasColor ? getColor(id) : Colors::white),
+			text.horizontalAlignment,
+			text.verticalAlignment);
 	}
 }
 
-void UIScene::renderTextGeneric(const String& text, const Transform& transform, const Box& box,
-	const Pivot& pivot, float fontSize, const Color& color) const
+void UIScene::renderTextGeneric(
+	const String& text,
+	const Transform& transform,
+	const Box& box,
+	const Pivot& pivot,
+	float fontSize,
+	const Color& color,
+	HorizontalTextAlignment horizontalAlignment,
+	VerticalTextAlignment verticalAlignment) const
 {
 	UIRenderer::renderTextNano(m_nanoVG, text,
 		convertToPixelRectangle(transform, box, pivot),
-		fontSize, color);
+		fontSize, color, horizontalAlignment, verticalAlignment);
 }
 
 void UIScene::renderMultilineText(Id id) const
@@ -1026,12 +1129,14 @@ void UIScene::connectUpdater(Id id, std::function<void(Id)> updateFunction)
 		UIWidgetUpdater(updateFunction));
 }
 
-Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize,
+Id UIScene::createTextWidget(const String& text, const vec3& position, const vec3& extents, float fontSize,
 	bool multiline)
 {
 	Id id = m_entitySystem.createEntity();
 	m_transformSystem.addTransform(id, Transform(position));
 	m_transformSystem.setLocalPosition(id, position);
+
+	m_textWidgets.assign(id, TextWidget());
 
 	vec3 halfExtents = extents / 2.0f;
 	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
@@ -1053,6 +1158,30 @@ Id UIScene::createTextBox(const String& text, const vec3& position, const vec3& 
 			id,
 			UIWidgetRenderer(std::bind(&UIScene::renderText, this, std::placeholders::_1)));
 	}
+
+	return id;
+}
+
+Id UIScene::createTextBox(
+	Text&& text,
+	const vec3& position,
+	const vec3& extents,
+	bool multiline)
+{
+	Id id = m_entitySystem.createEntity();
+	m_transformSystem.addTransform(id, Transform(position));
+	m_transformSystem.setLocalPosition(id, position);
+
+	m_textBoxes.assign(id, TextBox());
+
+	vec3 halfExtents = extents / 2.0f;
+	m_transformSystem.addBox(id, Box(-(halfExtents), halfExtents));
+	addText(id, std::move(text));
+	addMargin(id, Margin(2.0f, 1.0f));
+
+	m_uiWidgetRenderers.assign(
+		id,
+		UIWidgetRenderer(std::bind(&UIScene::renderTextBox, this, std::placeholders::_1)));
 
 	return id;
 }
@@ -1399,6 +1528,11 @@ void UIScene::addText(Id id, const String& text, float fontSize)
 void UIScene::addText(Id id, const Text& text)
 {
 	m_texts.assign(id, text);
+}
+
+void UIScene::addText(Id id, Text&& text)
+{
+	m_texts.assign(id, std::move(text));
 }
 
 const Text& UIScene::getText(Id id) const

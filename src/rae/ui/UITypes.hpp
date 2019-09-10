@@ -8,6 +8,20 @@
 namespace rae
 {
 
+enum class HorizontalTextAlignment
+{
+	Left,
+	Center,
+	Right
+};
+
+enum class VerticalTextAlignment
+{
+	Top,
+	Center,
+	Bottom
+};
+
 enum class OrientationType
 {
 	Horizontal,
@@ -70,9 +84,14 @@ struct UIWidgetUpdater
 	std::function<void(Id)> updateFunction;
 };
 
-struct Draggable
+struct TextWidget {};
+struct TextBox
 {
+	bool editing = false;
+	int cursorIndex = 0;
 };
+
+struct Draggable {};
 
 struct StackLayout
 {
@@ -149,9 +168,14 @@ struct Visible
 struct Text
 {
 	Text(){}
-	Text(const String& text, float fontSize = 18.0f) :
-		text(text),
-		fontSize(fontSize)
+	Text(const String& text,
+		float fontSize = 18.0f,
+		HorizontalTextAlignment horizontalAlignment = HorizontalTextAlignment::Center,
+		VerticalTextAlignment verticalAlignment = VerticalTextAlignment::Center) :
+			text(text),
+			fontSize(fontSize),
+			horizontalAlignment(horizontalAlignment),
+			verticalAlignment(verticalAlignment)
 	{
 	}
 
@@ -160,9 +184,8 @@ struct Text
 
 	String text;
 	float fontSize = 18.0f;
-	// enum class TextAlignment::LEFT ::TOP ::CENTER etc.
-	//TextAlignment horizontalAlignment;
-	//TextAlignment verticalAlignment;
+	HorizontalTextAlignment horizontalAlignment = HorizontalTextAlignment::Center;
+	VerticalTextAlignment verticalAlignment = VerticalTextAlignment::Center;
 };
 
 struct Margin

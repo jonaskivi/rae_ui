@@ -71,7 +71,7 @@ void Test2DCoordinates::initUI()
 			{
 			});
 
-	Id resolutionTextBox = ui.createTextBox("1280x720",
+	Id resolutionTextBox = ui.createTextWidget("1280x720",
 		vec3(80.0f, 15.0f, 0.0f),
 		vec3(200.0f, 100.0f, 1.0f),
 		44.0f);

@@ -17,6 +17,21 @@ class AssetSystem;
 class Input;
 struct InputEvent;
 
+// Generic scene data storage, when it is difficult to come up with where to put the table.
+class SceneDataSystem : public ISystem
+{
+public:
+	SceneDataSystem()
+	{
+		addTable(m_names);
+	}
+
+	void setName(Id id, const String& name) { m_names.assign(id, name); }
+	const String& getName(Id id) const { return m_names.get(id); }
+private:
+	Table<String>		m_names;
+};
+
 class Scene
 {
 friend class SceneSystem;
@@ -38,9 +53,14 @@ public:
 	Id createAddObjectButton(AssetSystem& assetSystem);
 	Id createRandomBunnyEntity(AssetSystem& assetSystem);
 	Id createRandomCubeEntity(AssetSystem& assetSystem);
-	Id createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, Id materialId);
-	Id createSphere(AssetSystem& assetSystem, const vec3& position, float radius, Id materialId);
-	Id createBunny(AssetSystem& assetSystem, const vec3& position, Id materialId);
+	Id createCube(
+		AssetSystem& assetSystem,
+		const String& name,
+		const vec3& position,
+		const vec3& halfExtents,
+		Id materialId);
+	Id createSphere(AssetSystem& assetSystem, const String& name, const vec3& position, float radius, Id materialId);
+	Id createBunny(AssetSystem& assetSystem, const String& name, const vec3& position, Id materialId);
 
 	void selectNextEntity();
 
@@ -51,6 +71,7 @@ public:
 	const AssetLinkSystem&	assetLinkSystem()	const { return m_assetLinkSystem; }
 	const EditorSystem&		editorSystem()		const { return m_editorSystem; }
 	const ShapeRenderer&	shapeRenderer()		const { return m_shapeRenderer; }
+	const SceneDataSystem&	sceneDataSystem()	const { return m_sceneDataSystem; }
 
 	EntitySystem&		modifyEntitySystem()	{ return m_entitySystem; }
 	CameraSystem&		modifyCameraSystem()	{ return m_cameraSystem; }
@@ -59,6 +80,7 @@ public:
 	AssetLinkSystem&	modifyAssetLinkSystem()	{ return m_assetLinkSystem; }
 	EditorSystem&		modifyEditorSystem()	{ return m_editorSystem; }
 	ShapeRenderer&		modifyShapeRenderer()	{ return m_shapeRenderer; }
+	SceneDataSystem&	modifySceneDataSystem()	{ return m_sceneDataSystem; }
 
 	bool checkIfNeedsToBeActiveScene()
 	{
@@ -76,6 +98,7 @@ private:
 
 	EntitySystem		m_entitySystem;
 	TransformSystem		m_transformSystem;
+	SceneDataSystem		m_sceneDataSystem;
 	CameraSystem		m_cameraSystem;
 	SelectionSystem		m_selectionSystem;
 	AssetLinkSystem		m_assetLinkSystem;

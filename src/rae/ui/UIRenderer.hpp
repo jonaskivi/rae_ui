@@ -39,7 +39,14 @@ namespace UIRenderer
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f),
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 	void renderTextNano(NVGcontext* vg, const String& text, const Rectangle& rectangle, float fontSize = 18.0f,
-			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
+			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f),
+			HorizontalTextAlignment horizontalAlignment = HorizontalTextAlignment::Center,
+			VerticalTextAlignment verticalAlignment = VerticalTextAlignment::Center);
+	void renderTextWithCursorNano(NVGcontext* vg, const String& text, const Rectangle& rectangle, float fontSize = 18.0f,
+			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f),
+			HorizontalTextAlignment horizontalAlignment = HorizontalTextAlignment::Center,
+			VerticalTextAlignment verticalAlignment = VerticalTextAlignment::Center,
+			int cursorIndex = 0);
 	void renderMultilineTextNano(NVGcontext* vg, const String& text, const Rectangle& rectangle, float fontSize = 18.0f,
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 	void renderGrid(

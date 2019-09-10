@@ -93,21 +93,21 @@ void Pihlaja::init3D()
 		auto& transformSystem = scene.modifyTransformSystem();
 		auto& selectionSystem = scene.modifySelectionSystem();
 
-		Id planet = scene.createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, planetMaterial);
+		Id planet = scene.createSphere(assetSystem, "Planet", vec3(0.0f, 0.0f, -100.5f), 100.0f, planetMaterial);
 		selectionSystem.addDisableHovering(planet);
 
-		Id sphere5 = scene.createSphere(assetSystem, vec3(0.0f, 1.0f, 0.0f), 0.5f, material1);
-		Id sphere1 = scene.createSphere(assetSystem, vec3(0.0f, 2.0f, 0.0f), 0.5f, material2);
-		Id cube2   = scene.createCube  (assetSystem, vec3(0.0f, 1.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), material1);
-		Id sphere3 = scene.createSphere(assetSystem, vec3(-1.0f, 2.0f, 0.0f), 0.5f, material3);
-		Id sphere4 = scene.createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, material4);
+		Id sphere5 = scene.createSphere(assetSystem, "Sphere5", vec3(0.0f, 1.0f, 0.0f), 0.5f, material1);
+		Id sphere1 = scene.createSphere(assetSystem, "Sphere1", vec3(0.0f, 2.0f, 0.0f), 0.5f, material2);
+		Id cube2   = scene.createCube  (assetSystem, "Cube2", vec3(0.0f, 1.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), material1);
+		Id sphere3 = scene.createSphere(assetSystem, "Sphere3", vec3(-1.0f, 2.0f, 0.0f), 0.5f, material3);
+		Id sphere4 = scene.createSphere(assetSystem, "Sphere4", vec3(5.15f, 6.0f, 1.0f), 1.0f, material4);
 
 		transformSystem.addChild(sphere1, cube2);
 		transformSystem.addChild(sphere1, sphere3);
 
 		// Lights
-		Id bigLight = scene.createSphere(assetSystem, vec3(0.0f, 6.0f, -1.0f), 2.0f, lightMaterial1);
-		Id smallLight = scene.createSphere(assetSystem, vec3(3.85, 2.3, -0.15f), 0.2f, lightMaterial2);
+		Id bigLight = scene.createSphere(assetSystem, "Big light", vec3(0.0f, 6.0f, -1.0f), 2.0f, lightMaterial1);
+		Id smallLight = scene.createSphere(assetSystem, "Small light", vec3(3.85, 2.3, -0.15f), 0.2f, lightMaterial2);
 
 		// Should make this automatic after addChild somehow.
 		transformSystem.syncLocalAndWorldTransforms();
@@ -118,19 +118,19 @@ void Pihlaja::init3D()
 		auto& transformSystem = scene.modifyTransformSystem();
 		auto& selectionSystem = scene.modifySelectionSystem();
 
-		Id planet = scene.createSphere(assetSystem, vec3(0.0f, 0.0f, -100.5f), 100.0f, planetMaterial);
+		Id planet = scene.createSphere(assetSystem, "Planet", vec3(0.0f, 0.0f, -100.5f), 100.0f, planetMaterial);
 		selectionSystem.addDisableHovering(planet);
 
-		Id sphere1 = scene.createSphere(assetSystem, vec3(0.0f, 4.0f, 0.0f), 0.5f, material1);
-		Id cube2   = scene.createCube(assetSystem,   vec3(0.0f, 6.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), material2);
-		Id sphere3 = scene.createSphere(assetSystem, vec3(0.0f, 8.25f, 0.0f), 0.5f, material3);
-		Id sphere4 = scene.createSphere(assetSystem, vec3(5.15f, 6.0f, 1.0f), 1.0f, material4);
+		Id sphere1 = scene.createSphere(assetSystem, "Sphere1", vec3(0.0f, 4.0f, 0.0f), 0.5f, material1);
+		Id cube2   = scene.createCube(assetSystem,   "Cube2", vec3(0.0f, 6.0f, 0.0f), vec3(0.5f, 0.5f, 0.5f), material2);
+		Id sphere3 = scene.createSphere(assetSystem, "Sphere3", vec3(0.0f, 8.25f, 0.0f), 0.5f, material3);
+		Id sphere4 = scene.createSphere(assetSystem, "Sphere4", vec3(5.15f, 6.0f, 1.0f), 1.0f, material4);
 
 		transformSystem.addChild(sphere4, sphere1);
 		transformSystem.addChild(sphere4, cube2);
 		transformSystem.addChild(sphere4, sphere3);
 
-		Id bunny1 = scene.createBunny(assetSystem, vec3(0.0f, 0.0f, 0.0f), material1);
+		Id bunny1 = scene.createBunny(assetSystem, "Bunny", vec3(0.0f, 0.0f, 0.0f), material1);
 
 		// Should make this automatic after addChild somehow.
 		transformSystem.syncLocalAndWorldTransforms();
@@ -207,7 +207,7 @@ void Pihlaja::initUI()
 
 	float TitleFontSize = 22.0f;
 
-	Id videoControlsText = ui.createTextBox("Video Controls",
+	Id videoControlsText = ui.createTextWidget("Video Controls",
 		vec3(0.0f, 38.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
 		TitleFontSize);
@@ -226,7 +226,7 @@ void Pihlaja::initUI()
 	trans.addChild(videoControls, rewindButton);
 
 	#ifdef _WIN32
-		Id noVideoText = ui.createTextBox("No video playback on Windows for now.",
+		Id noVideoText = ui.createTextWidget("No video playback on Windows for now.",
 		vec3(0.0f, 38.0f, 0.0f),
 		vec3(100.0f, 10.0f, 1.0f));
 		trans.addChild(videoControls, noVideoText);
@@ -242,20 +242,11 @@ void Pihlaja::initUI()
 	ui.addStackLayout(raytracerControls);
 	trans.addChild(layerContainer, raytracerControls);
 
-	Id panelTitleText = ui.createTextBox("Raytracer Controls",
+	Id panelTitleText = ui.createTextWidget("Raytracer Controls",
 		vec3(0.0f, 38.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f),
 		TitleFontSize);
 	trans.addChild(raytracerControls, panelTitleText);
-
-	Id panelMaximizeButton = ui.createButton("Maximize",
-		vec3(0.0f, 35.0f, 0.0f),
-		vec3(50.0f, 10.0f, 1.0f),
-		[&, raytracerControls]()
-		{
-			ui.toggleMaximizer(raytracerControls);
-		});
-	trans.addChild(raytracerControls, panelMaximizeButton);
 
 	Id renderModeButton = ui.createButton("Render Mode",
 		vec3(0.0f, 35.0f, 0.0f),
@@ -297,7 +288,44 @@ void Pihlaja::initUI()
 		});
 	trans.addChild(raytracerControls, saveImageButton);
 
-	Id colorPropertyEditor = ui.createTextBox("Material:",
+	Id namePropertyEditor = ui.createTextBox(
+		Text("Name:", 22.0f,
+			HorizontalTextAlignment::Left, VerticalTextAlignment::Center),
+		vec3(0.0f, 0.0f, 0.0f),
+		vec3(60.0f, 10.0f, 1.0f),
+		false);
+	ui.connectUpdater(namePropertyEditor,
+		[&](Id id)
+		{
+			auto& text = ui.modifyText(id);
+			const auto& sceneSystem = m_engine.sceneSystem();
+			String setText;
+			if (sceneSystem.hasActiveScene())
+			{
+				const auto& scene = sceneSystem.activeScene();
+				const auto& selection = scene.selectionSystem();
+				const auto& trans = scene.transformSystem();
+				const auto& assetLinkSystem = scene.assetLinkSystem();
+
+				Id selectedOrHovered = selection.anySelectedOrHovered();
+				if (selectedOrHovered != InvalidId)
+				{
+					setText = "Name: " + scene.sceneDataSystem().getName(selectedOrHovered);
+				}
+				else
+				{
+					setText = "Empty";
+				}
+			}
+			else
+			{
+				setText = "No active scene";
+			}
+			text.text = setText;
+		});
+	trans.addChild(raytracerControls, namePropertyEditor);
+
+	Id colorPropertyEditor = ui.createTextWidget("Material:",
 		vec3(0.0f, 0.0f, 0.0f),
 		vec3(120.0f, 10.0f, 1.0f),
 		14.0f,
@@ -334,11 +362,10 @@ void Pihlaja::initUI()
 			}
 			text.text = setText;
 		});
-
 	trans.addChild(raytracerControls, colorPropertyEditor);
 
 	bool isMultilineText = true;
-	Id propertiesText = ui.createTextBox("Nothing selected or hovered.",
+	Id propertiesText = ui.createTextWidget("Nothing selected or hovered.",
 		vec3(0.0f, 0.0f, 0.0f),
 		vec3(120.0f, 40.0f, 1.0f),
 		14.0f,
@@ -379,14 +406,14 @@ void Pihlaja::initUI()
 
 	trans.addChild(raytracerControls, propertiesText);
 
-	/*Id positionTextBox = ui.createTextBox(
+	/*Id positionTextBox = ui.createTextWidget(
 		vec3(-100.0f, 380.0f, 0.0f),
 		vec3(98.0f, 25.0f, 1.0f));
 	ui.bindValue(positionTextBox, m_selectionSystem.positionProperty or something);
 	*/
 
 	/*
-	Id debugNeedsFrameUpdateButton = ui.createTextBox("NeedsFrameUpdate",
+	Id debugNeedsFrameUpdateButton = ui.createTextWidget("NeedsFrameUpdate",
 		vec3(0.0f, 38.0f, 0.0f),
 		vec3(50.0f, 10.0f, 1.0f));
 	ui.bindActive(debugNeedsFrameUpdateButtonId, m_needsFrameUpdate);

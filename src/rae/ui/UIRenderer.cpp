@@ -265,7 +265,7 @@ void UIRenderer::renderButtonNano(NVGcontext* vg, const String& text, const Rect
 
 	nvgFontSize(vg, 18.0f);
 	nvgFontFace(vg, "sans-bold");
-	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
 
 	// Text shadow
 	nvgFontBlur(vg,2);
@@ -285,18 +285,52 @@ void UIRenderer::renderButtonNano(NVGcontext* vg, const String& text, const Rect
 	nvgRestore(vg);
 }
 
+NVGalign horizontalTextAlignmentToNanoVG(HorizontalTextAlignment alignment)
+{
+	switch(alignment)
+	{
+		case HorizontalTextAlignment::Left:
+			return NVG_ALIGN_LEFT;
+		case HorizontalTextAlignment::Center:
+			return NVG_ALIGN_CENTER;
+		case HorizontalTextAlignment::Right:
+			return NVG_ALIGN_RIGHT;
+	}
+	return NVG_ALIGN_LEFT;
+}
+
+NVGalign verticalTextAlignmentToNanoVG(VerticalTextAlignment alignment)
+{
+	switch(alignment)
+	{
+		case VerticalTextAlignment::Top:
+			return NVG_ALIGN_TOP;
+		case VerticalTextAlignment::Center:
+			return NVG_ALIGN_MIDDLE;
+		case VerticalTextAlignment::Bottom:
+			return NVG_ALIGN_BOTTOM;
+		//case VerticalTextAlignment::Baseline:
+		//	return NVG_ALIGN_BASELINE;
+	}
+	return NVG_ALIGN_MIDDLE;
+}
+
 void UIRenderer::renderTextNano(
 	NVGcontext* vg,
 	const String& text,
 	const Rectangle& rectangle,
 	float fontSize,
-	const Color& textColor)
+	const Color& textColor,
+	HorizontalTextAlignment horizontalAlignment,
+	VerticalTextAlignment verticalAlignment)
 {
 	nvgSave(vg);
 
 	nvgFontSize(vg, fontSize);
 	nvgFontFace(vg, "sans-bold");
-	nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+	nvgTextAlign(vg,
+		horizontalTextAlignmentToNanoVG(horizontalAlignment) |
+		verticalTextAlignmentToNanoVG(verticalAlignment));
 
 	// Text shadow
 	nvgFontBlur(vg,2);
@@ -306,18 +340,152 @@ void UIRenderer::renderTextNano(
 	const float rectangleHalfWidth = rectangle.width * 0.5f;
 	const float rectangleHalfHeight = rectangle.height * 0.5f;
 
+	float x = rectangle.x;
+	float y = rectangle.y;
+
+	if (horizontalAlignment == HorizontalTextAlignment::Center)
+	{
+		x = rectangle.x + rectangleHalfWidth;
+	}
+	else if (horizontalAlignment == HorizontalTextAlignment::Right)
+	{
+		x = rectangle.x + rectangle.width;
+	}
+
+	if (verticalAlignment == VerticalTextAlignment::Center)
+	{
+		y = rectangle.y + rectangleHalfHeight;
+	}
+	else if (verticalAlignment == VerticalTextAlignment::Bottom /*|| verticalAlignment == VerticalTextAlignment::Baseline*/)
+	{
+		y = rectangle.y + rectangle.height;
+	}
+
 	nvgText(vg,
-		rectangle.x + rectangleHalfWidth,
-		rectangle.y + rectangleHalfHeight + shadowOffset,
+		x,
+		y + shadowOffset,
 		text.c_str(), nullptr);
 
 	// Actual text
 	nvgFontBlur(vg,0);
 	nvgFillColor(vg, nvgRGBAf(textColor.r, textColor.g, textColor.b, textColor.a));
 	nvgText(vg,
-		rectangle.x + rectangleHalfWidth,
-		rectangle.y + rectangleHalfHeight,
+		x,
+		y,
 		text.c_str(), nullptr);
+
+	nvgRestore(vg);
+}
+
+void UIRenderer::renderTextWithCursorNano(
+	NVGcontext* vg,
+	const String& text,
+	const Rectangle& rectangle,
+	float fontSize,
+	const Color& textColor,
+	HorizontalTextAlignment horizontalAlignment,
+	VerticalTextAlignment verticalAlignment,
+	int cursorIndex)
+{
+	nvgSave(vg);
+
+	nvgFontSize(vg, fontSize);
+	nvgFontFace(vg, "sans-bold");
+	nvgTextAlign(vg,
+		horizontalTextAlignmentToNanoVG(horizontalAlignment) |
+		verticalTextAlignmentToNanoVG(verticalAlignment));
+
+	float lineHeight;
+	nvgTextMetrics(vg, nullptr, nullptr, &lineHeight);
+
+	// Text shadow
+	nvgFontBlur(vg,2);
+	nvgFillColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, textColor.a * 0.5f));
+
+	const float shadowOffset = 1.0f;
+	const float rectangleHalfWidth = rectangle.width * 0.5f;
+	const float rectangleHalfHeight = rectangle.height * 0.5f;
+
+	float x = rectangle.x;
+	float y = rectangle.y;
+
+	float textTopY = y;
+
+	if (horizontalAlignment == HorizontalTextAlignment::Center)
+	{
+		x = rectangle.x + rectangleHalfWidth;
+	}
+	else if (horizontalAlignment == HorizontalTextAlignment::Right)
+	{
+		x = rectangle.x + rectangle.width;
+	}
+
+	if (verticalAlignment == VerticalTextAlignment::Center)
+	{
+		y = rectangle.y + rectangleHalfHeight;
+		textTopY = rectangle.y + rectangleHalfHeight - (fontSize * 0.5f);
+	}
+	else if (verticalAlignment == VerticalTextAlignment::Bottom /*|| verticalAlignment == VerticalTextAlignment::Baseline*/)
+	{
+		y = rectangle.y + rectangle.height;
+		textTopY = rectangle.y + rectangleHalfHeight - (fontSize * 0.5f);
+	}
+
+	nvgText(vg,
+		x,
+		y + shadowOffset,
+		text.c_str(), nullptr);
+
+	// Actual text
+	nvgFontBlur(vg,0);
+	nvgFillColor(vg, nvgRGBAf(textColor.r, textColor.g, textColor.b, textColor.a));
+	nvgText(vg,
+		x,
+		y,
+		text.c_str(), nullptr);
+
+	// Draw the cursor
+
+	if (cursorIndex >= text.size())
+	{
+		nvgRestore(vg);
+		return;
+	}
+
+	constexpr int GlyphPositionBufferSize = 100;
+	NVGglyphPosition glyphs[100];
+
+	const char* end = nullptr; // If end is specified only the substring is used, or so they say.
+	int nglyphs = nvgTextGlyphPositions(vg, x, y, text.c_str(), end, glyphs, GlyphPositionBufferSize);
+
+	int rowWidth = text.size();
+
+	float caretx = 0.0f;
+	float px = 0.0f;
+
+/*
+	for (int j = 0; j < nglyphs; ++j)
+	{
+		float x0 = glyphs[j].x;
+		float x1 = (j+1 < nglyphs) ? glyphs[j+1].x : x + rowWidth;
+		float gx = x0 * 0.3f + x1 * 0.7f;
+		if (mx >= px && mx < gx)
+		{
+			caretx = glyphs[j].x;
+		}
+		px = gx;
+	}
+*/
+
+	caretx = glyphs[cursorIndex].x;
+	float caretWidth = 2.0f;
+
+	nvgBeginPath(vg);
+	nvgFillColor(vg, nvgRGBA(255, 192, 0, 255));
+	nvgRect(vg, caretx, textTopY, caretWidth, lineHeight);
+	nvgFill(vg);
+
+	//
 
 	nvgRestore(vg);
 }

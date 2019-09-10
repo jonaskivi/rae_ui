@@ -517,4 +517,25 @@ Scrap this:
 	Also dynamic system arrays could be interesting, but dependencies might be difficult.
 
 
+2019.08.24
+
+Long time no diary. Refactoring the Pihlaja codebase has gone really well. The scenes now have their own
+systems. A lot of bugs were fixed, and the code got a lot cleaner. Especially the threading code for the
+raytracer is now working as intented. The raytracer is of course still slow and CPU based. Should try to
+test turning it into an OpenCL GPU raytracer with the help of some tutorials.
+
+Since I'm on a train, on my way from Helsinki to Tampere, and I didn't have all the things installed,
+which I would need to compile, I haven't been able to do any real work this time. So I might as well try
+to think of widgets that we need.
+
+- Checkbox
+- Editable TextBox. Hmm. How to name these and do we need a separate Label widget. Separate from Text, which
+is in a way more generic. A Label is the thing that you have in front of a TextBox telling what is the 
+name of the property that it will change.
+- ColorPropertyEditor
+	A single textbox and a colored preview square. Ideally a color chooser popup, when clicking the square.
+	Alternatively three textboxes, but then where do we put the hex value? Possibly a format chooser
+	in context menu, so you can support multiple different color "systems". Float 0.0-1.0, uint8 0-256, hex?
+- Vector3 and Vector4 property editor(s). Probably just the same thing?
+	Label, TextBox x 3 or 4.
 

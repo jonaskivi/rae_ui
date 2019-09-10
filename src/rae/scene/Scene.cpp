@@ -28,6 +28,7 @@ UpdateStatus Scene::update()
 	auto selectionSystemStatus = m_selectionSystem.update();
 	m_shapeRenderer.update(); // Doesn't really do anything at the moment. Just for completeness.
 	auto editorSystemStatus = m_editorSystem.update(*this);
+	m_sceneDataSystem.update();
 
 	// Return update status
 	if (transformSystemStatus != UpdateStatus::NotChanged)
@@ -49,6 +50,7 @@ void Scene::onFrameEnd()
 	m_selectionSystem.onFrameEnd();
 	m_shapeRenderer.onFrameEnd();
 	m_editorSystem.onFrameEnd();
+	m_sceneDataSystem.onFrameEnd();
 }
 
 void Scene::handleInput(const InputState& inputState, const Array<InputEvent>& events)
@@ -105,7 +107,12 @@ Id Scene::createRandomCubeEntity(AssetSystem& assetSystem)
 	return id;
 }
 
-Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const vec3& halfExtents, Id materialId)
+Id Scene::createCube(
+	AssetSystem& assetSystem,
+	const String& name,
+	const vec3& position,
+	const vec3& halfExtents,
+	Id materialId)
 {
 	qua rotation = qua();
 	//qua rotation = qua(vec3(0.0f, Math::toRadians(45.0f), 0.0f));
@@ -124,10 +131,15 @@ Id Scene::createCube(AssetSystem& assetSystem, const vec3& position, const vec3&
 	m_assetLinkSystem.addMaterialLink(id, materialId);
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getCubeMeshId());
 
+	if (name != "")
+	{
+		m_sceneDataSystem.setName(id, name);
+	}
+
 	return id;
 }
 
-Id Scene::createSphere(AssetSystem& assetSystem, const vec3& position, float radius, Id materialId)
+Id Scene::createSphere(AssetSystem& assetSystem, const String& name, const vec3& position, float radius, Id materialId)
 {
 	vec3 halfExtents = vec3(radius, radius, radius);
 	qua rotation = qua();
@@ -143,10 +155,15 @@ Id Scene::createSphere(AssetSystem& assetSystem, const vec3& position, float rad
 	m_assetLinkSystem.addMaterialLink(id, materialId);
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getSphereMeshId());
 
+	if (name != "")
+	{
+		m_sceneDataSystem.setName(id, name);
+	}
+
 	return id;
 }
 
-Id Scene::createBunny(AssetSystem& assetSystem, const vec3& position, Id materialId)
+Id Scene::createBunny(AssetSystem& assetSystem, const String& name, const vec3& position, Id materialId)
 {
 	vec3 halfExtents = vec3(0.5f, 0.5f, 0.5f);
 
@@ -157,6 +174,11 @@ Id Scene::createBunny(AssetSystem& assetSystem, const vec3& position, Id materia
 
 	m_assetLinkSystem.addMaterialLink(id, materialId);
 	m_assetLinkSystem.addMeshLink(id, assetSystem.getBunnyMeshId());
+
+	if (name != "")
+	{
+		m_sceneDataSystem.setName(id, name);
+	}
 
 	return id;
 }

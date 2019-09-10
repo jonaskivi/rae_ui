@@ -68,7 +68,12 @@ public:
 	Id createButton(const String& text, const Rectangle& rectangle, std::function<void()> handler);
 	Id createButton(const String& text, const vec3& position, const vec3& extents, std::function<void()> handler);
 	Id createToggleButton(const String& text, const vec3& position, const vec3& extents, Bool& property);
-	Id createTextBox(const String& text, const vec3& position, const vec3& extents, float fontSize = 18.0f,
+	Id createTextWidget(const String& text, const vec3& position, const vec3& extents, float fontSize = 18.0f,
+		bool multiline = false);
+	Id createTextBox(
+		Text&& text,
+		const vec3& position,
+		const vec3& extents,
 		bool multiline = false);
 	Id createBox(const Rectangle& rectangle, const Color& color);
 	Id createBox(const vec3& position, const vec3& extents, const Color& color);
@@ -116,6 +121,7 @@ public:
 	// and possibly then rename the Table to be a Component class.
 	void addText(Id id, const String& text, float fontSize = 18.0f);
 	void addText(Id id, const Text& text);
+	void addText(Id id, Text&& text);
 	const Text& getText(Id id) const;
 	Text& modifyText(Id id);
 
@@ -176,9 +182,14 @@ public:
 	void renderButton(Id id) const;
 	void renderButtonGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		const Color& color, const Color& textColor) const;
+	void renderTextBox(Id id) const;
+	void renderTextBoxGeneric(const Text& text, const Transform& transform, const Box& box, const Pivot& pivot,
+		const Color& color, const Color& textColor, int cursorIndex) const;
 	void renderText(Id id) const;
 	void renderTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
-		float fontSize, const Color& color) const;
+		float fontSize, const Color& color,
+		HorizontalTextAlignment horizontalAlignment = HorizontalTextAlignment::Center,
+		VerticalTextAlignment verticalAlignment = VerticalTextAlignment::Center) const;
 	void renderMultilineText(Id id) const;
 	void renderMultilineTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		float fontSize, const Color& color, bool limitToBoxWidth = true) const;
@@ -212,35 +223,43 @@ private:
 	Table<UIWidgetRenderer>		m_uiWidgetRenderers;
 	Table<UIWidgetUpdater>		m_uiWidgetUpdaters;
 
+	// Widget types (and components that only apply to that widget type).
+
+	Table<TextWidget>	m_textWidgets; // Has a text component and just renders that text without a background or anything.
+	Table<TextBox>		m_textBoxes; // Editable textbox.
+
+	Table<Button>		m_buttons; // Clickable button, which usually has a Command that is executed when clicking.
+	Array<Color>		m_buttonThemeColors;
+
+	Table<Viewport>		m_viewports; // 3D viewport which is associated with a 3D Scene, and rendered separately from UI.
+	Array<Color>		m_viewportThemeColors;
+
+	Table<Panel>		m_panels; // Colored rectangle that usually has a layout and some children.
+	Array<Color>		m_panelThemeColors;
+
+	// General purpose shared widget components.
+
 	// Because of Table default value, you should only assign Visibles to entities that might be hidden at some point.
 	// So all entities which don't have this assigned, will be visible by default.
 	Table<Visible>		m_visibles;
-
-	Table<Text>			m_texts;
-	Table<Button>		m_buttons;
-	Array<Color>		m_buttonThemeColors;
-
+	Table<Text>			m_texts; // General purpose text container for buttons, textboxes and textWidget itself etc.
 	Table<Command>		m_commands;
+	// RAE_TODO separate foreground color and background color. Otherwise it is ambiguous for Label vs Button.
 	Table<Color>		m_colors;
+	// Used as general purpose on/off true/false boolean, for example in a CheckBox.
 	Table<Active>		m_actives;
-
-	Table<Viewport>		m_viewports;
-	Array<Color>		m_viewportThemeColors;
-	Table<Panel>		m_panels;
-	Array<Color>		m_panelThemeColors;
+	Table<Draggable>	m_draggables;
+	Table<ImageLink>	m_imageLinks;
 
 	Table<Margin>		m_margins;
 	Table<Keyline>		m_keylines;
 	Table<KeylineLink>	m_keylineLinks;
 
+	// Layouts
 	Table<StackLayout>	m_stackLayouts;
 	Table<GridLayout>	m_gridLayouts;
 	bool				m_requestUpdateMaximizers = false;
 	Table<Maximizer>	m_maximizers;
-
-	Table<ImageLink>	m_imageLinks;
-
-	Table<Draggable>	m_draggables;
 
 	NVGcontext*			m_nanoVG;
 

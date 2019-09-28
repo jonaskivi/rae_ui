@@ -285,7 +285,7 @@ void UIRenderer::renderButtonNano(NVGcontext* vg, const String& text, const Rect
 	nvgRestore(vg);
 }
 
-NVGalign horizontalTextAlignmentToNanoVG(HorizontalTextAlignment alignment)
+NVGalign UIRenderer::horizontalTextAlignmentToNanoVG(HorizontalTextAlignment alignment)
 {
 	switch(alignment)
 	{
@@ -299,7 +299,7 @@ NVGalign horizontalTextAlignmentToNanoVG(HorizontalTextAlignment alignment)
 	return NVG_ALIGN_LEFT;
 }
 
-NVGalign verticalTextAlignmentToNanoVG(VerticalTextAlignment alignment)
+NVGalign UIRenderer::verticalTextAlignmentToNanoVG(VerticalTextAlignment alignment)
 {
 	switch(alignment)
 	{
@@ -385,7 +385,7 @@ void UIRenderer::renderTextWithCursorNano(
 	const Color& textColor,
 	HorizontalTextAlignment horizontalAlignment,
 	VerticalTextAlignment verticalAlignment,
-	int cursorIndex)
+	float cursorPixels)
 {
 	nvgSave(vg);
 
@@ -445,6 +445,7 @@ void UIRenderer::renderTextWithCursorNano(
 		text.c_str(), nullptr);
 
 	// Draw the cursor
+/*
 
 	if (cursorIndex >= text.size())
 	{
@@ -463,26 +464,15 @@ void UIRenderer::renderTextWithCursorNano(
 	float caretx = 0.0f;
 	float px = 0.0f;
 
-/*
-	for (int j = 0; j < nglyphs; ++j)
-	{
-		float x0 = glyphs[j].x;
-		float x1 = (j+1 < nglyphs) ? glyphs[j+1].x : x + rowWidth;
-		float gx = x0 * 0.3f + x1 * 0.7f;
-		if (mx >= px && mx < gx)
-		{
-			caretx = glyphs[j].x;
-		}
-		px = gx;
-	}
+	caretx = glyphs[cursorIndex].x;
+
 */
 
-	caretx = glyphs[cursorIndex].x;
 	float caretWidth = 2.0f;
 
 	nvgBeginPath(vg);
 	nvgFillColor(vg, nvgRGBA(255, 192, 0, 255));
-	nvgRect(vg, caretx, textTopY, caretWidth, lineHeight);
+	nvgRect(vg, cursorPixels, textTopY, caretWidth, lineHeight);
 	nvgFill(vg);
 
 	//

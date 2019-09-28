@@ -17,6 +17,9 @@ namespace rae
 
 namespace UIRenderer
 {
+	NVGalign horizontalTextAlignmentToNanoVG(HorizontalTextAlignment alignment);
+	NVGalign verticalTextAlignmentToNanoVG(VerticalTextAlignment alignment);
+
 	// NanoVG takes input in pixels, and so do these helper functions:
 	void renderLineNano(NVGcontext* vg, const vec2& from, const vec2& to,
 			const Color& color = Color(0.1f, 0.1f, 0.1f, 1.0f));
@@ -46,7 +49,7 @@ namespace UIRenderer
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f),
 			HorizontalTextAlignment horizontalAlignment = HorizontalTextAlignment::Center,
 			VerticalTextAlignment verticalAlignment = VerticalTextAlignment::Center,
-			int cursorIndex = 0);
+			float cursorPixels = 0.0f);
 	void renderMultilineTextNano(NVGcontext* vg, const String& text, const Rectangle& rectangle, float fontSize = 18.0f,
 			const Color& textColor = Color(1.0f, 1.0f, 1.0f, 1.0f));
 	void renderGrid(

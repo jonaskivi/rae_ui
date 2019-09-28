@@ -58,6 +58,7 @@ public:
 
 	void doLayout();
 	void hover();
+	void hoverText(Id id);
 
 	// Attach this scene to an existing WindowSystem window.
 	Id connectToWindow(const Window& window);
@@ -183,8 +184,14 @@ public:
 	void renderButtonGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		const Color& color, const Color& textColor) const;
 	void renderTextBox(Id id) const;
-	void renderTextBoxGeneric(const Text& text, const Transform& transform, const Box& box, const Pivot& pivot,
-		const Color& color, const Color& textColor, int cursorIndex) const;
+	void renderTextBoxGeneric(
+		const Text& text,
+		const TextBox& textBox,
+		const Transform& transform,
+		const Box& box,
+		const Pivot& pivot,
+		const Color& color,
+		const Color& textColor) const;
 	void renderText(Id id) const;
 	void renderTextGeneric(const String& text, const Transform& transform, const Box& box, const Pivot& pivot,
 		float fontSize, const Color& color,

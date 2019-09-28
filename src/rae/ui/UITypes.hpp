@@ -44,6 +44,23 @@ struct Rectangle
 		return *this;
 	}
 
+	bool hit(const vec2& position) const
+	{
+		if (position.x <= right() &&
+			position.x >= x &&
+			position.y <= bottom() &&
+			position.y >= y)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	float left() const { return x; }
+	float right() const { return x + width; }
+	float top() const { return y; }
+	float bottom() const { return y + height; }
+
 	float x = 0.0f;
 	float y = 0.0f;
 	float width = 0.0f;
@@ -89,6 +106,7 @@ struct TextBox
 {
 	bool editing = false;
 	int cursorIndex = 0;
+	float cursorPixels = 0.0f;
 };
 
 struct Draggable {};

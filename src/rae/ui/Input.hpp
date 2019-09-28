@@ -221,8 +221,14 @@ struct InputState
 	void grab(Id id) { m_grabbedId = id; }
 	void clearGrab() { m_grabbedId = InvalidId; }
 
+	bool isKeyboardFocus() const { return m_keyboardFocusId != InvalidId; }
+	void setKeyboardFocus(Id id) { m_keyboardFocusId = id; }
+	Id getKeyboardFocus() const { return m_keyboardFocusId; }
+	void clearKeyboardFocus() { m_keyboardFocusId = InvalidId; }
+
 protected:
 	Id		m_grabbedId = InvalidId;
+	Id		m_keyboardFocusId = InvalidId;
 };
 
 class Input : public ISystem

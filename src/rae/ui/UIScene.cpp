@@ -389,8 +389,126 @@ void UIScene::hover()
 
 	if (topMostId != InvalidId)
 	{
+		if (m_textBoxes.check(topMostId))
+		{
+			hoverText(topMostId);
+		}
+
 		m_selectionSystem.setHovered(topMostId, true);
 	}
+}
+
+void UIScene::hoverText(Id id)
+{
+	const Text& text = m_texts.get(id);
+	TextBox& textBox = m_textBoxes.modify(id);
+	const Color& textColor = Colors::white;
+
+	NVGcontext* vg = m_nanoVG;
+
+	HorizontalTextAlignment horizontalAlignment = text.horizontalAlignment;
+	VerticalTextAlignment verticalAlignment = text.verticalAlignment;
+	float fontSize = text.fontSize;
+
+	if (not m_transformSystem.hasWorldTransform(id) or
+		not m_transformSystem.hasBox(id))
+	{
+		return;
+	}
+
+	const Transform& transform = m_transformSystem.getWorldTransform(id);
+	const Box& box = m_transformSystem.getBox(id);
+	const Pivot& pivot = m_transformSystem.getPivot(id);
+
+	Rectangle rectangle = convertToPixelRectangle(transform, box, pivot);
+
+	vec2 mousePixels = m_screenSystem.mmToPixels(vec2(m_input.mouse.xMM, m_input.mouse.yMM));
+
+	bool hit = rectangle.hit(mousePixels);
+
+	//
+
+	nvgSave(vg);
+
+	nvgFontSize(vg, fontSize);
+	nvgFontFace(vg, "sans-bold");
+	nvgTextAlign(vg,
+		UIRenderer::horizontalTextAlignmentToNanoVG(horizontalAlignment) |
+		UIRenderer::verticalTextAlignmentToNanoVG(verticalAlignment));
+
+	float lineHeight;
+	nvgTextMetrics(vg, nullptr, nullptr, &lineHeight);
+
+	const float rectangleHalfWidth = rectangle.width * 0.5f;
+	const float rectangleHalfHeight = rectangle.height * 0.5f;
+
+	float x = rectangle.x;
+	float y = rectangle.y;
+
+	float textTopY = y;
+
+	if (horizontalAlignment == HorizontalTextAlignment::Center)
+	{
+		x = rectangle.x + rectangleHalfWidth;
+	}
+	else if (horizontalAlignment == HorizontalTextAlignment::Right)
+	{
+		x = rectangle.x + rectangle.width;
+	}
+
+	if (verticalAlignment == VerticalTextAlignment::Center)
+	{
+		y = rectangle.y + rectangleHalfHeight;
+		textTopY = rectangle.y + rectangleHalfHeight - (fontSize * 0.5f);
+	}
+	else if (verticalAlignment == VerticalTextAlignment::Bottom /*|| verticalAlignment == VerticalTextAlignment::Baseline*/)
+	{
+		y = rectangle.y + rectangle.height;
+		textTopY = rectangle.y + rectangleHalfHeight - (fontSize * 0.5f);
+	}
+
+	// Hover the glyphs
+
+	constexpr int GlyphPositionBufferSize = 100;
+	NVGglyphPosition glyphs[100];
+
+	// Sadly nanovg doesn't give us the position where the last glyph ends. That's why we have to hack a space in there,
+	// and use its start pos as end pos.
+
+	String textWithExtraSpace = text.text + " ";
+
+	const char* end = nullptr; // If end is specified only the substring is used, or so they say.
+	int nglyphs = nvgTextGlyphPositions(vg, x, y, textWithExtraSpace.c_str(), end, glyphs, GlyphPositionBufferSize);
+
+	int rowWidth = text.text.size();
+
+	float caretX = 0.0f;
+	float iterX = 0.0f;
+
+	//const Color& tempColor = Colors::blue;
+
+	for (int j = 0; j < nglyphs; ++j)
+	{
+		float x0 = glyphs[j].x;
+		float x1 = (j+1 < nglyphs) ? glyphs[j+1].x : x0 + rowWidth;
+		float glyphX = (x0 * 0.3f) + (x1 * 0.7f);
+
+		// Debug draw a blue line on each glyph start. Need to disable TextBox box rendering to see this.
+		/*
+		nvgBeginPath(vg);
+		nvgFillColor(vg, nvgRGBAf(tempColor.r, tempColor.g, tempColor.b, tempColor.a));
+		nvgRect(vg, x0, textTopY, 1.0f, lineHeight);
+		nvgFill(vg);
+		*/
+
+		if (mousePixels.x >= iterX && mousePixels.x < glyphX)
+		{
+			caretX = glyphs[j].x;
+		}
+		iterX = glyphX;
+	}
+
+	textBox.cursorPixels = caretX;
 }
 
 void UIScene::render2D(NVGcontext* nanoVG, const AssetSystem& assetSystem)
@@ -859,13 +977,8 @@ void UIScene::renderTextBox(Id id) const
 		//bool selected = m_selectionSystem.isSelected(id);
 
 		const TextBox& textBox = m_textBoxes.get(id);
-		int cursorIndex = -1;
-		if (textBox.editing)
-		{
-			cursorIndex = 0;
-		}
 
-		renderTextBoxGeneric(text, transform, box, pivot,
+		renderTextBoxGeneric(text, textBox, transform, box, pivot,
 			(hovered && active ? buttonActiveHoverColor :
 				hovered ? buttonHoverColor :
 				active ? buttonActiveColor :
@@ -874,19 +987,18 @@ void UIScene::renderTextBox(Id id) const
 			(hovered && active ? buttonActiveHoverTextColor :
 				hovered ? buttonHoverTextColor :
 				active ? buttonActiveTextColor :
-				buttonTextColor),
-			cursorIndex);
+				buttonTextColor));
 	}
 }
 
 void UIScene::renderTextBoxGeneric(
 	const Text& text,
+	const TextBox& textBox,
 	const Transform& transform,
 	const Box& box,
 	const Pivot& pivot,
 	const Color& color,
-	const Color& textColor,
-	int cursorIndex) const
+	const Color& textColor) const
 {
 	Rectangle rectangle = convertToPixelRectangle(transform, box, pivot);
 
@@ -904,7 +1016,7 @@ void UIScene::renderTextBoxGeneric(
 		textColor,
 		text.horizontalAlignment,
 		text.verticalAlignment,
-		cursorIndex);
+		textBox.cursorPixels);
 }
 
 void UIScene::renderText(Id id) const

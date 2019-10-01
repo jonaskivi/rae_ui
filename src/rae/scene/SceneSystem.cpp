@@ -41,6 +41,8 @@ void SceneSystem::activateScene(int index)
 	m_activeSceneIdx = index;
 	modifyActiveScene().setIsActive(true);
 	//LOG_F(INFO, "Active Scene set to %i %s", m_activeSceneIdx, activeScene().m_entitySystem.owner().c_str());
+
+	g_shapeRenderer = &(modifyActiveScene().modifyShapeRenderer());
 }
 
 void SceneSystem::deactivateAllScenes()

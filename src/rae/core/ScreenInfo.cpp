@@ -2,7 +2,7 @@
 
 #include "rae/core/ScreenInfo.hpp"
 
-#include "rae/core/Utils.hpp"
+#include "rae/core/Math.hpp"
 
 #ifdef version_catch
 #include "rae/core/catch.hpp"
@@ -29,18 +29,18 @@ SCENARIO("ScreenInfo unittest", "[rae][ScreenInfo]")
 		//REQUIRE(screenInfo.heightToPixels(0.5f) == 800.0f);
 		//REQUIRE(screenInfo.heightToPixels(0.0f) == 0.0f);
 
-		REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(1.0f), 1600.0f ) );
-		REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(0.5f), 800.0f ) );
-		REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(0.0f), 0.0f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(1.0f), 1600.0f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(0.5f), 800.0f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(0.0f), 0.0f ) );
 
-		REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(2560.0f), 1.6f ) );
-		REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(1600.0f), 1.0f ) );
-		REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(800.0f), 0.5f ) );
-		REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(0.0f), 0.0f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(2560.0f), 1.6f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(1600.0f), 1.0f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(800.0f), 0.5f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(0.0f), 0.0f ) );
 
-		REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(1.0f), 1.6f ) );
-		REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(0.5f), 0.8f ) );
-		REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(0.0f), 0.0f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(1.0f), 1.6f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(0.5f), 0.8f ) );
+		REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(0.0f), 0.0f ) );
 
 		WHEN( "the size is changed to 1280 x 800" )
 		{
@@ -53,18 +53,18 @@ SCENARIO("ScreenInfo unittest", "[rae][ScreenInfo]")
 				REQUIRE(screenInfo.screenHeight() == 1.0f);
 				REQUIRE(screenInfo.screenWidth() == 1.6f);
 
-				REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(1.0f), 800.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(0.5f), 400.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(0.0f), 0.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(1.0f), 800.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(0.5f), 400.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(0.0f), 0.0f ) );
 
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(1280.0f), 1.6f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(800.0f), 1.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(400.0f), 0.5f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(0.0f), 0.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(1280.0f), 1.6f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(800.0f), 1.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(400.0f), 0.5f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(0.0f), 0.0f ) );
 
-				REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(1.0f), 1.6f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(0.5f), 0.8f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(0.0f), 0.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(1.0f), 1.6f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(0.5f), 0.8f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(0.0f), 0.0f ) );
 			}
 		}
 
@@ -79,18 +79,18 @@ SCENARIO("ScreenInfo unittest", "[rae][ScreenInfo]")
 				REQUIRE(screenInfo.screenHeight() == 1.0f);
 				REQUIRE(screenInfo.screenWidth() == 1.0f);
 
-				REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(1.0f), 4000.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(0.5f), 2000.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.heightToPixels(0.0f), 0.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(1.0f), 4000.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(0.5f), 2000.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.heightToPixels(0.0f), 0.0f ) );
 
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(4000.0f), 1.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(8000.0f), 2.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(2000.0f), 0.5f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.pixelsToHeight(0.0f), 0.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(4000.0f), 1.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(8000.0f), 2.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(2000.0f), 0.5f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.pixelsToHeight(0.0f), 0.0f ) );
 
-				REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(1.0f), 1.0f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(0.5f), 0.5f ) );
-				REQUIRE( rae::Utils::isEqual( screenInfo.percentToWidth(0.0f), 0.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(1.0f), 1.0f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(0.5f), 0.5f ) );
+				REQUIRE( rae::Math::isEqual( screenInfo.percentToWidth(0.0f), 0.0f ) );
 			}
 		}
 	}

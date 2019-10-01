@@ -2,7 +2,7 @@
 
 #include "rae/core/Types.hpp"
 
-#include "core/Utils.hpp"
+#include "core/Math.hpp"
 #include "rae/visual/Ray.hpp"
 
 #include "rae/animation/Animator.hpp"
@@ -103,6 +103,10 @@ public:
 			m_coordinatesUp = CoordinatesUp::Y;
 		else m_coordinatesUp = CoordinatesUp::Z;
 	}
+
+	const vec3& up() const { return m_up; }
+	const vec3& right() const { return m_right; }
+	const vec3& direction() const { return m_direction; }
 
 protected:
 

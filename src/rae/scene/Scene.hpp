@@ -5,6 +5,7 @@
 #include "rae/entity/Hierarchy.hpp"
 #include "rae/scene/TransformSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
+#include "rae/visual/ShapeRenderer.hpp"
 #include "rae/editor/SelectionSystem.hpp"
 #include "rae/asset/AssetLinkSystem.hpp"
 #include "rae/editor/EditorSystem.hpp"

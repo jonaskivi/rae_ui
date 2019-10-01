@@ -376,7 +376,7 @@ void RayTracer::autoFocus()
 				if (temp < t_max && temp > t_min)
 				{
 					record.t = temp;
-					record.point = ray.pointAtParameter(record.t);
+					record.point = ray.getPointAt(record.t);
 					record.normal = (record.point - position) / radius;
 					record.material = material;
 					return true;
@@ -496,7 +496,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 			if (temp < t_max && temp > t_min)
 			{
 				record.t = temp;
-				record.point = ray.pointAtParameter(record.t);
+				record.point = ray.getPointAt(record.t);
 				record.normal = (record.point - position) / radius;
 				return true;
 			}
@@ -545,7 +545,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 			if (m_isVisualizeFocusDistance)
 			{
 				float hitDistance = glm::length(record.point - camera.position());
-				if (Utils::isEqual(camera.focusDistance(), hitDistance, 0.01f) == true)
+				if (Math::isEqual(camera.focusDistance(), hitDistance, 0.01f) == true)
 				{
 					hitLine = true;
 					hitLineLocal = true;

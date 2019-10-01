@@ -7,7 +7,7 @@
 
 #include <glm/gtx/vector_angle.hpp>
 
-#include "rae/core/Utils.hpp"
+#include "rae/core/Math.hpp"
 #include "rae/visual/Ray.hpp"
 #include "rae_ray/HitRecord.hpp"
 
@@ -238,7 +238,7 @@ bool Mesh::hit(const vec3& position, const Ray& ray, float t_min, float t_max, H
 		{
 			isHit = true;
 			record.t = hitDistance;
-			record.point = ray.pointAtParameter(record.t);
+			record.point = ray.getPointAt(record.t);
 			record.normal = getFaceNormal(i); // currently just face normals
 		}
 	}
@@ -634,7 +634,7 @@ Array<vec3> Mesh::computeSmoothNormals()
 		for (int j = 0; j < (int)uniqueVertices.size(); ++j)
 		{
 			auto&& uniqueVec = uniqueVertices[j];
-			if (Utils::isEqualVec(value, uniqueVec.value))
+			if (Math::isEqualVec(value, uniqueVec.value))
 			{
 				uniqueVec.vertexIndices.emplace_back(vertexIndex);
 				uniqueVec.vertexNormals.emplace_back(normal);

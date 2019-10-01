@@ -52,6 +52,8 @@ public:
 
 	// The average position of all selected entities
 	vec3 selectionWorldPosition() const;
+	// Probably need to do first selected and last selected things for rotation...
+	qua selectionWorldRotation() const;
 	Box selectionAABB() const;
 	Box hoveredAABB() const;
 
@@ -65,7 +67,8 @@ public:
 	Id anySelected() const { return isSelection() ? selectedIds()[0] : InvalidId; }
 	Id anySelectedOrHovered() const { return isSelection() ? selectedIds()[0] : m_hoveredId; }
 
-	void translateSelected(vec3 delta);
+	void translateSelected(const vec3& delta);
+	void rotateSelected(const qua& delta, const vec3& pivot);
 
 	const Table<Selected>& selectedByParent() const { return m_selectedByParent; }
 	const Table<Hover>& hovers() const { return m_hovers; }
@@ -85,6 +88,8 @@ protected:
 	// An entity with DisableHovering can't be selected with hovering (but can be selected by some other way).
 	// Basically hover bypass, so the thing under it will hover instead.
 	Table<DisableHovering> m_disableHoverings;
+
+	Id m_firstSelected = InvalidId;
 
 	Id m_hoveredId = InvalidId;
 	Id m_pixelClickedId = InvalidId;

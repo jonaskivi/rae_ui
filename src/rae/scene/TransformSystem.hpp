@@ -61,6 +61,8 @@ public:
 
 	void setLocalPosition(Id id, const vec3& position);
 	const vec3& getLocalPosition(Id id);
+	void setLocalRotation(Id id, const qua& rotation);
+	const qua& getLocalRotation(Id id);
 	void setLocalScale(Id id, const vec3& scale);
 	const vec3& getLocalScale(Id id);
 
@@ -69,6 +71,8 @@ public:
 
 	void setWorldPosition(Id id, const vec3& position);
 	const vec3& getWorldPosition(Id id);
+	void setWorldRotation(Id id, const qua& rotation);
+	const qua& getWorldRotation(Id id);
 	void setWorldScale(Id id, const vec3& scale);
 	const vec3& getWorldScale(Id id);
 
@@ -76,8 +80,15 @@ public:
 	const Table<Transform>& localTransforms() const { return m_localTransforms; }
 	const Table<Transform>& worldTransforms() const { return m_worldTransforms; }
 
-	void translate(Id id, vec3 delta);
-	void translate(const Array<Id>& ids, vec3 delta);
+	// Get only the toplevel ids. So if there's parent child relationships, then only return the parents.
+	Array<Id> entitiesForTransform(const Array<Id>& ids) const;
+
+	void translate(Id id, const vec3& delta);
+	void translate(const Array<Id>& ids, const vec3& delta);
+
+	void rotate(Id id, const qua& delta);
+	void rotate(const Array<Id>& ids, const qua& delta);
+	void rotateAround(const Array<Id>& ids, const qua& delta, const vec3& pivot);
 
 	void addChild(Id parent, Id child); // Does not fix existing hierarchy
 	void setParent(Id child, Id parent); // Does not fix existing hierarchy

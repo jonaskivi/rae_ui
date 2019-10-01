@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #include "rae/core/Types.hpp"
+#include "rae/core/Utils.hpp"
 #include "rae/core/ISystem.hpp"
 #include "rae/core/ScreenSystem.hpp"
 #include "rae/scene/TransformSystem.hpp"

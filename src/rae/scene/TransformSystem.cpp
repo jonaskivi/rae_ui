@@ -71,7 +71,7 @@ void TransformSystem::syncLocalAndWorldTransforms()
 
 					// RAE_TODO: It is pretty stupid that we have to update pos rot and scale
 					// whenever any of them changes, because we are only tracking the changes on
-					// component level. Possibly concider splitting Transform into three separate
+					// component level. Possibly consider splitting Transform into three separate
 					// components, even if it makes things painful? Or think about how to separate
 					// the updated flags.
 
@@ -79,12 +79,14 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					if (m_localTransforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
 					{
 						setWorldPosition(id, parentWorldTransform.position + m_localTransforms.getF(id).position);
+						//RAE_TEST: setWorldRotation(id, parentWorldTransform.rotation * m_localTransforms.getF(id).rotation);
 						setWorldScale(id, parentWorldTransform.scale * m_localTransforms.getF(id).scale);
 					}
 					// Our world position was set. Must fix local then.
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
 						setLocalPosition(id, parentWorldTransform.position - m_worldTransforms.getF(id).position);
+						//RAE_TODO How to get the local rotation from the world?: setLocalRotation(id, parentWorldTransform.rotation - m_worldTransforms.getF(id).rotation);
 						// Scale must never be 0: RAE_TODO assert.
 						setLocalScale(id, m_worldTransforms.getF(id).scale / parentWorldTransform.scale);
 					}
@@ -94,11 +96,13 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					if (m_localTransforms.isUpdatedF(id))
 					{
 						setWorldPosition(id, m_localTransforms.getF(id).position);
+						//RAE_TEST: setWorldRotation(id, m_localTransforms.getF(id).rotation);
 						setWorldScale(id, m_localTransforms.getF(id).scale);
 					}
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
 						setLocalPosition(id, m_worldTransforms.getF(id).position);
+						//RAE_TEST: setLocalRotation(id, m_worldTransforms.getF(id).rotation);
 						setLocalScale(id, m_worldTransforms.getF(id).scale);
 					}
 				}
@@ -241,6 +245,17 @@ const vec3& TransformSystem::getLocalPosition(Id id)
 	return m_localTransforms.getF(id).position;
 }
 
+void TransformSystem::setLocalRotation(Id id, const qua& rotation)
+{
+	m_localTransforms.modifyF(id).rotation = rotation;
+	m_localTransforms.setUpdatedF(id);
+}
+
+const qua& TransformSystem::getLocalRotation(Id id)
+{
+	return m_localTransforms.getF(id).rotation;
+}
+
 void TransformSystem::setLocalScale(Id id, const vec3& scale)
 {
 	m_localTransforms.modifyF(id).scale = scale;
@@ -278,6 +293,17 @@ const vec3& TransformSystem::getWorldPosition(Id id)
 	return m_worldTransforms.getF(id).position;
 }
 
+void TransformSystem::setWorldRotation(Id id, const qua& rotation)
+{
+	m_worldTransforms.modifyF(id).rotation = rotation;
+	m_worldTransforms.setUpdatedF(id);
+}
+
+const qua& TransformSystem::getWorldRotation(Id id)
+{
+	return m_worldTransforms.getF(id).rotation;
+}
+
 void TransformSystem::setWorldScale(Id id, const vec3& scale)
 {
 	m_worldTransforms.modifyF(id).scale = scale;
@@ -289,16 +315,8 @@ const vec3& TransformSystem::getWorldScale(Id id)
 	return m_worldTransforms.getF(id).scale;
 }
 
-void TransformSystem::translate(Id id, vec3 delta)
+Array<Id> TransformSystem::entitiesForTransform(const Array<Id>& ids) const
 {
-	// Note: doesn't check if Id exists. Will crash/cause stuff if used unwisely.
-	m_localTransforms.modifyF(id).position += delta;
-	m_localTransforms.setUpdatedF(id);
-}
-
-void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
-{
-	// RAE_TODO function: entitiesForTransform
 	// We need to find the highest parents in a selection set, because moving the parents will also move
 	// their children. So that the children don't get moved twice.
 	Array<Id> topLevelIds;
@@ -322,6 +340,19 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 			topLevelIds.emplace_back(id);
 		}
 	}
+	return topLevelIds;
+}
+
+void TransformSystem::translate(Id id, const vec3& delta)
+{
+	// Note: doesn't check if Id exists. Will crash/cause stuff if used unwisely.
+	m_localTransforms.modifyF(id).position += delta;
+	m_localTransforms.setUpdatedF(id);
+}
+
+void TransformSystem::translate(const Array<Id>& ids, const vec3& delta)
+{
+	Array<Id> topLevelIds = entitiesForTransform(ids);
 
 	for (auto&& id : topLevelIds)
 	{
@@ -338,6 +369,43 @@ void TransformSystem::translate(const Array<Id>& ids, vec3 delta)
 			}
 		}
 		*/
+	}
+}
+
+void TransformSystem::rotate(Id id, const qua& delta)
+{
+	// Note: doesn't check if Id exists. Will crash/cause stuff if used unwisely.
+	qua& rotation = m_localTransforms.modifyF(id).rotation;
+	rotation = rotation * delta;
+	m_localTransforms.setUpdatedF(id);
+}
+
+void TransformSystem::rotate(const Array<Id>& ids, const qua& delta)
+{
+	Array<Id> topLevelIds = entitiesForTransform(ids);
+
+	for (auto&& id : topLevelIds)
+	{
+		qua& rotation = m_localTransforms.modifyF(id).rotation;
+		rotation = rotation * delta;
+		m_localTransforms.setUpdatedF(id);
+
+		// It is not necessary to rotate the children, as that is handled in update()?
+	}
+}
+
+void TransformSystem::rotateAround(const Array<Id>& ids, const qua& delta, const vec3& pivot)
+{
+	LOG_F(INFO, "rotateAround: some ids. size: %i", (int)ids.size());
+	for (auto&& id : ids)
+	{
+		vec3& position = m_localTransforms.modifyF(id).position;
+		qua& rotation = m_localTransforms.modifyF(id).rotation;
+
+		vec3 transformedVector = delta * (position - pivot);
+		position = pivot + transformedVector;
+		rotation = glm::normalize(delta * rotation);
+		m_localTransforms.setUpdatedF(id);
 	}
 }
 

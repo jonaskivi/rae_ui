@@ -30,6 +30,7 @@
 #include "rae/ui/UISystem.hpp"
 #include "rae/scene/SceneSystem.hpp"
 #include "rae/visual/CameraSystem.hpp"
+#include "rae/visual/ShapeRenderer.hpp"
 #include "rae/editor/SelectionSystem.hpp"
 
 using namespace rae;

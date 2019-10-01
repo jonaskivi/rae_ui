@@ -1,7 +1,5 @@
 #pragma once
 
-#define _USE_MATH_DEFINES
-#include <math.h>
 #include <string>
 #include <functional>
 #include <algorithm>
@@ -16,45 +14,14 @@
 namespace rae
 {
 
-namespace Math
-{
-	const float Tau = 2.0f * (float)M_PI; // www.tauday.org
-	const float Pi = (float)M_PI;
-	const float QuarterTau = 0.5f * (float)M_PI;
-	const float RadToDeg = 360.0f / Tau;
-	const float DegToRad = Tau / 360.0f;
-
-	float toRadians(float set_degrees);
-	float toDegrees(float set_radians);
-}
-
 namespace Utils
 {
 
 void sleep(int durationMilliSeconds);
 
-template <typename T>
-T clamp(const T& n, const T& lower, const T& upper)
-{
-	return std::max(lower, std::min(n, upper));
-}
-
 // Pass the enum parameter as cast to int
 // Usage: m_renderMode = (RenderMode) Utils::wrapEnum(((int)m_renderMode) + 1, (int)RenderMode::Count);
 int wrapEnum(int enumValue, int enumCount);
-
-int randomInt(int low, int high);
-float randFloat(float a_min, float a_max);
-bool isEqual(float set_a, float set_b, float epsilon = 0.0001f);
-bool isEqualVec(const glm::vec3& set_a, const glm::vec3& set_b, float epsilon = 0.0001f);
-
-// 2D versions of distance:
-float getManhattanDistance(float rx, float ry);
-float getDistance(float rx, float ry);
-
-float lerpClip(float val1, float val2, float set_position);
-float lerp(float val1, float val2, float set_position);
-float backwardsLerp(float val1, float val2, float the_val);
 
 // Give input as 255 "8-bit" floats and the output will be a 1.0f float color.
 Color createColor8bit(float r, float g, float b, float a = 255.0f);
@@ -102,4 +69,4 @@ static void parallel_for(int start, int end, Callable func)
 	});
 }
 
-} // end namespace rae
+} // namespace rae

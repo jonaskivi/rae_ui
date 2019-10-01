@@ -459,7 +459,7 @@ void UIRenderer::renderTextWithCursorNano(
 	const char* end = nullptr; // If end is specified only the substring is used, or so they say.
 	int nglyphs = nvgTextGlyphPositions(vg, x, y, text.c_str(), end, glyphs, GlyphPositionBufferSize);
 
-	int rowWidth = text.size();
+	int rowWidth = (int)text.size();
 
 	float caretx = 0.0f;
 	float px = 0.0f;

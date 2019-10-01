@@ -3,7 +3,7 @@
 #include <math.h>
 #include <glm/glm.hpp>
 
-#include "core/Utils.hpp"
+#include "core/Math.hpp"
 
 namespace rae
 {

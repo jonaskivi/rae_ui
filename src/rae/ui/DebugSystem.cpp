@@ -1,17 +1,8 @@
 #include "rae/ui/DebugSystem.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
-
 #include "nanovg.h"
 
-#include "rae/visual/Mesh.hpp"
-#include "rae/visual/Camera.hpp"
-#include "rae/visual/RenderSystem.hpp"
-#include "rae/scene/SceneSystem.hpp"
+#include "rae/core/Math.hpp"
 
 using namespace rae;
 
@@ -34,113 +25,6 @@ void DebugSystem::loguruCallbackClose(void* user_data)
 {
 	//printf("Custom callback close\n");
 	//reinterpret_cast<CallbackTester*>(user_data)->num_close += 1;
-}
-
-ShapeRenderer::ShapeRenderer()
-{
-}
-
-void ShapeRenderer::prepareRender3D(Scene& scene)
-{
-	if (m_lineMeshes.size() < m_lines.size())
-	{
-		m_lineMeshes.reserve(m_lines.size());
-	}
-
-	for (int i = 0; i < (int)m_lines.size(); ++i)
-	{
-		auto&& line = m_lines[i];
-
-		if (m_lineMeshes.size() <= i)
-		{
-			m_lineMeshes.emplace_back();
-		}
-
-		auto&& lineMesh = m_lineMeshes[i];
-
-		lineMesh.generateLinesFromVertices(line.points);
-		lineMesh.createVBOs(GL_DYNAMIC_DRAW);
-	}
-}
-
-void ShapeRenderer::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const
-{
-	const Camera& camera = scene.cameraSystem().currentCamera();
-
-	auto& singleColorShader = renderSystem.modifySingleColorShader();
-	singleColorShader.use();
-
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-
-	glm::mat4 combinedMatrix = camera.getProjectionAndViewMatrix();
-
-	singleColorShader.pushModelViewMatrix(combinedMatrix);
-
-	assert(m_lines.size() <= m_lineMeshes.size());
-
-	for (int i = 0; i < (int)m_lines.size(); ++i)
-	{
-		const auto& line = m_lines[i];
-		const auto& lineMesh = m_lineMeshes[i];
-
-		singleColorShader.pushColor(line.color);
-		lineMesh.renderLines(singleColorShader.getProgramId());
-	}
-}
-
-void ShapeRenderer::onFrameEnd()
-{
-	m_lines.clear();
-}
-
-void ShapeRenderer::drawLine(const Array<vec3>& points, const Color& color)
-{
-	m_lines.emplace_back(Line{ points, color });
-}
-
-void ShapeRenderer::drawLine(const Line& line)
-{
-	m_lines.emplace_back(line);
-}
-
-void ShapeRenderer::drawLineBox(const Box& box, const Color& color)
-{
-	// 4 is the minimum amount of lines for the edges of the cube.
-	// https://math.stackexchange.com/questions/253253/tracing-the-edges-of-a-cube-with-the-minimum-pencil-lifts
-	drawLine(
-	{
-		box.corner(0),
-		box.corner(1),
-		box.corner(3),
-		box.corner(2),
-		box.corner(0),
-		box.corner(4),
-		box.corner(5),
-		box.corner(7),
-		box.corner(6),
-		box.corner(4)
-	}, color);
-	drawLine(
-	{
-		box.corner(2),
-		box.corner(6)
-	}, color);
-	drawLine(
-	{
-		box.corner(3),
-		box.corner(7)
-	}, color);
-	drawLine(
-	{
-		box.corner(1),
-		box.corner(5)
-	}, color);
-}
-
-void ShapeRenderer::updateWhenDisabled()
-{
-	m_lines.clear();
 }
 
 DebugSystem::DebugSystem()
@@ -209,7 +93,7 @@ void DebugSystem::render2D(UIScene& uiScene, NVGcontext* nanoVG)
 
 	const int logLines = 24;
 
-	int i = Utils::clamp(int(m_logTexts.size()) - logLines, 0, (int)m_logTexts.size()-1);
+	int i = Math::clamp(int(m_logTexts.size()) - logLines, 0, (int)m_logTexts.size()-1);
 	for (; i < (int)m_logTexts.size(); ++i)
 	{
 		auto&& text = m_logTexts[i];

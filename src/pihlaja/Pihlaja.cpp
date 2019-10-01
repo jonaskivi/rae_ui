@@ -509,10 +509,20 @@ void Pihlaja::onKeyEvent(const Input& input)
 			case KeySym::F1:		m_engine.modifyDebugSystem().toggleIsEnabled(); break;
 			case KeySym::F2:		m_uiSystem.toggleIsEnabled(); break;
 			case KeySym::F3:		m_engine.modifyRenderSystem().toggleRenderNormals(); break;
-			case KeySym::_1:		m_engine.modifySceneSystem().activateScene(0); break;
-			case KeySym::_2:		m_engine.modifySceneSystem().activateScene(1); break;
-			case KeySym::_3:		m_evenFrames = true; break;
-			case KeySym::_4:		m_evenFrames = false; break;
+			case KeySym::_1:
+				m_engine.modifySceneSystem().modifyActiveScene().modifyEditorSystem().setSelectionToolMode();
+				break;
+			case KeySym::_2:
+				m_engine.modifySceneSystem().modifyActiveScene().modifyEditorSystem().setTranslateToolMode();
+				break;
+			case KeySym::_3:
+				m_engine.modifySceneSystem().modifyActiveScene().modifyEditorSystem().setRotateToolMode();
+				break;
+			case KeySym::_4:
+				m_engine.modifySceneSystem().modifyActiveScene().modifyEditorSystem().setScaleToolMode();
+				break;
+			case KeySym::_5:		m_evenFrames = true; break;
+			case KeySym::_6:		m_evenFrames = false; break;
 			case KeySym::R:
 				if (m_videoRenderingState == VideoRenderingState::Player)
 					m_videoRenderingState = VideoRenderingState::RenderToScreen;

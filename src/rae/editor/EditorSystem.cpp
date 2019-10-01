@@ -18,303 +18,27 @@
 
 using namespace rae;
 
-const float AxisThickness = 0.05f;
-
-vec3 axisVector(Axis axis)
+TransformTool::TransformTool()
 {
-	switch(axis)
-	{
-		case Axis::X:
-			return vec3(1.0f, 0.0f, 0.0f);
-		case Axis::Y:
-			return vec3(0.0f, 1.0f, 0.0f);
-		case Axis::Z:
-			return vec3(0.0f, 0.0f, 1.0f);
-		default:
-			assert(0);
-			break;
-	}
-	return vec3(0.0f, 0.0f, 0.0f);
+	m_gizmos.emplace_back(&m_translateGizmo);
+	m_gizmos.emplace_back(&m_rotateGizmo);
+	m_gizmos.emplace_back(&m_scaleGizmo);
 }
-
-Color axisColor(Axis axis)
-{
-	switch(axis)
-	{
-		case Axis::X:
-			return Color(1.0f, 0.0f, 0.0f, 1.0f);
-		case Axis::Y:
-			return Color(0.0f, 1.0f, 0.0f, 1.0f);
-		case Axis::Z:
-			return Color(0.0f, 0.0f, 1.0f, 1.0f);
-		default:
-			assert(0);
-			break;
-	}
-	return Color(1.0f, 1.0f, 1.0f, 1.0f);
-}
-
-qua axisRotation(Axis axis)
-{
-	switch(axis)
-	{
-		case Axis::X:
-			return qua();
-		case Axis::Y:
-			return qua(vec3(0.0f, 0.0f, Math::toRadians(90.0f)));
-		case Axis::Z:
-			return qua(vec3(0.0f, -Math::toRadians(90.0f), 0.0f));
-		default:
-			assert(0);
-			break;
-	}
-	return qua();
-}
-
-Plane axisPlane(Axis axis, vec3 origin)
-{
-	return Plane(origin, axisVector(axis));
-}
-
-Plane computeMostPerpendicularAxisPlane(Axis axis, const vec3& gizmoOrigin, const vec3& rayDirection)
-{
-	Plane plane1;
-	Plane plane2;
-
-	// Check which other axis plane is the most perpendicular to the given ray.
-	// For X axis consider Y and X axes.
-	switch(axis)
-	{
-		case Axis::X:
-			plane1 = axisPlane(Axis::Y, gizmoOrigin);
-			plane2 = axisPlane(Axis::Z, gizmoOrigin);
-			break;
-		case Axis::Y:
-			plane1 = axisPlane(Axis::X, gizmoOrigin);
-			plane2 = axisPlane(Axis::Z, gizmoOrigin);
-			break;
-		case Axis::Z:
-			plane1 = axisPlane(Axis::X, gizmoOrigin);
-			plane2 = axisPlane(Axis::Y, gizmoOrigin);
-			break;
-		default:
-			assert(0);
-			break;
-	}
-
-	float perpendicular1 = glm::dot(rayDirection, plane1.normal());
-	float perpendicular2 = glm::dot(rayDirection, plane2.normal());
-
-	if (fabs(perpendicular1) >= fabs(perpendicular2))
-	{
-		return plane1;
-	}
-	else
-	{
-		return plane2;
-	}
-}
-
-//RAE_TODO move to Ray.cpp that needs to be created:
-bool rayPlaneIntersection(const Ray& ray, const Plane& plane, vec3& outContactPoint)
-{
-	float denom = glm::dot(plane.normal(), ray.direction());
-	if (fabs(denom) > 0.0001f)
-	{
-		float length = glm::dot(plane.origin() - ray.origin(), plane.normal()) / denom;
-		if (length >= 0)
-		{
-			outContactPoint = ray.origin() + (ray.direction() * length);
-			return true;
-		}
-	}
-	return false;
-}
-
-LineGizmo::LineGizmo()
-{
-	for (int i = 0; i < (int)Axis::Count; ++i)
-	{
-		m_axisTransforms[i].position = vec3(0.0f, 0.0f, 0.0f);
-		m_axisTransforms[i].rotation = axisRotation(Axis(i));
-		m_axisTransforms[i].scale = vec3(1.0f, AxisThickness, AxisThickness);
-	}
-
-	m_lineMesh.generateCube();
-	m_lineMesh.createVBOs();
-
-	m_coneMesh.generateCone();
-	m_coneMesh.createVBOs();
-}
-
-std::array<LineHandle, (int)Axis::Count> LineGizmo::sortLineHandles(
-	float gizmoCameraFactor,
-	const Camera& camera) const
-{
-	std::array<LineHandle, (int)Axis::Count> sortedLineHandles;
-
-	// Sort line handles
-	for (int i = 0; i < (int)Axis::Count; ++i)
-	{
-		sortedLineHandles[i].axisIndex = i;
-		sortedLineHandles[i].tipPosition = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
-		sortedLineHandles[i].distanceFromCamera =
-			glm::length(sortedLineHandles[i].tipPosition - camera.position());
-	}
-
-	// Sort from closest to farthest
-	std::sort(sortedLineHandles.begin(), sortedLineHandles.end(),
-		[](const LineHandle& a, const LineHandle& b)
-	{
-		return a.distanceFromCamera < b.distanceFromCamera;
-	});
-
-	return sortedLineHandles;
-}
-
-bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
-{
-	const float MinHoverDistance = 0.0f;
-	const float MaxHoverDistance = 900000.0f;
-
-	vec4 transformedPosition = camera.getProjectionAndViewMatrix() * vec4(m_position, 1.0f);
-	float gizmoCameraFactor = transformedPosition.w * m_gizmoSizeMultiplier * m_hoverMarginMultiplier;
-
-	auto sortedLineHandles = sortLineHandles(gizmoCameraFactor, camera);
-
-	// Clear hovers
-	for (int i = 0; i < (int)Axis::Count; ++i)
-	{
-		m_axisHovers[i] = false;
-	}
-
-	for (auto&& lineHandle : sortedLineHandles)
-	{
-		int i = lineHandle.axisIndex;
-
-		Transform transform = m_axisTransforms[i];
-		transform.scale = transform.scale *
-			gizmoCameraFactor * vec3(1.0f, m_hoverThicknessMultiplier, m_hoverThicknessMultiplier);
-		// The handle's box needs to be centered with that 0.5
-		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
-
-		Box axisBox = m_lineMesh.getAabb();
-		axisBox.transform(transform);
-		bool isHit = axisBox.hit(mouseRay, MinHoverDistance, MaxHoverDistance);
-		m_axisHovers[i] = isHit;
-
-		if (isHit)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem) const
-{
-	float gizmoCameraFactor = camera.screenSizeFactor(m_position) * m_gizmoSizeMultiplier;
-
-	auto sortedLineHandles = sortLineHandles(gizmoCameraFactor, camera);
-
-	const auto hoverColor = Utils::createColor8bit(255, 165, 0);
-	const auto activeColor = Utils::createColor8bit(255, 215, 0);
-
-	// Draw from farthest to closest, so iterate backwards
-	for (int index = int(sortedLineHandles.size())-1; index >= 0; --index)
-	{
-		int i = sortedLineHandles[index].axisIndex;
-
-		Color color = m_axisActives[i] ? activeColor : (m_axisHovers[i] ? hoverColor : axisColor(Axis(i)));
-
-		// Draw line as a box
-		Transform transform = m_axisTransforms[i];
-		transform.scale = transform.scale * gizmoCameraFactor;
-		// The handle's box needs to be centered with that 0.5
-		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
-		renderSystem.renderMeshSingleColor(
-			camera,
-			transform,
-			color,
-			m_lineMesh);
-
-		// Draw cone
-		Transform coneTransform = m_axisTransforms[i];
-		float coneSize = m_gizmoSizeMultiplier;
-		coneTransform.scale = vec3(coneSize, coneSize * m_coneLengthMultiplier, coneSize) * gizmoCameraFactor;
-		coneTransform.rotation = coneTransform.rotation *
-			glm::angleAxis(-Math::QuarterTau, vec3(0.0f, 0.0f, 1.0f));
-		coneTransform.position = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
-		renderSystem.renderMeshSingleColor(
-			camera,
-			coneTransform,
-			color,
-			m_coneMesh);
-	}
-}
-
-vec3 LineGizmo::getActiveAxisVector() const
-{
-	for (int i = 0; i < (int)Axis::Count; ++i)
-	{
-		if (m_axisActives[i])
-			return axisVector((Axis)i);
-	}
-	return vec3();
-}
-
-vec3 LineGizmo::activeAxisDelta(const Camera& camera, const Ray& mouseRay, const Ray& previousMouseRay)
-{
-	for (int i = 0; i < (int)Axis::Count; ++i)
-	{
-		if (not m_axisActives[i])
-			continue;
-
-		Axis axis = (Axis)i;
-		Plane bestPlane = computeMostPerpendicularAxisPlane(axis, m_position,
-			glm::normalize(mouseRay.direction()));
-
-		vec3 intersection;
-		bool hit = rayPlaneIntersection(mouseRay, bestPlane, intersection);
-		if (hit)
-		{
-			vec3 previousIntersection;
-			bool previousHit = rayPlaneIntersection(previousMouseRay, bestPlane, previousIntersection);
-			if (previousHit)
-			{
-				vec3 deltaVec = intersection - previousIntersection;
-
-				// RAE_TODO REMOVE:
-				/*
-				g_debugSystem->showDebugText("length: " + Utils::toString(glm::length(deltaVec)), Colors::magenta);
-				g_debugSystem->drawLine({ intersection, previousIntersection }, Colors::magenta);
-				g_debugSystem->drawLine({ mouseRay.origin(), mouseRay.direction() * 15.0f }, Colors::cyan);
-				g_debugSystem->drawLine({ bestPlane.origin(), bestPlane.origin() + (bestPlane.normal() * 5.0f) }, Colors::red);
-				*/
-
-				float dotProduct = glm::dot(deltaVec, axisVector(axis));
-				// RAE_TODO REMOVE g_debugSystem->showDebugText("dotProduct: " + Utils::toString(dotProduct), Colors::magenta);
-
-				// RAE_TODO REMOVE g_debugSystem->drawLine({ intersection, intersection + (axisVector(axis) * dotProduct) }, Colors::white);
-
-				m_debugIntersectionLine = Line { { intersection, intersection + (axisVector(axis) * dotProduct) }, Colors::cyan };
-				m_debugLine = Line { { bestPlane.origin(), bestPlane.origin() + (bestPlane.normal() * 2.0f) }, Colors::yellow };
-
-				return axisVector(axis) * dotProduct;
-			}
-		}
-	}
-	return vec3();
-}
-
-//-----------------------------------------------------------
 
 bool TransformTool::hover(const Ray& mouseRay, const Camera& camera)
 {
+	LOG_F(INFO, "TransformTool hover.");
+
 	if (m_translateGizmo.isVisible())
 	{
 		return m_translateGizmo.hover(mouseRay, camera);
 	}
+
+	if (m_rotateGizmo.isVisible())
+	{
+		return m_rotateGizmo.hover(mouseRay, camera);
+	}
+
 	return false;
 }
 
@@ -328,29 +52,73 @@ HandleStatus TransformTool::handleInput(
 	//g_debugSystem->drawLine(m_translateGizmo.m_debugIntersectionLine);
 	//g_debugSystem->drawLine(m_translateGizmo.m_debugLine);
 
-	if (!m_translateGizmo.isVisible())
+	if (!anyGizmoVisible())
 		return HandleStatus::NotHandled;
 
 	m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
+	m_rotateGizmo.setPosition(selectionSystem.selectionWorldPosition());
 
 	m_previousMouseRay = m_mouseRay;
 	m_mouseRay = camera.getExactRay(
 		inputState.mouse.localPositionNormalized.x,
 		inputState.mouse.localPositionNormalized.y);
 
-	bool isActive = m_translateGizmo.isActive();
+	bool isActive = false;
+
+	if (m_transformToolMode == TransformToolMode::Translate)
+	{
+		isActive = m_translateGizmo.isActive();
+	}
+	else if (m_transformToolMode == TransformToolMode::Rotate)
+	{
+		isActive = m_rotateGizmo.isActive();
+	}
+	else if (m_transformToolMode == TransformToolMode::Scale)
+	{
+		isActive = m_scaleGizmo.isActive();
+	}
+
 	if (isActive)
 	{
 		if (input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonRelease)
 		{
 			m_translateGizmo.deactivate();
+			m_rotateGizmo.deactivate();
+			m_rotateGizmo.clearAccumulatedRotation();
+			m_scaleGizmo.deactivate();
 		}
 		else if (input.mouse.isButtonDown(MouseButton::First))
 		{
-			vec3 delta = m_translateGizmo.activeAxisDelta(camera, m_mouseRay, m_previousMouseRay);
+			if (m_transformToolMode == TransformToolMode::Translate)
+			{
+				vec3 delta = m_translateGizmo.activeAxisDelta(camera, m_mouseRay, m_previousMouseRay);
 
-			translateSelected(delta, selectionSystem);
-			m_translateGizmo.setPosition(m_translateGizmo.position() + delta);
+				translateSelected(delta, selectionSystem);
+				// RAE_TODO: This is a bit hacky. We should instead read the position from the selection.
+				m_translateGizmo.setPosition(m_translateGizmo.position() + delta);
+			}
+			else if (m_transformToolMode == TransformToolMode::Rotate)
+			{
+				bool snapEnabled = false;
+				float snapAngleStep = 45.0f;
+				bool precisionModifier = false;
+
+				qua rotateDelta = m_rotateGizmo.getRotateAxisDelta(
+					glm::vec2(inputState.mouse.delta),
+					camera,
+					vec3(), // RAE_TODO quicktransform mode?
+					snapEnabled,
+					snapAngleStep,
+					precisionModifier);
+
+				rotateSelected(rotateDelta, selectionSystem);
+				// RAE_TODO: This is a bit hacky. We should instead read the rotation from the selection.
+				m_rotateGizmo.addToRotation(rotateDelta);
+			}
+			else if (m_transformToolMode == TransformToolMode::Scale)
+			{
+				// RAE_TODO scaling.
+			}
 		}
 		return HandleStatus::Handled;
 	}
@@ -362,6 +130,8 @@ HandleStatus TransformTool::handleInput(
 			if (input.mouse.buttonEvent(MouseButton::First) == EventType::MouseButtonPress)
 			{
 				m_translateGizmo.activateHovered();
+				m_rotateGizmo.activateHovered();
+				m_scaleGizmo.activateHovered();
 			}
 			return HandleStatus::Handled;
 		}
@@ -370,7 +140,20 @@ HandleStatus TransformTool::handleInput(
 	return HandleStatus::NotHandled;
 }
 
-void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem) const
+void TransformTool::update(Scene& scene)
+{
+	const Camera& camera = scene.cameraSystem().currentCamera();
+	auto& shapeRenderer = scene.modifyShapeRenderer();
+
+	if (m_rotateGizmo.isVisible())
+	{
+		m_rotateGizmo.render3D(camera, shapeRenderer);
+	}
+}
+
+void TransformTool::render3D(
+	const Camera& camera,
+	RenderSystem& renderSystem) const
 {
 	if (m_translateGizmo.isVisible())
 	{
@@ -384,18 +167,70 @@ void TransformTool::render3D(const Camera& camera, RenderSystem& renderSystem) c
 
 		glDepthFunc(GL_LEQUAL);
 	}
+
+	/*if (m_rotateGizmo.isVisible())
+	{
+		// Don't depth test when rendering the gizmos
+		glDepthFunc(GL_ALWAYS);
+		m_rotateGizmo.render3D(camera, shapeRenderer, renderSystem);
+		glDepthFunc(GL_LEQUAL);
+	}
+
+	if (m_scaleGizmo.isVisible())
+	{
+		// Don't depth test when rendering the gizmos
+		glDepthFunc(GL_ALWAYS);
+		m_scaleGizmo.render3D(camera, renderSystem);
+		glDepthFunc(GL_LEQUAL);
+	}
+	*/
+}
+
+void TransformTool::setTransformToolMode(TransformToolMode mode)
+{
+	if (mode == m_transformToolMode)
+		return;
+
+	m_transformToolMode = mode;
+	
+	if (anyGizmoVisible())
+	{
+		hideAllGizmos();
+	}
+
+	showCorrectToolMode();
+}
+
+void TransformTool::showCorrectToolMode()
+{
+	if (m_transformToolMode == TransformToolMode::Translate)
+	{
+		m_translateGizmo.show();
+	}
+	else if (m_transformToolMode == TransformToolMode::Rotate)
+	{
+		m_rotateGizmo.show();
+	}
+	else if (m_transformToolMode == TransformToolMode::Scale)
+	{
+		m_scaleGizmo.show();
+	}
 }
 
 void TransformTool::onSelectionChanged(SelectionSystem& selectionSystem)
 {
 	if (selectionSystem.isSelection())
 	{
-		m_translateGizmo.show();
 		m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
+		m_translateGizmo.setRotation(selectionSystem.selectionWorldRotation());
+		m_rotateGizmo.setPosition(selectionSystem.selectionWorldPosition());
+		m_rotateGizmo.setRotation(selectionSystem.selectionWorldRotation());
+
+		showCorrectToolMode();
 	}
 	else
 	{
-		m_translateGizmo.hide();
+		hideAllGizmos();
 	}
 }
 
@@ -405,6 +240,11 @@ void TransformTool::translateSelected(const vec3& delta, SelectionSystem& select
 	//RAE_TODO selectionSystem.translateSelected(axisVector * delta * 0.01f);
 
 	selectionSystem.translateSelected(delta);
+}
+
+void TransformTool::rotateSelected(const qua& delta, SelectionSystem& selectionSystem)
+{
+	selectionSystem.rotateSelected(delta, m_rotateGizmo.position());
 }
 
 EditorSystem::EditorSystem(
@@ -443,6 +283,8 @@ UpdateStatus EditorSystem::update(Scene& scene)
 		Box selectionAabb = selectionSystem.hoveredAABB();
 		shapeRenderer.drawLineBox(selectionAabb, hoverColor);
 	}
+
+	m_transformTool.update(scene);
 
 	/* RAE_TODO THIS USED TO DO SOMETHING, BEFORE THE HANDLEINPUT InputState STUFF.
 
@@ -483,7 +325,10 @@ UpdateStatus EditorSystem::update(Scene& scene)
 	return UpdateStatus::NotChanged; // for now.
 }
 
-void EditorSystem::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const
+void EditorSystem::render3D(
+	const Scene& scene,
+	const Window& window,
+	RenderSystem& renderSystem) const
 {
 	const Camera& camera = scene.cameraSystem().currentCamera();
 	m_transformTool.render3D(camera, renderSystem);
@@ -620,3 +465,22 @@ void EditorSystem::hover(const InputState& inputState, Scene& scene)
 	}
 }
 
+void EditorSystem::setSelectionToolMode()
+{
+	// RAE_TODO.
+}
+
+void EditorSystem::setTranslateToolMode()
+{
+	m_transformTool.setTransformToolMode(TransformToolMode::Translate);
+}
+
+void EditorSystem::setRotateToolMode()
+{
+	m_transformTool.setTransformToolMode(TransformToolMode::Rotate);
+}
+
+void EditorSystem::setScaleToolMode()
+{
+	m_transformTool.setTransformToolMode(TransformToolMode::Scale);
+}

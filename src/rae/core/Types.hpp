@@ -44,6 +44,7 @@ using vec4 = glm::vec4;
 
 using qua = glm::quat;
 using mat4 = glm::mat4;
+using mat3 = glm::mat3;
 
 // A custom pivot can be defined, and it will affect how we interpret the origin of the current entity.
 using Pivot = glm::vec3;
@@ -108,6 +109,12 @@ struct Pivots
 {
 	static Pivot Center;
 	static Pivot TopLeft2D;
+};
+
+struct Line
+{
+	Array<vec3> points;
+	Color color;
 };
 
 } // end namespace rae

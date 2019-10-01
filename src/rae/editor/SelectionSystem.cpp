@@ -36,6 +36,7 @@ void SelectionSystem::clearSelectionInternal()
 {
 	m_selected.clear();
 	m_selectedByParent.clear();
+	m_firstSelected = InvalidId;
 }
 
 void SelectionSystem::setSelection(const Array<Id>& ids)
@@ -49,6 +50,11 @@ void SelectionSystem::setSelection(const Array<Id>& ids)
 		{
 			m_selectedByParent.assign(id, Selected());
 		});
+	}
+
+	if (!ids.empty())
+	{
+		m_firstSelected = ids.front();
 	}
 
 	if (ids.size() > 1)
@@ -76,6 +82,9 @@ void SelectionSystem::toggleSelected(Id id)
 	}
 	else
 	{
+		// RAE_TODO this is all wrong:
+		m_firstSelected = id;
+
 		m_selected.assign(id, Selected());
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{
@@ -91,6 +100,9 @@ void SelectionSystem::setSelected(Id id, bool selected)
 {
 	if (selected)
 	{
+		// RAE_TODO this is all wrong:
+		m_firstSelected = id;
+
 		m_selected.assign(id, Selected());
 		m_transformSystem.processHierarchy(id, [this](Id id)
 		{
@@ -207,6 +219,14 @@ vec3 SelectionSystem::selectionWorldPosition() const
 	return vec3(pos.x / m_selected.count(), pos.y / m_selected.count(), pos.z / m_selected.count());
 }
 
+qua SelectionSystem::selectionWorldRotation() const
+{
+	if (m_firstSelected == InvalidId)
+		return qua();
+
+	return m_transformSystem.getWorldRotation(m_firstSelected);
+}
+
 Box SelectionSystem::selectionAABB() const
 {
 	Box aabb;
@@ -247,7 +267,7 @@ Box SelectionSystem::hoveredAABB() const
 	return aabb;
 }
 
-void SelectionSystem::translateSelected(vec3 delta)
+void SelectionSystem::translateSelected(const vec3& delta)
 {
 	Array<Id> selected;
 	query<Selected>(m_selected, [&](Id id)
@@ -256,4 +276,15 @@ void SelectionSystem::translateSelected(vec3 delta)
 	});
 
 	m_transformSystem.translate(selected, delta);
+}
+
+void SelectionSystem::rotateSelected(const qua& delta, const vec3& pivot)
+{
+	Array<Id> selected;
+	query<Selected>(m_selectedByParent, [&](Id id)
+	{
+		selected.emplace_back(id);
+	});
+
+	m_transformSystem.rotateAround(selected, delta, pivot);
 }

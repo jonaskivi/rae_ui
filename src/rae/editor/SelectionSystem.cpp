@@ -281,10 +281,12 @@ void SelectionSystem::translateSelected(const vec3& delta)
 void SelectionSystem::rotateSelected(const qua& delta, const vec3& pivot)
 {
 	Array<Id> selected;
-	query<Selected>(m_selectedByParent, [&](Id id)
+	//query<Selected>(m_selectedByParent, [&](Id id)
+	query<Selected>(m_selected, [&](Id id)
 	{
 		selected.emplace_back(id);
 	});
 
-	m_transformSystem.rotateAround(selected, delta, pivot);
+	//RAE_TODO m_transformSystem.rotateAround(selected, delta, pivot);
+	m_transformSystem.rotate(selected, delta);
 }

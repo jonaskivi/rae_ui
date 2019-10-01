@@ -26,7 +26,7 @@ void ShapeRenderer::updateWhenDisabled()
 	m_lines.clear();
 }
 
-void ShapeRenderer::prepareRender3D(Scene& scene)
+void LineBatch::prepareRender3D()
 {
 	if (m_lineMeshes.size() < m_lines.size())
 	{
@@ -49,6 +49,26 @@ void ShapeRenderer::prepareRender3D(Scene& scene)
 	}
 }
 
+void ShapeRenderer::prepareRender3D(Scene& scene)
+{
+	m_lines.prepareRender3D();
+	m_noDepthLines.prepareRender3D();
+}
+
+void LineBatch::render3D(SingleColorShader& singleColorShader) const
+{
+	assert(m_lines.size() <= m_lineMeshes.size());
+
+	for (int i = 0; i < (int)m_lines.size(); ++i)
+	{
+		const auto& line = m_lines[i];
+		const auto& lineMesh = m_lineMeshes[i];
+
+		singleColorShader.pushColor(line.color);
+		lineMesh.renderLines(singleColorShader.getProgramId());
+	}
+}
+
 void ShapeRenderer::render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) const
 {
 	const Camera& camera = scene.cameraSystem().currentCamera();
@@ -63,39 +83,59 @@ void ShapeRenderer::render3D(const Scene& scene, const Window& window, RenderSys
 
 	singleColorShader.pushModelViewMatrix(combinedMatrix);
 
-	assert(m_lines.size() <= m_lineMeshes.size());
+	m_lines.render3D(singleColorShader);
 
-	for (int i = 0; i < (int)m_lines.size(); ++i)
-	{
-		const auto& line = m_lines[i];
-		const auto& lineMesh = m_lineMeshes[i];
+	glDisable(GL_DEPTH_TEST);
 
-		singleColorShader.pushColor(line.color);
-		lineMesh.renderLines(singleColorShader.getProgramId());
-	}
+	m_noDepthLines.render3D(singleColorShader);
 }
 
 void ShapeRenderer::onFrameEnd()
 {
 	m_lines.clear();
+	m_noDepthLines.clear();
 }
 
-void ShapeRenderer::drawLine(const Array<vec3>& points, const Color& color)
+void LineBatch::drawLine(const Array<vec3>& points, const Color& color)
 {
 	m_lines.emplace_back(Line{ points, color });
 }
 
-void ShapeRenderer::drawLine(const Line& line)
+void LineBatch::drawLine(const Line& line)
 {
 	m_lines.emplace_back(line);
 }
 
-void ShapeRenderer::drawLineSegment(const LineSegment& line, const Color& color)
+void ShapeRenderer::drawLine(const Array<vec3>& points, const Color& color, DrawType drawType)
 {
-	drawLine({line.start(), line.end()}, color);
+	if (drawType == DrawType::Normal)
+	{
+		m_lines.drawLine(points, color);
+	}
+	else if (drawType == DrawType::NoDepth)
+	{
+		m_noDepthLines.drawLine(points, color);
+	}
 }
 
-void ShapeRenderer::drawLineBox(const Box& box, const Color& color)
+void ShapeRenderer::drawLine(const Line& line, DrawType drawType)
+{
+	if (drawType == DrawType::Normal)
+	{
+		m_lines.drawLine(line);
+	}
+	else if (drawType == DrawType::NoDepth)
+	{
+		m_noDepthLines.drawLine(line);
+	}
+}
+
+void ShapeRenderer::drawLineSegment(const LineSegment& line, const Color& color, DrawType drawType)
+{
+	drawLine({line.start(), line.end()}, color, drawType);
+}
+
+void ShapeRenderer::drawLineBox(const Box& box, const Color& color, DrawType drawType)
 {
 	// 4 is the minimum amount of lines for the edges of the cube.
 	// https://math.stackexchange.com/questions/253253/tracing-the-edges-of-a-cube-with-the-minimum-pencil-lifts
@@ -111,22 +151,22 @@ void ShapeRenderer::drawLineBox(const Box& box, const Color& color)
 		box.corner(7),
 		box.corner(6),
 		box.corner(4)
-	}, color);
+	}, color, drawType);
 	drawLine(
 	{
 		box.corner(2),
 		box.corner(6)
-	}, color);
+	}, color, drawType);
 	drawLine(
 	{
 		box.corner(3),
 		box.corner(7)
-	}, color);
+	}, color, drawType);
 	drawLine(
 	{
 		box.corner(1),
 		box.corner(5)
-	}, color);
+	}, color, drawType);
 }
 
 void ShapeRenderer::drawCircle(
@@ -134,6 +174,7 @@ void ShapeRenderer::drawCircle(
 	float radius,
 	const qua& rotation,
 	const Color& color,
+	DrawType drawType,
 	int resolution)
 {
 	if (resolution <= 1)
@@ -151,7 +192,7 @@ void ShapeRenderer::drawCircle(
 		points.emplace_back(position);
 	}
 
-	drawLine(points, color);
+	drawLine(points, color, drawType);
 }
 
 void ShapeRenderer::drawArch(
@@ -161,6 +202,7 @@ void ShapeRenderer::drawArch(
 	float radius,
 	const qua& rotation,
 	const Color& color,
+	DrawType drawType,
 	int resolution,
 	bool connected)
 {
@@ -179,12 +221,12 @@ void ShapeRenderer::drawArch(
 
 	if (points.size() > 1)
 	{
-		drawLine(points, color);
+		drawLine(points, color, drawType);
 
 		if (connected)
 		{
-			drawLine({center, points[0]}, color);
-			drawLine({center, points[points.size() - 1]}, color);
+			drawLine({center, points[0]}, color, drawType);
+			drawLine({center, points[points.size() - 1]}, color, drawType);
 		}
 	}
 }
@@ -194,12 +236,13 @@ void ShapeRenderer::drawCylinder(
 	const vec3& halfExtents,
 	const qua& rotation,
 	const Color& color,
+	DrawType drawType,
 	int resolution)
 {
 	float radius = halfExtents.y;
 
-	drawCircle(center + (rotation * vec3( halfExtents.x, 0, 0)), radius, rotation, color, resolution);
-	drawCircle(center + (rotation * vec3(-halfExtents.x, 0, 0)), radius, rotation, color, resolution);
+	drawCircle(center + (rotation * vec3( halfExtents.x, 0, 0)), radius, rotation, color, drawType, resolution);
+	drawCircle(center + (rotation * vec3(-halfExtents.x, 0, 0)), radius, rotation, color, drawType, resolution);
 
 	vec3 p0 = center + (rotation * vec3( halfExtents.x,  halfExtents.y, 0));
 	vec3 p1 = center + (rotation * vec3(-halfExtents.x,  halfExtents.y, 0));
@@ -211,8 +254,8 @@ void ShapeRenderer::drawCylinder(
 	vec3 p6 = center + (rotation * vec3( halfExtents.x, 0, -halfExtents.z));
 	vec3 p7 = center + (rotation * vec3(-halfExtents.x, 0, -halfExtents.z));
 
-	drawLine({vec3(p0.x, p0.y, p0.z), vec3(p1.x, p1.y, p1.z)}, color);
-	drawLine({vec3(p2.x, p2.y, p2.z), vec3(p3.x, p3.y, p3.z)}, color);
-	drawLine({vec3(p4.x, p4.y, p4.z), vec3(p5.x, p5.y, p5.z)}, color);
-	drawLine({vec3(p6.x, p6.y, p6.z), vec3(p7.x, p7.y, p7.z)}, color);
+	drawLine({vec3(p0.x, p0.y, p0.z), vec3(p1.x, p1.y, p1.z)}, color, drawType);
+	drawLine({vec3(p2.x, p2.y, p2.z), vec3(p3.x, p3.y, p3.z)}, color, drawType);
+	drawLine({vec3(p4.x, p4.y, p4.z), vec3(p5.x, p5.y, p5.z)}, color, drawType);
+	drawLine({vec3(p6.x, p6.y, p6.z), vec3(p7.x, p7.y, p7.z)}, color, drawType);
 }

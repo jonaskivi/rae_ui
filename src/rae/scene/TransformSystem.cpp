@@ -79,7 +79,8 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					if (m_localTransforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
 					{
 						setWorldPosition(id, parentWorldTransform.position + m_localTransforms.getF(id).position);
-						//RAE_TEST: setWorldRotation(id, parentWorldTransform.rotation * m_localTransforms.getF(id).rotation);
+						//RAE_TEST:
+						setWorldRotation(id, parentWorldTransform.rotation * m_localTransforms.getF(id).rotation);
 						setWorldScale(id, parentWorldTransform.scale * m_localTransforms.getF(id).scale);
 					}
 					// Our world position was set. Must fix local then.
@@ -96,13 +97,15 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					if (m_localTransforms.isUpdatedF(id))
 					{
 						setWorldPosition(id, m_localTransforms.getF(id).position);
-						//RAE_TEST: setWorldRotation(id, m_localTransforms.getF(id).rotation);
+						//RAE_TEST:
+						setWorldRotation(id, m_localTransforms.getF(id).rotation);
 						setWorldScale(id, m_localTransforms.getF(id).scale);
 					}
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
 						setLocalPosition(id, m_worldTransforms.getF(id).position);
-						//RAE_TEST: setLocalRotation(id, m_worldTransforms.getF(id).rotation);
+						//RAE_TEST:
+						setLocalRotation(id, m_worldTransforms.getF(id).rotation);
 						setLocalScale(id, m_worldTransforms.getF(id).scale);
 					}
 				}

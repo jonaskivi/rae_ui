@@ -1,5 +1,6 @@
 #include "rae/animation/AnimationSystem.hpp"
 
+#include "rae/core/make_unique.hpp"
 #include "rae/core/Time.hpp"
 #include "rae/scene/TransformSystem.hpp"
 

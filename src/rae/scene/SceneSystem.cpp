@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "rae/core/make_unique.hpp"
 #include "rae/core/Time.hpp"
 #include "rae/asset/AssetSystem.hpp"
 #include "rae/ui/DebugSystem.hpp"

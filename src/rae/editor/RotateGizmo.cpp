@@ -86,13 +86,13 @@ bool RotateGizmo::hover(const Ray& mouseRay, const Camera& camera)
 				m_debugRotateGizmoHoverAxis-1 == int(axis))
 			{
 				Color color = intersects ? Colors::white : axisColor(axis);
-				g_shapeRenderer->drawLineSegment((LineSegment)capsule, color);
+				g_shapeRenderer->drawLineSegment((LineSegment)capsule, color, DrawType::NoDepth);
 
 				g_shapeRenderer->drawCylinder(
 					capsule.center(),
 					vec3(capsule.lineLength() * 0.5f, capsule.radius(), capsule.radius()),
 					Math::rotationOnto(axisVector(Axis::X), capsule.upDirection()),
-					color);
+					color, DrawType::NoDepth);
 			}
 		}
 	}
@@ -131,7 +131,7 @@ void RotateGizmo::render3D(const Camera& camera, ShapeRenderer& shapeRenderer /*
 
 	// Draw a screen space circle to outline the gizmo sphere.
 	shapeRenderer.drawCircle(m_position, radius, rotationTowardsCamera,
-		Colors::gray, resolution);
+		Colors::gray, DrawType::NoDepth, resolution);
 
 	const auto hoverColor = Utils::createColor8bit(255, 165, 0);
 	const auto activeColor = Utils::createColor8bit(255, 215, 0);
@@ -158,7 +158,7 @@ void RotateGizmo::render3D(const Camera& camera, ShapeRenderer& shapeRenderer /*
 
 		// RAE_TODO: Thickness with something like: m_rotateGizmoHandleThickness * gizmoCameraFactor
 		shapeRenderer.drawArch(diskPosition, angleStart, angleEnd,
-			radius, diskRotation, color, 32);
+			radius, diskRotation, color, DrawType::NoDepth, 32);
 	}
 
 	vec3 gizmoPosition = m_position;
@@ -189,10 +189,10 @@ void RotateGizmo::render3D(const Camera& camera, ShapeRenderer& shapeRenderer /*
 				const vec3& startPoint, const vec3& endPoint, float thickness,
 				const Color& color, float tipSize, float tipWidthMultiplier)
 			{
-				shapeRenderer.drawLine({startPoint, endPoint}, color);
+				shapeRenderer.drawLine({startPoint, endPoint}, color, DrawType::NoDepth);
 				/*shapeRenderer.drawPyramid(endPoint,
 					vec3(tipSize * tipWidthMultiplier, tipSize, tipSize * tipWidthMultiplier),
-					Math::rotationOnto(vec3(0,1,0), endPoint - startPoint),
+					Math::rotationOnto(vec3(0,1,0), endPoint - startPoint), DrawType::NoDepth,
 					color);
 					*/
 			};
@@ -215,11 +215,13 @@ void RotateGizmo::render3D(const Camera& camera, ShapeRenderer& shapeRenderer /*
 			shapeRenderer.drawArch(gizmoPosition,
 				m_tangentAngle + m_rotatedAngles[i],
 				m_tangentAngle + m_accumulatedAngles[i],
-				angleVisualizationRadius, m_originalActiveDiskRotation, AccumulatedAnglesColor, 32, true);
+				angleVisualizationRadius, m_originalActiveDiskRotation, AccumulatedAnglesColor,
+				DrawType::NoDepth, 32, true);
 			shapeRenderer.drawArch(gizmoPosition,
 				m_tangentAngle,
 				m_tangentAngle + m_rotatedAngles[i],
-				angleVisualizationRadius, m_originalActiveDiskRotation, RotatedAnglesColor, 64, true);
+				angleVisualizationRadius, m_originalActiveDiskRotation, RotatedAnglesColor,
+				DrawType::NoDepth, 64, true);
 
 			/* RAE_TODO text info about angles:
 			String accumulatedString = printf("[%s: %.2f]", getAxisString(axis).c_str(),
@@ -302,7 +304,7 @@ qua RotateGizmo::getRotateAxisDelta(
 			// When not snapping, accumulatedAngles should be always the same as rotatedAngles.
 			m_accumulatedAngles[i] = m_rotatedAngles[i];
 		}
-		
+
 		angles[i] = finalAngle;
 	}
 

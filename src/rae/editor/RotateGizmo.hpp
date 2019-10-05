@@ -15,6 +15,10 @@ class RenderSystem;
 class RotateGizmo : public IGizmo
 {
 public:
+	RotateGizmo()
+	{
+	}
+
 	bool hover(const Ray& mouseRay, const Camera& camera);
 	void render3D(const Camera& camera, ShapeRenderer& shapeRenderer) const;
 
@@ -45,9 +49,9 @@ private:
 
 	// When snapping we use these accumulated angles to determine if we have crossed over to the
 	// next snap step. When snapping is off, this is the same as m_rotatedAngles.
-	std::array<float, 3>		m_accumulatedAngles;
+	std::array<float, 3>		m_accumulatedAngles = { 0.0f, 0.0f, 0.0f };
 	// The actual active rotation we have done. When snapping, this is locked to the current snap step.
-	std::array<float, 3>		m_rotatedAngles;
+	std::array<float, 3>		m_rotatedAngles = { 0.0f, 0.0f, 0.0f };
 
 	// The tangent position is the hovered and clicked position on the axis circle. It determines
 	// the direction where the user must move the mouse cursor to affect the delta rotation.

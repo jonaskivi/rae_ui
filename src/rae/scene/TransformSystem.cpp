@@ -2,6 +2,11 @@
 
 #include <cassert>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include "rae/core/Utils.hpp"
 
 using namespace rae;
@@ -75,21 +80,34 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					// components, even if it makes things painful? Or think about how to separate
 					// the updated flags.
 
-					// Either our local position was set, or parent world position changed.
-					if (m_localTransforms.isUpdatedF(id) || m_worldTransforms.isUpdatedF(parentId))
+					// Either our local position was set.
+					if (m_localTransforms.isUpdatedF(id))
 					{
 						setWorldPosition(id, parentWorldTransform.position + m_localTransforms.getF(id).position);
-						//RAE_TEST:
+
 						setWorldRotation(id, parentWorldTransform.rotation * m_localTransforms.getF(id).rotation);
+
 						setWorldScale(id, parentWorldTransform.scale * m_localTransforms.getF(id).scale);
 					}
 					// Our world position was set. Must fix local then.
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
-						setLocalPosition(id, parentWorldTransform.position - m_worldTransforms.getF(id).position);
-						//RAE_TODO How to get the local rotation from the world?: setLocalRotation(id, parentWorldTransform.rotation - m_worldTransforms.getF(id).rotation);
+						setLocalPosition(id, m_worldTransforms.getF(id).position - parentWorldTransform.position);
+
+						qua inverseParentRotation = glm::inverse(parentWorldTransform.rotation);
+						setLocalRotation(id, inverseParentRotation * m_worldTransforms.getF(id).rotation);
+
 						// Scale must never be 0: RAE_TODO assert.
 						setLocalScale(id, m_worldTransforms.getF(id).scale / parentWorldTransform.scale);
+					}
+					// Parent world position changed
+					else if (m_worldTransforms.isUpdatedF(parentId))
+					{
+						setWorldPosition(id, parentWorldTransform.position + m_localTransforms.getF(id).position);
+
+						setWorldRotation(id, parentWorldTransform.rotation * m_localTransforms.getF(id).rotation);
+
+						setWorldScale(id, parentWorldTransform.scale * m_localTransforms.getF(id).scale);
 					}
 				}
 				else // no parents. Just make them the same because they should always be equal.
@@ -97,14 +115,12 @@ void TransformSystem::syncLocalAndWorldTransforms()
 					if (m_localTransforms.isUpdatedF(id))
 					{
 						setWorldPosition(id, m_localTransforms.getF(id).position);
-						//RAE_TEST:
 						setWorldRotation(id, m_localTransforms.getF(id).rotation);
 						setWorldScale(id, m_localTransforms.getF(id).scale);
 					}
 					else if (m_worldTransforms.isUpdatedF(id))
 					{
 						setLocalPosition(id, m_worldTransforms.getF(id).position);
-						//RAE_TEST:
 						setLocalRotation(id, m_worldTransforms.getF(id).rotation);
 						setLocalScale(id, m_worldTransforms.getF(id).scale);
 					}
@@ -399,17 +415,18 @@ void TransformSystem::rotate(const Array<Id>& ids, const qua& delta)
 
 void TransformSystem::rotateAround(const Array<Id>& ids, const qua& delta, const vec3& pivot)
 {
-	LOG_F(INFO, "rotateAround: some ids. size: %i", (int)ids.size());
 	for (auto&& id : ids)
 	{
-		vec3& position = m_localTransforms.modifyF(id).position;
-		qua& rotation = m_localTransforms.modifyF(id).rotation;
+		vec3& position = m_worldTransforms.modifyF(id).position;
+		qua& rotation = m_worldTransforms.modifyF(id).rotation;
 
 		vec3 transformedVector = delta * (position - pivot);
 		position = pivot + transformedVector;
 		rotation = glm::normalize(delta * rotation);
-		m_localTransforms.setUpdatedF(id);
+		m_worldTransforms.setUpdatedF(id);
 	}
+
+	syncLocalAndWorldTransforms();
 }
 
 void TransformSystem::addChild(Id parent, Id child)

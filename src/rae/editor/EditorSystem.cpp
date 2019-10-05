@@ -99,8 +99,8 @@ HandleStatus TransformTool::handleInput(
 			}
 			else if (m_transformToolMode == TransformToolMode::Rotate)
 			{
-				bool snapEnabled = false;
-				float snapAngleStep = 45.0f;
+				bool snapEnabled = input.getKeyState(KeySym::Shift_L) || input.getKeyState(KeySym::Shift_R);
+				float snapAngleStep = Math::toRadians(45.0f);
 				bool precisionModifier = false;
 
 				qua rotateDelta = m_rotateGizmo.getRotateAxisDelta(
@@ -113,7 +113,7 @@ HandleStatus TransformTool::handleInput(
 
 				rotateSelected(rotateDelta, selectionSystem);
 				// RAE_TODO: This is a bit hacky. We should instead read the rotation from the selection.
-				m_rotateGizmo.addToRotation(rotateDelta);
+				// RAE_TODO something like this for local transform mode: m_rotateGizmo.addToRotation(rotateDelta);
 			}
 			else if (m_transformToolMode == TransformToolMode::Scale)
 			{
@@ -192,7 +192,7 @@ void TransformTool::setTransformToolMode(TransformToolMode mode)
 		return;
 
 	m_transformToolMode = mode;
-	
+
 	if (anyGizmoVisible())
 	{
 		hideAllGizmos();
@@ -222,9 +222,11 @@ void TransformTool::onSelectionChanged(SelectionSystem& selectionSystem)
 	if (selectionSystem.isSelection())
 	{
 		m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
-		m_translateGizmo.setRotation(selectionSystem.selectionWorldRotation());
+		m_translateGizmo.setRotation(qua());
+		//m_translateGizmo.setRotation(selectionSystem.selectionWorldRotation());
 		m_rotateGizmo.setPosition(selectionSystem.selectionWorldPosition());
-		m_rotateGizmo.setRotation(selectionSystem.selectionWorldRotation());
+		m_rotateGizmo.setRotation(qua());
+		//m_rotateGizmo.setRotation(selectionSystem.selectionWorldRotation());
 
 		showCorrectToolMode();
 	}

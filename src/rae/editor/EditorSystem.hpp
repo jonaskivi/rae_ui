@@ -63,7 +63,7 @@ public:
 		const Camera& camera,
 		RenderSystem& renderSystem) const;
 
-	void onSelectionChanged(SelectionSystem& selectionSystem);
+	void onSelectionChanged(const SelectionSystem& selectionSystem);
 
 	bool anyGizmoVisible()
 	{
@@ -88,11 +88,37 @@ public:
 
 	void setTransformToolMode(TransformToolMode mode);
 
+	void nextGizmoPivot(const SelectionSystem& selectionSystem)
+	{
+		int temp = int(m_gizmoPivot);
+		temp++;
+		if (temp == int(GizmoPivot::Count))
+			temp = 0;
+		m_gizmoPivot = GizmoPivot(temp);
+
+		updateGizmoPosition(selectionSystem);
+	}
+
+	void nextGizmoAxis(const SelectionSystem& selectionSystem)
+	{
+		int temp = int(m_gizmoAxis);
+		temp++;
+		if (temp == int(GizmoAxis::Count))
+			temp = 0;
+		m_gizmoAxis = GizmoAxis(temp);
+
+		updateGizmoPosition(selectionSystem);
+	}
+
 protected:
 
+	void updateGizmoPosition(const SelectionSystem& selectionSystem);
+	void updateGizmoRotation(const SelectionSystem& selectionSystem);
 	void showCorrectToolMode();
 
 	TransformToolMode m_transformToolMode = TransformToolMode::Rotate;
+	GizmoPivot m_gizmoPivot = GizmoPivot::Auto;
+	GizmoAxis m_gizmoAxis = GizmoAxis::World;
 
 	TranslateGizmo m_translateGizmo;
 	RotateGizmo m_rotateGizmo;
@@ -120,6 +146,9 @@ public:
 	//void render3D(const Scene& scene, const Window& window, RenderSystem& renderSystem) override;
 	void handleInput(const InputState& inputState, const Array<InputEvent>& events, Scene& scene);
 	void hover(const InputState& inputState, Scene& scene);
+
+	const TransformTool& getTransformTool() const { return m_transformTool; }
+	TransformTool& modifyTransformTool() { return m_transformTool; }
 
 	void setSelectionToolMode();
 	void setTranslateToolMode();

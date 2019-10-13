@@ -39,15 +39,26 @@ void Box::transform(const Transform& tr)
 	m_min *= tr.scale;
 	m_max *= tr.scale;
 
-	vec3 rotatedMin = tr.rotation * m_min;
-	vec3 rotatedMax = tr.rotation * m_max;
+	// Rotate the corners of this AABB and then grow another AABB
+	// with those points.
+	auto growRotatedBox = [this](const qua& rotation) -> Box
+	{
+		Box result;
+		for (int i = 0; i < 8; ++i)
+		{
+			result.grow(rotation * corner(i));
+		}
+		return result;
+	};
 
-	clear();
-	grow(rotatedMin);
-	grow(rotatedMax);
+	*this = growRotatedBox(tr.rotation);
+	translate(tr.position);
+}
 
-	m_min += tr.position;
-	m_max += tr.position;
+void Box::translate(const vec3& offset)
+{
+	m_min += offset;
+	m_max += offset;
 }
 
 void Box::translatePivot(const Pivot& pivot)

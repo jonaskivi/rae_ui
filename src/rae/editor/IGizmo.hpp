@@ -9,6 +9,28 @@
 namespace rae
 {
 
+// Action Center in Modo.
+enum class GizmoPivot
+{
+	Auto,
+	Center,
+	First,
+	Last,
+	Workplane,
+	Count
+};
+String gizmoPivotToString(GizmoPivot value);
+
+enum class GizmoAxis
+{
+	World,
+	Local,
+	Workplane,
+	Screen,
+	Count
+};
+String gizmoAxisToString(GizmoAxis value);
+
 class IGizmo
 {
 public:

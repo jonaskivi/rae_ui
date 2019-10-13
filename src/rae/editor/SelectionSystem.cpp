@@ -208,7 +208,7 @@ bool SelectionSystem::hasSelectionChanged() const
 	return m_selected.isAnyUpdated();
 }
 
-vec3 SelectionSystem::selectionWorldPosition() const
+vec3 SelectionSystem::selectionAveragePosition() const
 {
 	vec3 pos;
 	query<Selected>(m_selected, [&](Id id)
@@ -219,12 +219,32 @@ vec3 SelectionSystem::selectionWorldPosition() const
 	return vec3(pos.x / m_selected.count(), pos.y / m_selected.count(), pos.z / m_selected.count());
 }
 
-qua SelectionSystem::selectionWorldRotation() const
+vec3 SelectionSystem::firstSelectedPosition() const
+{
+	if (m_firstSelected == InvalidId)
+		return vec3();
+	return m_transformSystem.getWorldPosition(m_firstSelected);
+}
+
+vec3 SelectionSystem::lastSelectedPosition() const
+{
+	if (m_lastSelected == InvalidId)
+		return vec3();
+	return m_transformSystem.getWorldPosition(m_lastSelected);
+}
+
+qua SelectionSystem::firstSelectedRotation() const
 {
 	if (m_firstSelected == InvalidId)
 		return qua();
-
 	return m_transformSystem.getWorldRotation(m_firstSelected);
+}
+
+qua SelectionSystem::lastSelectedRotation() const
+{
+	if (m_lastSelected == InvalidId)
+		return qua();
+	return m_transformSystem.getWorldRotation(m_lastSelected);
 }
 
 Box SelectionSystem::selectionAABB() const

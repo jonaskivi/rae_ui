@@ -403,7 +403,7 @@ void RayTracer::autoFocus()
 				||
 				(!transformSystem.hasSphere(id) &&
 				assetLinkSystem.hasMeshLink(id) &&
-				m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
+				m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform, ray, 0.001f, closestSoFar, record)))
 			{
 				closestSoFar = record.t;
 				finalRecord = record;
@@ -528,7 +528,7 @@ vec3 RayTracer::rayTrace(const Ray& ray, int depth)
 			||
 			(!transformSystem.hasSphere(id) &&
 			assetLinkSystem.hasMeshLink(id) &&
-			m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform.position, ray, 0.001f, closestSoFar, record)))
+			m_assetSystem.getMesh(assetLinkSystem.getMeshLink(id)).hit(transform, ray, 0.001f, closestSoFar, record)))
 		{
 			bool hitLineLocal = false;
 

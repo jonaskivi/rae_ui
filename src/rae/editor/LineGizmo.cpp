@@ -8,6 +8,34 @@
 namespace rae
 {
 
+// To IGizmo.cpp:
+String gizmoPivotToString(GizmoPivot value)
+{
+	switch(value)
+	{
+		case GizmoPivot::Auto: return "Auto";
+		case GizmoPivot::Center: return "Center";
+		case GizmoPivot::First: return "First";
+		case GizmoPivot::Last: return "Last";
+		case GizmoPivot::Workplane: return "Workplane";
+		case GizmoPivot::Count: return "Count";
+	}
+	return "Invalid";
+}
+
+String gizmoAxisToString(GizmoAxis value)
+{
+	switch(value)
+	{
+		case GizmoAxis::World: return "World";
+		case GizmoAxis::Local: return "Local";
+		case GizmoAxis::Workplane: return "Workplane";
+		case GizmoAxis::Screen: return "Screen";
+		case GizmoAxis::Count: return "Count";
+	}
+	return "Invalid";
+}
+
 const float AxisThickness = 0.05f;
 
 LineGizmo::LineGizmo()
@@ -71,7 +99,8 @@ bool LineGizmo::hover(const Ray& mouseRay, const Camera& camera)
 		transform.scale = transform.scale *
 			gizmoCameraFactor * vec3(1.0f, m_hoverThicknessMultiplier, m_hoverThicknessMultiplier);
 		// The handle's box needs to be centered with that 0.5
-		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
+		transform.position = m_position + (m_rotation * (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor));
+		transform.rotation = m_rotation * transform.rotation;
 
 		Box axisBox = m_lineMesh.getAabb();
 		axisBox.transform(transform);
@@ -106,7 +135,8 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem) const
 		Transform transform = m_axisTransforms[i];
 		transform.scale = transform.scale * gizmoCameraFactor;
 		// The handle's box needs to be centered with that 0.5
-		transform.position = m_position + (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor);
+		transform.position = m_position + (m_rotation * (axisVector(Axis(i)) * 0.5f * gizmoCameraFactor));
+		transform.rotation = m_rotation * transform.rotation;
 		renderSystem.renderMeshSingleColor(
 			camera,
 			transform,
@@ -117,9 +147,9 @@ void LineGizmo::render3D(const Camera& camera, RenderSystem& renderSystem) const
 		Transform coneTransform = m_axisTransforms[i];
 		float coneSize = m_gizmoSizeMultiplier;
 		coneTransform.scale = vec3(coneSize, coneSize * m_coneLengthMultiplier, coneSize) * gizmoCameraFactor;
-		coneTransform.rotation = coneTransform.rotation *
+		coneTransform.rotation = m_rotation * coneTransform.rotation *
 			glm::angleAxis(-Math::QuarterTau, vec3(0.0f, 0.0f, 1.0f));
-		coneTransform.position = m_position + (axisVector(Axis(i)) * gizmoCameraFactor);
+		coneTransform.position = m_position + (m_rotation * (axisVector(Axis(i)) * gizmoCameraFactor));
 		renderSystem.renderMeshSingleColor(
 			camera,
 			coneTransform,

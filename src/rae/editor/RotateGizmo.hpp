@@ -26,6 +26,7 @@ public:
 			const vec2& mouseDelta,
 			const Camera& camera,
 			const vec3& gizmoPosition,
+			GizmoAxis gizmoAxis,
 			bool snapEnabled,
 			float snapAngleStep,
 			bool precisionModifier = false

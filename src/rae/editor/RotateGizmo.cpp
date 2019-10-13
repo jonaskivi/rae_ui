@@ -237,6 +237,7 @@ qua RotateGizmo::getRotateAxisDelta(
 	const vec2& mouseDelta,
 	const Camera& camera,
 	const vec3& gizmoPosition, // RAE_TODO pass the position from outside for quicktransform modifiers.
+	GizmoAxis gizmoAxis,
 	bool snapEnabled,
 	float snapAngleStep,
 	bool precisionModifier)
@@ -308,24 +309,22 @@ qua RotateGizmo::getRotateAxisDelta(
 		angles[i] = finalAngle;
 	}
 
-	/*RAE_TODO
-	if (actionAxis == ActionAxis::Screen)
+	if (gizmoAxis == GizmoAxis::Screen)
 	{
-		if (m_activeAxes[0])
+		if (m_axisActives[0])
 			return glm::angleAxis(angles[0], camera.right());
-		else if (m_activeAxes[1])
-			return glm::angleAxis(angles[1], camera.up());
-		else if (m_activeAxes[2])
-			return glm::angleAxis(angles[2], camera.front());
+		else if (m_axisActives[1])
+			return glm::angleAxis(angles[1], camera.direction());
+		else if (m_axisActives[2])
+			return glm::angleAxis(angles[2], camera.up());
 	}
-	else if (actionAxis == ActionAxis::Workplane)
+	else if (gizmoAxis == GizmoAxis::Workplane)
 	{
 		// Use the actual rotation of our gizmo
 		return rotateAxisDelta;
 	}
-	*/
 
-	// ActionAxis::World and ActionAxis::Local use just the axis angles.
+	// GizmoAxis::World and GizmoAxis::Local use just the axis angles.
 	vec3 euler = vec3(angles[0], angles[1], angles[2]);
 	return qua(euler);
 }

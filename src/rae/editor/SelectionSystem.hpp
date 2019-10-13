@@ -51,9 +51,11 @@ public:
 	bool hasSelectionChanged() const;
 
 	// The average position of all selected entities
-	vec3 selectionWorldPosition() const;
-	// Probably need to do first selected and last selected things for rotation...
-	qua selectionWorldRotation() const;
+	vec3 selectionAveragePosition() const;
+	vec3 firstSelectedPosition() const;
+	vec3 lastSelectedPosition() const;
+	qua firstSelectedRotation() const;
+	qua lastSelectedRotation() const;
 	Box selectionAABB() const;
 	Box hoveredAABB() const;
 
@@ -90,6 +92,7 @@ protected:
 	Table<DisableHovering> m_disableHoverings;
 
 	Id m_firstSelected = InvalidId;
+	Id m_lastSelected = InvalidId;
 
 	Id m_hoveredId = InvalidId;
 	Id m_pixelClickedId = InvalidId;

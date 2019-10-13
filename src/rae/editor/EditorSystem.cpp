@@ -55,8 +55,8 @@ HandleStatus TransformTool::handleInput(
 	if (!anyGizmoVisible())
 		return HandleStatus::NotHandled;
 
-	m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
-	m_rotateGizmo.setPosition(selectionSystem.selectionWorldPosition());
+	updateGizmoPosition(selectionSystem);
+	updateGizmoRotation(selectionSystem);
 
 	m_previousMouseRay = m_mouseRay;
 	m_mouseRay = camera.getExactRay(
@@ -95,7 +95,7 @@ HandleStatus TransformTool::handleInput(
 
 				translateSelected(delta, selectionSystem);
 				// RAE_TODO: This is a bit hacky. We should instead read the position from the selection.
-				m_translateGizmo.setPosition(m_translateGizmo.position() + delta);
+				//REMOVE m_translateGizmo.setPosition(m_translateGizmo.position() + delta);
 			}
 			else if (m_transformToolMode == TransformToolMode::Rotate)
 			{
@@ -107,6 +107,7 @@ HandleStatus TransformTool::handleInput(
 					glm::vec2(inputState.mouse.delta),
 					camera,
 					vec3(), // RAE_TODO quicktransform mode?
+					m_gizmoAxis,
 					snapEnabled,
 					snapAngleStep,
 					precisionModifier);
@@ -149,6 +150,9 @@ void TransformTool::update(Scene& scene)
 	{
 		m_rotateGizmo.render3D(camera, shapeRenderer);
 	}
+
+	g_debugSystem->showDebugText("pivot: " + gizmoPivotToString(m_gizmoPivot), Colors::magenta);
+	g_debugSystem->showDebugText("axis: " + gizmoAxisToString(m_gizmoAxis), Colors::magenta);
 }
 
 void TransformTool::render3D(
@@ -217,23 +221,81 @@ void TransformTool::showCorrectToolMode()
 	}
 }
 
-void TransformTool::onSelectionChanged(SelectionSystem& selectionSystem)
+void TransformTool::onSelectionChanged(const SelectionSystem& selectionSystem)
 {
 	if (selectionSystem.isSelection())
 	{
-		m_translateGizmo.setPosition(selectionSystem.selectionWorldPosition());
-		m_translateGizmo.setRotation(qua());
-		//m_translateGizmo.setRotation(selectionSystem.selectionWorldRotation());
-		m_rotateGizmo.setPosition(selectionSystem.selectionWorldPosition());
-		m_rotateGizmo.setRotation(qua());
-		//m_rotateGizmo.setRotation(selectionSystem.selectionWorldRotation());
-
+		updateGizmoPosition(selectionSystem);
+		updateGizmoRotation(selectionSystem);
 		showCorrectToolMode();
 	}
 	else
 	{
 		hideAllGizmos();
 	}
+}
+
+void TransformTool::updateGizmoPosition(const SelectionSystem& selectionSystem)
+{
+	if (m_gizmoPivot == GizmoPivot::Auto)
+	{
+		if (m_gizmoAxis == GizmoAxis::Local)
+		{
+			for (auto* gizmo : m_gizmos)
+			{
+				gizmo->setPosition(selectionSystem.firstSelectedPosition());
+			}
+		}
+		else
+		{
+			for (auto* gizmo : m_gizmos)
+			{
+				gizmo->setPosition(selectionSystem.selectionAveragePosition());
+			}
+		}
+	}
+	else if (m_gizmoPivot == GizmoPivot::Center)
+	{
+		for (auto* gizmo : m_gizmos)
+		{
+			gizmo->setPosition(selectionSystem.selectionAveragePosition());
+		}
+	}
+	else if (m_gizmoPivot == GizmoPivot::First)
+	{
+		for (auto* gizmo : m_gizmos)
+		{
+			gizmo->setPosition(selectionSystem.firstSelectedPosition());
+		}
+	}
+	else if (m_gizmoPivot == GizmoPivot::Last)
+	{
+		for (auto* gizmo : m_gizmos)
+		{
+			gizmo->setPosition(selectionSystem.lastSelectedPosition());
+		}
+	}
+	//RAE_TODO: Workplane
+}
+
+void TransformTool::updateGizmoRotation(const SelectionSystem& selectionSystem)
+{
+	if (m_gizmoAxis == GizmoAxis::World)
+	{
+		for (auto* gizmo : m_gizmos)
+		{
+			gizmo->setRotation(qua());
+		}
+	}
+	else if (m_gizmoAxis == GizmoAxis::Local)
+	{
+		for (auto* gizmo : m_gizmos)
+		{
+			gizmo->setRotation(selectionSystem.firstSelectedRotation());
+		}
+	}
+	//RAE_TODO: Workplane
+	//RAE_TODO: Screen
 }
 
 void TransformTool::translateSelected(const vec3& delta, SelectionSystem& selectionSystem)
@@ -277,13 +339,13 @@ UpdateStatus EditorSystem::update(Scene& scene)
 	if (selectionSystem.isSelection())
 	{
 		Box selectionAabb = selectionSystem.selectionAABB();
-		shapeRenderer.drawLineBox(selectionAabb, selectedColor);
+		shapeRenderer.drawLineBoxCorners(selectionAabb, selectedColor);
 	}
 
 	if (selectionSystem.isAnyHovered())
 	{
 		Box selectionAabb = selectionSystem.hoveredAABB();
-		shapeRenderer.drawLineBox(selectionAabb, hoverColor);
+		shapeRenderer.drawLineBoxCorners(selectionAabb, hoverColor);
 	}
 
 	m_transformTool.update(scene);

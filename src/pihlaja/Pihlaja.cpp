@@ -509,6 +509,16 @@ void Pihlaja::onKeyEvent(const Input& input)
 			case KeySym::F1:		m_engine.modifyDebugSystem().toggleIsEnabled(); break;
 			case KeySym::F2:		m_uiSystem.toggleIsEnabled(); break;
 			case KeySym::F3:		m_engine.modifyRenderSystem().toggleRenderNormals(); break;
+			case KeySym::F5:
+				m_engine.modifySceneSystem().modifyActiveScene().modifyEditorSystem()
+					.modifyTransformTool().nextGizmoPivot(
+						m_engine.sceneSystem().activeScene().selectionSystem());
+				break;
+			case KeySym::F6:
+				m_engine.modifySceneSystem().modifyActiveScene().modifyEditorSystem()
+					.modifyTransformTool().nextGizmoAxis(
+						m_engine.sceneSystem().activeScene().selectionSystem());
+				break;
 			case KeySym::_1:
 				m_engine.modifySceneSystem().modifyActiveScene().modifyEditorSystem().setSelectionToolMode();
 				break;

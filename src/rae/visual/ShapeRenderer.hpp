@@ -48,6 +48,7 @@ public:
 	void drawLine(const Array<vec3>& points, const Color& color, DrawType drawType = DrawType::Normal);
 	void drawLine(const Line& line, DrawType drawType = DrawType::Normal);
 	void drawLineBox(const Box& box, const Color& color, DrawType drawType = DrawType::Normal);
+	void drawLineBoxCorners(const Box& box, const Color& color, DrawType drawType = DrawType::Normal);
 
 	void drawLineSegment(const LineSegment& line, const Color& color, DrawType drawType = DrawType::Normal);
 

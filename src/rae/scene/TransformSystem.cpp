@@ -34,7 +34,7 @@ TransformSystem::TransformSystem() :
 
 UpdateStatus TransformSystem::update()
 {
-	m_anyTransformUpdated = m_localTransforms.isAnyUpdated();
+	m_anyTransformUpdated = m_localTransforms.isAnyUpdated() || m_worldTransforms.isAnyUpdated();
 
 	syncLocalAndWorldTransforms();
 
@@ -425,8 +425,6 @@ void TransformSystem::rotateAround(const Array<Id>& ids, const qua& delta, const
 		rotation = glm::normalize(delta * rotation);
 		m_worldTransforms.setUpdatedF(id);
 	}
-
-	syncLocalAndWorldTransforms();
 }
 
 void TransformSystem::addChild(Id parent, Id child)

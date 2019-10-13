@@ -137,6 +137,9 @@ void ShapeRenderer::drawLineSegment(const LineSegment& line, const Color& color,
 
 void ShapeRenderer::drawLineBox(const Box& box, const Color& color, DrawType drawType)
 {
+	if (!box.valid())
+		return;
+
 	// 4 is the minimum amount of lines for the edges of the cube.
 	// https://math.stackexchange.com/questions/253253/tracing-the-edges-of-a-cube-with-the-minimum-pencil-lifts
 	drawLine(
@@ -167,6 +170,50 @@ void ShapeRenderer::drawLineBox(const Box& box, const Color& color, DrawType dra
 		box.corner(1),
 		box.corner(5)
 	}, color, drawType);
+}
+
+void ShapeRenderer::drawLineBoxCorners(const Box& box, const Color& color, DrawType drawType)
+{
+	if (!box.valid())
+		return;
+
+	const float CornerBoxLineLengthMultiplier = 0.2f;
+	vec3 lineLength = box.dimensions() * CornerBoxLineLengthMultiplier;
+
+	std::array<vec3, 8> corners;
+
+	for (int i = 0; i < 8; ++i)
+	{
+		corners[i] = box.corner(i);
+	}
+
+	// Draw the box with short lines in each corner.
+	for (int i = 0; i < 8; ++i)
+	{
+		// Even index will be +1, odd index will be -1
+		drawLine(
+		{
+			corners[i],
+			corners[i] + lineLength.z * glm::normalize(corners[i + ((i % 2 == 0) ? 1 : -1)] - corners[i])
+		},
+		color, drawType);
+
+		// First two will be +2, the following two -2, etc.
+		drawLine(
+		{
+			corners[i],
+			corners[i] + lineLength.y * glm::normalize(corners[i + (((i / 2) % 2) ? -2 : 2)] - corners[i])
+		},
+		color, drawType);
+
+		// First four will be +4, the following four -4, etc.
+		drawLine(
+		{
+			corners[i],
+			corners[i] + lineLength.x * glm::normalize(corners[i + (((i / 4) % 4) ? -4 : 4)] - corners[i])
+		},
+		color, drawType);
+	}
 }
 
 void ShapeRenderer::drawCircle(

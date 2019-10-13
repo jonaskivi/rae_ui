@@ -33,7 +33,7 @@ public:
 		m_max = vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 	}
 
-	bool valid()
+	bool valid() const
 	{
 		if (m_min.x <= m_max.x &&
 			m_min.y <= m_max.y &&
@@ -82,6 +82,7 @@ public:
 	}
 
 	void transform(const Transform& tr);
+	void translate(const vec3& offset);
 	void translatePivot(const Pivot& pivot);
 
 	const vec3& min() const { return m_min; }

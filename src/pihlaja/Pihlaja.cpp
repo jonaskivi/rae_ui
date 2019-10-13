@@ -48,7 +48,7 @@ Pihlaja::Pihlaja() :
 	#ifdef __linux__
 		m_videoAssetId = m_avSystem.loadAsset("/home/joonaz/Videot/test4.mov");
 	#elif __APPLE__
-		m_videoAssetId = m_avSystem.loadAsset("/Users/joonaz/Documents/jonas/hdr_testi_matskut2017/test4.mov");
+		m_videoAssetId = m_avSystem.loadAsset("/Users/jonas/Documents/my_own_stuff/videos/test4.mov");
 	#endif
 
 	////////m_hdrFlow.setExposureWeight(0.75f);

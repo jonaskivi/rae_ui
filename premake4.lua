@@ -1,23 +1,16 @@
 #!lua
 
 -- XCode build note:
--- install Cuda SDK (tested with 8.0)
--- install OpenCV with Homebrew: (I guess also needs some call to enable science packages.)
 
--- To make sure that ffmpeg is built with LGPL licence
--- brew install ffmpeg --with-sdl2 --with-openh264 --without-x264 --without-xvid --without-lame
+-- Install ffmpeg with Homebrew
+-- brew install ffmpeg
 
--- brew install opencv3 --with-contrib --with-tbb --with-ffmpeg --c++11
--- And maybe not --with-cuda
--- (contrib is the extra modules, which contains DeepFlow. tbb is presumably Thread Building Blocks library.)
--- And you still have to add to Xcode rpath (Runpath Search Paths) manually:
--- /usr/local/opt/opencv3/lib/
--- /usr/local/opt/ffmpeg/lib/
+-- install OpenCV:
+-- brew install opencv3
 
--- Needed to add to Runpath Search Paths manually in Xcode project settings:
--- @loader_path/../Libraries /usr/local/opt/opencv3/lib/
--- or
--- @loader_path/../Libraries @loader_path/../Libraries/opencv3
+-- Not sure if I needed to add some library search paths somewhere, but at least libassimp.dylib would not
+-- work, so I needed to rename it to libassimp.3.dylib and add it to the project manually in project
+-- settings general, end of page. I have no idea how these build systems work. They never work properly.
 
 -- A solution contains projects, and defines the available configurations
 solution "pihlaja"
@@ -97,7 +90,7 @@ solution "pihlaja"
       configuration { "macosx" }
          buildoptions { "-std=c++11 -stdlib=libc++" }
          includedirs {
-                        "/usr/local/opt/opencv/opencv4/include/",
+                        "/usr/local/opt/opencv/include/opencv4/",
                         "/usr/local/opt/ffmpeg/include/",
                      }
          defines { "USE_RAE_AV" }
@@ -129,7 +122,8 @@ solution "pihlaja"
              "../Libraries/",
              --"../Libraries/opencv3/",
              "/usr/local/opt/",
-             "/usr/local/opt/opencv3/lib/",
+             --"/usr/local/opt/opencv3/lib/",
+             "/usr/local/opt/opencv/lib/",
              "/usr/local/opt/ffmpeg/lib/",
          }
          linkoptions { "-stdlib=libc++", "-framework OpenGL", "-framework Cocoa", "-framework IOKit", "-framework CoreVideo" }

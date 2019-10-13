@@ -10,6 +10,7 @@
 
 using namespace cv;
 using namespace cv::cuda;
+using namespace cv::optflow;
 using namespace rae;
 using namespace rae::av;
 
@@ -191,7 +192,7 @@ void OpticalFlow::update()
 					}
 				}
 
-				remap(input, output, interpMap, Mat(), CV_INTER_LINEAR);
+				remap(input, output, interpMap, Mat(), INTER_LINEAR);
 			};
 
 			Mat output0;
@@ -255,7 +256,7 @@ const Mat& OpticalFlow::getOutputAtTime(float lerpTime)
 			}
 		}
 
-		remap(input, output, interpMap, Mat(), CV_INTER_LINEAR);
+		remap(input, output, interpMap, Mat(), INTER_LINEAR);
 	};
 
 	Mat output0;
@@ -273,7 +274,7 @@ const Mat& OpticalFlow::getOutputAtTime(float lerpTime)
 void OpticalFlow::writeMatToPng(String filepath, const cv::Mat& mat)
 {
 	std::vector<int> compression_params;
-	compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+	compression_params.push_back(IMWRITE_PNG_COMPRESSION);
 	compression_params.push_back(9);
 
 	imwrite(filepath, mat, compression_params);

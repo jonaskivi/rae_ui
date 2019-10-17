@@ -4,6 +4,7 @@
 
 #include "core/Math.hpp"
 #include "rae/visual/Ray.hpp"
+#include "rae/visual/Axis.hpp"
 
 #include "rae/animation/Animator.hpp"
 
@@ -48,7 +49,9 @@ public:
 	void setNeedsUpdate() { m_needsUpdate = true; }
 
 	const vec3& position() const { return m_position; }
-	void setPosition(vec3 pos);
+	void setPosition(const vec3& position);
+	const qua& rotation() const { return m_rotation; }
+
 	void moveForward(float delta);
 	void moveBackward(float delta);
 	void moveRight(float delta);
@@ -108,11 +111,21 @@ public:
 	const vec3& right() const { return m_right; }
 	const vec3& direction() const { return m_direction; }
 
+	vec3 coordinatesUp() const
+	{
+		if (m_coordinatesUp == CoordinatesUp::Z)
+			return axisVector(Axis::Z);
+		else if (m_coordinatesUp == CoordinatesUp::Y)
+			return axisVector(Axis::Y);
+		return axisVector(Axis::X); // Hopefully never.
+	}
+
 protected:
 
 	CoordinatesUp m_coordinatesUp = CoordinatesUp::Z;
 
 	vec3 m_position = vec3(-20.0f, 0.0f, 1.0f);
+	qua m_rotation = qua();
 	vec3 m_direction = vec3(1.0f, 0.0f, 1.0f);
 	vec3 m_right = vec3(0,-1,0); // u
 	vec3 m_up = vec3(0,0,1); // v

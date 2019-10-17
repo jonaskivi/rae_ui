@@ -23,7 +23,6 @@ public:
 	void setDirection(const vec3& direction) { m_direction = direction; }
 	void setOrigin(const vec3& origin) { m_origin = origin; }
 	void moveOrigin(const vec3& delta) { m_origin += delta; }
-	void rotate(const qua& delta) { m_direction = delta * m_direction; m_origin = delta * m_origin; }
 	// Return the point on the ray at the distance t from origin towards direction.
 	vec3 getPointAt(float t) const { return m_origin + t * m_direction; }
 

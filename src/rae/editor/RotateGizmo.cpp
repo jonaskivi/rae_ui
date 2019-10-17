@@ -264,8 +264,8 @@ qua RotateGizmo::getRotateAxisDelta(
 
 		Axis axis = Axis(i);
 
-		vec3 axisDirection = m_rotation * axisVector(axis);
-		qua diskRotation = m_rotation * axisRotation(axis);
+		vec3 axisDirection = m_originalRotation * axisVector(axis);
+		qua diskRotation = m_originalRotation * axisRotation(axis);
 		vec3 diskNormal = glm::normalize(diskRotation * axisVector(Axis::X));
 
 		float radius = 2.0f;
@@ -311,6 +311,8 @@ qua RotateGizmo::getRotateAxisDelta(
 
 	if (gizmoAxis == GizmoAxis::Screen)
 	{
+		// RAE_TODO: Yeah. Should clear this up. Currently in Screen, Y is forward,
+		// which is kind of nonsense. X should be forward, but yeah. Maybe later.
 		if (m_axisActives[0])
 			return glm::angleAxis(angles[0], camera.right());
 		else if (m_axisActives[1])
@@ -318,13 +320,14 @@ qua RotateGizmo::getRotateAxisDelta(
 		else if (m_axisActives[2])
 			return glm::angleAxis(angles[2], camera.up());
 	}
-	else if (gizmoAxis == GizmoAxis::Workplane)
+	else if (gizmoAxis == GizmoAxis::Workplane ||
+		gizmoAxis == GizmoAxis::Local)
 	{
 		// Use the actual rotation of our gizmo
 		return rotateAxisDelta;
 	}
 
-	// GizmoAxis::World and GizmoAxis::Local use just the axis angles.
+	// GizmoAxis::World just use the axis angles to prevent any possible numeric issues with rotateAxisDelta (?).
 	vec3 euler = vec3(angles[0], angles[1], angles[2]);
 	return qua(euler);
 }

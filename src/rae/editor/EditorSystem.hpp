@@ -65,6 +65,16 @@ public:
 
 	void onSelectionChanged(const SelectionSystem& selectionSystem);
 
+	bool anyGizmoActive()
+	{
+		for (auto* gizmo : m_gizmos)
+		{
+			if (gizmo->isActive())
+				return true;
+		}
+		return false;
+	}
+
 	bool anyGizmoVisible()
 	{
 		for (auto* gizmo : m_gizmos)
@@ -113,7 +123,7 @@ public:
 protected:
 
 	void updateGizmoPosition(const SelectionSystem& selectionSystem);
-	void updateGizmoRotation(const SelectionSystem& selectionSystem);
+	void updateGizmoRotation(const SelectionSystem& selectionSystem, const Camera& camera);
 	void showCorrectToolMode();
 
 	TransformToolMode m_transformToolMode = TransformToolMode::Rotate;

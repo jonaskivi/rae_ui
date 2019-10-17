@@ -56,7 +56,7 @@ HandleStatus TransformTool::handleInput(
 		return HandleStatus::NotHandled;
 
 	updateGizmoPosition(selectionSystem);
-	updateGizmoRotation(selectionSystem);
+	updateGizmoRotation(selectionSystem, camera);
 
 	m_previousMouseRay = m_mouseRay;
 	m_mouseRay = camera.getExactRay(
@@ -145,6 +145,10 @@ void TransformTool::update(Scene& scene)
 {
 	const Camera& camera = scene.cameraSystem().currentCamera();
 	auto& shapeRenderer = scene.modifyShapeRenderer();
+	auto& selectionSystem = scene.selectionSystem();
+
+	updateGizmoPosition(selectionSystem);
+	updateGizmoRotation(selectionSystem, camera);
 
 	if (m_rotateGizmo.isVisible())
 	{
@@ -225,8 +229,8 @@ void TransformTool::onSelectionChanged(const SelectionSystem& selectionSystem)
 {
 	if (selectionSystem.isSelection())
 	{
-		updateGizmoPosition(selectionSystem);
-		updateGizmoRotation(selectionSystem);
+		//RAE_REMOVE? updateGizmoPosition(selectionSystem);
+		//RAE_REMOVE? updateGizmoRotation(selectionSystem, camera);
 		showCorrectToolMode();
 	}
 	else
@@ -278,7 +282,7 @@ void TransformTool::updateGizmoPosition(const SelectionSystem& selectionSystem)
 	//RAE_TODO: Workplane
 }
 
-void TransformTool::updateGizmoRotation(const SelectionSystem& selectionSystem)
+void TransformTool::updateGizmoRotation(const SelectionSystem& selectionSystem, const Camera& camera)
 {
 	if (m_gizmoAxis == GizmoAxis::World)
 	{
@@ -294,8 +298,14 @@ void TransformTool::updateGizmoRotation(const SelectionSystem& selectionSystem)
 			gizmo->setRotation(selectionSystem.firstSelectedRotation());
 		}
 	}
+	else if (m_gizmoAxis == GizmoAxis::Screen)
+	{
+		for (auto* gizmo : m_gizmos)
+		{
+			gizmo->setRotation(camera.rotation());
+		}
+	}
 	//RAE_TODO: Workplane
-	//RAE_TODO: Screen
 }
 
 void TransformTool::translateSelected(const vec3& delta, SelectionSystem& selectionSystem)

@@ -35,8 +35,22 @@ class IGizmo
 {
 public:
 	const vec3& position() const { return m_position; }
-	void setPosition(const vec3& position) { m_position = position; }
-	void setRotation(const qua& rotation) { m_rotation = rotation; }
+	void setPosition(const vec3& position)
+	{
+		if (!isActive())
+		{
+			m_originalPosition = position;
+		}
+		m_position = position;
+	}
+	void setRotation(const qua& rotation)
+	{
+		if (!isActive())
+		{
+			m_originalRotation = rotation;
+		}
+		m_rotation = rotation;
+	}
 	void addToRotation(const qua& deltaRotation) { m_rotation = m_rotation * deltaRotation; }
 
 	bool isVisible() const { return m_visible; }
@@ -105,8 +119,14 @@ public:
 protected:
 	bool m_visible = false;
 
+	// Current position, even when moving. Usually visualized.
 	vec3 m_position;
+	// Original position before action started.
+	vec3 m_originalPosition;
+	// Current rotation, even when rotating. Usually visualized.
 	qua m_rotation;
+	// Original rotation before action started.
+	qua m_originalRotation;
 
 	std::array<Transform,	(int)Axis::Count>	m_axisTransforms;
 	std::array<bool,		(int)Axis::Count>	m_axisHovers = { false, false, false };

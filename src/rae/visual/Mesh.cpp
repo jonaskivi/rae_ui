@@ -207,9 +207,18 @@ bool Mesh::rayTriangleIntersection(const vec3& rayStart, const vec3& rayDirectio
 
 bool Mesh::hit(const Transform& transform, const Ray& ray, float t_min, float t_max, HitRecord& record) const
 {
-	Ray transformedRay = ray;
-	transformedRay.rotate(transform.rotation);
-	transformedRay.moveOrigin(-transform.position);
+	// Transform ray from world space into object local space:
+	mat4 translationMatrix = glm::translate(mat4(1.0f), transform.position);
+	mat4 rotationMatrix = glm::toMat4(transform.rotation);
+	mat4 scaleMatrix = glm::scale(mat4(1.0f), transform.scale);
+	mat4 invMatrix =
+		glm::inverse(scaleMatrix) *
+		glm::inverse(rotationMatrix) *
+		glm::inverse(translationMatrix);
+
+	Ray transformedRay;
+	transformedRay.setOrigin(vec3(invMatrix * vec4(ray.origin(), 1.0f)));
+	transformedRay.setDirection(vec3(invMatrix * vec4(ray.direction(), 0.0f)));
 
 	if (m_aabb.hit(transformedRay, t_min, t_max) == false)
 		return false;

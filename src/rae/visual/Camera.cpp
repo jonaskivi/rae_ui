@@ -1,6 +1,7 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "loguru/loguru.hpp"
@@ -67,36 +68,36 @@ void Camera::calculateFrustum()
 	if (m_coordinatesUp == CoordinatesUp::Z)
 	{
 		m_direction = vec3(
-			cos(m_pitchAngle) * cos(m_yawAngle),
-			cos(m_pitchAngle) * sin(m_yawAngle),
-			sin(m_pitchAngle)
+			cosf(m_pitchAngle) * cosf(m_yawAngle),
+			cosf(m_pitchAngle) * sinf(m_yawAngle),
+			sinf(m_pitchAngle)
 		);
 
 		// Right vector
 		m_right = glm::vec3(
-			cos(m_yawAngle - 3.14f/2.0f),
-			sin(m_yawAngle - 3.14f/2.0f),
+			cosf(m_yawAngle - 3.14f/2.0f),
+			sinf(m_yawAngle - 3.14f/2.0f),
 			0
 		);
 	}
 	else if (m_coordinatesUp == CoordinatesUp::Y)
 	{
 		m_direction = vec3(
-			cos(m_pitchAngle) * sin(m_yawAngle),
-			sin(m_pitchAngle),
-			cos(m_pitchAngle) * cos(m_yawAngle)
+			cosf(m_pitchAngle) * sinf(m_yawAngle),
+			sinf(m_pitchAngle),
+			cosf(m_pitchAngle) * cosf(m_yawAngle)
 		);
 
 		// Right vector
 		m_right = glm::vec3(
-			sin(m_yawAngle - 3.14f/2.0f),
+			sinf(m_yawAngle - 3.14f/2.0f),
 			0,
-			cos(m_yawAngle - 3.14f/2.0f)
+			cosf(m_yawAngle - 3.14f/2.0f)
 		);
 	}
 
 	// Up vector
-	m_up = glm::cross( m_right, m_direction );
+	m_up = glm::cross(m_right, m_direction);
 
 	/*
 	LOG_F(INFO, "forward: %f %f %f", m_direction.x, m_direction.y, m_direction.z);
@@ -105,12 +106,13 @@ void Camera::calculateFrustum()
 	*/
 
 	m_projectionMatrix = glm::perspective(Math::toDegrees(m_fieldOfView), m_aspectRatio, 0.1f, 500.0f);
-	m_viewMatrix = glm::lookAt( m_position, m_position + m_direction, m_up );
+	m_viewMatrix = glm::lookAt(m_position, m_position + m_direction, m_up);
+	m_rotation = glm::inverse(glm::toQuat(m_viewMatrix)) * qua(vec3(-Math::toRadians(90.0f), 0.0f, 0.0f));
 
 	//
 
 	vec3 w;
-	float halfHeight = tan(m_fieldOfView / 2.0f);
+	float halfHeight = tanf(m_fieldOfView / 2.0f);
 
 	float halfWidth = m_aspectRatio * halfHeight;
 	w = glm::normalize(m_position - (m_position + m_direction));
@@ -157,12 +159,12 @@ bool Camera::update(double time)
 	return ret;
 }
 
-void Camera::setPosition(vec3 pos)
+void Camera::setPosition(const vec3& position)
 {
-	if (pos != m_position)
+	if (position != m_position)
 	{
 		m_needsUpdate = true;
-		m_position = pos;
+		m_position = position;
 	}
 }
 

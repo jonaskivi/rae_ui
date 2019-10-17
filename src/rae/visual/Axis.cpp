@@ -57,48 +57,4 @@ qua axisRotation(Axis axis)
 	return qua();
 }
 
-Plane axisPlane(Axis axis, vec3 origin)
-{
-	return Plane(origin, axisVector(axis));
-}
-
-Plane computeMostPerpendicularAxisPlane(Axis axis, const vec3& gizmoOrigin, const vec3& rayDirection)
-{
-	Plane plane1;
-	Plane plane2;
-
-	// Check which other axis plane is the most perpendicular to the given ray.
-	// For X axis consider Y and X axes.
-	switch(axis)
-	{
-		case Axis::X:
-			plane1 = axisPlane(Axis::Y, gizmoOrigin);
-			plane2 = axisPlane(Axis::Z, gizmoOrigin);
-			break;
-		case Axis::Y:
-			plane1 = axisPlane(Axis::X, gizmoOrigin);
-			plane2 = axisPlane(Axis::Z, gizmoOrigin);
-			break;
-		case Axis::Z:
-			plane1 = axisPlane(Axis::X, gizmoOrigin);
-			plane2 = axisPlane(Axis::Y, gizmoOrigin);
-			break;
-		default:
-			assert(0);
-			break;
-	}
-
-	float perpendicular1 = glm::dot(rayDirection, plane1.normal());
-	float perpendicular2 = glm::dot(rayDirection, plane2.normal());
-
-	if (fabs(perpendicular1) >= fabs(perpendicular2))
-	{
-		return plane1;
-	}
-	else
-	{
-		return plane2;
-	}
-}
-
 }

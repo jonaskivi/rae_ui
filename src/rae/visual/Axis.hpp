@@ -18,7 +18,5 @@ enum class Axis
 vec3 axisVector(Axis axis);
 Color axisColor(Axis axis);
 qua axisRotation(Axis axis);
-Plane axisPlane(Axis axis, vec3 origin);
-Plane computeMostPerpendicularAxisPlane(Axis axis, const vec3& gizmoOrigin, const vec3& rayDirection);
 
 }

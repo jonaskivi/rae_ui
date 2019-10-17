@@ -35,6 +35,12 @@ public:
 
 protected:
 
+	Plane axisPlane(Axis axis, const vec3& gizmoOrigin) const;
+	Plane computeMostPerpendicularAxisPlane(
+		Axis axis,
+		const vec3& gizmoOrigin,
+		const vec3& rayDirection) const;
+
 	// Returns an array of sorted linehandles, based on their position from the camera.
 	std::array<LineHandle, (int)Axis::Count> sortLineHandles(float gizmoCameraFactor, const Camera& camera) const;
 

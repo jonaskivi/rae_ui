@@ -5,6 +5,7 @@
 -- brew install ffmpeg
 -- brew install opencv3
 -- brew install assimp
+-- You might manually need to change the Deployment Target (macOS SDK) on Mojave at least.
 
 -- A solution contains projects, and defines the available configurations
 solution "pihlaja"
@@ -34,7 +35,6 @@ solution "pihlaja"
       includedirs
       {
          "external/glew/include",
-         "external/glfw/include",
          "external/nanovg/src",
          "external/glm",
          "external/glm/glm",
@@ -47,7 +47,7 @@ solution "pihlaja"
       }
       links
       {
-         "glfw3", "glew", "nanovg",
+         "glfw", "glew", "nanovg",
       }
       defines { "GLEW_STATIC", "NANOVG_GLEW" }
 
@@ -83,12 +83,6 @@ solution "pihlaja"
 
       configuration { "macosx" }
          buildoptions { "-std=c++11 -stdlib=libc++" }
-         includedirs
-         {
-            "/usr/local/opt/opencv/include/opencv4/",
-            "/usr/local/opt/ffmpeg/include/",
-            "/usr/local/opt/assimp/include/",
-         }
          defines
          {
             "USE_RAE_AV",
@@ -117,6 +111,13 @@ solution "pihlaja"
 
             "assimp",
          }
+         includedirs
+         {
+            "/usr/local/opt/opencv/include/opencv4/",
+            "/usr/local/opt/ffmpeg/include/",
+            "/usr/local/opt/assimp/include/",
+            "/usr/local/opt/glfw/include/",
+         }
          libdirs
          {
              --"@loader_path/../Libraries",
@@ -128,8 +129,16 @@ solution "pihlaja"
              "/usr/local/opt/opencv/lib/",
              "/usr/local/opt/ffmpeg/lib/",
              "/usr/local/opt/assimp/lib/",
+             "/usr/local/opt/glfw/lib/",
          }
-         linkoptions { "-stdlib=libc++", "-framework OpenGL", "-framework Cocoa", "-framework IOKit", "-framework CoreVideo" }
+         linkoptions
+         {
+            "-stdlib=libc++",
+            "-framework OpenGL",
+            "-framework Cocoa",
+            "-framework IOKit",
+            "-framework CoreVideo"
+         }
 
       configuration "Debug"
          defines { "DEBUG" }
@@ -141,41 +150,6 @@ solution "pihlaja"
          flags { "Optimize" }
          debugdir "bin/"
 
-   -- GLFW Library
-   project "glfw3"
-      kind "StaticLib"
-      language "C"
-      targetdir "lib"
-      files { "external/glfw/lib/*.h", "external/glfw/lib/*.c", "external/glfw/include/GL/glfw.h" }
-      includedirs { "external/glfw/lib", "external/glfw/include"}
-
-      configuration {"linux"}
-         files { "external/glfw/lib/x11/*.c", "external/glfw/x11/*.h" }
-         includedirs { "external/glfw/lib/x11" }
-         targetdir "lib"
-         defines { "_GLFW_X11", "_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS" }
-         buildoptions { "-pthread" }
-
-      configuration {"windows"}
-         files { "external/glfw/src/*.c", "external/glfw/src/*.h" }
-         includedirs { "external/glfw/src" }
-         defines { "_GLFW_EGL", "_GLFW_WIN32", "_GLFW_USE_OPENGL" }
-
-      configuration {"Macosx"}
-         files { "external/glfw/lib/cocoa/*.c", "external/glfw/lib/cocoa/*.h", "external/glfw/lib/cocoa/*.m" }
-         includedirs { "external/glfw/lib/cocoa" }
-         targetdir "Libraries"
-         defines { "_GLFW_COCOA" }
-         buildoptions { " -fno-common" }
-         linkoptions { "-framework OpenGL", "-framework Cocoa", "-framework IOKit" }
-
-      configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols", "ExtraWarnings" }
-
-      configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize", "ExtraWarnings" }
 
    -- GLEW Library
    project "glew"

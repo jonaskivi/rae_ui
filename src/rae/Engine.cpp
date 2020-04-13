@@ -346,7 +346,7 @@ UpdateStatus Engine::update()
 
 void Engine::askForFrameUpdate()
 {
-	//glfwPostEmptyEvent(); //TODO need to update to GLFW 3.1
+	glfwPostEmptyEvent();
 }
 
 void Engine::osEventResizeWindow(int width, int height)

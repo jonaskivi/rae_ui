@@ -319,13 +319,15 @@ void Window::toggleFullscreen()
 	if (m_isFullscreen)
 	{
 		// GLFW 3.1:
+		/*
 		{
 			glfwGetWindowPos(m_windowHandle, &m_positionXBackup, &m_positionXBackup);
 
 			create(m_name, m_width, m_height, m_isFullscreen);
 		}
+		*/
 
-		/* RAE_TODO needs GLFW 3.2:
+		// GLFW 3.2:
 		{
 			glfwGetWindowPos(m_windowHandle, &m_positionXBackup, &m_positionXBackup);
 			const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -342,19 +344,20 @@ void Window::toggleFullscreen()
 				mode->height,
 				0);
 		}
-		*/
 	}
 	else
 	{
 		// GLFW 3.1:
+		/*
 		{
 			m_width = m_widthBackup;
 			m_height = m_heightBackup;
 
 			create(m_name, m_width, m_height, m_isFullscreen);
 		}
+		*/
 
-		/* RAE_TODO needs GLFW 3.2:
+		// GLFW 3.2:
 		{
 			glfwSetWindowMonitor(m_windowHandle,
 				nullptr,
@@ -364,6 +367,5 @@ void Window::toggleFullscreen()
 				m_heightBackup,
 				0);
 		}
-		*/
 	}
 }

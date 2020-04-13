@@ -2,9 +2,11 @@
 
 -- XCode build notes:
 -- Install dependencies with Homebrew:
+-- brew install glfw
+-- brew install glew
+-- brew install assimp
 -- brew install ffmpeg
 -- brew install opencv3
--- brew install assimp
 -- You might manually need to change the Deployment Target (macOS SDK) on Mojave at least.
 
 -- A solution contains projects, and defines the available configurations
@@ -34,7 +36,6 @@ solution "pihlaja"
       }
       includedirs
       {
-         "external/glew/include",
          "external/nanovg/src",
          "external/glm",
          "external/glm/glm",
@@ -117,6 +118,7 @@ solution "pihlaja"
             "/usr/local/opt/ffmpeg/include/",
             "/usr/local/opt/assimp/include/",
             "/usr/local/opt/glfw/include/",
+            "/usr/local/opt/glew/include/",
          }
          libdirs
          {
@@ -130,6 +132,7 @@ solution "pihlaja"
              "/usr/local/opt/ffmpeg/lib/",
              "/usr/local/opt/assimp/lib/",
              "/usr/local/opt/glfw/lib/",
+             "/usr/local/opt/glew/lib/",
          }
          linkoptions
          {
@@ -150,28 +153,6 @@ solution "pihlaja"
          flags { "Optimize" }
          debugdir "bin/"
 
-
-   -- GLEW Library
-   project "glew"
-      kind "StaticLib"
-      language "C"
-      targetdir "lib"
-      files {"external/glew/*.c", "external/glew/*.h"}
-      defines { "GLEW_STATIC" }
-
-      configuration {"linux"}
-         targetdir "lib"
-
-      configuration {"Macosx"}
-         targetdir "Libraries"
-
-      configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols", "ExtraWarnings" }
-
-      configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize", "ExtraWarnings" }
 
    -- NanoVG Library
    project "nanovg"

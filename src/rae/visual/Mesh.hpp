@@ -3,13 +3,13 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-//ASSIMP
+#ifdef USE_ASSIMP
 #include "assimp/Importer.hpp"	//OO version Header!
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 #include "assimp/DefaultLogger.hpp"
 #include "assimp/LogStream.hpp"
-//end // ASSIMP
+#endif
 
 #include "rae/core/Types.hpp"
 
@@ -49,10 +49,10 @@ public:
 
 	void generateLinesFromVertices(const Array<vec3>& vertices);
 
-	//ASSIMP
 	bool loadModel(const String& filepath);
+	#ifdef USE_ASSIMP
 	void loadNode(const aiScene* scene, const aiNode* node);
-	//end // ASSIMP
+	#endif
 
 	void render(uint shaderProgramId) const;
 	void renderForOutline(uint shaderProgramId) const;

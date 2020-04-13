@@ -539,3 +539,36 @@ name of the property that it will change.
 - Vector3 and Vector4 property editor(s). Probably just the same thing?
 	Label, TextBox x 3 or 4.
 
+--------------------------------------------------------------------------------------------------------------
+
+2020-04-12 Sunday
+
+Have been working a day job for a while now. Also have two other more important projects. So no time
+for this project.
+
+But what I'd like to do with this, is to use this as my therapy project. To work on it, whenever other
+stuff is not going anywhere.
+
+Next steps, questions and decisions:
+
+- No scripting language for now. Possibly Lua, Python, Haxe or own stuff, could be used in the future, if needed.
+Mainly, I hate the scripting language being a different language than the main, because it forks the codebase.
+Some stuff will be in scripting and some stuff native. And manytimes need to move stuff between them, so
+need lot's of rewriting all the time. So, ideally, scripting language should be the same language as the native.
+And because C++ is not ideal, there should be a new language that can compile to both C++ and use some
+scripting virtual machine. Rae language would be ideal for this. But that should wait until, there's some
+money in the bank.
+
+- For better text rendering, I think we need Skia.
+- Then need to make UI rendering use framebuffer objects, because performance will such otherwise.
+
+TODO:
+- Add Skia
+- Use framebuffer objects for UI rendering.
+- Use a framebuffer object for 3D rendering the whole thing.
+- Maybe later: Add Bullet physics.
+- Global illumination.
+- Add FBXSDK.
+- Add skeletal animation support.
+
+

@@ -1,16 +1,10 @@
 #!lua
 
--- XCode build note:
-
--- Install ffmpeg with Homebrew
+-- XCode build notes:
+-- Install dependencies with Homebrew:
 -- brew install ffmpeg
-
--- install OpenCV:
 -- brew install opencv3
-
--- Not sure if I needed to add some library search paths somewhere, but at least libassimp.dylib would not
--- work, so I needed to rename it to libassimp.3.dylib and add it to the project manually in project
--- settings general, end of page. I have no idea how these build systems work. They never work properly.
+-- brew install assimp
 
 -- A solution contains projects, and defines the available configurations
 solution "pihlaja"
@@ -53,7 +47,7 @@ solution "pihlaja"
       }
       links
       {
-         "glfw3", "glew", "nanovg", "assimp",
+         "glfw3", "glew", "nanovg",
       }
       defines { "GLEW_STATIC", "NANOVG_GLEW" }
 
@@ -89,11 +83,17 @@ solution "pihlaja"
 
       configuration { "macosx" }
          buildoptions { "-std=c++11 -stdlib=libc++" }
-         includedirs {
-                        "/usr/local/opt/opencv/include/opencv4/",
-                        "/usr/local/opt/ffmpeg/include/",
-                     }
-         defines { "USE_RAE_AV" }
+         includedirs
+         {
+            "/usr/local/opt/opencv/include/opencv4/",
+            "/usr/local/opt/ffmpeg/include/",
+            "/usr/local/opt/assimp/include/",
+         }
+         defines
+         {
+            "USE_RAE_AV",
+            "USE_ASSIMP"
+         }
          links
          {
             --"opencv_calib3d",
@@ -114,6 +114,8 @@ solution "pihlaja"
             "avcodec",
             "avformat",
             "swscale",
+
+            "assimp",
          }
          libdirs
          {
@@ -125,6 +127,7 @@ solution "pihlaja"
              --"/usr/local/opt/opencv3/lib/",
              "/usr/local/opt/opencv/lib/",
              "/usr/local/opt/ffmpeg/lib/",
+             "/usr/local/opt/assimp/lib/",
          }
          linkoptions { "-stdlib=libc++", "-framework OpenGL", "-framework Cocoa", "-framework IOKit", "-framework CoreVideo" }
 
@@ -218,25 +221,3 @@ solution "pihlaja"
       configuration "Release"
          defines { "NDEBUG" }
          flags { "Optimize", "ExtraWarnings"}
-
-   -- Assimp library
-   project "assimp"
-      kind "SharedLib"
-      language "C"
-      targetdir "lib"
-      files {"external/assimp/*.c", "external/assimp/*.h"}
-
-      configuration {"linux"}
-         targetdir "lib"
-
-      configuration {"Macosx"}
-         targetdir "Libraries"
-
-      configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols", "ExtraWarnings" }
-
-      configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize", "ExtraWarnings" }
-

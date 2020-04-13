@@ -859,9 +859,9 @@ void Mesh::generateLinesFromVertices(const Array<vec3>& vertices)
 	}
 }
 
-//ASSIMP
 bool Mesh::loadModel(const String& filepath)
 {
+#ifdef USE_ASSIMP
 	Assimp::Importer importer;
 
 	//Assimp::Logger::LogSeverity severity = Assimp::Logger::NORMAL;
@@ -903,8 +903,14 @@ bool Mesh::loadModel(const String& filepath)
 
 	LOG_F(INFO, "Succesfully imported scene %s", filepath.c_str());
 	return true;
+
+#else
+	LOG_F(INFO, "Model loading not supported at the moment. No Assimp and no FBX-SDK yet. %s", filepath.c_str());
+	return false;
+#endif
 }
 
+#ifdef USE_ASSIMP
 void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 {
 	//LOG_F(INFO, "Node mesh count: %i", node->mNumMeshes);
@@ -1009,7 +1015,7 @@ void Mesh::loadNode(const aiScene* scene, const aiNode* node)
 		}
 	}
 }
-//end // ASSIMP
+#endif // USE_ASSIMP
 
 void Mesh::render(uint shaderProgramId) const
 {

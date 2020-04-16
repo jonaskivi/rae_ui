@@ -78,6 +78,10 @@ RayTracer::RayTracer(
 		m_assetSystem(assetSystem),
 		m_sceneSystem(sceneSystem)
 {
+	m_frameReady = false;
+	m_requestClear = false;
+	m_requestToggleBuffer = false;
+
 	setIsEnabled(false);
 
 	m_smallBuffer.init(300, 150);

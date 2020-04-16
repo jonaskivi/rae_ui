@@ -128,7 +128,7 @@ protected:
 
 	TransformToolMode m_transformToolMode = TransformToolMode::Rotate;
 	GizmoPivot m_gizmoPivot = GizmoPivot::Auto;
-	GizmoAxis m_gizmoAxis = GizmoAxis::World;
+	GizmoAxis m_gizmoAxis = GizmoAxis::Local;
 
 	TranslateGizmo m_translateGizmo;
 	RotateGizmo m_rotateGizmo;
